@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class DebuggerIntelliSenseWorkspace : Workspace
     {
         public DebuggerIntelliSenseWorkspace(Solution solution)

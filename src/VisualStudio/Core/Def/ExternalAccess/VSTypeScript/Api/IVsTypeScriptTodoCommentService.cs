@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal interface IVsTypeScriptTodoCommentService
     {
         /// <summary>

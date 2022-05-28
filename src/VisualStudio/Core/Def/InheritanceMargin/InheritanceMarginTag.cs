@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class InheritanceMarginTag : IGlyphTag
     {
         /// <summary>

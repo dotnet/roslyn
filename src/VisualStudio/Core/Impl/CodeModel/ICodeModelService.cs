@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal interface ICodeModelService : ICodeModelNavigationPointService
     {
         /// <summary>

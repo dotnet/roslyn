@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Shared]
     [Export(typeof(IHostWorkspaceProvider))]
     internal sealed class VisualStudioIHostWorkspaceProvider : IHostWorkspaceProvider

@@ -14,6 +14,8 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed partial class SourceGeneratedFileItem : BaseItem
     {
         private readonly IThreadingContext _threadingContext;

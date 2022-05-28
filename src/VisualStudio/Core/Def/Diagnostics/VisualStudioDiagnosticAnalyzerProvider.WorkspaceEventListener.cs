@@ -17,6 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class VisualStudioDiagnosticAnalyzerProvider
     {
         /// <summary>

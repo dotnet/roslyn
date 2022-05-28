@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export]
     internal sealed partial class XamlProjectService
     {

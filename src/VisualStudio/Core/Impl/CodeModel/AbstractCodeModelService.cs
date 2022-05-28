@@ -37,6 +37,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract partial class AbstractCodeModelService : ICodeModelService
     {
         private readonly ConditionalWeakTable<SyntaxTree, IBidirectionalMap<SyntaxNodeKey, SyntaxNode>> _treeToNodeKeyMaps =

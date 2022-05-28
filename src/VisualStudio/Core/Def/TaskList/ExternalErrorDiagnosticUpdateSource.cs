@@ -24,6 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
     using ProjectErrorMap = ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>;
 
     /// <summary>

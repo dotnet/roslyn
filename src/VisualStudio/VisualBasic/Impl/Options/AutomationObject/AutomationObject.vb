@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
         Inherits AbstractAutomationObject
 
-        Friend Sub New(workspace As Workspace)
+        Friend Sub New(workspace As Microsoft.CodeAnalysis.Workspace)
             MyBase.New(workspace, LanguageNames.VisualBasic)
         End Sub
 

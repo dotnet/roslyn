@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class AbstractGraphProvider : IGraphProvider
     {
         private readonly IThreadingContext _threadingContext;

@@ -22,6 +22,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]

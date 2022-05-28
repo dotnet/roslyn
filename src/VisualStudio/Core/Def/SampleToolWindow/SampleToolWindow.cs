@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Guid(Guids.SampleToolWindowIdString)]
     internal class SampleToolWindow : ToolWindowPane
     {

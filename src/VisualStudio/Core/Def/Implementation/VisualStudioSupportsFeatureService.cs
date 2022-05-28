@@ -21,6 +21,8 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionService
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class VisualStudioSupportsFeatureService
     {
         private const string ContainedLanguageMarker = nameof(ContainedLanguageMarker);

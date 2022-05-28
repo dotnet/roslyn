@@ -14,6 +14,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal struct VSTypeScriptContainedLanguageWrapper
     {
         private readonly ContainedLanguage _underlyingObject;

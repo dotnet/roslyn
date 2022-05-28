@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.CodeStyle
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class CSharpCodeStyleSettingsProviderFactory : ILanguageSettingsProviderFactory<CodeStyleSetting>
     {
         private readonly Workspace _workspace;

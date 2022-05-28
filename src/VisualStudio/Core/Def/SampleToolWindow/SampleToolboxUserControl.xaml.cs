@@ -36,6 +36,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// Interaction logic for SampleToolboxUserControl.xaml
     /// </summary>

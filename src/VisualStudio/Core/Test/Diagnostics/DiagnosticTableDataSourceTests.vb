@@ -813,20 +813,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
             <Obsolete>
-            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+            Public Function GetDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
                 Return GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, DiagnosticMode.Default, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken)
             End Function
 
-            Public Function GetPullDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPullDiagnosticsAsync
+            Public Function GetPullDiagnosticsAsync(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPullDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
-            Public Function GetPushDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
+            Public Function GetPushDiagnosticsAsync(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
             Private Function GetDiagnostics(
-                    workspace As Workspace,
+                    workspace As Microsoft.CodeAnalysis.Workspace,
                     projectId As ProjectId,
                     documentId As DocumentId,
                     includeSuppressedDiagnostics As Boolean) As ImmutableArray(Of DiagnosticData)
@@ -849,16 +849,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
+            Public Function GetPullDiagnosticBuckets(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 
-            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
+            Public Function GetPushDiagnosticBuckets(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 
             Private Function GetDiagnosticsBuckets(
-                    workspace As Workspace,
+                    workspace As Microsoft.CodeAnalysis.Workspace,
                     projectId As ProjectId,
                     documentId As DocumentId) As ImmutableArray(Of DiagnosticBucket)
                 Assert.NotNull(workspace)
@@ -893,7 +893,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnosticsArgs
             End Function
 
-            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace, ParamArray items As DiagnosticData())
+            Public Sub RaiseDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace, ParamArray items As DiagnosticData())
                 Dim item = items(0)
 
                 Dim id = If(CObj(item.DocumentId), item.ProjectId)
@@ -901,7 +901,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
             End Sub
 
-            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
+            Public Sub RaiseDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace)
                 Dim documentMap = Items.Where(Function(t) t.DocumentId IsNot Nothing).ToLookup(Function(t) t.DocumentId)
 
                 For Each group In documentMap

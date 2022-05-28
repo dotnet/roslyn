@@ -38,6 +38,8 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export]
     internal class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents
     {

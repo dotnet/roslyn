@@ -25,6 +25,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
     using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
     using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 

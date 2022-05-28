@@ -27,6 +27,8 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
         internal sealed class VsLanguageDebugInfo : IVsLanguageDebugInfo

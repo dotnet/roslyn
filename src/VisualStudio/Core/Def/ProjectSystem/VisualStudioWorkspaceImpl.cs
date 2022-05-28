@@ -53,6 +53,8 @@ using Solution = Microsoft.CodeAnalysis.Solution;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// The Workspace for running inside Visual Studio.
     /// </summary>

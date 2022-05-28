@@ -394,14 +394,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event TodoListUpdated As EventHandler(Of TodoItemsUpdatedArgs) Implements ITodoListProvider.TodoListUpdated
 
-            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoCommentData) Implements ITodoListProvider.GetTodoItems
+            Public Function GetTodoItems(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoCommentData) Implements ITodoListProvider.GetTodoItems
                 Assert.NotNull(workspace)
                 Assert.NotNull(documentId)
 
                 Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
             End Function
 
-            Public Sub RaiseTodoListUpdated(workspace As Workspace)
+            Public Sub RaiseTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace)
                 Dim map = Items.ToLookup(Function(t) t.DocumentId)
 
                 For Each group In map

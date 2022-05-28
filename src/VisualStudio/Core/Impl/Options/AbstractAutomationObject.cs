@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     public abstract class AbstractAutomationObject
     {
         private readonly Workspace _workspace;

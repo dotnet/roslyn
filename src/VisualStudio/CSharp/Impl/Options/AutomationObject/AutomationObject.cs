@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ComVisible(true)]
     public partial class AutomationObject : AbstractAutomationObject
     {

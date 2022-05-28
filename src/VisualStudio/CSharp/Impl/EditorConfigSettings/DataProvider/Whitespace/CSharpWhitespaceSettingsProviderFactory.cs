@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class CSharpWhitespaceSettingsProviderFactory : ILanguageSettingsProviderFactory<WhitespaceSetting>
     {
         private readonly Workspace _workspace;

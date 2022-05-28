@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
 #pragma warning disable IDE0060 // Remove unused parameter - compatibility shim for TypeScript
 
     [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]

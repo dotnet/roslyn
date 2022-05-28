@@ -24,6 +24,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTodoCommentsService :

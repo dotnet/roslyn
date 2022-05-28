@@ -15,6 +15,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceService(typeof(IWorkspaceVenusSpanMappingService), ServiceLayer.Default), Shared]
     internal partial class VisualStudioVenusSpanMappingService : IWorkspaceVenusSpanMappingService
     {

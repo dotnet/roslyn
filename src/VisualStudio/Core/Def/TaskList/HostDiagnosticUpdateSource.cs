@@ -14,6 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     // exporting both Abstract and HostDiagnosticUpdateSource is just to make testing easier.
     // use HostDiagnosticUpdateSource when abstract one is not needed for testing purpose
     [Export(typeof(AbstractHostDiagnosticUpdateSource))]

@@ -32,6 +32,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(ICommandHandler))]
     [ContentType(Microsoft.CodeAnalysis.Editor.ContentTypeNames.CSharpContentType)]
     [Name("CSharp Snippets")]

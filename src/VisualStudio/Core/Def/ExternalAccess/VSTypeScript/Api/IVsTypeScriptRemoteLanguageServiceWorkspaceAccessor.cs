@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1162267
     internal interface IVsTypeScriptRemoteLanguageServiceWorkspaceAccessor
     {

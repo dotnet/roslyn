@@ -30,6 +30,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : AbstractLanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>

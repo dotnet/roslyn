@@ -24,6 +24,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    using IAsyncCodeLensDataPointProvider = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPointProvider;
+    using IAsyncCodeLensDataPoint = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPoint;
+
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(Id)]
     [ContentType(ContentTypeNames.CSharpContentType)]

@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportEventListener(WellKnownEventListeners.TodoListProvider, WorkspaceKind.Host), Shared]
     internal class VisualStudioTodoListTableWorkspaceEventListener : IEventListener<ITodoListProvider>
     {

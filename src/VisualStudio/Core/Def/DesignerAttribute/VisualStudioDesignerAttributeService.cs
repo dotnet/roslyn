@@ -29,6 +29,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioDesignerAttributeService
         : ForegroundThreadAffinitizedObject, IDesignerAttributeListener, IEventListener<object>, IDisposable

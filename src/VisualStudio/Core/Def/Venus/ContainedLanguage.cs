@@ -23,6 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class ContainedLanguage
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;

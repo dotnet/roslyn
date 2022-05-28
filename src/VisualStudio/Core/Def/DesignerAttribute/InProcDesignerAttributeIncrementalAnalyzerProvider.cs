@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <remarks>Note: this is explicitly <b>not</b> exported.  We don't want the Workspace
     /// to automatically load this.  Instead, VS waits until it is ready
     /// and then calls into the service to tell it to start analyzing the solution.  At that point we'll get

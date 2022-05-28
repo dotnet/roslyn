@@ -16,6 +16,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract class TreeItemViewModel : TreeViewItemBase
     {
         private readonly SourceText _sourceText;

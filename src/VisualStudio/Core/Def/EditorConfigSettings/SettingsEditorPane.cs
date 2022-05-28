@@ -29,6 +29,8 @@ using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed partial class SettingsEditorPane : WindowPane, IOleComponent, IVsDeferredDocView, IVsLinkedUndoClient
     {
         private readonly IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService;

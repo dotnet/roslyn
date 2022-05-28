@@ -28,6 +28,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// Implementations of EnvDTE.FileCodeModel for both languages.
     /// </summary>
