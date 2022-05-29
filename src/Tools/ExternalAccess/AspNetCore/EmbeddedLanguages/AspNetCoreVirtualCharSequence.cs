@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
             _virtualCharSequence = virtualCharSequence;
         }
 
+        /// <inheritdoc cref="VirtualCharSequence.Empty"/>
+        public static readonly AspNetCoreVirtualCharSequence Empty = new(VirtualCharSequence.Empty);
+
         /// <inheritdoc cref="VirtualCharSequence.Length"/>
         public int Length => _virtualCharSequence.Length;
 
@@ -33,7 +36,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
         /// <inheritdoc cref="VirtualCharSequence.CreateString"/>
         public string CreateString() => _virtualCharSequence.CreateString();
 
-        /// <inheritdoc cref="VirtualCharSequence.IsDefault"/>
-        public bool IsDefault => _virtualCharSequence.IsDefault;
+        /// <inheritdoc cref="VirtualCharSequence.FromBounds"/>
+        public static AspNetCoreVirtualCharSequence FromBounds(
+            AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2) =>
+            new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
     }
 }
