@@ -550,6 +550,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
         SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
+
+        bool IsEqualsValueOfPropertyDeclaration([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node);
 
         SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node);

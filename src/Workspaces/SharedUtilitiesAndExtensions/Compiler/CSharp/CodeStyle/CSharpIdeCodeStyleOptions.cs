@@ -25,6 +25,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
         SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
         SyntaxKind.ReadOnlyKeyword,
         SyntaxKind.UnsafeKeyword,
+        SyntaxKind.RequiredKeyword,
         SyntaxKind.VolatileKeyword,
         SyntaxKind.AsyncKeyword);
 

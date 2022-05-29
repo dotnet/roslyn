@@ -63,7 +63,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             _span = span;
         }
 
+        /// <summary>
+        /// Gets the number of elements contained in the <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public int Length => _span.Length;
+
+        /// <summary>
+        /// Gets the <see cref="VirtualChar"/> at the specified index.
+        /// </summary>
         public VirtualChar this[int index] => _leafCharacters[_span.Start + index];
 
         public bool IsDefault => _leafCharacters == null;

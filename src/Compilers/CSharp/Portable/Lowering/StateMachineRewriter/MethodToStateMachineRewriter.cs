@@ -23,13 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly MethodSymbol OriginalMethod;
 
         /// <summary>
-        /// True if we need to generate the code to do the bookkeeping so we can "finalize" the state machine
-        /// by executing code from its current state through the enclosing finally blocks.  This is true for
-        /// iterators and false for async.
-        /// </summary>
-        private readonly bool _useFinalizerBookkeeping;
-
-        /// <summary>
         /// Generate return statements from the state machine method body.
         /// </summary>
         protected abstract BoundStatement GenerateReturn(bool finished);
@@ -73,21 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Dictionary<LabelSymbol, List<int>> _dispatches = new Dictionary<LabelSymbol, List<int>>();
 
         /// <summary>
-        /// A try block might have no state (transitions) within it, in which case it does not need
-        /// to have a state to represent finalization.  This flag tells us whether the current try
-        /// block that we are within has a finalizer state.  Initially true as we have the (trivial)
-        /// finalizer state of -1 at the top level.  Not used if !this.useFinalizerBookkeeping.
-        /// </summary>
-        private bool _hasFinalizerState = true;
-
-        /// <summary>
-        /// If hasFinalizerState is true, this is the state for finalization from anywhere in this
-        /// try block.  Initially set to -1, representing the no-op finalization required at the top
-        /// level.  Not used if !this.useFinalizerBookkeeping.
-        /// </summary>
-        private int _currentFinalizerState = -1;
-
-        /// <summary>
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,
         /// so that members of this set may be allocated to locals when the locals come into scope.
         /// </summary>
@@ -122,8 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            BindingDiagnosticBag diagnostics,
-            bool useFinalizerBookkeeping)
+            BindingDiagnosticBag diagnostics)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
             Debug.Assert(F != null);
@@ -137,8 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.F = F;
             this.stateField = state;
             this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), syntax: F.Syntax, kind: SynthesizedLocalKind.StateMachineCachedState);
-            _useFinalizerBookkeeping = useFinalizerBookkeeping;
-            _hasFinalizerState = useFinalizerBookkeeping;
             this.OriginalMethod = originalMethod;
             _hoistedVariables = hoistedVariables;
             _synthesizedLocalOrdinals = synthesizedLocalOrdinals;
@@ -204,13 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
             stateNumber = _nextState++;
-
-            if (_useFinalizerBookkeeping && !_hasFinalizerState)
-            {
-                _currentFinalizerState = _nextState++;
-                _hasFinalizerState = true;
-            }
-
             AddState(stateNumber, out resumeLabel);
         }
 
@@ -796,53 +764,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var oldDispatches = _dispatches;
-            var oldFinalizerState = _currentFinalizerState;
-            var oldHasFinalizerState = _hasFinalizerState;
 
             _dispatches = null;
-            _currentFinalizerState = -1;
-            _hasFinalizerState = false;
 
             BoundBlock tryBlock = F.Block((BoundStatement)this.Visit(node.TryBlock));
             GeneratedLabelSymbol dispatchLabel = null;
             if (_dispatches != null)
             {
                 dispatchLabel = F.GenerateLabel("tryDispatch");
-                if (_hasFinalizerState)
-                {
-                    // cause the current finalizer state to arrive here and then "return false"
-                    var finalizer = F.GenerateLabel("finalizer");
-                    _dispatches.Add(finalizer, new List<int>() { _currentFinalizerState });
-                    var skipFinalizer = F.GenerateLabel("skipFinalizer");
-                    tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
-                        Dispatch(),
-                        F.Goto(skipFinalizer),
-                        F.Label(finalizer), // code for the finalizer here
-                        GenerateSetBothStates(StateMachineStates.NotStartedStateMachine),
-                        GenerateReturn(false),
-                        F.Label(skipFinalizer),
-                        tryBlock);
-                }
-                else
-                {
-                    tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
-                        Dispatch(),
-                        tryBlock);
-                }
 
-                if (oldDispatches == null)
-                {
-                    Debug.Assert(!oldHasFinalizerState);
-                    oldDispatches = new Dictionary<LabelSymbol, List<int>>();
-                }
+                tryBlock = F.Block(
+                    F.HiddenSequencePoint(),
+                    Dispatch(),
+                    tryBlock);
 
+                oldDispatches ??= new Dictionary<LabelSymbol, List<int>>();
                 oldDispatches.Add(dispatchLabel, new List<int>(from kv in _dispatches.Values from n in kv orderby n select n));
             }
 
-            _hasFinalizerState = oldHasFinalizerState;
-            _currentFinalizerState = oldFinalizerState;
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);

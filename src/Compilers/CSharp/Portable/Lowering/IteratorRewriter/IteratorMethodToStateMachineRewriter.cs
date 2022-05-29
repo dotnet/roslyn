@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, originalMethod, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics, useFinalizerBookkeeping: false)
+            : base(F, originalMethod, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _current = current;
         }

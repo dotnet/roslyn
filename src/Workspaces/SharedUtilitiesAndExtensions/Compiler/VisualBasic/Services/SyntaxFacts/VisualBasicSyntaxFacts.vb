@@ -1476,6 +1476,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, EqualsValueSyntax).Value
         End Function
 
+        Public Function IsEqualsValueOfPropertyDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsEqualsValueOfPropertyDeclaration
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, PropertyStatementSyntax).Initializer Is node
+        End Function
+
         Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression
             Return node.Kind = SyntaxKind.CTypeExpression
         End Function
