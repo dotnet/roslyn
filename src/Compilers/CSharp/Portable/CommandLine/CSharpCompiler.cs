@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ignoreUserProfileLicenses: licenseOptions.SkipImplicitLicenses,
                     additionalLicenses: licenseOptions.AdditionalLicenses,
                     dotNetSdkDirectory: dotNetSdkDirectory,
+                    openWelcomePage: this.RequiresMetalamaSupportServices,
                     addSupportServices: this.RequiresMetalamaSupportServices);
             }
             else
