@@ -700,14 +700,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // as errors in parsing rather than here.
                 if (modifier.Kind() == SyntaxKind.ScopedKeyword)
                 {
-                    ModifierUtils.CheckScopeModifierAvailability(node, modifier, diagnostics);
+                    ModifierUtils.CheckScopedModifierAvailability(node, modifier, diagnostics);
                 }
             }
 
             if (node.Declaration.Type is RefTypeSyntax { ScopedKeyword: var scopedKeyword } &&
                 scopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
             {
-                ModifierUtils.CheckScopeModifierAvailability(typeSyntax, scopedKeyword, diagnostics);
+                ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedKeyword, diagnostics);
             }
 
             bool isVar;

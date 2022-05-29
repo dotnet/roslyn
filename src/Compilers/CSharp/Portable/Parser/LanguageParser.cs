@@ -4611,9 +4611,14 @@ tryAgain:
         {
             while (IsParameterModifier(this.CurrentToken, isFunctionPointerParameter))
             {
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && !shouldTreatAsModifier())
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
-                    return;
+                    if (!shouldTreatAsModifier())
+                    {
+                        return;
+                    }
+                    modifiers.Add(EatContextualToken(SyntaxKind.ScopedKeyword));
+                    continue;
                 }
 
                 var modifier = this.EatToken();
@@ -4650,10 +4655,6 @@ tryAgain:
 
                             break;
                         }
-
-                    case SyntaxKind.IdentifierToken when modifier.ContextualKind == SyntaxKind.ScopedKeyword:
-                        modifier = ConvertToKeyword(modifier);
-                        break;
                 }
 
                 modifiers.Add(modifier);

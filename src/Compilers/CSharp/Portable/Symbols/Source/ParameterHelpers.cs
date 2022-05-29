@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ScopedKeyword:
-                        ModifierUtils.CheckScopeModifierAvailability(parameter, modifier, diagnostics);
+                        ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
                         // PROTOTYPE: Check for duplicate modifiers; check ordering.
                         break;
 

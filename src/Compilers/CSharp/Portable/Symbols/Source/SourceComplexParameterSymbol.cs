@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         protected ConstantValue _lazyDefaultSyntaxValue;
 
-        internal SourceComplexParameterSymbol(
+        protected SourceComplexParameterSymbol(
             Symbol owner,
             int ordinal,
             TypeWithAnnotations parameterType,

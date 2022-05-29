@@ -5116,6 +5116,64 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "F2").WithArguments("F2").WithLocation(8, 24));
         }
 
+        [Fact]
+        public void Local_SequencePoints()
+        {
+            var source =
+@"using System;
+ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        scoped R<int> y = new R<int>(ref x);
+        ref scoped R<int> z = ref y;
+        z.F = 2;
+        Console.WriteLine(x);
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe);
+            verifier.VerifyIL("Program.Main",
+                source: source,
+                sequencePoints: "Program.Main",
+                expectedIL:
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (int V_0, //x
+                R<int> V_1, //y
+                R<int>& V_2) //z
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: int x = 1;
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  // sequence point: scoped R<int> y = new R<int>(ref x);
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  newobj     ""R<int>..ctor(ref int)""
+  IL_000a:  stloc.1
+  // sequence point: ref scoped R<int> z = ref y;
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  stloc.2
+  // sequence point: z.F = 2;
+  IL_000e:  ldloc.2
+  IL_000f:  ldfld      ""ref int R<int>.F""
+  IL_0014:  ldc.i4.2
+  IL_0015:  stind.i4
+  // sequence point: Console.WriteLine(x);
+  IL_0016:  ldloc.0
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  nop
+  // sequence point: }
+  IL_001d:  ret
+}");
+        }
+
         // PROTOTYPE: Test `const scoped int local = 0;`. Are there other invalid combinations of modifiers?
     }
 }
