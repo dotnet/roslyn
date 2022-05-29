@@ -229,6 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node)
            => node is GlobalStatementSyntax;
 
+        public SyntaxNode ExtractGlobalStatementOrSelf(SyntaxNode node)
+            => node is GlobalStatementSyntax globalStatement ? globalStatement.Statement : node;
+
         public bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement)
         {
             Debug.Assert(IsStatement(firstStatement));

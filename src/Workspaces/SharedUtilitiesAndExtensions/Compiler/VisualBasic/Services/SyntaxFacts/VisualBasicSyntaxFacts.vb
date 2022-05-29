@@ -218,6 +218,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function ExtractGlobalStatementOrSelf(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.ExtractGlobalStatementOrSelf
+            Return node
+        End Function
+
         Public Function AreStatementsInSameContainer(firstStatement As SyntaxNode, secondStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.AreStatementsInSameContainer
             Debug.Assert(IsStatement(firstStatement))
             Debug.Assert(IsStatement(secondStatement))
