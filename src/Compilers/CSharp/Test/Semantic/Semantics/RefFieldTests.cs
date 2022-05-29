@@ -5137,7 +5137,7 @@ class Program
         Console.WriteLine(x);
     }
 }";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Main",
                 source: source,
                 sequencePoints: "Program.Main",
