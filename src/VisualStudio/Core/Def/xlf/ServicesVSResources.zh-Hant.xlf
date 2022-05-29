@@ -1297,6 +1297,11 @@
         <target state="translated">在方案總管 (實驗性) 中顯示「移除未使用的參考」命令</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">顯示自動完成清單</target>
