@@ -156,6 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE: Also enable if runtime feature flag.
+        internal bool UseUpdatedEscapeRules => Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefFields);
+
         /// <summary>
         /// Some nodes have special binders for their contents (like Blocks)
         /// </summary>

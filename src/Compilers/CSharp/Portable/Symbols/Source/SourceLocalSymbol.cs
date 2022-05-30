@@ -109,9 +109,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder.ScopeDesignator; }
         }
 
-        internal override uint RefEscapeScope => _refEscapeScope;
+        // From https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md:
+        //
+        // | Parameter or Local     | ref-safe-to-escape | safe-to-escape |
+        // |------------------------|--------------------|----------------|
+        // | Span<int> s            | current method     | calling method |
+        // | scoped Span<int> s     | current method     | current method |
+        // | ref Span<int> s        | calling method     | calling method |
+        // | scoped ref Span<int> s | current method     | calling method |
+        // | ref scoped Span<int> s | current method     | current method |
 
-        internal override uint ValEscapeScope => _valEscapeScope;
+        internal override uint RefEscapeScope
+        {
+            get
+            {
+                uint limit = _scope == DeclarationScope.Unscoped && _refKind != RefKind.None ?
+                    Binder.ExternalScope :
+                    Binder.TopLevelScope;
+                return Math.Max(_refEscapeScope, limit);
+            }
+        }
+
+        internal override uint ValEscapeScope
+        {
+            get
+            {
+                uint limit = _scope == DeclarationScope.ValueScoped ?
+                    Binder.TopLevelScope :
+                    Binder.ExternalScope;
+                return Math.Max(_valEscapeScope, limit);
+            }
+        }
 
         internal sealed override DeclarationScope Scope => _scope;
 
