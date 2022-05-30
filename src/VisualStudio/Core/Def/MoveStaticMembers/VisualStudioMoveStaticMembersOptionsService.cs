@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 {
                     return new MoveStaticMembersOptions(
                         newFileName,
-                        viewModel.PrependedNamespace + viewModel.DestinationName,
+                        viewModel.DestinationName.TypeName,
                         selectedMembers);
                 }
 

@@ -95,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
             Assert.Equal("TestClassHelpers", viewModel.DestinationName.TypeName)
             SetSearchText(viewModel, "ExtraNs.TestClassHelpers")
-            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName.TypeName)
+            Assert.Equal("TestNs.ExtraNs.TestClassHelpers", viewModel.DestinationName.TypeName)
             Assert.Equal("TestNs.", viewModel.PrependedNamespace)
             Assert.True(viewModel.CanSubmit)
 
@@ -450,7 +450,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
             Assert.Equal("TestClassHelpers", viewModel.DestinationName.TypeName)
             SetSearchText(viewModel, "ExtraNs.TestClassHelpers")
-            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName.TypeName)
+            Assert.Equal("TestNs.ExtraNs.TestClassHelpers", viewModel.DestinationName.TypeName)
             Assert.Equal("TestNs.", viewModel.PrependedNamespace)
             Assert.True(viewModel.CanSubmit)
 
