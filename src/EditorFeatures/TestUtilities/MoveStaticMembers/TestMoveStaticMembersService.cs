@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
                 // just return all the selected members
                 return new MoveStaticMembersOptions(
                     Filename!,
-                        string.Join(".", namespaceDisplay, DestinationName!),
+                    string.Join(".", namespaceDisplay, DestinationName!),
                     selectedMembers);
             }
 
