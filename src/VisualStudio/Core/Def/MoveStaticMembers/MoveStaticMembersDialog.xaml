@@ -33,7 +33,7 @@
     </vs:DialogWindow.Resources>
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
-            <RowDefinition Height="160"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>

@@ -138,7 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 selectMembersViewModel,
                 defaultTypeName,
                 availableTypeNames,
-                existingTypes,
                 containingNamespaceDisplay,
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
         }

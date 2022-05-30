@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public bool IsNewType { get; }
 
-        /// only has value when IsNewType is false
+        // only has value when IsNewType is false
         public INamedTypeSymbol? Destination { get; }
 
-        /// only has value when IsNewType is true
+        // only has value when IsNewType is true
         public string? TypeName { get; }
 
-        /// only has value when IsNewType is true
+        // only has value when IsNewType is true
         public string? NamespaceDisplay { get; }
 
         public ImmutableArray<ISymbol> SelectedMembers { get; }

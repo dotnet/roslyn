@@ -20,13 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         private readonly ISyntaxFacts _syntaxFacts;
 
-        private readonly ImmutableArray<INamedTypeSymbol> _conflictingTypeNames;
-
         public MoveStaticMembersDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
             ImmutableArray<TypeNameItem> availableTypes,
-            ImmutableArray<INamedTypeSymbol> conflictingTypeNames,
             string prependedNamespace,
             ISyntaxFacts syntaxFacts)
         {
@@ -34,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             _searchText = defaultType;
             _destinationName = new TypeNameItem(defaultType);
-            _conflictingTypeNames = conflictingTypeNames;
             AvailableTypes = availableTypes;
             PrependedNamespace = string.IsNullOrEmpty(prependedNamespace) ? prependedNamespace : prependedNamespace + ".";
 
@@ -49,7 +45,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 case nameof(DestinationName):
                     OnDestinationUpdated();
                     break;
+
+                case nameof(SearchText):
+                    OnSearchTextUpdated();
+                    break;
             }
+        }
+
+        private void OnSearchTextUpdated()
+        {
+            var foundItem = AvailableTypes.FirstOrDefault(t => t.TypeName == SearchText);
+            if (foundItem is null)
+            {
+                DestinationName = new(PrependedNamespace + SearchText);
+                return;
+            }
+
+            DestinationName = foundItem;
         }
 
         public void OnDestinationUpdated()
@@ -104,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public TypeNameItem DestinationName
         {
             get => _destinationName;
-            set => SetProperty(ref _destinationName, value);
+            private set => SetProperty(ref _destinationName, value);
         }
 
         private ImageMoniker _icon;
