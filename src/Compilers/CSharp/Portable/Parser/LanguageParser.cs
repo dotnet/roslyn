@@ -7218,12 +7218,11 @@ done:
                 }
 
                 SyntaxToken scopedKeyword = null;
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
                 {
                     var resetPoint = this.GetResetPoint();
 
                     this.EatToken();
-                    // PROTOTYPE: Can we really assume that the type is followed by an identifier?
                     bool shouldTreatAsModifier = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
 
                     this.Reset(ref resetPoint);
