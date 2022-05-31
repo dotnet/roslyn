@@ -61,8 +61,8 @@ public partial struct IncrementalGeneratorInitializationContext
             .Select(static (arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
             .WithTrackingName("allUpGlobalAliases_ForAttribute");
 
-        // TODO: it would be nice if we had a compilation-options provider, that was we didn't need to regenerate this
-        // if the compilation options stayed the same, but the compilation changed.
+        // Regenerate our data if the compilation options changed.  VB can supply global aliases with compilation options,
+        // so we have to reanalyze everything if those changed.
         var compilationGlobalAliases = this.CompilationOptionsProvider.Select(
             (o, _) =>
             {
