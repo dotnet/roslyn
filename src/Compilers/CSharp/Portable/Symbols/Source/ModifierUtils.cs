@@ -307,13 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 case DeclarationModifiers.Ref:
                     return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
-<<<<<<< HEAD
-                case DeclarationModifiers.File:
-                    return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
-=======
                 case DeclarationModifiers.Required:
                     return SyntaxFacts.GetText(SyntaxKind.RequiredKeyword);
->>>>>>> upstream/main
+                case DeclarationModifiers.File:
+                    return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -361,13 +358,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Volatile;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
-<<<<<<< HEAD
-                case SyntaxKind.FileKeyword:
-                    return DeclarationModifiers.File;
-=======
                 case SyntaxKind.RequiredKeyword:
                     return DeclarationModifiers.Required;
->>>>>>> upstream/main
+                case SyntaxKind.FileKeyword:
+                    return DeclarationModifiers.File;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

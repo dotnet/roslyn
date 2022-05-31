@@ -112,18 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
                 }
-<<<<<<< HEAD
                 else if (!delegateTypeIsFile && parameterSymbol.Type.IsFileTypeOrUsesFileTypes())
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], parameterSymbol.Type, delegateType);
                 }
-                var parameterSyntax = syntax.ParameterList.Parameters[i];
-                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
-                {
-                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
-                }
-=======
->>>>>>> upstream/main
             }
 
             diagnostics.Add(delegateType.Locations[0], useSiteInfo);

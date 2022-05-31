@@ -1163,13 +1163,10 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
-<<<<<<< HEAD
-                        case SyntaxKind.FileKeyword:
-                            return DeclarationModifiers.File;
-=======
                         case SyntaxKind.RequiredKeyword:
                             return DeclarationModifiers.Required;
->>>>>>> upstream/main
+                        case SyntaxKind.FileKeyword:
+                            return DeclarationModifiers.File;
                     }
 
                     goto default;
@@ -1262,11 +1259,7 @@ tryAgain:
                         break;
 
                     case DeclarationModifiers.Async:
-<<<<<<< HEAD
                         if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-=======
-                        if (!ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
->>>>>>> upstream/main
                         {
                             return;
                         }
@@ -1280,7 +1273,7 @@ tryAgain:
                         // machinery to make a conservative guess as to whether the user meant required to be a keyword, so that they get a good langver
                         // diagnostic and all the machinery to upgrade their project kicks in. The only exception to this rule is top level statements,
                         // where the user could conceivably have a local named required. For these locations, we need to disambiguate as well.
-                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }
@@ -1317,26 +1310,16 @@ tryAgain:
             }
         }
 
-<<<<<<< HEAD
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken && GetModifier(this.CurrentToken) != DeclarationModifiers.None);
-=======
-        private bool ShouldAsyncOrRequiredBeTreatedAsModifier(bool parsingStatementNotDeclaration)
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword);
->>>>>>> upstream/main
 
             // Adapted from CParser::IsAsyncMethod.
 
             if (IsNonContextualModifier(PeekToken(1)))
             {
                 // If the next token is a (non-contextual) modifier keyword, then this token is
-<<<<<<< HEAD
                 // definitely a modifier
-=======
-                // definitely the async or required keyword
->>>>>>> upstream/main
                 return true;
             }
 
@@ -1347,11 +1330,7 @@ tryAgain:
 
             try
             {
-<<<<<<< HEAD
                 this.EatToken(); //move past contextual token
-=======
-                this.EatToken(); //move past contextual 'async' or 'required'
->>>>>>> upstream/main
 
                 if (!parsingStatementNotDeclaration &&
                     (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
@@ -2712,13 +2691,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
-<<<<<<< HEAD
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.FileKeyword) &&
-=======
-                this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.RequiredKeyword &&
->>>>>>> upstream/main
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -8023,11 +7996,7 @@ done:;
             tk = this.CurrentToken.ContextualKind;
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
-<<<<<<< HEAD
                 && (tk != SyntaxKind.AsyncKeyword || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
-=======
-                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: true));
->>>>>>> upstream/main
             if (isPossibleAttributeOrModifier)
             {
                 return true;

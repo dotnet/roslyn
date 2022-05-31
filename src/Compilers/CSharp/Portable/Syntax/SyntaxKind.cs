@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RequiredKeyword = 8447,
 
         /// <summary>Represents <see langword="file"/>.</summary>
-        FileKeyword = 8447,
+        FileKeyword = 8448,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>

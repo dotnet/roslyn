@@ -1138,11 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-<<<<<<< HEAD
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++) // PROTOTYPE(ft): will conflict with required
-=======
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.RequiredKeyword; i++)
->>>>>>> upstream/main
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1195,11 +1191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordKeyword:
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
-<<<<<<< HEAD
-                case SyntaxKind.FileKeyword:
-=======
                 case SyntaxKind.RequiredKeyword:
->>>>>>> upstream/main
+                case SyntaxKind.FileKeyword:
                     return true;
                 default:
                     return false;
@@ -1319,13 +1312,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ManagedKeyword;
                 case "unmanaged":
                     return SyntaxKind.UnmanagedKeyword;
-<<<<<<< HEAD
-                case "file":
-                    return SyntaxKind.FileKeyword;
-=======
                 case "required":
                     return SyntaxKind.RequiredKeyword;
->>>>>>> upstream/main
+                case "file":
+                    return SyntaxKind.FileKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1765,13 +1755,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "managed";
                 case SyntaxKind.UnmanagedKeyword:
                     return "unmanaged";
-<<<<<<< HEAD
-                case SyntaxKind.FileKeyword:
-                    return "file";
-=======
                 case SyntaxKind.RequiredKeyword:
                     return "required";
->>>>>>> upstream/main
+                case SyntaxKind.FileKeyword:
+                    return "file";
                 default:
                     return string.Empty;
             }

@@ -7115,10 +7115,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>
-<<<<<<< HEAD
-  <data name="IDS_FeatureFileTypes" xml:space="preserve">
-    <value>file types</value>
-=======
   <data name="IDS_FeatureRelaxedShiftOperator" xml:space="preserve">
     <value>relaxed shift operator</value>
   </data>
@@ -7136,6 +7132,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_MisplacedUnchecked" xml:space="preserve">
     <value>Unexpected keyword 'unchecked'</value>
->>>>>>> upstream/main
+  </data>
+  <data name="IDS_FeatureFileTypes" xml:space="preserve">
+    <value>file types</value>
   </data>
 </root>
