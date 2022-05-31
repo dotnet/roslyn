@@ -4150,7 +4150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedMultiLineRawStringStartToken: break;
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
-            if (stringEndToken.Kind() != SyntaxKind.InterpolatedStringEndToken) throw new ArgumentException(nameof(stringEndToken));
+            switch (stringEndToken.Kind())
+            {
+                case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedRawStringEndToken: break;
+                default: throw new ArgumentException(nameof(stringEndToken));
+            }
             // <Metalama> This change is generated. See Modifications.md for details.
             stringStartToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(stringStartToken);
             // </Metalama>

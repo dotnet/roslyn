@@ -140,6 +140,10 @@ namespace Roslyn.Test.Utilities
                 : base(CSharpCommandLineParser.Default, responseFile: null, args, buildPaths, additionalReferenceDirectories: null, new DefaultAnalyzerAssemblyLoader(), fileSystem: fileSystem)
             {
             }
+
+            // <Metalama>
+            protected override bool IsLongRunningProcess => false;
+            // </Metalama>
         }
 
         internal static TestableCompiler CreateBasic(
