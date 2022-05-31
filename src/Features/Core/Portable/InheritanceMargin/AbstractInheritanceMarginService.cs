@@ -78,47 +78,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
-            Document document,
-            TextSpan spanToSearch,
-            CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
-            if (!allDeclarationNodes.IsEmpty)
-            {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
-                using var _ = ArrayBuilder<(ISymbol symbol, int lineNumber)>.GetInstance(out var builder);
-
-                Project? project = null;
-
-                foreach (var memberDeclarationNode in allDeclarationNodes)
-                {
-                    var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                    if (member == null || !CanHaveInheritanceTarget(member))
-                        continue;
-
-                    // Use mapping service to find correct solution & symbol. (e.g. metadata symbol)
-                    var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
-                    if (mappingResult == null)
-                        continue;
-
-                    // All the symbols here are declared in the same document, they should belong to the same project.
-                    // So here it is enough to get the project once.
-                    project ??= mappingResult.Project;
-                    builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
-                }
-
-                if (project != null)
-                    return (project, builder.ToImmutable());
-            }
-
-            return (document.Project, SymbolAndLineNumberArray.Empty);
-        }
-
         private static bool CanHaveInheritanceTarget(ISymbol symbol)
         {
             if (symbol is INamedTypeSymbol namedType)

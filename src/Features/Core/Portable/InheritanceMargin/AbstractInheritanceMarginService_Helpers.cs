@@ -17,11 +17,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
+    using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
+
     internal abstract partial class AbstractInheritanceMarginService
     {
         private static readonly SymbolDisplayFormat s_displayFormat = new(
@@ -38,10 +41,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                 SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolInheritanceChainItemsInProcessAsync(
+        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolInheritanceChainItemsAsync(
             Project project,
             Document? document,
-            ImmutableArray<(ISymbol symbol, int lineNumber)> symbolAndLineNumbers,
+            SymbolAndLineNumberArray symbolAndLineNumbers,
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
@@ -71,6 +74,47 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return builder.ToImmutable();
         }
 
+        private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
+            Document document,
+            TextSpan spanToSearch,
+            CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
+            if (!allDeclarationNodes.IsEmpty)
+            {
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
+                using var _ = ArrayBuilder<(ISymbol symbol, int lineNumber)>.GetInstance(out var builder);
+
+                Project? project = null;
+
+                foreach (var memberDeclarationNode in allDeclarationNodes)
+                {
+                    var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
+                    if (member == null || !CanHaveInheritanceTarget(member))
+                        continue;
+
+                    // Use mapping service to find correct solution & symbol. (e.g. metadata symbol)
+                    var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
+                    if (mappingResult == null)
+                        continue;
+
+                    // All the symbols here are declared in the same document, they should belong to the same project.
+                    // So here it is enough to get the project once.
+                    project ??= mappingResult.Project;
+                    builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                }
+
+                if (project != null)
+                    return (project, builder.ToImmutable());
+            }
+
+            return (document.Project, SymbolAndLineNumberArray.Empty);
+        }
+
         private async Task<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsInProcessAsync(
             Document document,
             TextSpan spanToSearch,
@@ -88,11 +132,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
 
             if (includeGlobalImports && !remapped)
-                result.AddRange(await GetGlobalImportsItemsInProcessAsync(document, spanToSearch, frozenPartialSemantics: frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
+                result.AddRange(await GetGlobalImportsItemsAsync(document, spanToSearch, frozenPartialSemantics: frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
 
             if (!symbolAndLineNumbers.IsEmpty)
             {
-                result.AddRange(await GetSymbolInheritanceChainItemsInProcessAsync(
+                result.AddRange(await GetSymbolInheritanceChainItemsAsync(
                     remappedProject,
                     document: remapped ? null : document,
                     symbolAndLineNumbers,
@@ -103,7 +147,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return result.ToImmutable();
         }
 
-        private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsInProcessAsync(
+        private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsAsync(
             Document document,
             TextSpan spanToSearch,
             bool frozenPartialSemantics,
