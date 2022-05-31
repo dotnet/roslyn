@@ -138,24 +138,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             ' Nothing to do in VB.
         End Sub
 
-        Protected Overrides Sub AddExtensionMethodInfo(
-                node As DeclarationStatementSyntax,
-                declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
-                aliases As Dictionary(Of String, String),
-                extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)))
-
-            If TypeOf node Is MethodBlockBaseSyntax Then
-                node = DirectCast(node, MethodBlockBaseSyntax).BlockStatement
-            End If
-
-            If node.IsKind(SyntaxKind.FunctionStatement, SyntaxKind.SubStatement) Then
-                Dim method = DirectCast(node, MethodStatementSyntax)
-                If IsExtensionMethod(method) Then
-                    AddExtensionMethodInfo(method, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
-                End If
-            End If
-        End Sub
-
         Protected Overrides Sub AddSingleDeclaredSymbolInfos(
                 container As SyntaxNode,
                 node As StatementSyntax,
@@ -537,7 +519,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Protected Overrides Function GetReceiverTypeName(node As StatementSyntax) As String
+        Protected Overrides Function GetReceiverTypeName(node As DeclarationStatementSyntax) As String
+            node = If(TryCast(node, MethodBlockBaseSyntax)?.BlockStatement, node)
+
             Dim funcDecl = DirectCast(node, MethodStatementSyntax)
             Debug.Assert(IsExtensionMethod(funcDecl))
 

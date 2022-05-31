@@ -158,16 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        protected override void AddExtensionMethodInfo(
-            MethodDeclarationSyntax methodDeclaration,
-            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            Dictionary<string, string> aliases,
-            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo)
-        {
-            if (IsExtensionMethod(methodDeclaration))
-                AddExtensionMethodInfo(methodDeclaration, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo);
-        }
-
         protected override void AddLocalFunctionInfos(
             CompilationUnitSyntax compilationUnit,
             StringTable stringTable,
@@ -690,9 +680,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        protected override string GetReceiverTypeName(MemberDeclarationSyntax node)
+        protected override string GetReceiverTypeName(MethodDeclarationSyntax methodDeclaration)
         {
-            var methodDeclaration = (MethodDeclarationSyntax)node;
             Debug.Assert(IsExtensionMethod(methodDeclaration));
 
             var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);

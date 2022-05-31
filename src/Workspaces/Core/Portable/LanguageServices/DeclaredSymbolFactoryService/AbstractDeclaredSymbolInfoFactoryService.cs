@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         protected abstract void AddLocalFunctionInfos(
             TCompilationUnitSyntax compilationUnit, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, CancellationToken cancellationToken);
-        protected abstract void AddExtensionMethodInfo(
-            TMethodDeclarationSyntax methodDeclaration, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo);
         protected abstract void AddSynthesizedDeclaredSymbolInfos(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
 
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// `DeclaredSymbolInfo` of kind `ExtensionMethod`. If the return value is null, then it means this is a
         /// "complex" method (as described at <see cref="TopLevelSyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
-        protected abstract string GetReceiverTypeName(TMemberDeclarationSyntax node);
+        protected abstract string GetReceiverTypeName(TMethodDeclarationSyntax node);
         protected abstract bool TryGetAliasesFromUsingDirective(TUsingDirectiveSyntax node, out ImmutableArray<(string aliasName, string name)> aliases);
         protected abstract string GetRootNamespace(CompilationOptions compilationOptions);
 
@@ -330,13 +328,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
         }
 
-        protected void AddExtensionMethodInfo(
-            TMemberDeclarationSyntax node,
-            Dictionary<string, string> aliases,
-            int declaredSymbolInfoIndex,
-            Dictionary<string, ArrayBuilder<int>> extensionMethodsInfoBuilder)
+        private void AddExtensionMethodInfo(
+            TMethodDeclarationSyntax methodDeclaration,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            Dictionary<string, string?> aliases,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo)
         {
-            var receiverTypeName = this.GetReceiverTypeName(node);
+            var lastInfo = declaredSymbolInfos.Last();
+            if (lastInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
+                return;
+
+            var declaredSymbolInfoIndex = declaredSymbolInfos.Count - 1;
+
+            var receiverTypeName = this.GetReceiverTypeName(methodDeclaration);
 
             // Target type is an alias
             if (aliases.TryGetValue(receiverTypeName, out var originalName))
@@ -354,10 +358,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            if (!extensionMethodsInfoBuilder.TryGetValue(receiverTypeName, out var arrayBuilder))
+            if (!extensionMethodInfo.TryGetValue(receiverTypeName, out var arrayBuilder))
             {
                 arrayBuilder = ArrayBuilder<int>.GetInstance();
-                extensionMethodsInfoBuilder[receiverTypeName] = arrayBuilder;
+                extensionMethodInfo[receiverTypeName] = arrayBuilder;
             }
 
             arrayBuilder.Add(declaredSymbolInfoIndex);
