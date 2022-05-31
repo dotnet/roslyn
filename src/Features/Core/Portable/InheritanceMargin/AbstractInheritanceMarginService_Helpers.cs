@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                 SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsInProcessAsync(
+        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolInheritanceChainItemsInProcessAsync(
             Project project,
             Document? document,
             ImmutableArray<(ISymbol symbol, int lineNumber)> symbolAndLineNumbers,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (!symbolAndLineNumbers.IsEmpty)
             {
-                result.AddRange(await GetSymbolItemsInProcessAsync(
+                result.AddRange(await GetSymbolInheritanceChainItemsInProcessAsync(
                     remappedProject,
                     document: remapped ? null : document,
                     symbolAndLineNumbers,

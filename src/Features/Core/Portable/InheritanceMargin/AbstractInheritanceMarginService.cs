@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
             if (remoteClient != null)
             {
+                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
+                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
+                // accurate results in the future because taggers are set to recompute when compilations are fully
+                // available on the OOP side.
                 var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
                     solution,
                     (service, solutionInfo, cancellationToken) =>
