@@ -322,25 +322,22 @@ internal partial class SolutionState
 
             public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
             {
-                if (!_metadata.TryGetValue(out var assemblyMetadata))
-                    return null;
-
-                return assemblyMetadata?.GetReference(
-                    documentation: _documentationProvider,
-                    aliases: properties.Aliases,
-                    embedInteropTypes: properties.EmbedInteropTypes,
-                    display: _assemblyName);
+                _metadata.TryGetValue(out var assemblyMetadata);
+                return CreateMetadataReference(properties, assemblyMetadata);
             }
 
             public async Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
             {
                 var metadata = await _metadata.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return metadata?.GetReference(
+                return CreateMetadataReference(properties, metadata);
+            }
+
+            private MetadataReference? CreateMetadataReference(MetadataReferenceProperties properties, AssemblyMetadata? metadata)
+                => metadata?.GetReference(
                     documentation: _documentationProvider,
                     aliases: properties.Aliases,
                     embedInteropTypes: properties.EmbedInteropTypes,
                     display: _assemblyName);
-            }
         }
     }
 }
