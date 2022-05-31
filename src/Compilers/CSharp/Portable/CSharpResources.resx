@@ -7031,6 +7031,39 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
+  <data name="ERR_RequiredNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'required'.</value>
+  </data>
+  <data name="IDS_FeatureRequiredMembers" xml:space="preserve">
+    <value>required members</value>
+  </data>
+  <data name="ERR_OverrideMustHaveRequired" xml:space="preserve">
+    <value>'{0}' must be required because it overrides required member '{1}'</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeHidden" xml:space="preserve">
+    <value>Required member '{0}' cannot be hidden by '{1}'.</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeLessVisibleThanContainingType" xml:space="preserve">
+    <value>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</value>
+  </data>
+  <data name="ERR_ExplicitRequiredMember" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSettable" xml:space="preserve">
+    <value>Required member '{0}' must be settable.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
+  </data>
+  <data name="ERR_RequiredMembersMustBeAssignedValue" xml:space="preserve">
+    <value>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</value>
+  </data>
+  <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
+    <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
+  </data>
+  <data name="ERR_RequiredMembersBaseTypeInvalid" xml:space="preserve">
+    <value>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</value>
+  </data>
   <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
@@ -7061,11 +7094,32 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
     <value>UTF-8 string literals</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
+    <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
+  </data>
+  <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
+    <value>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</value>
+  </data>
+  <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
+    <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>
   <data name="IDS_FeatureRelaxedShiftOperator" xml:space="preserve">
     <value>relaxed shift operator</value>
+  </data>
+  <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
+    <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired" xml:space="preserve">
+    <value>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired_Title" xml:space="preserve">
+    <value>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="ERR_RefReturningPropertiesCannotBeRequired" xml:space="preserve">
+    <value>Ref returning properties cannot be required.</value>
   </data>
   <data name="ERR_MisplacedUnchecked" xml:space="preserve">
     <value>Unexpected keyword 'unchecked'</value>
