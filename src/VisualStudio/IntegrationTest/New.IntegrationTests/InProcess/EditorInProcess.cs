@@ -227,11 +227,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             if (!string.IsNullOrEmpty(menuText))
             {
-                if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
-                {
-                    actionSets = Array.Empty<SuggestedActionSet>();
-                }
-
+                var actionSets = await LightBulbHelper.WaitForItemsAsync(TestServices, broker, view, cancellationToken).ConfigureAwait(false);
                 var set = actionSets.SelectMany(s => s.Actions).FirstOrDefault(a => a.DisplayText == menuText);
                 if (set == null)
                 {

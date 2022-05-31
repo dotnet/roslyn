@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -253,92 +253,92 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private ItemSelection? HandleNormalFiltering(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
-                    // Not deletion.  Defer to the language to decide which item it thinks best
-                    // matches the text typed so far.
+                // Not deletion.  Defer to the language to decide which item it thinks best
+                // matches the text typed so far.
 
-                    // Ask the language to determine which of the *matched* items it wants to select.
+                // Ask the language to determine which of the *matched* items it wants to select.
                 var matchingItems = items.Where(r => r.MatchedFilterText).SelectAsArray(t => (t.RoslynCompletionItem, t.PatternMatch));
 
                 var chosenItems = _filterMethod(matchingItems, _filterText);
 
-                    int selectedItemIndex;
-                    VSCompletionItem? uniqueItem = null;
-                    MatchResult<VSCompletionItem> bestOrFirstMatchResult;
+                int selectedItemIndex;
+                VSCompletionItem? uniqueItem = null;
+                MatchResult<VSCompletionItem> bestOrFirstMatchResult;
 
                 if (chosenItems.Length == 0)
+                {
+                    // We do not have matches: pick the one with longest common prefix.
+                    // If we can't find such an item, just return the first item from the list.
+                    selectedItemIndex = 0;
+                    bestOrFirstMatchResult = items[0];
+
+                    var longestCommonPrefixLength = bestOrFirstMatchResult.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
+
+                    for (var i = 1; i < items.Count; ++i)
                     {
-                        // We do not have matches: pick the one with longest common prefix.
-                        // If we can't find such an item, just return the first item from the list.
-                        selectedItemIndex = 0;
-                        bestOrFirstMatchResult = items[0];
+                        var item = items[i];
+                        var commonPrefixLength = item.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
 
-                        var longestCommonPrefixLength = bestOrFirstMatchResult.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
-
-                        for (var i = 1; i < items.Count; ++i)
+                        if (commonPrefixLength > longestCommonPrefixLength)
                         {
-                            var item = items[i];
-                            var commonPrefixLength = item.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
-
-                            if (commonPrefixLength > longestCommonPrefixLength)
-                            {
-                                selectedItemIndex = i;
-                                bestOrFirstMatchResult = item;
-                                longestCommonPrefixLength = commonPrefixLength;
-                            }
+                            selectedItemIndex = i;
+                            bestOrFirstMatchResult = item;
+                            longestCommonPrefixLength = commonPrefixLength;
                         }
                     }
-                    else
-                    {
-                        // Of the items the service returned, pick the one most recently committed
-                        var bestItem = GetBestCompletionItemBasedOnMRUFirstOtherwiseOnPriority(chosenItems);
-
-                        // Determine if we should consider this item 'unique' or not.  A unique item
-                        // will be automatically committed if the user hits the 'invoke completion' 
-                        // without bringing up the completion list.  An item is unique if it was the
-                        // only item to match the text typed so far, and there was at least some text
-                        // typed.  i.e.  if we have "Console.$$" we don't want to commit something
-                        // like "WriteLine" since no filter text has actually been provided.  However,
-                        // if "Console.WriteL$$" is typed, then we do want "WriteLine" to be committed.
-                        for (selectedItemIndex = 0; selectedItemIndex < items.Count; ++selectedItemIndex)
-                        {
-                            if (Equals(items[selectedItemIndex].RoslynCompletionItem, bestItem))
-                                break;
-                        }
-
-                        Debug.Assert(selectedItemIndex < items.Count);
-
-                        bestOrFirstMatchResult = items[selectedItemIndex];
-
-                        if (_filterText.Length > 0)
-                        {
-                            // PreferredItems from IntelliCode are duplicate of normal items, so we ignore them
-                            // when deciding if we have an unique item.
-                        if (matchingItems.Count(r => !r.RoslynCompletionItem.IsPreferredItem()) == 1)
-                                uniqueItem = items[selectedItemIndex].EditorCompletionItem;
-                        }
-                    }
-
-                    var typedChar = _snapshotData.Trigger.Character;
-
-                    // Check that it is a filter symbol. We can be called for a non-filter symbol.
-                    // If inserting a non-filter character (neither IsPotentialFilterCharacter, nor Helpers.IsFilterCharacter),
-                    // we should dismiss completion except cases where this is the first symbol typed for the completion session
-                    // (string.IsNullOrEmpty(filterText) or string.Equals(filterText, typeChar.ToString(), StringComparison.OrdinalIgnoreCase)).
-                    // In the latter case, we should keep the completion because it was confirmed just before in InitializeCompletion.
-                    if (UpdateTriggerReason == CompletionTriggerReason.Insertion &&
-                        !string.IsNullOrEmpty(_filterText) &&
-                        !string.Equals(_filterText, typedChar.ToString(), StringComparison.OrdinalIgnoreCase) &&
-                        !IsPotentialFilterCharacter(typedChar) &&
-                        !Helpers.IsFilterCharacter(bestOrFirstMatchResult.RoslynCompletionItem, typedChar, _filterText))
-                    {
-                        return null;
-                    }
-
-                    var isHardSelection = IsHardSelection(bestOrFirstMatchResult.RoslynCompletionItem, bestOrFirstMatchResult.MatchedFilterText);
-                    var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
-
-                    return new(selectedItemIndex, updateSelectionHint, uniqueItem);
                 }
+                else
+                {
+                    // Of the items the service returned, pick the one most recently committed
+                    var bestItem = GetBestCompletionItemBasedOnMRUFirstOtherwiseOnPriority(chosenItems);
+
+                    // Determine if we should consider this item 'unique' or not.  A unique item
+                    // will be automatically committed if the user hits the 'invoke completion' 
+                    // without bringing up the completion list.  An item is unique if it was the
+                    // only item to match the text typed so far, and there was at least some text
+                    // typed.  i.e.  if we have "Console.$$" we don't want to commit something
+                    // like "WriteLine" since no filter text has actually been provided.  However,
+                    // if "Console.WriteL$$" is typed, then we do want "WriteLine" to be committed.
+                    for (selectedItemIndex = 0; selectedItemIndex < items.Count; ++selectedItemIndex)
+                    {
+                        if (Equals(items[selectedItemIndex].RoslynCompletionItem, bestItem))
+                            break;
+                    }
+
+                    Debug.Assert(selectedItemIndex < items.Count);
+
+                    bestOrFirstMatchResult = items[selectedItemIndex];
+
+                    if (_filterText.Length > 0)
+                    {
+                        // PreferredItems from IntelliCode are duplicate of normal items, so we ignore them
+                        // when deciding if we have an unique item.
+                        if (matchingItems.Count(r => !r.RoslynCompletionItem.IsPreferredItem()) == 1)
+                            uniqueItem = items[selectedItemIndex].EditorCompletionItem;
+                    }
+                }
+
+                var typedChar = _snapshotData.Trigger.Character;
+
+                // Check that it is a filter symbol. We can be called for a non-filter symbol.
+                // If inserting a non-filter character (neither IsPotentialFilterCharacter, nor Helpers.IsFilterCharacter),
+                // we should dismiss completion except cases where this is the first symbol typed for the completion session
+                // (string.IsNullOrEmpty(filterText) or string.Equals(filterText, typeChar.ToString(), StringComparison.OrdinalIgnoreCase)).
+                // In the latter case, we should keep the completion because it was confirmed just before in InitializeCompletion.
+                if (UpdateTriggerReason == CompletionTriggerReason.Insertion &&
+                    !string.IsNullOrEmpty(_filterText) &&
+                    !string.Equals(_filterText, typedChar.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                    !IsPotentialFilterCharacter(typedChar) &&
+                    !Helpers.IsFilterCharacter(bestOrFirstMatchResult.RoslynCompletionItem, typedChar, _filterText))
+                {
+                    return null;
+                }
+
+                var isHardSelection = IsHardSelection(bestOrFirstMatchResult.RoslynCompletionItem, bestOrFirstMatchResult.MatchedFilterText);
+                var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
+
+                return new(selectedItemIndex, updateSelectionHint, uniqueItem);
+            }
 
             private ItemSelection? HandleDeletionTrigger(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
