@@ -274,7 +274,7 @@ public class FileModifierParsingTests : ParsingTests
             {
                 // (1,14): error CS1003: Syntax error, ',' expected
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
                 // (1,18): error CS1002: ; expected
                 // file partial ref struct C { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
@@ -289,7 +289,7 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "partial").WithArguments("partial").WithLocation(1, 6),
                 // (1,14): error CS1003: Syntax error, ',' expected
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
                 // (1,18): error CS1002: ; expected
                 // file partial ref struct C { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
@@ -368,7 +368,7 @@ public class FileModifierParsingTests : ParsingTests
             {
                 // (1,14): error CS1003: Syntax error, ',' expected
                 // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
                 // (1,18): error CS1002: ; expected
                 // partial file ref struct C { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
@@ -383,7 +383,7 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 9),
                 // (1,14): error CS1003: Syntax error, ',' expected
                 // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
                 // (1,18): error CS1002: ; expected
                 // partial file ref struct C { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
@@ -2649,7 +2649,7 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(3, 17),
                 // (3,17): error CS1003: Syntax error, ',' expected
                 //     void M(file int x) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(3, 17)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(3, 17)
             },
             expectedBindingDiagnostics: new[]
             {
@@ -2661,7 +2661,7 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(3, 17),
                 // (3,17): error CS1003: Syntax error, ',' expected
                 //     void M(file int x) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(3, 17)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(3, 17)
             });
         N(SyntaxKind.CompilationUnit);
         {
