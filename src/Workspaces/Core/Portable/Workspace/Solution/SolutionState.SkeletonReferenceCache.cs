@@ -275,12 +275,14 @@ internal partial class SolutionState
 
             public Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
             {
-                // lookup first and eagerly return cached value if we have it.
                 AsyncLazy<MetadataReference?>? lazy;
                 lock (_metadataReferences)
                 {
                     if (!_metadataReferences.TryGetValue(properties, out lazy))
                     {
+                        // note: computing the reference is actually synchronous.  However, this ensures we don't have N
+                        // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while
+                        // any concurrent requests asynchronously wait for that work to be one.
                         lazy = new AsyncLazy<MetadataReference?>(c => ComputeReferenceAsync(properties, c), cacheResult: true);
                         _metadataReferences.Add(properties, lazy);
                     }
@@ -290,10 +292,7 @@ internal partial class SolutionState
 
                 Task<MetadataReference?> ComputeReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
                 {
-                    // otherwise, create the metadata outside of the lock, and then try to assign it if no one else beat us
-                    var metadataReference = CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider);
-
-                    return Task.FromResult(metadataReference);
+                    return Task.FromResult(CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider));
                 }
             }
 
