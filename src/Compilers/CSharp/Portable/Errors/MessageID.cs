@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
         IDS_FeatureListPattern = MessageBase + 12814,
-        IDS_ParameterNullChecking = MessageBase + 12815,
+        // IDS_ParameterNullChecking = MessageBase + 12815, // feature removed from C# 11
 
         IDS_FeatureCacheStaticMethodGroupConversion = MessageBase + 12816,
         IDS_FeatureRawStringLiterals = MessageBase + 12817,
@@ -253,8 +253,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureUnsignedRightShift = MessageBase + 12823,
         IDS_FeatureExtendedNameofScope = MessageBase + 12824,
+<<<<<<< HEAD
 
         IDS_FeatureFileTypes = MessageBase + 12850, // PROTOTYPE(ft): pack ID before merge
+=======
+        IDS_FeatureRelaxedShiftOperator = MessageBase + 12825,
+        IDS_FeatureRequiredMembers = MessageBase + 12826,
+>>>>>>> upstream/main
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -369,15 +374,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
+                case MessageID.IDS_FeatureRequiredMembers: // semantic check
                 case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
-                case MessageID.IDS_ParameterNullChecking: // syntax check
                 case MessageID.IDS_FeatureSpanCharConstantPattern:
                 case MessageID.IDS_FeatureAutoDefaultStructs: // semantic check
                 case MessageID.IDS_FeatureCheckedUserDefinedOperators: // semantic check for declarations, parsing check for doc comments
                 case MessageID.IDS_FeatureUTF8StringLiterals: // semantic check
                 case MessageID.IDS_FeatureUnsignedRightShift: // semantic check for declarations and consumption, parsing check for doc comments
                 case MessageID.IDS_FeatureExtendedNameofScope: // semantic check
+<<<<<<< HEAD
                 case MessageID.IDS_FeatureFileTypes: // semantic check
+=======
+                case MessageID.IDS_FeatureRelaxedShiftOperator: // semantic check
+>>>>>>> upstream/main
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.

@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -123,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' features that need to call each part independently and operate on the intermediary values.
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    solution, symbol, renameOptions, AddressOf CodeCleanupOptions.GetDefaultAsync, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameOptions, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
 
                 Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
             Else
@@ -131,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolAsync(
-                    solution, symbol, renameTo, renameOptions, AddressOf CodeCleanupOptions.GetDefaultAsync,
+                    solution, symbol, renameTo, renameOptions, CodeActionOptions.DefaultProvider,
                     nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function

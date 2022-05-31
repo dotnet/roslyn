@@ -47,7 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)VBCSCompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisualBasicCompilerServer.cs" />
 
-    <None Include="$(MSBuildThisFileDirectory)App.config" />
+    <None Include="$(MSBuildThisFileDirectory)App.config" Condition="'$(TargetFramework)' == 'net472'" />
 
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />

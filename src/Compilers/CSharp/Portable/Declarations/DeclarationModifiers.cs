@@ -36,12 +36,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         Async = 1 << 20,
         Ref = 1 << 21, // used only for structs
 
+<<<<<<< HEAD
 
         // PROTOTYPE(ft): leaving 22 free since required is using it
         File = 1 << 23, // used only for types
 
         All = (1 << 24) - 1, // all modifiers
         Unset = 1 << 24, // used when a modifiers value hasn't yet been computed
+=======
+        Required = 1 << 22, // Used only for properties and fields
+
+        All = (1 << 23) - 1, // all modifiers
+        Unset = 1 << 23, // used when a modifiers value hasn't yet been computed
+>>>>>>> upstream/main
 
         AccessibilityMask = PrivateProtected | Private | Protected | Internal | ProtectedInternal | Public,
     }

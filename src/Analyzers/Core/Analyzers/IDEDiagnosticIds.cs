@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseTupleSwapDiagnosticId = "IDE0180";
 
-        public const string UseParameterNullCheckingId = "IDE0190";
+        // Don't use "IDE0190". It corresponds to the deleted field UseParameterNullCheckingId which was previously shipped.
 
         public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
 
@@ -175,6 +175,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseProgramMainId = "IDE0211";
 
         public const string ForEachCastDiagnosticId = "IDE0220";
+
+        public const string UseUTF8StringLiteralDiagnosticId = "IDE0230";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

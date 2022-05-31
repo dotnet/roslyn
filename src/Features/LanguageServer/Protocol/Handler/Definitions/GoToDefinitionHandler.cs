@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(GoToDefinitionHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(GoToDefinitionHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDefinitionName)]
     internal class GoToDefinitionHandler : AbstractGoToDefinitionHandler
     {

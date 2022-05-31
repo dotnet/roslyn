@@ -2857,6 +2857,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
     <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
   </data>
+  <data name="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application" xml:space="preserve">
+    <value>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</value>
+  </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
   </data>
@@ -3128,5 +3131,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
+  </data>
+  <data name="Directives_from_0" xml:space="preserve">
+    <value>Directives from '{0}'</value>
+  </data>
+  <data name="Decompiled" xml:space="preserve">
+    <value>decompiled</value>
   </data>
 </root>

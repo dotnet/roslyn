@@ -786,6 +786,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<FieldDeclarationSyntax>(
                 Generator.FieldDeclaration("fld", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Static | DeclarationModifiers.ReadOnly),
                 "static readonly int fld;");
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.FieldDeclaration("fld", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Required),
+                "required int fld;");
         }
 
         [Fact]
@@ -1010,6 +1014,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
                 "abstract x p { get; set; }");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Required),
+                "required x p { get; set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: new[] { Generator.IdentifierName("y") }),
@@ -3621,6 +3629,17 @@ class C
 }");
         }
 
+        [Fact]
+        public void TestPropertyModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
+                @"
+class C
+{
+    [|public required int X => 0;|]
+}");
+        }
+
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestFieldModifiers1()
         {
@@ -3629,6 +3648,17 @@ class C
 class C
 {
     public static int [|X|];
+}");
+        }
+
+        [Fact]
+        public void TestFieldModifiers2()
+        {
+            TestModifiersAsync(DeclarationModifiers.Required,
+                @"
+class C
+{
+    public required int [|X|];
 }");
         }
 

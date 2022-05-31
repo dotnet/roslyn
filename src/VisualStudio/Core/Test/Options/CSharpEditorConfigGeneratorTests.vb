@@ -119,11 +119,10 @@ csharp_style_prefer_switch_expression = true
 
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true
-csharp_style_prefer_parameter_null_checking = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # Code-block preferences
 csharp_prefer_braces = true
@@ -142,6 +141,7 @@ csharp_style_prefer_local_over_anonymous_function = true
 csharp_style_prefer_null_check_over_type_check = true
 csharp_style_prefer_range_operator = true
 csharp_style_prefer_tuple_swap = true
+csharp_style_prefer_utf8_string_literals = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
 csharp_style_unused_value_expression_statement_preference = discard_variable
@@ -356,11 +356,10 @@ csharp_style_prefer_switch_expression = true
 
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true
-csharp_style_prefer_parameter_null_checking = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 
 # Code-block preferences
 csharp_prefer_braces = true
@@ -379,6 +378,7 @@ csharp_style_prefer_local_over_anonymous_function = true
 csharp_style_prefer_null_check_over_type_check = true
 csharp_style_prefer_range_operator = true
 csharp_style_prefer_tuple_swap = true
+csharp_style_prefer_utf8_string_literals = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
 csharp_style_unused_value_expression_statement_preference = discard_variable

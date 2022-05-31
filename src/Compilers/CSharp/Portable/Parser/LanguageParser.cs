@@ -1163,8 +1163,13 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
+<<<<<<< HEAD
                         case SyntaxKind.FileKeyword:
                             return DeclarationModifiers.File;
+=======
+                        case SyntaxKind.RequiredKeyword:
+                            return DeclarationModifiers.Required;
+>>>>>>> upstream/main
                     }
 
                     goto default;
@@ -1173,8 +1178,9 @@ tryAgain:
             }
         }
 
-        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements)
         {
+            Debug.Assert(!(forAccessors && forTopLevelStatements));
             while (true)
             {
                 var newMod = GetModifier(this.CurrentToken);
@@ -1256,13 +1262,31 @@ tryAgain:
                         break;
 
                     case DeclarationModifiers.Async:
+<<<<<<< HEAD
                         if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+=======
+                        if (!ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+>>>>>>> upstream/main
                         {
                             return;
                         }
 
                         modTok = ConvertToKeyword(this.EatToken());
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
+                        break;
+
+                    case DeclarationModifiers.Required:
+                        // In C# 11, required in a modifier position is always a keyword if not escaped. Otherwise, we reuse the async detection
+                        // machinery to make a conservative guess as to whether the user meant required to be a keyword, so that they get a good langver
+                        // diagnostic and all the machinery to upgrade their project kicks in. The only exception to this rule is top level statements,
+                        // where the user could conceivably have a local named required. For these locations, we need to disambiguate as well.
+                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureRequiredMembers) || forTopLevelStatements) && !ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        modTok = ConvertToKeyword(this.EatToken());
+
                         break;
 
                     default:
@@ -1293,16 +1317,26 @@ tryAgain:
             }
         }
 
+<<<<<<< HEAD
         private bool ShouldContextualKeywordBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken && GetModifier(this.CurrentToken) != DeclarationModifiers.None);
+=======
+        private bool ShouldAsyncOrRequiredBeTreatedAsModifier(bool parsingStatementNotDeclaration)
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword);
+>>>>>>> upstream/main
 
             // Adapted from CParser::IsAsyncMethod.
 
             if (IsNonContextualModifier(PeekToken(1)))
             {
                 // If the next token is a (non-contextual) modifier keyword, then this token is
+<<<<<<< HEAD
                 // definitely a modifier
+=======
+                // definitely the async or required keyword
+>>>>>>> upstream/main
                 return true;
             }
 
@@ -1313,7 +1347,11 @@ tryAgain:
 
             try
             {
+<<<<<<< HEAD
                 this.EatToken(); //move past contextual token
+=======
+                this.EatToken(); //move past contextual 'async' or 'required'
+>>>>>>> upstream/main
 
                 if (!parsingStatementNotDeclaration &&
                     (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword))
@@ -1329,6 +1367,8 @@ tryAgain:
                 // ... 'TOKEN' [partial] <typename> <membername> ...
                 // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
                 // anything other than async methods are detected as erroneous later, during the define phase
+                // The comments in general were not updated to add "async or required" everywhere to preserve
+                // history, but generally wherever async occurs, it can also be required.
 
                 if (!parsingStatementNotDeclaration)
                 {
@@ -2367,7 +2407,7 @@ tryAgain:
                 }
 
                 // All modifiers that might start an expression are processed above.
-                this.ParseModifiers(modifiers, forAccessors: false);
+                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: true);
                 bool haveModifiers = (modifiers.Count > 0);
                 MemberDeclarationSyntax result;
 
@@ -2672,7 +2712,13 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
+<<<<<<< HEAD
                 this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.FileKeyword) &&
+=======
+                this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
+                this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                this.CurrentToken.ContextualKind != SyntaxKind.RequiredKeyword &&
+>>>>>>> upstream/main
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -2818,7 +2864,7 @@ parse_member_name:;
             {
                 var attributes = this.ParseAttributeDeclarations();
 
-                this.ParseModifiers(modifiers, forAccessors: false);
+                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false);
 
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
@@ -3358,7 +3404,7 @@ parse_member_name:;
                     {
                         possibleConversion = false;
                     }
-                    else if (this.PeekToken(1).Kind == SyntaxKind.CheckedKeyword) // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+                    else if (this.PeekToken(1).Kind is SyntaxKind.CheckedKeyword or SyntaxKind.UncheckedKeyword)
                     {
                         possibleConversion = !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(2).Kind);
                     }
@@ -3402,7 +3448,7 @@ parse_member_name:;
                 }
 
                 opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-                var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+                var checkedKeyword = TryEatCheckedOrHandleUnchecked(ref opKeyword);
 
                 this.Release(ref point);
                 point = GetResetPoint();
@@ -3520,6 +3566,19 @@ parse_member_name:;
             }
         }
 
+        private SyntaxToken TryEatCheckedOrHandleUnchecked(ref SyntaxToken operatorKeyword)
+        {
+            if (CurrentToken.Kind == SyntaxKind.UncheckedKeyword)
+            {
+                // if we encounter `operator unchecked`, we place the `unchecked` as skipped trivia on `operator`
+                var misplacedToken = this.AddError(this.EatToken(), ErrorCode.ERR_MisplacedUnchecked);
+                operatorKeyword = AddTrailingSkippedSyntax(operatorKeyword, misplacedToken);
+                return null;
+            }
+
+            return TryEatToken(SyntaxKind.CheckedKeyword);
+        }
+
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
@@ -3527,7 +3586,7 @@ parse_member_name:;
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt)
         {
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-            var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+            var checkedKeyword = TryEatCheckedOrHandleUnchecked(ref opKeyword);
             SyntaxToken opToken;
             int opTokenErrorOffset;
             int opTokenErrorWidth;
@@ -4099,7 +4158,7 @@ parse_member_name:;
             try
             {
                 var accAttrs = this.ParseAttributeDeclarations();
-                this.ParseModifiers(accMods, forAccessors: true);
+                this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false);
 
                 // check availability of readonly members feature for accessors
                 CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
@@ -4468,7 +4527,7 @@ tryAgain:
                     // We store an __arglist parameter as a parameter with null type and whose 
                     // .Identifier has the kind ArgListKeyword.
                     return _syntaxFactory.Parameter(
-                        attributes, modifiers.ToList(), type: null, this.EatToken(SyntaxKind.ArgListKeyword), exclamationExclamationToken: null, @default: null);
+                        attributes, modifiers.ToList(), type: null, this.EatToken(SyntaxKind.ArgListKeyword), @default: null);
                 }
 
                 var type = this.ParseType(mode: ParseTypeMode.Parameter);
@@ -4482,7 +4541,7 @@ tryAgain:
                         this.EatToken()));
                 }
 
-                ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
+                ParseParameterNullCheck(ref identifier, out var equalsToken);
 
                 // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
                 equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
@@ -4491,7 +4550,7 @@ tryAgain:
                     ? null
                     : CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
 
-                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, exclamationExclamationToken, equalsValueClause);
+                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, equalsValueClause);
             }
             finally
             {
@@ -4500,15 +4559,14 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parses the <c>!!</c> following a parameter type and identifier.  If the token
+        /// Parses the <c>!!</c> as skipped tokens following a parameter name token.  If the parameter name
         /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned through <paramref
         /// name="equalsToken"/>.
         /// </summary>
         private void ParseParameterNullCheck(
-            out SyntaxToken? exclamationExclamationToken,
+            ref SyntaxToken identifier,
             out SyntaxToken? equalsToken)
         {
-            exclamationExclamationToken = null;
             equalsToken = null;
 
             if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
@@ -4516,48 +4574,34 @@ tryAgain:
                 // split != into two tokens.
                 var exclamationEquals = this.EatToken();
 
-                // Report that the ! should have been !!
-                exclamationExclamationToken = WithAdditionalDiagnostics(
-                    SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, "!", "!", trailing: null),
-                    this.GetExpectedTokenError(expected: SyntaxKind.ExclamationExclamationToken, actual: SyntaxKind.ExclamationToken));
+                // treat the '!' as '!!' and give the feature unsupported error
+                identifier = AddTrailingSkippedSyntax(
+                    identifier,
+                    this.AddError(SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, "!", "!", trailing: null), ErrorCode.ERR_ParameterNullCheckingNotSupported));
 
                 // Return the split out `=` for the consumer to handle.
                 equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
             }
             else if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
             {
-                // We have seen at least !
-                //
-                // We can potentially merge that with an immediately following !! or an immediately following !=
-                // All other cases are in error.
-                var firstExclamation = this.EatToken();
+                // We have seen at least '!'
+                // We check for a following '!' or '!=' to see if the user is trying to use '!!' (so we can give an appropriate error).
+                identifier = AddTrailingSkippedSyntax(identifier, this.AddError(this.EatToken(), ErrorCode.ERR_ParameterNullCheckingNotSupported));
                 if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
                 {
-                    // have two !'s in a row.  Merge them (reporting any errors if they cannot merge properly).
-                    exclamationExclamationToken = MergeAdjacent(firstExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
+                    identifier = AddTrailingSkippedSyntax(identifier, this.EatToken());
                 }
                 else if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
                 {
                     // split != into two tokens.
                     var exclamationEquals = this.EatToken();
 
-                    exclamationExclamationToken = MergeAdjacent(
-                        firstExclamation,
-                        SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, trailing: null),
-                        SyntaxKind.ExclamationExclamationToken);
+                    identifier = AddTrailingSkippedSyntax(
+                        identifier,
+                        SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, trailing: null));
                     equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
                 }
-                else
-                {
-                    // Report that the ! should have been !!
-                    exclamationExclamationToken = WithAdditionalDiagnostics(
-                        SyntaxFactory.Token(firstExclamation.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, "!", "!", trailing: firstExclamation.GetTrailingTrivia()),
-                        this.GetExpectedTokenError(expected: SyntaxKind.ExclamationExclamationToken, actual: firstExclamation.Kind));
-                }
             }
-
-            if (exclamationExclamationToken != null)
-                exclamationExclamationToken = CheckFeatureAvailability(exclamationExclamationToken, MessageID.IDS_ParameterNullChecking);
         }
 
         /// <summary>
@@ -6659,7 +6703,7 @@ tryAgain:
                 case SyntaxKind.ColonColonToken:
                     if (left.Kind != SyntaxKind.IdentifierName)
                     {
-                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
+                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
                     }
 
                     // If the left hand side is not an identifier name then the user has done
@@ -7979,7 +8023,11 @@ done:;
             tk = this.CurrentToken.ContextualKind;
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
+<<<<<<< HEAD
                 && (tk != SyntaxKind.AsyncKeyword || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+=======
+                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncOrRequiredBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+>>>>>>> upstream/main
             if (isPossibleAttributeOrModifier)
             {
                 return true;
@@ -9100,7 +9148,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.ForKeyword)
             {
                 var skippedForToken = this.EatToken();
-                skippedForToken = this.AddError(skippedForToken, ErrorCode.ERR_SyntaxError, SyntaxFacts.GetText(SyntaxKind.ForEachKeyword), SyntaxFacts.GetText(SyntaxKind.ForKeyword));
+                skippedForToken = this.AddError(skippedForToken, ErrorCode.ERR_SyntaxError, SyntaxFacts.GetText(SyntaxKind.ForEachKeyword));
                 @foreach = ConvertToMissingWithTrailingTrivia(skippedForToken, SyntaxKind.ForEachKeyword);
             }
             else
@@ -9972,7 +10020,7 @@ tryAgain:
                 else if (list.Any(mod.RawKind))
                 {
                     // check for duplicates, can only be const
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
                 }
 
                 list.Add(mod);
@@ -11797,13 +11845,10 @@ tryAgain:
                     }
 
                     // eat the parameter name.
-                    if (this.IsTrueIdentifier())
-                    {
-                        this.EatToken();
-                    }
+                    var identifier = this.IsTrueIdentifier() ? this.EatToken() : CreateMissingIdentifierToken();
 
                     // eat a !! if present.
-                    this.ParseParameterNullCheck(out _, out var equalsToken);
+                    this.ParseParameterNullCheck(ref identifier, out var equalsToken);
                     equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
 
                     // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
@@ -13090,7 +13135,7 @@ tryAgain:
                         this.EatTokenAsKind(SyntaxKind.IdentifierToken) :
                         this.ParseIdentifierToken();
 
-                    ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
+                    ParseParameterNullCheck(ref identifier, out var equalsToken);
 
                     SyntaxToken arrow;
                     if (equalsToken != null)
@@ -13114,7 +13159,7 @@ tryAgain:
                     }
 
                     var parameter = _syntaxFactory.Parameter(
-                        attributeLists: default, modifiers: default, type: null, identifier, exclamationExclamationToken, @default: null);
+                        attributeLists: default, modifiers: default, type: null, identifier, @default: null);
                     var (block, expression) = ParseLambdaBody();
                     return _syntaxFactory.SimpleLambdaExpression(
                         attributes, modifiers, parameter, arrow, block, expression);
@@ -13238,7 +13283,7 @@ tryAgain:
             }
 
             var identifier = this.ParseIdentifierToken();
-            ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
+            ParseParameterNullCheck(ref identifier, out var equalsToken);
 
             // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
             // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
@@ -13254,11 +13299,10 @@ tryAgain:
             {
                 equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
 
-                ref var nodeToAttachTo = ref exclamationExclamationToken != null ? ref exclamationExclamationToken : ref identifier;
-                nodeToAttachTo = AddTrailingSkippedSyntax(nodeToAttachTo, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
+                identifier = AddTrailingSkippedSyntax(identifier, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
             }
 
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, exclamationExclamationToken, @default: null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: null);
             _pool.Free(modifiers);
             return parameter;
         }

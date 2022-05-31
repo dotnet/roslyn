@@ -1228,7 +1228,7 @@ class C
             Assert.Equal("b", parsedArgs.MetadataReferences.Single().Reference);
 
             parsedArgs = DefaultParse(new[] { "/r:a=b,,,c", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_OneAliasPerReference).WithArguments("b,,,c"));
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_OneAliasPerReference));
 
             parsedArgs = DefaultParse(new[] { "/r:1=b", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments("1"));
@@ -5193,7 +5193,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new string[] { "/w:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS1900: Warning level must be zero or greater
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("w"));
+                Diagnostic(ErrorCode.ERR_BadWarningLevel));
 
             parsedArgs = DefaultParse(new string[] { "/w:5", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -5201,7 +5201,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new string[] { "/warn:-1", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS1900: Warning level must be zero or greater
-                Diagnostic(ErrorCode.ERR_BadWarningLevel).WithArguments("warn"));
+                Diagnostic(ErrorCode.ERR_BadWarningLevel));
 
             parsedArgs = DefaultParse(new string[] { "/warn:5", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -9171,7 +9171,7 @@ public class C { }
 
             var comp = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/errorendlocation" });
             var loc = new SourceLocation(tree.GetCompilationUnitRoot().FindToken(6));
-            var diag = new CSDiagnostic(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_MetadataNameTooLong), loc);
+            var diag = new CSDiagnostic(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_MetadataNameTooLong, "<name>"), loc);
             var text = comp.DiagnosticFormatter.Format(diag);
 
             string stringStart = "goo(1,7,1,8)";
@@ -12181,7 +12181,7 @@ class C
             // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
-                new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix, "l"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);

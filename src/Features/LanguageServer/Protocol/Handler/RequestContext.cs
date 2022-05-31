@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         private readonly ImmutableDictionary<Uri, SourceText> _trackedDocuments;
 
+        private readonly LspServices _lspServices;
+
         /// <summary>
         /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
         /// </summary>
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly ImmutableArray<string> SupportedLanguages;
 
-        public readonly IGlobalOptionService GlobalOptions;
+        public readonly CancellationToken QueueCancellationToken;
 
         /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
@@ -73,30 +77,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            LspServices lspServices,
+            CancellationToken queueCancellationToken)
         {
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
             ServerKind = serverKind;
             SupportedLanguages = supportedLanguages;
-            GlobalOptions = globalOptions;
             _documentChangeTracker = documentChangeTracker;
             _logger = logger;
             _trackedDocuments = trackedDocuments;
+            _lspServices = lspServices;
+            QueueCancellationToken = queueCancellationToken;
         }
 
-        public static RequestContext? Create(
+        public static async Task<RequestContext?> CreateAsync(
             bool requiresLSPSolution,
+            bool mutatesSolutionState,
             TextDocumentIdentifier? textDocument,
             WellKnownLspServerKinds serverKind,
-            ILspLogger logger,
             ClientCapabilities clientCapabilities,
-            LspWorkspaceManager lspWorkspaceManager,
-            IDocumentChangeTracker documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            LspServices lspServices,
+            CancellationToken queueCancellationToken,
+            CancellationToken requestCancellationToken)
         {
+            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+            var logger = lspServices.GetRequiredService<ILspLogger>();
+            var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
+
             // Retrieve the current LSP tracked text as of this request.
             // This is safe as all creation of request contexts cannot happen concurrently.
             var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
@@ -107,23 +117,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger, clientCapabilities, serverKind, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
+                return new RequestContext(
+                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
+                    documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
+                    queueCancellationToken: queueCancellationToken);
             }
 
-            // Go through each registered workspace, find the solution that contains the document that
-            // this request is for, and then updates it based on the state of the world as we know it, based on the
-            // text content in the document change tracker.
-
+            Solution? workspaceSolution;
             Document? document = null;
-            var workspaceSolution = lspWorkspaceManager.TryGetHostLspSolution();
             if (textDocument is not null)
             {
-                // we were given a request associated with a document.  Find the corresponding roslyn
-                // document for this.  If we can't, we cannot proceed.
-                document = lspWorkspaceManager.GetLspDocument(textDocument);
-                if (document != null)
-                    workspaceSolution = document.Project.Solution;
+                // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
+                // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
+                // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
+                document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
+
+            workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
 
             if (workspaceSolution == null)
             {
@@ -140,7 +150,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,
-                globalOptions);
+                lspServices,
+                queueCancellationToken);
             return context;
         }
 
@@ -188,5 +199,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public void TraceException(Exception exception)
             => _logger.TraceException(exception);
+
+        public T GetRequiredLspService<T>() where T : class, ILspService
+        {
+            return _lspServices.GetRequiredService<T>();
+        }
     }
 }

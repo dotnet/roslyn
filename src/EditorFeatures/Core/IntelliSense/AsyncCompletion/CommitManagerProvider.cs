@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInLspEditorContext())
+            if (textView.IsInLspEditorContext())
             {
                 return null;
             }

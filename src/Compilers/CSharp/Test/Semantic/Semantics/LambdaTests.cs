@@ -1973,7 +1973,7 @@ class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
     // (2,61): error CS1003: Syntax error, ',' expected
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
-    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",", "").WithLocation(2, 61),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",").WithLocation(2, 61),
     // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
     // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
     Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
@@ -4769,7 +4769,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         Action a = [UnmanagedCallersOnly] static () => { };
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 21));
         }
@@ -6673,6 +6673,64 @@ class C
                 //     void M2(parameter parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 13)
                 );
+        }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaDiscardParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, _) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var discard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.Int32 _", model.GetSymbolInfo(discard).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaUnderscoreParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, x) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var underscore = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.String _", model.GetSymbolInfo(underscore).Symbol.ToTestDisplayString());
         }
     }
 }

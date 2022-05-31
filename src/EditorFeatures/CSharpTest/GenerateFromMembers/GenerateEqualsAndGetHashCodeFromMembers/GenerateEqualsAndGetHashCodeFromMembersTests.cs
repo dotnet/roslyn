@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private class TestWithDialog : VerifyCS.Test
         {
             private static readonly TestComposition s_composition =
-                FeaturesTestCompositions.Features.AddParts(typeof(TestPickMembersService));
+                EditorTestCompositions.EditorFeatures.AddParts(typeof(TestPickMembersService));
 
             public ImmutableArray<string> MemberNames;
             public Action<ImmutableArray<PickMembersOption>> OptionsCallback;

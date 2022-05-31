@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,11 +19,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
     /// </summary>
-    public partial class FixAllContext
+    public partial class FixAllContext : IFixAllContext
     {
         internal FixAllState State { get; }
 
-        internal FixAllProvider? FixAllProvider => State.FixAllProvider;
+        internal FixAllProvider FixAllProvider => State.FixAllProvider;
 
         /// <summary>
         /// Solution to fix all occurrences.
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
         /// </summary>
-        public CodeFixProvider CodeFixProvider => State.CodeFixProvider;
+        public CodeFixProvider CodeFixProvider => State.Provider;
 
         /// <summary>
         /// <see cref="FixAllScope"/> to fix all occurrences.
@@ -67,6 +68,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public CancellationToken CancellationToken { get; }
 
         internal IProgressTracker ProgressTracker { get; }
+
+        #region IFixAllContext implementation
+        IFixAllState IFixAllContext.State => this.State;
+
+        IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
+
+        object IFixAllContext.Provider => this.CodeFixProvider;
+
+        IProgressTracker IFixAllContext.ProgressTracker => this.ProgressTracker;
+
+        string IFixAllContext.GetDefaultFixAllTitle()
+            => this.GetDefaultFixAllTitle();
+
+        IFixAllContext IFixAllContext.With(
+            Optional<(Document? document, Project project)> documentAndProject,
+            Optional<FixAllScope> scope,
+            Optional<string?> codeActionEquivalenceKey)
+            => this.With(documentAndProject, scope, codeActionEquivalenceKey);
+        #endregion
 
         /// <summary>
         /// Creates a new <see cref="FixAllContext"/>.
@@ -135,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
             : this(new FixAllState(
-                    fixAllProvider: null,
+                    fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan,
                     document ?? throw new ArgumentNullException(nameof(document)),
                     document.Project,
@@ -144,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                    _ => CodeActionOptions.Default),
+                    CodeActionOptions.DefaultProvider),
                   new ProgressTracker(), cancellationToken)
         {
         }
@@ -171,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
             : this(new FixAllState(
-                    fixAllProvider: null,
+                    fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan: null,
                     document: null,
                     project ?? throw new ArgumentNullException(nameof(project)),
@@ -180,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                    _ => CodeActionOptions.Default),
+                    CodeActionOptions.DefaultProvider),
                   new ProgressTracker(), cancellationToken)
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
@@ -319,14 +339,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return new FixAllContext(State, this.ProgressTracker, cancellationToken);
         }
 
-        internal FixAllContext WithScope(FixAllScope scope)
-            => this.WithState(State.WithScope(scope));
-
-        internal FixAllContext WithDocumentAndProject(Document? document, Project project)
-            => this.WithState(State.WithDocumentAndProject(document, project));
-
-        private FixAllContext WithState(FixAllState state)
-            => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);
+        internal FixAllContext With(
+            Optional<(Document? document, Project project)> documentAndProject = default,
+            Optional<FixAllScope> scope = default,
+            Optional<string?> codeActionEquivalenceKey = default)
+        {
+            var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
+            return State == newState ? this : new FixAllContext(newState, ProgressTracker, CancellationToken);
+        }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
             => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);

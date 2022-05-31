@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var triggerText = sourceText.ToString(triggerToken.Span);
-            var fallbackOptions = _globalOptions.GetCodeCleanupOptionsProvider();
+            var fallbackOptions = _globalOptions.CreateProvider();
 
             return new SymbolInlineRenameInfo(
                 refactorNotifyServices, document, triggerToken.Span, triggerText,

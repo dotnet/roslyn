@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
                 }
+<<<<<<< HEAD
                 else if (!delegateTypeIsFile && parameterSymbol.Type.IsFileTypeOrUsesFileTypes())
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], parameterSymbol.Type, delegateType);
@@ -121,6 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
                 }
+=======
+>>>>>>> upstream/main
             }
 
             diagnostics.Add(delegateType.Locations[0], useSiteInfo);
@@ -254,6 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
@@ -339,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (ReturnType.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }

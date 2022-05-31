@@ -121,10 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (await service.ShouldFormatOnTypedCharacterAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false))
             {
                 var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
-                var autoFormattingOptions = _globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp);
-                var indentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp);
                 var formattingOptions = await _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, explicitFormat: false, cancellationToken).ConfigureAwait(false);
-                var indentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions, indentStyle);
+
+                var indentationOptions = new IndentationOptions(formattingOptions)
+                {
+                    AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp),
+                    IndentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp)
+                };
 
                 return await service.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
             }

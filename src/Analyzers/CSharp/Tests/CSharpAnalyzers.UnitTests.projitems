@@ -109,7 +109,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseNullCheckOverTypeCheckDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseParameterNullChecking\UseParameterNullCheckingTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />
@@ -123,6 +122,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUTF8StringLiteral\UseUTF8StringLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseVarTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementTests.cs" />

@@ -113,7 +113,6 @@ For editorconfig items that are handled by the formatter they are not exported f
 | csharp_style_prefer_not_pattern                                                   | IDE0083                  |
 | csharp_style_prefer_null_check_over_type_check                                    | IDE0150                  |
 | csharp_style_prefer_null_check_over_type_check                                    | IDE0150                  |
-| csharp_style_prefer_parameter_null_checking                                       | IDE0190                  |
 | csharp_style_prefer_pattern_matching                                              | IDE0078                  |
 | csharp_style_prefer_range_operator                                                | IDE0057                  |
 | csharp_style_prefer_switch_expression                                             | IDE0066                  |

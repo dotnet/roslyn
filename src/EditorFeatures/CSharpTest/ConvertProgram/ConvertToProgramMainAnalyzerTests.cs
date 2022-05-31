@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.CSharp.TopLevelStatements;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
@@ -204,7 +205,7 @@ class Program
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never },
                     { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
                 },
             }.RunAsync();
@@ -362,21 +363,51 @@ internal class Program
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestNormalCommentMovedToProgram()
+        [Fact, WorkItem(61126, "https://github.com/dotnet/roslyn/issues/61126")]
+        public async Task TestNormalCommentStaysInsideMainIfTouchingStatement()
         {
             await new VerifyCS.Test
             {
                 TestCode = @"
 using System;
 
-// This comment describes the program
+// This comment probably describes logic of the statement below
 {|IDE0211:Console|}.WriteLine(0);
 ",
                 FixedCode = @"
 using System;
 
-// This comment describes the program
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        // This comment probably describes logic of the statement below
+        Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(61126, "https://github.com/dotnet/roslyn/issues/61126")]
+        public async Task TestNormalCommentMovesIfNotTouching()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+// This comment probably does not describe the logic of the statement below
+
+{|IDE0211:Console|}.WriteLine(0);
+",
+                FixedCode = @"
+using System;
+
+// This comment probably does not describe the logic of the statement below
+
 internal class Program
 {
     private static void Main(string[] args)
@@ -409,6 +440,81 @@ internal class Program
     private static void Main(string[] args)
     {
         Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTopLevelStatementExplanationCommentRemoved2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+// See https://aka.ms/new-console-template for more information
+
+{|IDE0211:Console|}.WriteLine(0);
+",
+                FixedCode = @"
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTopLevelStatementExplanationCommentRemoved3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+// See https://aka.ms/new-console-template for more information
+
+{|IDE0211:System|}.Console.WriteLine(0);
+",
+                FixedCode = @"
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestTopLevelStatementExplanationCommentRemoved4()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+// See https://aka.ms/new-console-template for more information
+{|IDE0211:System|}.Console.WriteLine(0);
+",
+                FixedCode = @"
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
     }
 }",
                 LanguageVersion = LanguageVersion.CSharp9,

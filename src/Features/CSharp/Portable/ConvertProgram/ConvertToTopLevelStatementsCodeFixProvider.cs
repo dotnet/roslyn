@@ -38,9 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var option = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
-            var priority = option.Notification.Severity == ReportDiagnostic.Hidden
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            var priority = options.PreferTopLevelStatements.Notification.Severity == ReportDiagnostic.Hidden
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         {
             var methodDeclaration = (MethodDeclarationSyntax)diagnostics[0].AdditionalLocations[0].FindNode(cancellationToken);
 
-            var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(fallbackOptions), cancellationToken).ConfigureAwait(false);
+            var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, fallbackOptions, cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
