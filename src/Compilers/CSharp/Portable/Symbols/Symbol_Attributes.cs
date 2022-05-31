@@ -209,7 +209,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this (base) method.
         /// </para>
         /// </remarks>
-        internal virtual void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+#nullable enable
+        protected void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.Diagnostics.DiagnosticBag is not null);
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+            if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.CompilerFeatureRequiredAttribute))
+            {
+                // Do not use '{FullName}'. This is reserved for compiler usage.
+                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.CompilerFeatureRequiredAttribute.FullName);
+                return;
+            }
+
+            DecodeWellKnownAttributeImpl(ref arguments);
+        }
+#nullable disable
+
+        protected virtual void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
         }
 
@@ -654,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This method validates attribute usage for each bound attribute and calls <see cref="DecodeWellKnownAttribute"/>
+        /// This method validates attribute usage for each bound attribute and calls <see cref="DecodeWellKnownAttributeImpl"/>
         /// on attributes with valid attribute usage.
         /// This method is called by the binder when it is finished binding a set of attributes on the symbol so that
         /// the symbol can extract data from the attribute arguments and potentially perform validation specific to

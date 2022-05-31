@@ -254,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnsignedRightShift = MessageBase + 12823,
         IDS_FeatureExtendedNameofScope = MessageBase + 12824,
         IDS_FeatureRelaxedShiftOperator = MessageBase + 12825,
+        IDS_FeatureRequiredMembers = MessageBase + 12826,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -368,6 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
+                case MessageID.IDS_FeatureRequiredMembers: // semantic check
                 case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
                 case MessageID.IDS_FeatureSpanCharConstantPattern:
                 case MessageID.IDS_FeatureAutoDefaultStructs: // semantic check

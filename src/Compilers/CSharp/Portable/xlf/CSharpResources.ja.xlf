@@ -292,6 +292,11 @@
         <target state="translated">__arglist では、'in' や 'out' で引数を渡すことができません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers">
+        <source>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</source>
+        <target state="new">This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CheckedOperatorNeedsMatch">
         <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
         <target state="new">The operator '{0}' requires a matching non-checked version of the operator to also be defined</target>
@@ -445,6 +450,11 @@
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">アクセサー '{0}' と '{1}' は、両方 init 専用か、両方そうでないかのいずれかでなければなりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitRequiredMember">
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -907,6 +917,11 @@
         <target state="translated">new()' 制約は 'unmanaged' 制約と一緒には使用できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="new">'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
         <target state="translated">非逐語的な補間された文字列内の改行は、C# {0} ではサポートされていません。{1} またはそれ以上の言語バージョンを使用してください。</target>
@@ -1035,6 +1050,11 @@
       <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
         <target state="translated">メソッド '{0}' は、型パラメーター '{1}' に対して 'default' 制約を指定していますが、オーバーライドされた、または明示的に実装されたメソッド '{3}' の対応する型パラメーター '{2}' は、参照型または値の型に制約されています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideMustHaveRequired">
+        <source>'{0}' must be required because it overrides required member '{1}'</source>
+        <target state="new">'{0}' must be required because it overrides required member '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
@@ -1172,9 +1192,54 @@
         <target state="translated">ref 代入の左辺は、ref ローカルまたはパラメーターにする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
+        <source>Ref returning properties cannot be required.</source>
+        <target state="new">Ref returning properties cannot be required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">リレーショナル パターンは、浮動小数点の NaN に使用することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
+        <source>Required member '{0}' cannot be hidden by '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute constructor.</source>
+        <target state="new">Required member '{0}' must be set in the object initializer or attribute constructor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="new">Required member '{0}' must be settable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
+        <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
+        <target state="new">The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersMustBeAssignedValue">
+        <source>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</source>
+        <target state="new">Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="new">Types and aliases cannot be named 'required'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1382,6 +1447,11 @@
         <target state="translated">'{0}' は 'UnmanagedCallersOnly' 属性が設定されているため、デリゲート型に変換できません。このメソッドへの関数ポインターを取得してください。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
+        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
         <target state="translated">リスト パターンは、'{0}' 型の値に使用されない可能性があります。</target>
@@ -1540,6 +1610,11 @@
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="new">relaxed shift operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
@@ -1710,6 +1785,16 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="translated">メソッド グループを非デリゲート型に変換しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
+        <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
+        <target state="new">Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
+        <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
+        <target state="new">Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
