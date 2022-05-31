@@ -271,17 +271,6 @@ internal partial class SolutionState
             /// </summary>
             private readonly AsyncLazy<AssemblyMetadata?> _metadata;
 
-            /// <summary>
-            /// Mapping from different values of <see cref="MetadataReferenceProperties"/> to the actual <see
-            /// cref="MetadataReference"/> produced for it.  Used so that if the same compilation is referenced from
-            /// different projects with/without the same properties that the right references are handed out (and shared
-            /// if possible).
-            /// </summary>
-            /// <remarks>
-            /// This instance should be locked when being read/written.
-            /// </remarks>
-            private readonly Dictionary<MetadataReferenceProperties, AsyncLazy<MetadataReference?>> _metadataReferences = new();
-
             public SkeletonReferenceSet(
                 ITemporaryStreamStorage? storage,
                 string? assemblyName,
@@ -333,37 +322,24 @@ internal partial class SolutionState
 
             public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
             {
-                // lookup first and eagerly return cached value if we have it.
-                lock (_metadataReferences)
-                    return _metadataReferences.TryGetValue(properties, out var lazy) && lazy.TryGetValue(out var result) ? result : null;
+                if (!_metadata.TryGetValue(out var assemblyMetadata))
+                    return null;
+
+                return assemblyMetadata?.GetReference(
+                    documentation: _documentationProvider,
+                    aliases: properties.Aliases,
+                    embedInteropTypes: properties.EmbedInteropTypes,
+                    display: _assemblyName);
             }
 
-            public Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
+            public async Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
             {
-                AsyncLazy<MetadataReference?>? lazy;
-                lock (_metadataReferences)
-                {
-                    if (!_metadataReferences.TryGetValue(properties, out lazy))
-                    {
-                        lazy = new AsyncLazy<MetadataReference?>(c => ComputeReferenceAsync(properties, c), cacheResult: true);
-                        _metadataReferences.Add(properties, lazy);
-                    }
-                }
-
-                return lazy.GetValueAsync(cancellationToken);
-
-                async Task<MetadataReference?> ComputeReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
-                {
-                    var metadata = await _metadata.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                    if (metadata == null)
-                        return null;
-
-                    return metadata.GetReference(
-                        documentation: _documentationProvider,
-                        aliases: properties.Aliases,
-                        embedInteropTypes: properties.EmbedInteropTypes,
-                        display: _assemblyName);
-                }
+                var metadata = await _metadata.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return metadata?.GetReference(
+                    documentation: _documentationProvider,
+                    aliases: properties.Aliases,
+                    embedInteropTypes: properties.EmbedInteropTypes,
+                    display: _assemblyName);
             }
         }
     }
