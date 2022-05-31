@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public void StopListening(Workspace workspace)
         {
-            if (!(workspace is VisualStudioWorkspace) || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
+            if (workspace is not VisualStudioWorkspace || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
             {
                 return;
             }
