@@ -293,7 +293,7 @@ internal partial class SolutionState
 
                 // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
                 // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any
-                // concurrent requests asynchronously wait for that work to be one.
+                // concurrent requests asynchronously wait for that work to be done.
                 _metadata = new AsyncLazy<AssemblyMetadata?>(c => Task.FromResult(ComputeMetadata(_storage, c)), cacheResult: true);
             }
 
