@@ -363,9 +363,6 @@
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
-  <data name="IDS_ParameterNullChecking" xml:space="preserve">
-    <value>parameter null-checking</value>
-  </data>
   <data name="IDS_Parameter" xml:space="preserve">
     <value>parameter</value>
   </data>
@@ -6172,29 +6169,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
   </data>
-  <data name="ERR_DiscardCannotBeNullChecked" xml:space="preserve">
-    <value>Discard parameter cannot be null-checked.</value>
-  </data>
-  <data name="ERR_MustNullCheckInImplementation" xml:space="preserve">
-    <value>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</value>
-  </data>
-  <data name="ERR_NonNullableValueTypeIsNullChecked" xml:space="preserve">
-    <value>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</value>
-  </data>
-  <data name="WRN_NullCheckedHasDefaultNull" xml:space="preserve">
-    <value>Parameter '{0}' is null-checked but is null by default.</value>
-  </data>
-  <data name="WRN_NullCheckedHasDefaultNull_Title" xml:space="preserve">
-    <value>Parameter is null-checked but is null by default.</value>
-  </data>
-  <data name="ERR_NullCheckingOnOutParameter" xml:space="preserve">
-    <value>'out' parameter '{0}' cannot be null-checked.</value>
-  </data>
-  <data name="WRN_NullCheckingOnNullableType" xml:space="preserve">
-    <value>Nullable type '{0}' is null-checked and will throw if null.</value>
-  </data>
-  <data name="WRN_NullCheckingOnNullableType_Title" xml:space="preserve">
-    <value>Nullable type is null-checked and will throw if null.</value>
+  <data name="ERR_ParameterNullCheckingNotSupported" xml:space="preserve">
+    <value>The 'parameter null-checking' feature is not supported.</value>
   </data>
   <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
@@ -7055,6 +7031,39 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
+  <data name="ERR_RequiredNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'required'.</value>
+  </data>
+  <data name="IDS_FeatureRequiredMembers" xml:space="preserve">
+    <value>required members</value>
+  </data>
+  <data name="ERR_OverrideMustHaveRequired" xml:space="preserve">
+    <value>'{0}' must be required because it overrides required member '{1}'</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeHidden" xml:space="preserve">
+    <value>Required member '{0}' cannot be hidden by '{1}'.</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeLessVisibleThanContainingType" xml:space="preserve">
+    <value>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</value>
+  </data>
+  <data name="ERR_ExplicitRequiredMember" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSettable" xml:space="preserve">
+    <value>Required member '{0}' must be settable.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
+  </data>
+  <data name="ERR_RequiredMembersMustBeAssignedValue" xml:space="preserve">
+    <value>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</value>
+  </data>
+  <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
+    <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
+  </data>
+  <data name="ERR_RequiredMembersBaseTypeInvalid" xml:space="preserve">
+    <value>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</value>
+  </data>
   <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
@@ -7091,11 +7100,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FieldKeywordInsideNameOf" xml:space="preserve">
     <value>Cannot use 'field' keyword inside 'nameof' expressions.</value>
   </data>
+  <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
+    <value>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</value>
+  </data>
+  <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
+    <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
+  </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>
   <data name="IDS_FeatureRelaxedShiftOperator" xml:space="preserve">
     <value>relaxed shift operator</value>
+  </data>
+  <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
+    <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired" xml:space="preserve">
+    <value>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired_Title" xml:space="preserve">
+    <value>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="ERR_RefReturningPropertiesCannotBeRequired" xml:space="preserve">
+    <value>Ref returning properties cannot be required.</value>
   </data>
   <data name="ERR_MisplacedUnchecked" xml:space="preserve">
     <value>Unexpected keyword 'unchecked'</value>

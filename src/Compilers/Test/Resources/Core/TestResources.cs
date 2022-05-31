@@ -242,6 +242,12 @@ namespace TestResources
         private static byte[] s_inheritIComparable;
         public static byte[] InheritIComparable => ResourceLoader.GetOrCreateResource(ref s_inheritIComparable, "SymbolsTests.InheritIComparable.dll");
 
+        private static byte[] s_MVID1;
+        public static byte[] MVID1 => ResourceLoader.GetOrCreateResource(ref s_MVID1, "SymbolsTests.RefAssembly.MVID1.dll");
+
+        private static byte[] s_MVID2;
+        public static byte[] MVID2 => ResourceLoader.GetOrCreateResource(ref s_MVID2, "SymbolsTests.RefAssembly.MVID2.dll");
+
         private static byte[] s_MDTestLib1;
         public static byte[] MDTestLib1 => ResourceLoader.GetOrCreateResource(ref s_MDTestLib1, "SymbolsTests.MDTestLib1.dll");
 

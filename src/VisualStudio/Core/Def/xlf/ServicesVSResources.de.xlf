@@ -1297,6 +1297,11 @@
         <target state="translated">Befehl "Nicht verwendete Verweise entfernen" in Projektmappen-Explorer anzeigen (experimentell)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Vervollständigungsliste anzeigen</target>

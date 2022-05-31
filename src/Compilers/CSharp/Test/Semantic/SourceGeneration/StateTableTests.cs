@@ -917,6 +917,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.Equal(thirdValue, (int)transformNodeStep.Outputs[2].Value);
         }
 
+        [Fact]
+        public void Modified_Entry_Removing_Outputs_Records_Removed_Step_State()
+        {
+            ImmutableArray<int> values = ImmutableArray.Create(1, 2, 3);
+            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithTrackingName("Input");
+            var transformNode = new TransformNode<ImmutableArray<int>, int>(inputNode, (arr, ct) => arr, name: "SelectMany");
+
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
+
+            _ = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            values = ImmutableArray<int>.Empty;
+
+            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are removed.
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
+            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            var step = Assert.Single(table.Steps);
+
+            var input = Assert.Single(step.Inputs);
+
+            Assert.Equal(IncrementalStepRunReason.Modified, input.Source.Outputs[input.OutputIndex].Reason);
+
+            Assert.All(step.Outputs, output =>
+            {
+                Assert.Equal(IncrementalStepRunReason.Removed, output.Reason);
+            });
+        }
+
+        [Fact]
+        public void Modified_Entry_Adding_Outputs_Records_Added_Step_State()
+        {
+            ImmutableArray<int> values = ImmutableArray<int>.Empty;
+            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithTrackingName("Input");
+            var transformNode = new TransformNode<ImmutableArray<int>, int>(inputNode, (arr, ct) => arr, name: "SelectMany");
+
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
+
+            _ = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            values = ImmutableArray.Create(1, 2, 3);
+
+            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are modified.
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
+            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            var step = Assert.Single(table.Steps);
+
+            var input = Assert.Single(step.Inputs);
+
+            Assert.Equal(IncrementalStepRunReason.Modified, input.Source.Outputs[input.OutputIndex].Reason);
+
+            Assert.All(step.Outputs, output =>
+            {
+                Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+            });
+        }
+
         private void AssertTableEntries<T>(NodeStateTable<T> table, IList<(T Item, EntryState State, int OutputIndex)> expected)
         {
             int index = 0;

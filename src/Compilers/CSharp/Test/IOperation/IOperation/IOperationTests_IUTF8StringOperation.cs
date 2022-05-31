@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"
 class Program
 {
-    static byte[] Test()
+    static System.ReadOnlySpan<byte> Test()
     {
         /*<bind>*/return ""Abc""u8;/*</bind>*/
     }
@@ -29,11 +29,11 @@ class Program
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""Abc""u8;')
   ReturnedValue:
-    IUTF8StringOperation (Abc) (OperationKind.UTF8String, Type: System.Byte[]) (Syntax: '""Abc""u8')
+    IUTF8StringOperation (Abc) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""Abc""u8')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: Roslyn.Test.Utilities.TargetFramework.NetCoreApp);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -43,7 +43,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ""Abc""u8;'
             string source = @"
 class C
 {
-    void M(byte[] b)
+    void M(System.ReadOnlySpan<byte> b)
     /*<bind>*/{
         b = ""ABC""u8;
     }/*</bind>*/
@@ -60,18 +60,18 @@ Block[B1] - Block
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = ""ABC""u8;')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Byte[]) (Syntax: 'b = ""ABC""u8')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.ReadOnlySpan<System.Byte>) (Syntax: 'b = ""ABC""u8')
               Left: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Byte[]) (Syntax: 'b')
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.ReadOnlySpan<System.Byte>) (Syntax: 'b')
               Right: 
-                IUTF8StringOperation (ABC) (OperationKind.UTF8String, Type: System.Byte[]) (Syntax: '""ABC""u8')
+                IUTF8StringOperation (ABC) (OperationKind.UTF8String, Type: System.ReadOnlySpan<System.Byte>) (Syntax: '""ABC""u8')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, targetFramework: Roslyn.Test.Utilities.TargetFramework.NetCoreApp);
         }
     }
 }

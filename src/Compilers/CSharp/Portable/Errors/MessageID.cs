@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
         IDS_FeatureListPattern = MessageBase + 12814,
-        IDS_ParameterNullChecking = MessageBase + 12815,
+        // IDS_ParameterNullChecking = MessageBase + 12815, // feature removed from C# 11
 
         IDS_FeatureCacheStaticMethodGroupConversion = MessageBase + 12816,
         IDS_FeatureRawStringLiterals = MessageBase + 12817,
@@ -254,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnsignedRightShift = MessageBase + 12823,
         IDS_FeatureExtendedNameofScope = MessageBase + 12824,
         IDS_FeatureRelaxedShiftOperator = MessageBase + 12825,
+        IDS_FeatureRequiredMembers = MessageBase + 12826,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -368,8 +369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
+                case MessageID.IDS_FeatureRequiredMembers: // semantic check
                 case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
-                case MessageID.IDS_ParameterNullChecking: // syntax check
                 case MessageID.IDS_FeatureSpanCharConstantPattern:
                 case MessageID.IDS_FeatureAutoDefaultStructs: // semantic check
                 case MessageID.IDS_FeatureCheckedUserDefinedOperators: // semantic check for declarations, parsing check for doc comments

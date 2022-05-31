@@ -341,16 +341,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedMethod, disposeMethod As SynthesizedMethod)
-            Dim rewriter = New IteratorMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          current:=Me._currentField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          localProxies:=Me.nonReusableLocalProxies,
-                                                          SynthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
-                                                          diagnostics:=Diagnostics)
+            Dim rewriter = New IteratorMethodToClassRewriter(
+                F:=F,
+                state:=StateField,
+                current:=_currentField,
+                hoistedVariables:=hoistedVariables,
+                localProxies:=nonReusableLocalProxies,
+                slotAllocatorOpt:=SlotAllocatorOpt,
+                diagnostics:=Diagnostics)
 
             rewriter.GenerateMoveNextAndDispose(Body, moveNextMethod, disposeMethod)
         End Sub

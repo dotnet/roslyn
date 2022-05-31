@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We current pack everything into one 32-bit int; layout is given below.
             //
-            // |               |vvv|zzzz|f|d|yy|wwwwww|
+            // |             |ss|vvv|zzzz|f|d|yy|wwwwww|
             //
             // w = special type.  6 bits.
             // y = IsManagedType.  2 bits.
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // f = FlattenedMembersIsSorted.  1 bit.
             // z = TypeKind. 4 bits.
             // v = NullableContext. 3 bits.
+            // s = DeclaredRequiredMembers. 2 bits
             private int _flags;
 
             private const int SpecialTypeOffset = 0;
@@ -57,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextOffset = TypeKindOffset + TypeKindSize;
             private const int NullableContextSize = 3;
 
+            private const int HasDeclaredRequiredMembersOffset = NullableContextOffset + NullableContextSize;
+            private const int HasDeclaredRequiredMembersSize = 2;
+
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
             private const int TypeKindMask = (1 << TypeKindSize) - 1;
@@ -65,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
             private const int FlattenedMembersIsSortedBit = 1 << FlattenedMembersIsSortedOffset;
 
+            private const int HasDeclaredMembersBit = (1 << HasDeclaredRequiredMembersOffset);
+            private const int HasDeclaredMembersBitSet = (1 << (HasDeclaredRequiredMembersOffset + 1));
 
             public SpecialType SpecialType
             {
@@ -139,6 +145,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool SetNullableContext(byte? value)
             {
                 return ThreadSafeFlagOperations.Set(ref _flags, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+            }
+
+            public bool TryGetHasDeclaredRequiredMembers(out bool value)
+            {
+                if ((_flags & (HasDeclaredMembersBitSet)) != 0)
+                {
+                    value = (_flags & HasDeclaredMembersBit) != 0;
+                    return true;
+                }
+                else
+                {
+                    value = false;
+                    return false;
+                }
+            }
+
+            public bool SetHasDeclaredRequiredMembers(bool value)
+            {
+                return ThreadSafeFlagOperations.Set(ref _flags, HasDeclaredMembersBitSet | (value ? HasDeclaredMembersBit : 0));
             }
         }
 
@@ -450,13 +475,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) && compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            if (reportIfContextual(SyntaxKind.RecordKeyword, MessageID.IDS_FeatureRecords, ErrorCode.WRN_RecordNamedDisallowed)
+                || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed))
             {
-                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
+                return;
             }
             else if (IsReservedTypeName(name))
             {
                 diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, location, name);
+            }
+
+            bool reportIfContextual(SyntaxKind contextualKind, MessageID featureId, ErrorCode error)
+            {
+                if (name == SyntaxFacts.GetText(contextualKind) && compilation.LanguageVersion >= featureId.RequiredVersion())
+                {
+                    diagnostics.Add(error, location);
+                    return true;
+                }
+
+                return false;
             }
         }
         #endregion
@@ -561,6 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
+                    case CompletionPart.MembersCompletedChecksStarted:
                     case CompletionPart.MembersCompleted:
                         {
                             ImmutableArray<Symbol> members = this.GetMembersUnordered();
@@ -594,12 +632,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             EnsureFieldDefinitionsNoted();
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                            // We've completed all members, so we're ready for the PointedAtManagedTypeChecks;
-                            // proceed to the next iteration.
-                            state.NotePartComplete(CompletionPart.MembersCompleted);
-                            break;
+                            if (state.NotePartComplete(CompletionPart.MembersCompletedChecksStarted))
+                            {
+                                var diagnostics = BindingDiagnosticBag.GetInstance();
+                                AfterMembersCompletedChecks(diagnostics);
+                                AddDeclarationDiagnostics(diagnostics);
+
+                                // We've completed all members, so we're ready for the PointedAtManagedTypeChecks;
+                                // proceed to the next iteration.
+                                var thisThreadCompleted = state.NotePartComplete(CompletionPart.MembersCompleted);
+                                Debug.Assert(thisThreadCompleted);
+                                diagnostics.Free();
+                            }
                         }
+                        break;
 
                     case CompletionPart.None:
                         return;
@@ -1290,6 +1338,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasDeclaredRequiredMembers
+        {
+            get
+            {
+                if (_flags.TryGetHasDeclaredRequiredMembers(out bool hasDeclaredMembers))
+                {
+                    return hasDeclaredMembers;
+                }
+
+                hasDeclaredMembers = declaration.Declarations.Any(static decl => decl.HasRequiredMembers);
+                _flags.SetHasDeclaredRequiredMembers(hasDeclaredMembers);
+                return hasDeclaredMembers;
+            }
+        }
+
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {
             var result = _lazyMembersFlattened;
@@ -1621,6 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
+            CheckForRequiredMemberAttribute(diagnostics);
 
             var location = Locations[0];
             var compilation = DeclaringCompilation;
@@ -1702,6 +1766,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arg: (object?)null);
                 return resultType is object;
             }
+        }
+
+        protected virtual void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        {
         }
 
         private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)
@@ -2389,6 +2457,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // CS0661: 'C' defines operator == or operator != but does not override Object.GetHashCode()
                     diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutGetHashCode, this.Locations[0], this);
+                }
+            }
+        }
+
+        private void CheckForRequiredMemberAttribute(BindingDiagnosticBag diagnostics)
+        {
+            if (HasDeclaredRequiredMembers)
+            {
+                // Ensure that an error is reported if the required constructor isn't present.
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor, diagnostics, Locations[0]);
+            }
+
+            if (HasAnyRequiredMembers)
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, Locations[0]);
+
+                if (this.IsRecord)
+                {
+                    // Copy constructors need to emit SetsRequiredMembers on the ctor
+                    _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor, diagnostics, Locations[0]);
+                }
+            }
+
+            if (BaseTypeNoUseSiteDiagnostics is (not SourceMemberContainerTypeSymbol) and { HasRequiredMembersError: true })
+            {
+                foreach (var member in GetMembersUnordered())
+                {
+                    if (member is not MethodSymbol method || !method.ShouldCheckRequiredMembers())
+                    {
+                        continue;
+                    }
+
+                    // The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+                    diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.Locations[0], BaseTypeNoUseSiteDiagnostics);
                 }
             }
         }
