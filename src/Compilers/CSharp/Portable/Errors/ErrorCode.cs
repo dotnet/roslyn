@@ -1723,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidModifierForLanguageVersion = 8703,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
         ERR_MostSpecificImplementationIsNotFound = 8705,
-        ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
+        ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember = 8706,
 
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
         //ERR_NotBaseOrImplementedInterface = 8708,
