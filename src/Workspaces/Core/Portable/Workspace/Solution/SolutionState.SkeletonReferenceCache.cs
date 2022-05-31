@@ -251,6 +251,17 @@ internal partial class SolutionState
             /// </summary>
             private readonly DeferredDocumentationProvider _documentationProvider;
 
+            /// <summary>
+            /// The actual assembly metadata produced from the data pointed to in <see cref="_storage"/>.
+            /// </summary>
+            private readonly AsyncLazy<AssemblyMetadata?> _metadata;
+
+            /// <summary>
+            /// Mapping from different values of <see cref="MetadataReferenceProperties"/> to the actual <see
+            /// cref="MetadataReference"/> produced for it.  Used so that if the same compilation is referenced from
+            /// different projects with/without the same properties that the right references are handed out (and shared
+            /// if possible).
+            /// </summary>
             /// <remarks>
             /// This instance should be locked when being read/written.
             /// </remarks>
@@ -264,6 +275,45 @@ internal partial class SolutionState
                 _storage = storage;
                 _assemblyName = assemblyName;
                 _documentationProvider = documentationProvider;
+
+                // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
+                // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any
+                // concurrent requests asynchronously wait for that work to be one.
+                _metadata = new AsyncLazy<AssemblyMetadata?>(c => Task.FromResult(ComputeMetadata(_storage, c)), cacheResult: true);
+            }
+
+            private static AssemblyMetadata? ComputeMetadata(ITemporaryStreamStorage? storage, CancellationToken cancellationToken)
+            {
+                if (storage == null)
+                    return null;
+
+                // first see whether we can use native memory directly.
+                var stream = storage.ReadStream(cancellationToken);
+
+                if (stream is ISupportDirectMemoryAccess supportNativeMemory)
+                {
+                    // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
+                    // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
+                    // give them pointer to the native memory. also we need to handle lifetime ourselves.
+                    var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
+
+                    // Tie lifetime of stream to metadata we created. It is important to tie this to the Metadata and not the
+                    // metadata reference, as PE symbols hold onto just the Metadata. We can use Add here since we created
+                    // a brand new object in AssemblyMetadata.Create above.
+                    s_lifetime.Add(metadata, supportNativeMemory);
+
+                    return metadata;
+                }
+                else
+                {
+                    // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
+                    // internally copy it to native memory again. since compiler owns lifetime of stream,
+                    // it would be great if compiler can be little bit smarter on how it deals with stream.
+
+                    // We don't deterministically release the resulting metadata since we don't know 
+                    // when we should. So we leave it up to the GC to collect it and release all the associated resources.
+                    return AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
+                }
             }
 
             public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
@@ -280,9 +330,6 @@ internal partial class SolutionState
                 {
                     if (!_metadataReferences.TryGetValue(properties, out lazy))
                     {
-                        // note: computing the reference is actually synchronous.  However, this ensures we don't have N
-                        // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while
-                        // any concurrent requests asynchronously wait for that work to be one.
                         lazy = new AsyncLazy<MetadataReference?>(c => ComputeReferenceAsync(properties, c), cacheResult: true);
                         _metadataReferences.Add(properties, lazy);
                     }
@@ -290,49 +337,18 @@ internal partial class SolutionState
 
                 return lazy.GetValueAsync(cancellationToken);
 
-                Task<MetadataReference?> ComputeReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
+                async Task<MetadataReference?> ComputeReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
                 {
-                    return Task.FromResult(CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider));
+                    var metadata = await _metadata.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    if (metadata == null)
+                        return null;
+
+                    return metadata.GetReference(
+                        documentation: _documentationProvider,
+                        aliases: properties.Aliases,
+                        embedInteropTypes: properties.EmbedInteropTypes,
+                        display: _assemblyName);
                 }
-            }
-
-            private MetadataReference? CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
-            {
-                if (_storage == null)
-                    return null;
-
-                // first see whether we can use native memory directly.
-                var stream = _storage.ReadStream();
-                AssemblyMetadata metadata;
-
-                if (stream is ISupportDirectMemoryAccess supportNativeMemory)
-                {
-                    // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
-                    // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
-                    // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                    metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
-
-                    // Tie lifetime of stream to metadata we created. It is important to tie this to the Metadata and not the
-                    // metadata reference, as PE symbols hold onto just the Metadata. We can use Add here since we created
-                    // a brand new object in AssemblyMetadata.Create above.
-                    s_lifetime.Add(metadata, supportNativeMemory);
-                }
-                else
-                {
-                    // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
-                    // internally copy it to native memory again. since compiler owns lifetime of stream,
-                    // it would be great if compiler can be little bit smarter on how it deals with stream.
-
-                    // We don't deterministically release the resulting metadata since we don't know 
-                    // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                    metadata = AssemblyMetadata.CreateFromStream(stream);
-                }
-
-                return metadata.GetReference(
-                    documentation: documentationProvider,
-                    aliases: aliases,
-                    embedInteropTypes: embedInteropTypes,
-                    display: _assemblyName);
             }
         }
     }
