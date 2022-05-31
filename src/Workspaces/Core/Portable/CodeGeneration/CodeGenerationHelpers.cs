@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (info.Context.AfterThisLocation != null)
             {
                 var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= info.Context.AfterThisLocation.SourceSpan.Start);
-                if (afterMember != null)
+                if (afterMember != null && afterMember.SyntaxTree == info.Context.AfterThisLocation.SourceTree)
                 {
                     var index = declarationList.IndexOf(afterMember);
                     index = GetPreferredIndex(index + 1, availableIndices, forward: true);
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (info.Context.BeforeThisLocation != null)
             {
                 var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= info.Context.BeforeThisLocation.SourceSpan.End);
-                if (beforeMember != null)
+                if (beforeMember != null && beforeMember.SyntaxTree == info.Context.BeforeThisLocation.SourceTree)
                 {
                     var index = declarationList.IndexOf(beforeMember);
                     index = GetPreferredIndex(index, availableIndices, forward: false);
