@@ -679,7 +679,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // check to see if we're referencing a symbol defined in source.
             static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
             return symbols.WhereAsArray((s, arg) =>
-                (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
+                // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
+                // of each namespace symbol, which might end up allocating in LOH
+                (s.IsNamespace() || s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
                     arg.hideAdvancedMembers,
