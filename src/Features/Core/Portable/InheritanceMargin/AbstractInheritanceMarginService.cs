@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    using SymbolKeyAndLineNumberArray = ImmutableArray<(SymbolKey, int lineNumber)>;
+    using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
 
     internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
     {
@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Document document,
             TextSpan spanToSearch,
             bool includeGlobalImports,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private async ValueTask<(Project remapped, SymbolKeyAndLineNumberArray symbolKeyAndLineNumbers)> GetMemberSymbolKeysAsync(
+        private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolKeysAsync(
             Document document,
             TextSpan spanToSearch,
             CancellationToken cancellationToken)
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
-                using var _ = ArrayBuilder<(SymbolKey symbolKey, int lineNumber)>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<(ISymbol symbol, int lineNumber)>.GetInstance(out var builder);
 
                 Project? project = null;
 
@@ -104,14 +105,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     // All the symbols here are declared in the same document, they should belong to the same project.
                     // So here it is enough to get the project once.
                     project ??= mappingResult.Project;
-                    builder.Add((mappingResult.Symbol.GetSymbolKey(cancellationToken), sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                    builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
                 }
 
                 if (project != null)
                     return (project, builder.ToImmutable());
             }
 
-            return (document.Project, SymbolKeyAndLineNumberArray.Empty);
+            return (document.Project, SymbolAndLineNumberArray.Empty);
         }
 
         private static bool CanHaveInheritanceTarget(ISymbol symbol)
