@@ -51,10 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Dismisses the rename session, completing the rename operation across all files.
         /// </summary>
-        [Obsolete($"Use {nameof(CommitAsync)} instead", error: true)]
-        void Commit(bool previewChanges = false);
-
-        /// <inheritdoc cref="Commit"/>
         Task CommitAsync(bool previewChanges, CancellationToken cancellationToken);
     }
 }
