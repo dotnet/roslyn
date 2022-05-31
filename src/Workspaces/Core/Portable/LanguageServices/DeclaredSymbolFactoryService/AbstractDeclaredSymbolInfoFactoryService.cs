@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract string GetContainerDisplayName(TMemberDeclarationSyntax namespaceDeclaration);
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
-        protected abstract void AddDeclaredSymbolInfos(
+        protected abstract void AddSingleDeclaredSymbolInfos(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         protected abstract void AddLocalFunctionInfos(
             TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     innerFullyQualifiedContainerName,
                     cancellationToken);
 
-                AddDeclaredSymbolInfos(
+                AddSingleDeclaredSymbolInfos(
                     container,
                     memberDeclaration,
                     stringTable,
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
 
-                AddDeclaredSymbolInfos(
+                AddSingleDeclaredSymbolInfos(
                     container,
                     memberDeclaration,
                     stringTable,
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
             else
             {
-                AddDeclaredSymbolInfos(
+                AddSingleDeclaredSymbolInfos(
                     container,
                     memberDeclaration,
                     stringTable,

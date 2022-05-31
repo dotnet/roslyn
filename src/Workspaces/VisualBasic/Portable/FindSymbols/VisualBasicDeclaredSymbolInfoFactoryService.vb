@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End If
         End Sub
 
-        Protected Overrides Sub AddDeclaredSymbolInfos(
+        Protected Overrides Sub AddSingleDeclaredSymbolInfos(
                 container As SyntaxNode,
                 node As StatementSyntax,
                 stringTable As StringTable,

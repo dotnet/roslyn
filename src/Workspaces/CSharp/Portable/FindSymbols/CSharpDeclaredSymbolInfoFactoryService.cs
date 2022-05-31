@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        protected override void AddDeclaredSymbolInfos(
+        protected override void AddSingleDeclaredSymbolInfos(
             SyntaxNode container,
             MemberDeclarationSyntax node,
             StringTable stringTable,
