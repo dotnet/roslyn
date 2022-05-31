@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 document,
                 searchingSpan,
                 includeGlobalImports: true,
+                frozenPartialSemantics: true,
                 cancellationToken).ConfigureAwait(false);
 
             var sortedActualItems = actualItems.OrderBy(item => item.LineNumber).ToImmutableArray();

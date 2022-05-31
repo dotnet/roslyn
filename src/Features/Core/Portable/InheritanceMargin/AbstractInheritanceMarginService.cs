@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
                     solution,
                     (service, solutionInfo, cancellationToken) =>
-                        service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: true, cancellationToken),
+                        service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: frozenPartialSemantics, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     document,
                     spanToSearch,
                     includeGlobalImports: includeGlobalImports,
-                    frozenPartialSemantics: true,
+                    frozenPartialSemantics: frozenPartialSemantics,
                     cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolKeysAsync(
+        private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
             Document document,
             TextSpan spanToSearch,
             CancellationToken cancellationToken)

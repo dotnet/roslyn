@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var document = solution.GetRequiredDocument(documentId);
                 var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
-                return service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, cancellationToken);
+                return service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken);
             }, cancellationToken);
         }
     }

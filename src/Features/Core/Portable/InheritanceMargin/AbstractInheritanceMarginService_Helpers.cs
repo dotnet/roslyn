@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsInProcessAsync(
             Project project,
             Document? document,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            ImmutableArray<(ISymbol symbol, int lineNumber)> symbolAndLineNumbers,
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
@@ -54,13 +54,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             var solution = project.Solution;
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
-
-            foreach (var (symbolKey, lineNumber) in symbolKeyAndLineNumbers)
+            foreach (var (symbol, lineNumber) in symbolAndLineNumbers)
             {
-                var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
                     await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
-            var (remappedProject, symbolKeyAndLineNumbers) = await GetMemberSymbolKeysAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
+            var (remappedProject, symbolAndLineNumbers) = await GetMemberSymbolsAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
 
             // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
             // the originating project), then we're in teh same project and we should try to get global import
@@ -94,12 +90,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (includeGlobalImports && !remapped)
                 result.AddRange(await GetGlobalImportsItemsInProcessAsync(document, spanToSearch, frozenPartialSemantics: frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
 
-            if (!symbolKeyAndLineNumbers.IsEmpty)
+            if (!symbolAndLineNumbers.IsEmpty)
             {
                 result.AddRange(await GetSymbolItemsInProcessAsync(
                     remappedProject,
                     document: remapped ? null : document,
-                    symbolKeyAndLineNumbers,
+                    symbolAndLineNumbers,
                     frozenPartialSemantics: frozenPartialSemantics,
                     cancellationToken).ConfigureAwait(false));
             }
