@@ -20,28 +20,43 @@ namespace Microsoft.CodeAnalysis;
 internal partial class SolutionState
 {
     /// <summary>
-    /// Caches the skeleton references produced for a given project/compilation under the varying
-    /// <see cref="MetadataReferenceProperties"/> it might be referenced by.  Skeletons are used in the compilation
-    /// tracker to allow cross-language project references with live semantic updating between VB/C# and vice versa.
+    /// Caches the skeleton references produced for a given project/compilation under the varying <see
+    /// cref="MetadataReferenceProperties"/> it might be referenced by.  Skeletons are used in the compilation tracker
+    /// to allow cross-language project references with live semantic updating between VB/C# and vice versa.
     /// Specifically, in a cross language case we will build a skeleton ref for the referenced project and have the
     /// referrer use that to understand its semantics.
-    /// <para/>
-    /// This approach works, but has the caveat that live cross-language semantics are only possible when the 
-    /// skeleton assembly can be built.  This should always be the case for correct code, but it may not be the
-    /// case for code with errors depending on if the respective language compiler is resilient to those errors or not.
-    /// In that case though where the skeleton cannot be built, this type provides mechanisms to fallback to the last
-    /// successfully built skeleton so that a somewhat reasonable experience can be maintained.  If we failed to do this
-    /// and instead returned nothing, a user would find that practically all semantic experiences that depended on
-    /// that particular project would fail or be seriously degraded (e.g. diagnostics).  To that end, it's better to
-    /// limp along with stale date, then barrel on ahead with no data.
-    /// <para/>
-    /// The implementation works by keeping metadata references around associated with a specific <see cref="VersionStamp"/>
-    /// for a project. As long as the <see cref="Project.GetDependentSemanticVersionAsync"/> for that project
-    /// is the same, then all the references of it can be reused.  When an <see cref="ICompilationTracker"/> forks
-    /// itself, it  will also <see cref="Clone"/> this, allowing previously computed references to be used by later forks.
-    /// However, this means that later forks (esp. ones that fail to produce a skeleton, or which produce a skeleton for 
-    /// different semantics) will not leak backward to a prior <see cref="ProjectState"/>, causing it to see a view of the world
-    /// inapplicable to its current snapshot.
+    /// <para>
+    /// This approach works, but has the caveat that live cross-language semantics are only possible when the skeleton
+    /// assembly can be built.  This should always be the case for correct code, but it may not be the case for code
+    /// with errors depending on if the respective language compiler is resilient to those errors or not. In that case
+    /// though where the skeleton cannot be built, this type provides mechanisms to fallback to the last successfully
+    /// built skeleton so that a somewhat reasonable experience can be maintained.  If we failed to do this and instead
+    /// returned nothing, a user would find that practically all semantic experiences that depended on that particular
+    /// project would fail or be seriously degraded (e.g. diagnostics).  To that end, it's better to limp along with
+    /// stale date, then barrel on ahead with no data.
+    /// </para>
+    /// <para>
+    /// The implementation works by keeping metadata references around associated with a specific <see
+    /// cref="VersionStamp"/> for a project. As long as the <see cref="Project.GetDependentSemanticVersionAsync"/> for
+    /// that project is the same, then all the references of it can be reused.  When an <see
+    /// cref="ICompilationTracker"/> forks itself, it will also <see cref="Clone"/> this, allowing previously computed
+    /// references to be used by later forks. However, this means that later forks (esp. ones that fail to produce a
+    /// skeleton, or which produce a skeleton for different semantics) will not leak backward to a prior <see
+    /// cref="ProjectState"/>, causing it to see a view of the world inapplicable to its current snapshot.  A downside
+    /// of this is that if a fork happens to a compilation tracker *prior* to the skeleton for it being computed, then
+    /// when the skeleton is actually produced it won't be shared forward.  In practice the hope is that this is rare,
+    /// and that eventually the compilation trackers will have computed the skeleton and will be able to pass it forward
+    /// from that point onwards.
+    /// </para>
+    /// <para>
+    /// The cached data we compute is associated with a particular compilation-tracker.  Because of this, once we
+    /// compute the skeleton information for that tracker, we hold onto it for as long as the tracker is itself alive.
+    /// The presumption here is that once created, it will likely be needed in the future as well as there will still be
+    /// downstream projects of different languages that reference this.  The only time this won't hold true is if there
+    /// was a cross language p2p ref, but then it gets removed from the solution.  However, this sort of change should
+    /// be rare in a solution, so it's unlikely to happen much, and the only negative is holding onto a little bit more
+    /// memory.
+    /// </para>
     /// </summary>
     private partial class SkeletonReferenceCache
     {
