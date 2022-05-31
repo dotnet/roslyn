@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -113,7 +114,10 @@ internal partial class SolutionState
             var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
                 compilationTracker, solution, version, cancellationToken).ConfigureAwait(false);
-            return referenceSet?.GetMetadataReference(properties);
+            if (referenceSet == null)
+                return null;
+
+            return await referenceSet.GetMetadataReferenceAsync(properties, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<SkeletonReferenceSet?> TryGetOrCreateReferenceSetAsync(
@@ -247,16 +251,10 @@ internal partial class SolutionState
             /// </summary>
             private readonly DeferredDocumentationProvider _documentationProvider;
 
-            /// <summary>
-            /// Use WeakReference so we don't keep MetadataReference's alive if they are not being consumed. 
-            /// Note: if the weak-reference is actually <see langword="null"/> (not that it points to null),
-            /// that means we know we were unable to generate a reference for those properties, and future
-            /// calls can early exit.
-            /// </summary>
             /// <remarks>
             /// This instance should be locked when being read/written.
             /// </remarks>
-            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>?> _metadataReferences = new();
+            private readonly Dictionary<MetadataReferenceProperties, AsyncLazy<MetadataReference?>> _metadataReferences = new();
 
             public SkeletonReferenceSet(
                 ITemporaryStreamStorage? storage,
@@ -272,54 +270,31 @@ internal partial class SolutionState
             {
                 // lookup first and eagerly return cached value if we have it.
                 lock (_metadataReferences)
-                {
-                    if (TryGetExisting_NoLock(properties, out var metadataReference))
-                        return metadataReference;
-                }
-
-                return null;
+                    return _metadataReferences.TryGetValue(properties, out var lazy) && lazy.TryGetValue(out var result) ? result : null;
             }
 
-            public MetadataReference? GetMetadataReference(MetadataReferenceProperties properties)
+            public Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
             {
                 // lookup first and eagerly return cached value if we have it.
+                AsyncLazy<MetadataReference?>? lazy;
                 lock (_metadataReferences)
                 {
-                    if (TryGetExisting_NoLock(properties, out var metadataReference))
-                        return metadataReference;
-                }
-
-                // otherwise, create the metadata outside of the lock, and then try to assign it if no one else beat us
-                {
-                    var metadataReference = CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider);
-                    var weakMetadata = metadataReference == null ? null : new WeakReference<MetadataReference>(metadataReference);
-
-                    lock (_metadataReferences)
+                    if (!_metadataReferences.TryGetValue(properties, out lazy))
                     {
-                        // see if someone beat us to writing this.
-                        if (TryGetExisting_NoLock(properties, out var existingMetadataReference))
-                            return existingMetadataReference;
-
-                        _metadataReferences[properties] = weakMetadata;
+                        lazy = new AsyncLazy<MetadataReference?>(c => ComputeReferenceAsync(properties, c), cacheResult: true);
+                        _metadataReferences.Add(properties, lazy);
                     }
-
-                    return metadataReference;
                 }
-            }
 
-            private bool TryGetExisting_NoLock(MetadataReferenceProperties properties, out MetadataReference? metadataReference)
-            {
-                metadataReference = null;
-                if (!_metadataReferences.TryGetValue(properties, out var weakMetadata))
-                    return false;
+                return lazy.GetValueAsync(cancellationToken);
 
-                // If we are pointing at a null-weak reference (not a weak reference that points to null), then we 
-                // know we failed to create the metadata the last time around, and we can shortcircuit immediately,
-                // returning null *with* success to bubble that up.
-                if (weakMetadata == null)
-                    return true;
+                Task<MetadataReference?> ComputeReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
+                {
+                    // otherwise, create the metadata outside of the lock, and then try to assign it if no one else beat us
+                    var metadataReference = CreateReference(properties.Aliases, properties.EmbedInteropTypes, _documentationProvider);
 
-                return weakMetadata.TryGetTarget(out metadataReference);
+                    return Task.FromResult(metadataReference);
+                }
             }
 
             private MetadataReference? CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
