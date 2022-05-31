@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (!options.ShouldShowItemsFromUnimportNamspaces())
                 {
                     // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
-                    var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    var (context, list) = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
                         options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
 
                     UpdateSessionData(session, sessionData, list, triggerLocation);
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // We tie the behavior of delaying expand items to editor's "responsive completion" option.
                     // i.e. "responsive completion" disabled == always wait for all items to be calculated.
-                    var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    var (context, list) = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
                         options with { ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems }, cancellationToken).ConfigureAwait(false);
 
                     UpdateSessionData(session, sessionData, list, triggerLocation);
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     Stopwatch stopwatch = new();
                     var expandedItemsTask = Task.Run(async () =>
                     {
-                        var result = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                        var result = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
                           options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
 
                         // Record how long it takes for the background task to complete *after* core providers returned.
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }, cancellationToken);
 
                     // Now trigger and wait for core providers to return;
-                    var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
                             options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
                     UpdateSessionData(session, sessionData, nonExpandedCompletionList, triggerLocation);
 
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         UpdateSessionData(session, sessionData, expandedCompletionList, triggerLocation);
                         AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: false);
 
-                        return CombineCompletionContext(nonExpandedContext, expandedContext);
+                        return CombineCompletionContext(session, nonExpandedContext, expandedContext);
                     }
                     else
                     {
@@ -346,24 +346,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AsyncCompletionLogger.LogSourceGetContextTicksDataPoint((int)totalStopWatch.Elapsed.TotalMilliseconds, isCanceled: cancellationToken.IsCancellationRequested);
             }
 
-            static VSCompletionContext CombineCompletionContext(VSCompletionContext context1, VSCompletionContext context2)
+            static VSCompletionContext CombineCompletionContext(IAsyncCompletionSession session, VSCompletionContext context1, VSCompletionContext context2)
             {
-                if (context1.Items.IsEmpty && context1.SuggestionItemOptions is null)
+                if (context1.ItemList.IsEmpty && context1.SuggestionItemOptions is null)
                     return context2;
 
-                if (context2.Items.IsEmpty && context2.SuggestionItemOptions is null)
+                if (context2.ItemList.IsEmpty && context2.SuggestionItemOptions is null)
                     return context1;
 
-                using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
-                itemsBuilder.AddRange(context1.Items);
-                itemsBuilder.AddRange(context2.Items);
-
+                var completionList = session.CreateCompletionList(context1.ItemList.Concat(context2.ItemList));
                 var filterStates = FilterSet.CombineFilterStates(context1.Filters, context2.Filters);
 
                 var suggestionItem = context1.SuggestionItemOptions ?? context2.SuggestionItemOptions;
                 var hint = suggestionItem == null ? AsyncCompletionData.InitialSelectionHint.RegularSelection : AsyncCompletionData.InitialSelectionHint.SoftSelection;
 
-                return new VSCompletionContext(itemsBuilder.ToImmutableAndClear(), suggestionItem, hint, filterStates);
+                return new VSCompletionContext(completionList, suggestionItem, hint, filterStates, isIncomplete: false, properties: null);
             }
         }
 
@@ -409,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
                     };
 
-                    var (context, completionList) = await GetCompletionContextWorkerAsync(document, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
+                    var (context, completionList) = await GetCompletionContextWorkerAsync(session, document, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
                     UpdateSessionData(session, sessionData, completionList, initialTriggerLocation);
 
                     return context;
@@ -420,6 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private async Task<(VSCompletionContext, CompletionList)> GetCompletionContextWorkerAsync(
+            IAsyncCompletionSession session,
             Document document,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,
@@ -444,26 +442,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, triggerLocation, options, document.Project.Solution.Options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
-            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
-
-            foreach (var roslynItem in completionList.Items)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var item = Convert(document, roslynItem, filterSet, triggerLocation);
-                itemsBuilder.Add(item);
-            }
+            var completionItemList = session.CreateCompletionList(ConvertItems());
 
             var filters = filterSet.GetFilterStatesInSet();
-            var items = itemsBuilder.ToImmutable();
 
             if (completionList.SuggestionModeItem is null)
-                return (new(items, suggestionItemOptions: null, selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection, filters), completionList);
+                return (new(completionItemList, suggestionItemOptions: null, selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection, filters, isIncomplete: false, null), completionList);
 
             var suggestionItemOptions = new AsyncCompletionData.SuggestionItemOptions(
                 completionList.SuggestionModeItem.DisplayText,
                 completionList.SuggestionModeItem.Properties.TryGetValue(CommonCompletionItem.DescriptionProperty, out var description) ? description : string.Empty);
 
-            return (new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters), completionList);
+            return (new(completionItemList, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters, isIncomplete: false, null), completionList);
+
+            IEnumerable<VSCompletionItem> ConvertItems()
+            {
+                foreach (var roslynItem in completionList.Items)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    yield return Convert(document, roslynItem, filterSet, triggerLocation);
+                }
+            }
         }
 
         private static void UpdateSessionData(IAsyncCompletionSession session, CompletionSessionData sessionData, CompletionList completionList, SnapshotPoint triggerLocation)
