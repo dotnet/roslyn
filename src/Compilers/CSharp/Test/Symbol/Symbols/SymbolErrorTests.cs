@@ -6072,7 +6072,8 @@ namespace NS
                     s_mod2.GetReference(),
                 });
 
-            CompileAndVerify(comp).VerifyDiagnostics();
+            // ILVerify: Assembly or module not found: ErrTestMod02
+            CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [Fact()]

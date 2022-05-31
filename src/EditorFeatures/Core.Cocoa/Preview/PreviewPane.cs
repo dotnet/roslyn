@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using AppKit;
@@ -15,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal class PreviewPane : NSView
     {
-        private DifferenceViewerPreview _differenceViewerPreview;
-        private readonly NSTextField titleField;
+        private DifferenceViewerPreview? _differenceViewerPreview;
+        private readonly NSTextField? titleField;
 
-        public PreviewPane(string id, string title, Uri helpLink, string helpLinkToolTipText, IReadOnlyList<object> previewContent)
+        public PreviewPane(string? id, string? title, Uri? helpLink, string? helpLinkToolTipText, IReadOnlyList<object> previewContent)
         {
             _differenceViewerPreview = (DifferenceViewerPreview)previewContent[0];
             var view = ((ICocoaDifferenceViewer)_differenceViewerPreview.Viewer).VisualElement;
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
         }
 
-        private static NSAttributedString GenerateAttributeString(string id, string title, Uri link, string linkTooltip)
+        private static NSAttributedString? GenerateAttributeString(string? id, string? title, Uri? link, string? linkTooltip)
         {
             if (string.IsNullOrEmpty(title))
                 return null;

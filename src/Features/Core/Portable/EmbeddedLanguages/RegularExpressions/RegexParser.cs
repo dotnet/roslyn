@@ -1438,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             throw new InvalidOperationException();
         }
 
-        private bool HasProblem(RegexNodeOrToken component)
+        private static bool HasProblem(RegexNodeOrToken component)
         {
             if (component.IsNode)
             {

@@ -32,20 +32,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public LiveShareInProcLanguageClient(
             RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             IGlobalOptionService globalOptions,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
-
-        public override string Name => "Live Share C#/Visual Basic Language Server Client";
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
@@ -76,6 +73,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 defaultCapabilities.SemanticTokensOptions = null;
             }
 
+            // When the lsp pull diagnostics feature flag is enabled we do not advertise pull diagnostics capabilities from here
+            // as the AlwaysActivateInProcLanguageClient will provide pull diagnostics both locally and remote.
+            var isPullDiagnosticsEnabled = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            if (!isPullDiagnosticsEnabled)
+            {
+                // Pull diagnostics isn't enabled, let the live share server provide pull diagnostics.
+                ((VSInternalServerCapabilities)defaultCapabilities).SupportsDiagnosticRequests = true;
+            }
+
             return defaultCapabilities;
         }
 
@@ -83,5 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Failures are catastrophic as liveshare guests will not have language features without this server.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => true;
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.LiveShareLspServer;
     }
 }

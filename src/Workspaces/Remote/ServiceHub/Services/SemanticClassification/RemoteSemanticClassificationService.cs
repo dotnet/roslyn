@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,11 +20,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteSemanticClassificationService(arguments);
         }
 
-        public ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
+        public ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             TextSpan span,
+            ClassificationType type,
             ClassificationOptions options,
+            StorageDatabase database,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
@@ -34,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfNull(document);
 
                 using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-                await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
-                    document, span, options, temp, cancellationToken).ConfigureAwait(false);
+                await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
+                    document, span, type, options, temp, cancellationToken).ConfigureAwait(false);
 
                 if (isFullyLoaded)
                 {
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         _cachedData.Clear();
 
                     // Enqueue this document into our work queue to fully classify and cache.
-                    _workQueue.AddWork(document);
+                    _workQueue.AddWork((document, type, options, database));
                 }
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());

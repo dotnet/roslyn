@@ -1618,7 +1618,7 @@ class Program
         [WorkItem(54544, "https://github.com/dotnet/roslyn/issues/54544")]
         public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff()
         {
-            const string InitialWorkspace = @"
+            var initialWorkspace = @"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -1644,8 +1644,8 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestMissingAsync(InitialWorkspace, new TestParameters(
-                options: Option(CompletionOptions.Metadata.HideAdvancedMembers, true)));
+            await TestMissingAsync(initialWorkspace, new TestParameters(
+                codeActionOptions: CodeActionOptions.Default with { HideAdvancedMembers = true }));
         }
     }
 }

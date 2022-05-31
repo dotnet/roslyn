@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -189,7 +190,7 @@ public struct C
   IL_0013:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.Int32");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "System.Int32", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
@@ -357,7 +358,7 @@ public struct C
   IL_0008:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.String");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "System.String", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.M", expectedIL);
         }
 
@@ -672,7 +673,7 @@ public struct C
   IL_000c:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "1123");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "1123", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.Get", expectedGetIL);
             verifier.VerifyIL("C.Set", expectedSetIL);
             verifier.VerifyIL("C.Ref", expectedRefIL);
@@ -794,7 +795,7 @@ using System;
 42
 333
 0
-42");
+42", verify: Verification.FailsILVerify);
             verifier.VerifyIL("Program.Main", expectedGetIL);
         }
 
@@ -902,7 +903,7 @@ public struct C
     }
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "4242");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "4242", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.Main", @"
 {
   // Code size       72 (0x48)

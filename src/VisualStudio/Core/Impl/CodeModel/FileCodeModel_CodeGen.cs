@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var implementedInterfaceArray = GetValidArray(implementedInterfaces, allowMultipleElements: true);
 
             var implementedInterfaceSymbols = Array.ConvertAll(implementedInterfaceArray,
-                i => (INamedTypeSymbol?)CodeModelService.GetTypeSymbol(i, semanticModel, containerNodePosition));
+                i => (INamedTypeSymbol)CodeModelService.GetTypeSymbol(i, semanticModel, containerNodePosition));
 
             var newType = CreateTypeDeclaration(
                 containerNode,
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
-            var returnType = (INamedTypeSymbol?)CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
+            var returnType = (INamedTypeSymbol)CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
 
             var newType = CreateDelegateTypeDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, returnType);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
@@ -257,7 +257,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             var semanticModel = GetSemanticModel();
 
-            var type = semanticModel.GetDeclaredSymbol(containerNode) as ITypeSymbol;
+            var type = (ITypeSymbol?)semanticModel.GetDeclaredSymbol(containerNode);
+            if (type == null)
+            {
+                throw Exceptions.ThrowEInvalidArg();
+            }
+
             var newField = CreateFieldDeclaration(containerNode, CodeModelService.GetUnescapedName(name), EnvDTE.vsCMAccess.vsCMAccessPublic, type);
             if (value != null)
             {

@@ -19,23 +19,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ILanguageServiceFactory
 
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
-        Private ReadOnly _optionService As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(optionService As IGlobalOptionService)
-            _optionService = optionService
+        Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTreeFactoryService(_optionService, provider)
+            Return New VisualBasicSyntaxTreeFactoryService(provider)
         End Function
 
         Partial Friend Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
-            Public Sub New(optionService As IGlobalOptionService, languageServices As HostLanguageServices)
-                MyBase.New(optionService, languageServices)
+            Public Sub New(languageServices As HostLanguageServices)
+                MyBase.New(languageServices)
             End Sub
 
             Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
@@ -63,6 +61,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return New VisualBasicParseOptions(languageVersion:=langVersion, preprocessorSymbols:=preprocessorSymbols)
+            End Function
+
+            Public Overrides Function OptionsDifferOnlyByPreprocessorDirectives(options1 As ParseOptions, options2 As ParseOptions) As Boolean
+                Dim vbOptions1 = DirectCast(options1, VisualBasicParseOptions)
+                Dim vbOptions2 = DirectCast(options2, VisualBasicParseOptions)
+
+                ' The easy way to figure out if these only differ by a single field is to update one with the preprocessor symbols of the
+                ' other, and then do an equality check from there; this is future proofed if another value is ever added.
+                Return vbOptions1.WithPreprocessorSymbols(vbOptions2.PreprocessorSymbols) = vbOptions2
             End Function
 
             Public Overloads Overrides Function GetDefaultParseOptionsWithLatestLanguageVersion() As ParseOptions

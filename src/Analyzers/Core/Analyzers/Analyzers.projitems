@@ -72,7 +72,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\AbstractUseCompoundAssignmentDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundAssignmentUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\AbstractUseConditionalExpressionDiagnosticAnalyzer.cs" />
@@ -88,7 +88,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseNamedMemberInitializerAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\Analyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\Analyzer.OperationDeconstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeDiagnosticAnalyzer.cs" />

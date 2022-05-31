@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
-            Document document, SyntaxNode root, CancellationToken cancellationToken)
+            Document document, SyntaxNode? root, CancellationToken cancellationToken)
         {
             var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,15 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRegexDiagnosticAnalyzer(), null);
 
         private static OptionsCollection OptionOn()
-        {
-            var optionsSet = new OptionsCollection(LanguageNames.CSharp);
-            optionsSet.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, true);
-            return optionsSet;
-        }
+            => new(LanguageNames.CSharp)
+            {
+                { RegularExpressionsOptions.ReportInvalidRegexPatterns, true }
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
         public async Task TestWarning1()

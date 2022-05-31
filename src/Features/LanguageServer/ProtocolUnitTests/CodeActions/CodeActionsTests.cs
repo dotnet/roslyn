@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
             var results = await RunGetCodeActionsAsync(testLspServer, caretLocation);
             var introduceConstant = results[0].Children.FirstOrDefault(
-                r => ((CodeActionResolveData)r.Data).UniqueIdentifier == FeaturesResources.Introduce_constant
+                r => ((JObject)r.Data).ToObject<CodeActionResolveData>().UniqueIdentifier == FeaturesResources.Introduce_constant
                 + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"));
 
             AssertJsonEquals(expected, introduceConstant);
@@ -204,11 +205,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(
             TestLspServer testLspServer,
-            LSP.Location caret,
-            LSP.ClientCapabilities clientCapabilities = null)
+            LSP.Location caret)
         {
             var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
-                LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
+                LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret), CancellationToken.None);
             return result.Cast<LSP.VSInternalCodeAction>().ToArray();
         }
 

@@ -10,14 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int Fading_FadeOutUnreachableCode
         {
-            get { return GetBooleanOption(FadingOptions.FadeOutUnreachableCode); }
-            set { SetBooleanOption(FadingOptions.FadeOutUnreachableCode, value); }
+            get { return GetBooleanOption(FadingOptions.Metadata.FadeOutUnreachableCode); }
+            set { SetBooleanOption(FadingOptions.Metadata.FadeOutUnreachableCode, value); }
         }
 
         public int Fading_FadeOutUnusedImports
         {
-            get { return GetBooleanOption(FadingOptions.FadeOutUnusedImports); }
-            set { SetBooleanOption(FadingOptions.FadeOutUnusedImports, value); }
+            get { return GetBooleanOption(FadingOptions.Metadata.FadeOutUnusedImports); }
+            set { SetBooleanOption(FadingOptions.Metadata.FadeOutUnusedImports, value); }
         }
     }
 }

@@ -18,8 +18,19 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">為重新指派的變數加上底線;顯示內嵌提示;自動插入結束建構;變更美化列表設定;變更大綱模式;自動插入 Interface 和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤修正建議;開啟或關閉參考及關鍵字的醒目提示;Regex;為規則運算式添加色彩;醒目提示游標下的相關元件;回報無效的規則運算式;regex;規則運算式;使用進階色彩;編輯器色彩配置;繼承頁面邊界;匯入指示詞;</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">為重新指派的變數加上底線;顯示內嵌提示;自動插入結束建構;變更美化列表設定;變更大綱模式;自動插入 Interface 和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤修正建議;開啟或關閉參考及關鍵字的醒目提示;Regex;為規則運算式添加色彩;醒目提示游標下的相關元件;回報無效的規則運算式;regex;規則運算式;使用進階色彩;編輯器色彩配置;繼承頁面邊界;匯入指示詞;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

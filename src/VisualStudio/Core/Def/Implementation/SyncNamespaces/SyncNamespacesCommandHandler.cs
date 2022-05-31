@@ -8,7 +8,9 @@ using System.ComponentModel.Design;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -25,16 +27,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
     {
         private readonly VisualStudioWorkspace _workspace;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+        private readonly IGlobalOptionService _globalOptions;
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SyncNamespacesCommandHandler(
             IUIThreadOperationExecutor threadOperationExecutor,
-            VisualStudioWorkspace workspace)
+            VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions)
         {
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
+            _globalOptions = globalOptions;
         }
 
         public void Initialize(IServiceProvider serviceProvider)
@@ -120,11 +125,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             }
 
             var syncService = projects[0].GetRequiredLanguageService<ISyncNamespacesService>();
+            var options = _globalOptions.GetCodeActionOptions(projects[0].Language);
 
             Solution? solution = null;
             var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
             {
-                solution = ThreadHelper.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, operationContext.UserCancellationToken));
+                solution = ThreadHelper.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
             });
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)

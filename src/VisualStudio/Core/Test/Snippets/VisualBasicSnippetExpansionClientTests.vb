@@ -5,8 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -370,7 +370,7 @@ End Class</Test>
             End Using
         End Sub
 
-        Private Async Function TestSnippetAddImportsAsync(
+        Private Shared Async Function TestSnippetAddImportsAsync(
                 markupCode As String,
                 namespacesToAdd As String(),
                 placeSystemNamespaceFirst As Boolean,
@@ -411,16 +411,17 @@ End Class</Test>
                     workspace.GetService(Of IGlobalOptionService))
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-                Dim options = Await document.GetOptionsAsync(CancellationToken.None).ConfigureAwait(False)
 
-                options = options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst)
+                Dim options = New AddImportPlacementOptions(
+                    PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
+                    PlaceImportsInsideNamespaces:=False,
+                    AllowInHiddenRegions:=False)
 
                 Dim updatedDocument = expansionClient.AddImports(
                     document,
                     options,
                     If(position, 0),
                     snippetNode,
-                    allowInHiddenRegions:=False,
                     CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),

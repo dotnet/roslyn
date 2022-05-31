@@ -66,47 +66,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         return;
                     }
 
-                    if (IsForeground())
-                    {
-                        // If we are already on the UI thread, invoke NavigateOnForegroundThread
-                        // directly to preserve any existing NewDocumentStateScope.
-                        NavigateOnForegroundThread(sourceLocation, symbolId, project, document, CancellationToken.None);
-                    }
-                    else
-                    {
-                        // Navigation must be performed on the UI thread. If we are invoked from a
-                        // background thread then the current NewDocumentStateScope is unrelated to
-                        // this navigation and it is safe to continue on the UI thread 
-                        // asynchronously.
-                        Task.Factory.SafeStartNewFromAsync(
-                            async () =>
-                            {
-                                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                                NavigateOnForegroundThread(sourceLocation, symbolId, project, document, CancellationToken.None);
-                            },
-                            CancellationToken.None,
-                            TaskScheduler.Default);
-                    }
+                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                        NavigateToAsync(sourceLocation, symbolId, project, document, CancellationToken.None));
                 }
             }
         }
 
-        private void NavigateOnForegroundThread(
+        private async Task NavigateToAsync(
             SourceLocation sourceLocation, SymbolKey? symbolId, Project project, Document document, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
             // Notify of navigation so third parties can intercept the navigation
             if (symbolId != null)
             {
                 var symbolNavigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                var symbol = symbolId.Value.Resolve(project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), cancellationToken: cancellationToken).Symbol;
+                var symbol = symbolId.Value.Resolve(await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false), cancellationToken: cancellationToken).Symbol;
 
                 // Do not allow third party navigation to types or constructors
                 if (symbol != null &&
                     symbol is not ITypeSymbol &&
                     !symbol.IsConstructor() &&
-                    symbolNavigationService.TrySymbolNavigationNotifyAsync(symbol, project, cancellationToken).WaitAndGetResult(cancellationToken))
+                    await symbolNavigationService.TrySymbolNavigationNotifyAsync(symbol, project, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }
@@ -124,12 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
 
                     // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
-                    navigationService.TryNavigateToLineAndOffset(
+                    await navigationService.TryNavigateToLineAndOffsetAsync(
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
                         sourceLocation.StartPosition.Character,
-                        cancellationToken);
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }

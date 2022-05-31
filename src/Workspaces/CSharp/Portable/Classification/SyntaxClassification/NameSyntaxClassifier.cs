@@ -175,6 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
+            if (name is IdentifierNameSyntax { Identifier.Text: "args" } &&
+                symbol is IParameterSymbol { ContainingSymbol: IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName } })
+            {
+                classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                return true;
+            }
+
             if (name.IsNint || name.IsNuint)
             {
                 if (symbol is ITypeSymbol type && type.IsNativeIntegerType)

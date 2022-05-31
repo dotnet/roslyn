@@ -14,9 +14,12 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -55,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// </summary>
             private bool _isBuildRunning;
 
-            public LiveTableDataSource(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
-                : base(workspace)
+            public LiveTableDataSource(Workspace workspace, IThreadingContext threadingContext, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
+                : base(workspace, threadingContext)
             {
                 _workspace = workspace;
                 _globalOptions = globalOptions;
@@ -106,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 var diagnosticSource = (DiagnosticTableEntriesSource)source;
-                var snapshot = new TableEntriesSnapshot(diagnosticSource, version, items, trackingPoints);
+                var snapshot = new TableEntriesSnapshot(ThreadingContext, diagnosticSource, version, items, trackingPoints);
 
                 if (diagnosticSource.SupportSpanTracking && !trackingPoints.IsDefaultOrEmpty)
                 {
@@ -168,8 +171,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
+                var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
                 var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
-                    workspace, projectId: null, documentId: null, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None);
+                    workspace, projectId: null, documentId: null, diagnosticMode, cancellationToken: CancellationToken.None);
 
                 foreach (var bucket in diagnostics)
                 {
@@ -212,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
-                return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
+                return new TableEntriesSource(this, item.Workspace, _globalOptions, item.ProjectId, item.DocumentId, item.Id);
             }
 
             private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
@@ -274,15 +278,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 private readonly LiveTableDataSource _source;
                 private readonly Workspace _workspace;
+                private readonly IGlobalOptionService _globalOptions;
                 private readonly ProjectId? _projectId;
                 private readonly DocumentId? _documentId;
                 private readonly object _id;
                 private readonly string _buildTool;
 
-                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId? projectId, DocumentId? documentId, object id)
+                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, IGlobalOptionService globalOptions, ProjectId? projectId, DocumentId? documentId, object id)
                 {
                     _source = source;
                     _workspace = workspace;
+                    _globalOptions = globalOptions;
                     _projectId = projectId;
                     _documentId = documentId;
                     _id = id;
@@ -296,8 +302,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
+                    var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
                     var provider = _source._diagnosticService;
-                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
+                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, diagnosticMode, cancellationToken: CancellationToken.None)
                         .AsTask()
                         .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
@@ -316,11 +323,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private FrameworkElement[]? _descriptions;
 
                 public TableEntriesSnapshot(
+                    IThreadingContext threadingContext,
                     DiagnosticTableEntriesSource source,
                     int version,
                     ImmutableArray<DiagnosticTableItem> items,
                     ImmutableArray<ITrackingPoint> trackingPoints)
-                    : base(version, items, trackingPoints)
+                    : base(threadingContext, version, items, trackingPoints)
                 {
                     _source = source;
                 }
@@ -349,13 +357,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = BrowserHelper.GetHelpLinkToolTip(data);
+                            content = (data.GetValidHelpLinkUri() != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null;
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
+                            content = data.GetValidHelpLinkUri()?.AbsoluteUri;
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -416,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _source.BuildTool;
                 }
 
-                private ErrorSource GetErrorSource(string buildTool)
+                private static ErrorSource GetErrorSource(string buildTool)
                 {
                     if (buildTool == PredefinedBuildTools.Build)
                     {
@@ -426,7 +434,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return ErrorSource.Other;
                 }
 
-                private ErrorRank GetErrorRank(DiagnosticData item)
+                private static ErrorRank GetErrorRank(DiagnosticData item)
                 {
                     if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value))
                     {
@@ -470,8 +478,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
-                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
+                public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, options, cancellationToken);
 
                 #region IWpfTableEntriesSnapshot
 
@@ -571,7 +579,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
 #pragma warning disable IDE0060 // Remove unused parameter - TODO: remove this once we moved to new drop 
-                public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
+                public static bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
 #pragma warning restore IDE0060 // Remove unused parameter
                 {
                     content = null;

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return BackgroundAnalysisScope.FullSolution;
                     }
 
-                    return BackgroundAnalysisScope.Default;
+                    return BackgroundAnalysisScope.OpenFiles;
 
                 default:
                     return options.GetOption(BackgroundAnalysisScopeOption, language);

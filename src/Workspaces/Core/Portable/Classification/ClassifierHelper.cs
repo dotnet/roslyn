@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan span,
+            ClassificationOptions options,
             CancellationToken cancellationToken,
             bool removeAdditiveSpans = true,
             bool fillInClassifiedSpanGaps = true)
@@ -32,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 return default;
             }
-
-            var options = ClassificationOptions.From(document.Project);
 
             // Call out to the individual language to classify the chunk of text around the
             // reference. We'll get both the syntactic and semantic spans for this region.
@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticSpans);
 
             await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
+
+            // Intentional that we're adding both semantic and embedded lang classifications to the same array.  Both
+            // are 'semantic' from the perspective of this helper method.
             await classificationService.AddSemanticClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
 
             // MergeClassifiedSpans will ultimately filter multiple classifications for the same
             // span down to one. We know that additive classifications are there just to 
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Classification
                         ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType) || ClassificationTypeNames.AdditiveTypeNames.Contains(previousSpan.ClassificationType);
 
                     // Additive classifications are intended to overlap so do not ignore it.
-                    if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    if (!isAdditiveClassification && previousSpan.TextSpan.End > intersection.Value.Start)
                     {
                         // This span isn't strictly after the previous span.  Ignore it.
                         intersection = null;

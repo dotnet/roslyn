@@ -341,19 +341,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using var workspace = new AdhocWorkspace(hostServices);
             var option = TodoCommentOptions.TokenList;
+            var optionKey = new OptionKey(option);
             var newOptionValue = option.DefaultValue + "|name:value";
 
             var persister = new TestOptionService.TestOptionsPersister();
-            var persisted = persister.TryPersist(option, newOptionValue);
+            var persisted = persister.TryPersist(optionKey, newOptionValue);
             Assert.True(persisted);
-            Assert.True(persister.TryFetch(option, out var persistedValue));
+            Assert.True(persister.TryFetch(optionKey, out var persistedValue));
             Assert.Equal(newOptionValue, persistedValue);
 
             var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptions>().FirstOrDefault();
             var persisterProvider = new TestOptionService.TestOptionsPersisterProvider(persister);
             var optionService = TestOptionService.GetService(workspace, provider, persisterProvider);
             var optionSet = optionService.GetOptions();
-            var optionKey = new OptionKey(option);
             Assert.Equal(newOptionValue, (string?)optionSet.GetOption(optionKey));
 
             var languages = ImmutableHashSet.Create(LanguageNames.CSharp);

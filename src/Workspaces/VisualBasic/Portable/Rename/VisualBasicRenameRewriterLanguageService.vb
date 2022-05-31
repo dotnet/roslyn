@@ -113,19 +113,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _renameLocations = parameters.RenameLocations
                 _conflictLocations = parameters.ConflictLocationSpans
                 _cancellationToken = parameters.CancellationToken
-                _semanticModel = DirectCast(parameters.SemanticModel, SemanticModel)
+                _semanticModel = parameters.SemanticModel
                 _renamedSymbol = parameters.RenameSymbol
                 _replacementTextValid = parameters.ReplacementTextValid
                 _renameSpansTracker = parameters.RenameSpansTracker
-                _isRenamingInStrings = parameters.OptionSet.RenameInStrings
-                _isRenamingInComments = parameters.OptionSet.RenameInComments
+                _isRenamingInStrings = parameters.IsRenamingInStrings
+                _isRenamingInComments = parameters.IsRenamingInComments
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
-                _aliasSymbol = TryCast(Me._renamedSymbol, IAliasSymbol)
-                _renamableDeclarationLocation = Me._renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
+                _aliasSymbol = TryCast(_renamedSymbol, IAliasSymbol)
+                _renamableDeclarationLocation = _renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
                 _simplificationService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISimplificationService)()
                 _syntaxFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISyntaxFactsService)()
                 _semanticFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISemanticFactsService)()
-                _isVerbatim = Me._syntaxFactsService.IsVerbatimIdentifier(_replacementText)
+                _isVerbatim = _syntaxFactsService.IsVerbatimIdentifier(_replacementText)
                 _renameAnnotations = parameters.RenameAnnotations
             End Sub
 

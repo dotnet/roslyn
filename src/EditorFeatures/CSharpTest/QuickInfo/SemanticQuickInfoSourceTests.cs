@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         private static async Task TestWithOptionsAsync(Document document, QuickInfoService service, int position, Action<QuickInfoItem>[] expectedResults)
         {
-            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+            var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
             var service = QuickInfoService.GetService(document);
 
-            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+            var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
@@ -244,7 +245,7 @@ using System.Linq;
 
             var service = QuickInfoService.GetService(document);
 
-            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+            var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
@@ -7537,6 +7538,23 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoRecordProperty()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"/// <param name=""First"">The person's first name.</param>
+record Person(string First, string Last)
+{
+    void M(Person p)
+    {
+        _ = p.$$First;
+    }
+}",
+    MainDescription("string Person.First { get; init; }"),
+    Documentation("The person's first name."));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
         public async Task TestVarPatternOnVarKeyword()
         {
@@ -7914,6 +7932,23 @@ T {FeaturesResources.is_} int
 TResult {FeaturesResources.is_} string"));
         }
 
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInferredNonAnonymousDelegateType1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$var v = (int i) => i.ToString();
+    }
+}",
+                MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
+                AnonymousTypes(""));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousSynthesizedLambdaType()
         {
@@ -7925,7 +7960,49 @@ TResult {FeaturesResources.is_} string"));
         $$var v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("delegate string <anonymous delegate>(ref int)"));
+                MainDescription("delegate string <anonymous delegate>(ref int)"),
+                AnonymousTypes(""));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var $$v = (ref int i) => i.ToString();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) 'a v"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate string (ref int)"));
+        }
+
+        [WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousSynthesizedLambdaType3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var v = (ref int i) => i.ToString();
+        $$Goo(v);
+    }
+
+    T Goo<T>(T t) => default;
+}",
+                MainDescription("'a C.Goo<'a>('a t)"),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8054,6 +8131,101 @@ TResult {FeaturesResources.is_} string"));
 {FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
     'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_SingleLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""Hello world {$$x}""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringLiteral_SingleLine_Const()
+        {
+            await TestInClassAsync(
+@"const string $$s = """"""Hello world""""""",
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""Hello world"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_MultiLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""
+Hello world {$$x}
+""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = ${|#0:|}$""""""
+Hello world {{$$x}}
+""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringLiteral_MultiLine_Const()
+        {
+            await TestInClassAsync(
+@"const string $$s = """"""
+        Hello world
+    """"""",
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""
+        Hello world
+    """""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestArgsInTopLevel()
+        {
+            var markup =
+@"
+forach (var arg in $$args)
+{
+}
+";
+
+            await TestWithOptionsAsync(
+                Options.Regular, markup,
+                MainDescription($"({FeaturesResources.parameter}) string[] args"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestArgsInNormalProgram()
+        {
+            var markup =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var arg in $$args)
+        {
+        }
+    }
+}
+";
+
+            await TestAsync(markup,
+                MainDescription($"({FeaturesResources.parameter}) string[] args"));
         }
     }
 }

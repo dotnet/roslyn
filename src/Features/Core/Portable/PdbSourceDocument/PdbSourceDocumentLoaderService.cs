@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                         new FileInfo(filePath).IsReadOnly = true;
                     }
-                    catch (IOException ex)
+                    catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
                     {
                         _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message);
                         return null;

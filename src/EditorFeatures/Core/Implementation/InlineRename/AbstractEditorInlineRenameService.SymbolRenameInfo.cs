@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public string? LocalizedErrorMessage { get; }
             public TextSpan TriggerSpan { get; }
             public bool HasOverloads { get; }
-            public bool ForceRenameOverloads { get; }
+            public bool MustRenameOverloads { get; }
 
             /// <summary>
             /// The locations of the potential rename candidates for the symbol.
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.RenameSymbol = renameSymbol;
 
                 this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
-                this.ForceRenameOverloads = forceRenameOverloads;
+                this.MustRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(triggerText);
                 this.TriggerSpan = GetReferenceEditSpan(new InlineRenameLocation(document, triggerSpan), triggerText, cancellationToken);
@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return replacementText;
             }
 
-            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet? optionSet, CancellationToken cancellationToken)
+            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
             {
                 var solution = _document.Project.Solution;
                 var locations = await Renamer.FindRenameLocationsAsync(
-                    solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken).ConfigureAwait(false);
+                    solution, this.RenameSymbol, options, cancellationToken).ConfigureAwait(false);
 
                 return new InlineRenameLocationSet(this, locations);
             }

@@ -2618,7 +2618,7 @@ class C
 
         #endregion
 
-        #region "constructor initalizer"
+        #region "constructor initializer"
         [Fact]
         public void TestDataFlowsInCtorInitPublicApi()
         {
@@ -2757,7 +2757,7 @@ class C
         }
         #endregion
 
-        #region "primary constructor initalizer"
+        #region "primary constructor initializer"
 
         [Fact]
         public void TestDataFlowsInPrimaryCtorInitPublicApi()
@@ -8032,6 +8032,59 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
+        [Fact]
+        public void AttributeArgumentWithLambdaBody_01()
+        {
+            var source =
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return 0; })] object obj)
+    {
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (4,42): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     static void F([DefaultParameterValue(() => { return 0; })] object obj)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "() => { return 0; }").WithLocation(4, 42));
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(expr);
+            Assert.False(analysis.Succeeded);
+        }
+
+        [Fact]
+        public void AttributeArgumentWithLambdaBody_02()
+        {
+            var source =
+@"using System;
+class A : Attribute
+{
+    internal A(object o) { }
+}
+class Program
+{
+    static void F([A(() => { return 0; })] object obj)
+    {
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     static void F([A(() => { return 0; })] object obj)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "() => { return 0; }").WithLocation(8, 22));
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(expr);
+            Assert.False(analysis.Succeeded);
+        }
+
         #endregion
 
         #region "Used Local Functions"
@@ -8926,6 +8979,55 @@ int i2;
 
 /*<bind>*/
 CustomHandler c = $""{i1 = 1}{i2 = 2}"";
+/*</bind>*/
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount" + (validityParameter ? ", out bool success" : "") + @")
+    {
+" + (validityParameter ? "success = true;" : "") + @"
+    }
+
+    public " + (useBoolReturns ? "bool" : "void") + @" AppendFormatted(int i) => throw null;
+}
+" + InterpolatedStringHandlerAttribute;
+
+            var (controlFlowAnalysisResults, dataFlowAnalysisResults) = CompileAndAnalyzeControlAndDataFlowStatements(code);
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("c", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+
+            var definitelyAssigned = (validityParameter, useBoolReturns) switch
+            {
+                (true, _) => "c",
+                (_, true) => "i1, c",
+                (_, false) => "i1, i2, c"
+            };
+
+            Assert.Equal(definitelyAssigned + ", args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("i1, i2, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TestRawInterpolatedStringHandlers(bool validityParameter, bool useBoolReturns)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+int i1;
+int i2;
+
+/*<bind>*/
+CustomHandler c = $""""""{i1 = 1}{i2 = 2}"""""";
 /*</bind>*/
 
 [InterpolatedStringHandler]

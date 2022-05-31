@@ -979,5 +979,106 @@ Class C
     Private Shared [|t_obj|] As Object
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldNotWarnForDataMemberFieldsInDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private [|id|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestMissingAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldWarnForDataMemberFieldsInNonDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private [|id|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+            Dim expectedMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private ReadOnly id As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldWarnForPrivateNonDataMemberFieldsInDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private id As String
+
+    Private [|id2|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+            Dim expectedMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private id As String
+
+    Private ReadOnly id2 As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
+        Public Async Function ShouldNotWarnForPublicImplicitDataMemberFieldsInDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    Public [|id|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestMissingAsync(initialMarkup)
+        End Function
     End Class
 End Namespace

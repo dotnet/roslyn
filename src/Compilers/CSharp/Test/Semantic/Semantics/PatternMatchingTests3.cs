@@ -470,7 +470,8 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var comp = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]

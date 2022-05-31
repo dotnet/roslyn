@@ -5,7 +5,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 
@@ -17,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public _triedSymbolNavigationNotify As Boolean
         Public _wouldNavigateToSymbol As Boolean
 
-        Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
+        Public Function TryNavigateToSymbolAsync(symbol As ISymbol, project As Project, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TryNavigateToSymbolAsync
             _triedNavigationToSymbol = True
-            Return True
+            Return SpecializedTasks.True
         End Function
 
         Public Function TrySymbolNavigationNotifyAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TrySymbolNavigationNotifyAsync

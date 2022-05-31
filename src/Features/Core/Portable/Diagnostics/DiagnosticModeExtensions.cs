@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticModeExtensions
     {
-        private static DiagnosticMode GetDiagnosticMode(IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
+        public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
         {
             var diagnosticModeOption = globalOptions.GetOption(option);
 

@@ -328,15 +328,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var documentOptions = await addedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
-            var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace.Services, formattingOptions, cancellationToken);
             var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine)!;
+            var targetLineEnding = formattingOptions.NewLine;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)

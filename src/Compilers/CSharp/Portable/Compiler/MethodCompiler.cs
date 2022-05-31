@@ -470,10 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Indicates if a static constructor is in the member,
-            // so we can decide to synthesize a static constructor.
-            bool hasStaticConstructor = false;
-
             var members = containingType.GetMembers();
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
@@ -527,12 +523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 default(Binder.ProcessedFieldInitializers);
 
                             CompileMethod(method, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
-
-                            // Set a flag to indicate that a static constructor is created.
-                            if (method.MethodKind == MethodKind.StaticConstructor)
-                            {
-                                hasStaticConstructor = true;
-                            }
                             break;
                         }
 
@@ -596,45 +586,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // In the case there are field initializers but we haven't created an implicit static constructor (.cctor) for it,
-            // (since we may not add .cctor implicitly created for decimals into the symbol table)
-            // it is necessary for the compiler to generate the static constructor here if we are emitting.
-            if (_moduleBeingBuiltOpt != null && !hasStaticConstructor && !processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty)
+            if (containingType.StaticConstructors.IsEmpty)
             {
-                Debug.Assert(processedStaticInitializers.BoundInitializers.All((init) =>
-                    (init.Kind == BoundKind.FieldEqualsValue) && !((BoundFieldEqualsValue)init).Field.IsMetadataConstant));
-
-                MethodSymbol method = new SynthesizedStaticConstructor(sourceTypeSymbol);
-                if (PassesFilter(_filterOpt, method))
+                // In the case there are field initializers but we haven't created an implicit static constructor (.cctor) for it,
+                // (since we may not add .cctor implicitly created for decimals into the symbol table)
+                // it is necessary for the compiler to generate the static constructor here if we are emitting.
+                if (_moduleBeingBuiltOpt != null && !processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty)
                 {
-                    CompileMethod(method, -1, ref processedStaticInitializers, synthesizedSubmissionFields, compilationState);
+                    Debug.Assert(processedStaticInitializers.BoundInitializers.All((init) =>
+                        (init.Kind == BoundKind.FieldEqualsValue) && !((BoundFieldEqualsValue)init).Field.IsMetadataConstant));
 
-                    // If this method has been successfully built, we emit it.
-                    if (_moduleBeingBuiltOpt.GetMethodBody(method) != null)
+                    MethodSymbol method = new SynthesizedStaticConstructor(sourceTypeSymbol);
+                    if (PassesFilter(_filterOpt, method))
                     {
-                        _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method.GetCciAdapter());
+                        CompileMethod(method, -1, ref processedStaticInitializers, synthesizedSubmissionFields, compilationState);
+
+                        // If this method has been successfully built, we emit it.
+                        if (_moduleBeingBuiltOpt.GetMethodBody(method) != null)
+                        {
+                            _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method.GetCciAdapter());
+                        }
                     }
                 }
-            }
 
-            // If there is no explicit or implicit .cctor and no static initializers, then report
-            // warnings for any static non-nullable fields. (If there is no .cctor, there
-            // shouldn't be any initializers but for robustness, we check both.)
-            if (!hasStaticConstructor &&
-                processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty &&
-                _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
-                containingType is { IsImplicitlyDeclared: false, TypeKind: TypeKind.Class or TypeKind.Struct or TypeKind.Interface } &&
-                ReportNullableDiagnostics)
-            {
-                NullableWalker.AnalyzeIfNeeded(
-                    this._compilation,
-                    new SynthesizedStaticConstructor(containingType),
-                    GetSynthesizedEmptyBody(containingType),
-                    _diagnostics.DiagnosticBag,
-                    useConstructorExitWarnings: true,
-                    initialNullableState: null,
-                    getFinalNullableState: false,
-                    finalNullableState: out _);
+                // If there is no explicit or implicit .cctor and no static initializers, then report
+                // warnings for any static non-nullable fields. (If there is no .cctor, there
+                // shouldn't be any initializers but for robustness, we check both.)
+                if (processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty &&
+                    _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                    containingType is { IsImplicitlyDeclared: false, TypeKind: TypeKind.Class or TypeKind.Struct or TypeKind.Interface } &&
+                    ReportNullableDiagnostics)
+                {
+                    NullableWalker.AnalyzeIfNeeded(
+                        this._compilation,
+                        new SynthesizedStaticConstructor(containingType),
+                        GetSynthesizedEmptyBody(containingType),
+                        _diagnostics.DiagnosticBag,
+                        useConstructorExitWarnings: true,
+                        initialNullableState: null,
+                        getFinalNullableState: false,
+                        finalNullableState: out _);
+                }
             }
 
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
@@ -746,6 +738,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
+
+                        var factory = new SyntheticBoundNodeFactory(method, methodWithBody.Body.Syntax, compilationState, diagnosticsThisMethod);
+                        var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(method.Parameters, factory);
+                        if (!nullCheckStatements.IsEmpty)
+                        {
+                            loweredBody = factory.StatementList(nullCheckStatements.Concat(loweredBody));
+                        }
+                        SetGlobalErrorIfTrue(nullCheckStatements.HasErrors() || diagnosticsThisMethod.HasAnyErrors());
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
@@ -1288,27 +1288,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (hasBody)
                             {
-                                boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
+                                boundStatements = boundStatements.Concat(loweredBodyOpt);
                             }
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
 
-                            // Iterators handled in IteratorRewriter.cs
-                            if (!methodSymbol.IsIterator)
+                            var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, factory);
+                            boundStatements = nullCheckStatements.Concat(boundStatements);
+                            hasErrors = nullCheckStatements.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                            SetGlobalErrorIfTrue(hasErrors);
+                            if (hasErrors)
                             {
-                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
-
-                                if (!boundStatementsWithNullCheck.IsDefault)
-                                {
-                                    boundStatements = boundStatementsWithNullCheck;
-                                    hasErrors = boundStatementsWithNullCheck.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
-                                    SetGlobalErrorIfTrue(hasErrors);
-                                    if (hasErrors)
-                                    {
-                                        _diagnostics.AddRange(diagsForCurrentMethod);
-                                        return;
-                                    }
-                                }
+                                _diagnostics.AddRange(diagsForCurrentMethod);
+                                return;
                             }
                         }
                         if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))

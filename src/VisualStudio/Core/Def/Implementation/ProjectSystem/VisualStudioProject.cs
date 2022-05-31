@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed class VisualStudioProject
+    internal sealed partial class VisualStudioProject
     {
         private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
 
@@ -136,6 +136,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly BatchingDocumentCollection _additionalFiles;
         private readonly BatchingDocumentCollection _analyzerConfigFiles;
 
+        private readonly AsyncBatchingWorkQueue<string> _fileChangesToProcess;
+        private readonly CancellationTokenSource _asynchronousFileChangeProcessingCancellationTokenSource = new();
+
         public ProjectId Id { get; }
         public string Language { get; }
 
@@ -167,19 +170,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 documentAlreadyInWorkspace: (s, d) => s.ContainsDocument(d),
                 documentAddAction: (w, d) => w.OnDocumentAdded(d),
                 documentRemoveAction: (w, documentId) => w.OnDocumentRemoved(documentId),
-                documentTextLoaderChangedAction: (w, d, loader) => w.OnDocumentTextLoaderChanged(d, loader));
+                documentTextLoaderChangedAction: (s, d, loader) => s.WithDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
+                documentChangedWorkspaceKind: WorkspaceChangeKind.DocumentChanged);
 
             _additionalFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAdditionalDocument(d),
                 (w, d) => w.OnAdditionalDocumentAdded(d),
                 (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
-                documentTextLoaderChangedAction: (w, d, loader) => w.OnAdditionalDocumentTextLoaderChanged(d, loader));
+                documentTextLoaderChangedAction: (s, d, loader) => s.WithAdditionalDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
+                documentChangedWorkspaceKind: WorkspaceChangeKind.AdditionalDocumentChanged);
 
             _analyzerConfigFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAnalyzerConfigDocument(d),
                 (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
                 (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),
-                documentTextLoaderChangedAction: (w, d, loader) => w.OnAnalyzerConfigDocumentTextLoaderChanged(d, loader));
+                documentTextLoaderChangedAction: (s, d, loader) => s.WithAnalyzerConfigDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
+                documentChangedWorkspaceKind: WorkspaceChangeKind.AnalyzerConfigDocumentChanged);
+
+            _fileChangesToProcess = new AsyncBatchingWorkQueue<string>(
+                TimeSpan.FromMilliseconds(200), // 200 chosen with absolutely no evidence whatsoever
+                ProcessFileChangesAsync,
+                StringComparer.Ordinal,
+                workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener(),
+                _asynchronousFileChangeProcessingCancellationTokenSource.Token);
 
             _assemblyName = assemblyName;
             _compilationOptions = compilationOptions;
@@ -859,7 +872,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (fileInfoPath != null)
             {
-                _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
+                _sourceFiles.ProcessDynamicFileChange(dynamicFilePath, fileInfoPath);
             }
         }
 
@@ -951,9 +964,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void DocumentFileChangeContext_FileChanged(object sender, string fullFilePath)
         {
-            _sourceFiles.ProcessFileChange(fullFilePath);
-            _additionalFiles.ProcessFileChange(fullFilePath);
-            _analyzerConfigFiles.ProcessFileChange(fullFilePath);
+            _fileChangesToProcess.AddWork(fullFilePath);
+        }
+
+        private async ValueTask ProcessFileChangesAsync(ImmutableArray<string> filePaths, CancellationToken cancellationToken)
+        {
+            await _sourceFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
+            await _additionalFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
+            await _analyzerConfigFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
         }
 
         #region Metadata Reference Addition/Removal
@@ -1198,6 +1216,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The project has already been removed.");
                 }
 
+                _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
+
                 // clear tracking to external components
                 foreach (var provider in _eventSubscriptionTracker)
                 {
@@ -1283,558 +1303,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             list.Clear();
             list.Capacity = 0;
-        }
-
-        /// <summary>
-        /// Helper class to manage collections of source-file like things; this exists just to avoid duplicating all the logic for regular source files
-        /// and additional files.
-        /// </summary>
-        /// <remarks>This class should be free-threaded, and any synchronization is done via <see cref="VisualStudioProject._gate"/>.
-        /// This class is otherwise free to operate on private members of <see cref="_project"/> if needed.</remarks>
-        private sealed class BatchingDocumentCollection
-        {
-            private readonly VisualStudioProject _project;
-
-            /// <summary>
-            /// The map of file paths to the underlying <see cref="DocumentId"/>. This document may exist in <see cref="_documentsAddedInBatch"/> or has been
-            /// pushed to the actual workspace.
-            /// </summary>
-            private readonly Dictionary<string, DocumentId> _documentPathsToDocumentIds = new(StringComparer.OrdinalIgnoreCase);
-
-            /// <summary>
-            /// A map of explicitly-added "always open" <see cref="SourceTextContainer"/> and their associated <see cref="DocumentId"/>. This does not contain
-            /// any regular files that have been open.
-            /// </summary>
-            private IBidirectionalMap<SourceTextContainer, DocumentId> _sourceTextContainersToDocumentIds = BidirectionalMap<SourceTextContainer, DocumentId>.Empty;
-
-            /// <summary>
-            /// The map of <see cref="DocumentId"/> to <see cref="IDynamicFileInfoProvider"/> whose <see cref="DynamicFileInfo"/> got added into <see cref="Workspace"/>
-            /// </summary>
-            private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new();
-
-            /// <summary>
-            /// The current list of documents that are to be added in this batch.
-            /// </summary>
-            private readonly ImmutableArray<DocumentInfo>.Builder _documentsAddedInBatch = ImmutableArray.CreateBuilder<DocumentInfo>();
-
-            /// <summary>
-            /// The current list of documents that are being removed in this batch. Once the document is in this list, it is no longer in <see cref="_documentPathsToDocumentIds"/>.
-            /// </summary>
-            private readonly List<DocumentId> _documentsRemovedInBatch = new();
-
-            /// <summary>
-            /// The current list of document file paths that will be ordered in a batch.
-            /// </summary>
-            private ImmutableList<DocumentId>? _orderedDocumentsInBatch = null;
-
-            private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
-            private readonly Action<Workspace, DocumentInfo> _documentAddAction;
-            private readonly Action<Workspace, DocumentId> _documentRemoveAction;
-            private readonly Action<Workspace, DocumentId, TextLoader> _documentTextLoaderChangedAction;
-
-            public BatchingDocumentCollection(VisualStudioProject project,
-                Func<Solution, DocumentId, bool> documentAlreadyInWorkspace,
-                Action<Workspace, DocumentInfo> documentAddAction,
-                Action<Workspace, DocumentId> documentRemoveAction,
-                Action<Workspace, DocumentId, TextLoader> documentTextLoaderChangedAction)
-            {
-                _project = project;
-                _documentAlreadyInWorkspace = documentAlreadyInWorkspace;
-                _documentAddAction = documentAddAction;
-                _documentRemoveAction = documentRemoveAction;
-                _documentTextLoaderChangedAction = documentTextLoaderChangedAction;
-            }
-
-            public DocumentId AddFile(string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
-            {
-                if (string.IsNullOrEmpty(fullPath))
-                {
-                    throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
-                }
-
-                var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new FileTextLoader(fullPath, defaultEncoding: null);
-                var documentInfo = DocumentInfo.Create(
-                    documentId,
-                    FileNameUtilities.GetFileName(fullPath),
-                    folders: folders.IsDefault ? null : folders,
-                    sourceCodeKind: sourceCodeKind,
-                    loader: textLoader,
-                    filePath: fullPath,
-                    isGenerated: false);
-
-                using (_project._gate.DisposableWait())
-                {
-                    if (_documentPathsToDocumentIds.ContainsKey(fullPath))
-                    {
-                        throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
-                    }
-
-                    // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
-                    _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
-
-                    _documentPathsToDocumentIds.Add(fullPath, documentId);
-                    _project._documentFileWatchingTokens.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
-
-                    if (_project._activeBatchScopes > 0)
-                    {
-                        _documentsAddedInBatch.Add(documentInfo);
-                    }
-                    else
-                    {
-                        _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                        _project._workspace.QueueCheckForFilesBeingOpen(ImmutableArray.Create(fullPath));
-                    }
-                }
-
-                return documentId;
-            }
-
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, bool designTimeOnly, IDocumentServiceProvider? documentServiceProvider)
-            {
-                if (textContainer == null)
-                {
-                    throw new ArgumentNullException(nameof(textContainer));
-                }
-
-                var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new SourceTextLoader(textContainer, fullPath);
-                var documentInfo = DocumentInfo.Create(
-                    documentId,
-                    FileNameUtilities.GetFileName(fullPath),
-                    folders: folders.NullToEmpty(),
-                    sourceCodeKind: sourceCodeKind,
-                    loader: textLoader,
-                    filePath: fullPath,
-                    isGenerated: false,
-                    designTimeOnly: designTimeOnly,
-                    documentServiceProvider: documentServiceProvider);
-
-                using (_project._gate.DisposableWait())
-                {
-                    if (_sourceTextContainersToDocumentIds.ContainsKey(textContainer))
-                    {
-                        throw new ArgumentException($"{nameof(textContainer)} is already added to this project.", nameof(textContainer));
-                    }
-
-                    if (fullPath != null)
-                    {
-                        if (_documentPathsToDocumentIds.ContainsKey(fullPath))
-                        {
-                            throw new ArgumentException($"'{fullPath}' has already been added to this project.");
-                        }
-
-                        _documentPathsToDocumentIds.Add(fullPath, documentId);
-                    }
-
-                    _sourceTextContainersToDocumentIds = _sourceTextContainersToDocumentIds.Add(textContainer, documentInfo.Id);
-
-                    if (_project._activeBatchScopes > 0)
-                    {
-                        _documentsAddedInBatch.Add(documentInfo);
-                    }
-                    else
-                    {
-                        _project._workspace.ApplyChangeToWorkspace(w =>
-                        {
-                            _project._workspace.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
-                            _documentAddAction(w, documentInfo);
-                            w.OnDocumentOpened(documentInfo.Id, textContainer);
-                        });
-                    }
-                }
-
-                return documentId;
-            }
-
-            public void AddDynamicFile_NoLock(IDynamicFileInfoProvider fileInfoProvider, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
-            {
-                Debug.Assert(_project._gate.CurrentCount == 0);
-
-                var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.NullToEmpty());
-
-                // Generally, DocumentInfo.FilePath can be null, but we always have file paths for dynamic files.
-                Contract.ThrowIfNull(documentInfo.FilePath);
-                var documentId = documentInfo.Id;
-
-                var filePath = documentInfo.FilePath;
-                if (_documentPathsToDocumentIds.ContainsKey(filePath))
-                {
-                    throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
-                }
-
-                // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
-                _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
-
-                _documentPathsToDocumentIds.Add(filePath, documentId);
-
-                _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
-
-                if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
-                {
-                    // subscribe to the event when we use this provider the first time
-                    fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
-                }
-
-                if (_project._activeBatchScopes > 0)
-                {
-                    _documentsAddedInBatch.Add(documentInfo);
-                }
-                else
-                {
-                    // right now, assumption is dynamically generated file can never be opened in editor
-                    _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                }
-            }
-
-            public IDynamicFileInfoProvider RemoveDynamicFile_NoLock(string fullPath)
-            {
-                Debug.Assert(_project._gate.CurrentCount == 0);
-
-                if (string.IsNullOrEmpty(fullPath))
-                {
-                    throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
-                }
-
-                if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId) ||
-                    !_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider))
-                {
-                    throw new ArgumentException($"'{fullPath}' is not a dynamic file of this project.");
-                }
-
-                _documentIdToDynamicFileInfoProvider.Remove(documentId);
-
-                RemoveFileInternal(documentId, fullPath);
-
-                return fileInfoProvider;
-            }
-
-            public void RemoveFile(string fullPath)
-            {
-                if (string.IsNullOrEmpty(fullPath))
-                {
-                    throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
-                }
-
-                using (_project._gate.DisposableWait())
-                {
-                    if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId))
-                    {
-                        throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
-                    }
-
-                    _project._documentFileChangeContext.StopWatchingFile(_project._documentFileWatchingTokens[documentId]);
-                    _project._documentFileWatchingTokens.Remove(documentId);
-
-                    RemoveFileInternal(documentId, fullPath);
-                }
-            }
-
-            private void RemoveFileInternal(DocumentId documentId, string fullPath)
-            {
-                _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Remove(documentId);
-                _documentPathsToDocumentIds.Remove(fullPath);
-
-                // There are two cases:
-                // 
-                // 1. This file is actually been pushed to the workspace, and we need to remove it (either
-                //    as a part of the active batch or immediately)
-                // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
-                if (_documentAlreadyInWorkspace(_project._workspace.CurrentSolution, documentId))
-                {
-                    if (_project._activeBatchScopes > 0)
-                    {
-                        _documentsRemovedInBatch.Add(documentId);
-                    }
-                    else
-                    {
-                        _project._workspace.ApplyChangeToWorkspace(w => _documentRemoveAction(w, documentId));
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < _documentsAddedInBatch.Count; i++)
-                    {
-                        if (_documentsAddedInBatch[i].Id == documentId)
-                        {
-                            _documentsAddedInBatch.RemoveAt(i);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            public void RemoveTextContainer(SourceTextContainer textContainer)
-            {
-                if (textContainer == null)
-                {
-                    throw new ArgumentNullException(nameof(textContainer));
-                }
-
-                using (_project._gate.DisposableWait())
-                {
-                    if (!_sourceTextContainersToDocumentIds.TryGetValue(textContainer, out var documentId))
-                    {
-                        throw new ArgumentException($"{nameof(textContainer)} is not a text container added to this project.");
-                    }
-
-                    _sourceTextContainersToDocumentIds = _sourceTextContainersToDocumentIds.RemoveKey(textContainer);
-
-                    // if the TextContainer had a full path provided, remove it from the map.
-                    var entry = _documentPathsToDocumentIds.Where(kv => kv.Value == documentId).FirstOrDefault();
-                    if (entry.Key != null)
-                    {
-                        _documentPathsToDocumentIds.Remove(entry.Key);
-                    }
-
-                    // There are two cases:
-                    // 
-                    // 1. This file is actually been pushed to the workspace, and we need to remove it (either
-                    //    as a part of the active batch or immediately)
-                    // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
-                    if (_project._workspace.CurrentSolution.GetDocument(documentId) != null)
-                    {
-                        if (_project._activeBatchScopes > 0)
-                        {
-                            _documentsRemovedInBatch.Add(documentId);
-                        }
-                        else
-                        {
-                            _project._workspace.ApplyChangeToWorkspace(w =>
-                            {
-                                // Just pass null for the filePath, since this document is immediately being removed
-                                // anyways -- whatever we set won't really be read since the next change will
-                                // come through.
-                                // TODO: Can't we just remove the document without closing it?
-                                w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
-                                _documentRemoveAction(w, documentId);
-                                _project._workspace.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
-                            });
-                        }
-                    }
-                    else
-                    {
-                        for (var i = 0; i < _documentsAddedInBatch.Count; i++)
-                        {
-                            if (_documentsAddedInBatch[i].Id == documentId)
-                            {
-                                _documentsAddedInBatch.RemoveAt(i);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            public bool ContainsFile(string fullPath)
-            {
-                if (string.IsNullOrEmpty(fullPath))
-                {
-                    throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
-                }
-
-                using (_project._gate.DisposableWait())
-                {
-                    return _documentPathsToDocumentIds.ContainsKey(fullPath);
-                }
-            }
-
-            public void ProcessFileChange(string filePath)
-                => ProcessFileChange(filePath, filePath);
-
-            /// <summary>
-            /// Process file content changes
-            /// </summary>
-            /// <param name="projectSystemFilePath">filepath given from project system</param>
-            /// <param name="workspaceFilePath">filepath used in workspace. it might be different than projectSystemFilePath. ex) dynamic file</param>
-            public void ProcessFileChange(string projectSystemFilePath, string workspaceFilePath)
-            {
-                using (_project._gate.DisposableWait())
-                {
-                    // If our project has already been removed, this is a stale notification, and we can disregard.
-                    if (_project.HasBeenRemoved)
-                    {
-                        return;
-                    }
-
-                    if (_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
-                    {
-                        // We create file watching prior to pushing the file to the workspace in batching, so it's
-                        // possible we might see a file change notification early. In this case, toss it out. Since
-                        // all adds/removals of documents for this project happen under our lock, it's safe to do this
-                        // check without taking the main workspace lock. We don't have to check for documents removed in
-                        // the batch, since those have already been removed out of _documentPathsToDocumentIds.
-                        if (_documentsAddedInBatch.Any(d => d.Id == documentId))
-                        {
-                            return;
-                        }
-
-                        _documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider);
-
-                        _project._workspace.ApplyChangeToWorkspace(w =>
-                        {
-                            if (w.IsDocumentOpen(documentId))
-                            {
-                                return;
-                            }
-
-                            if (fileInfoProvider == null)
-                            {
-                                var textLoader = new FileTextLoader(projectSystemFilePath, defaultEncoding: null);
-                                _documentTextLoaderChangedAction(w, documentId, textLoader);
-                            }
-                            else
-                            {
-                                // we do not expect JTF to be used around this code path. and contract of fileInfoProvider is it being real free-threaded
-                                // meaning it can't use JTF to go back to UI thread.
-                                // so, it is okay for us to call regular ".Result" on a task here.
-                                var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
-                                    _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-
-                                // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
-                                var document = w.CurrentSolution.GetRequiredDocument(documentId);
-
-                                var documentInfo = DocumentInfo.Create(
-                                    document.Id,
-                                    document.Name,
-                                    document.Folders,
-                                    document.SourceCodeKind,
-                                    loader: fileInfo.TextLoader,
-                                    document.FilePath,
-                                    document.State.Attributes.IsGenerated,
-                                    document.State.Attributes.DesignTimeOnly,
-                                    documentServiceProvider: fileInfo.DocumentServiceProvider);
-
-                                w.OnDocumentReloaded(documentInfo);
-                            }
-                        });
-                    }
-                }
-            }
-
-            public void ReorderFiles(ImmutableArray<string> filePaths)
-            {
-                if (filePaths.IsEmpty)
-                {
-                    throw new ArgumentOutOfRangeException("The specified files are empty.", nameof(filePaths));
-                }
-
-                using (_project._gate.DisposableWait())
-                {
-                    if (_documentPathsToDocumentIds.Count != filePaths.Length)
-                    {
-                        throw new ArgumentException("The specified files do not equal the project document count.", nameof(filePaths));
-                    }
-
-                    var documentIds = ImmutableList.CreateBuilder<DocumentId>();
-
-                    foreach (var filePath in filePaths)
-                    {
-                        if (_documentPathsToDocumentIds.TryGetValue(filePath, out var documentId))
-                        {
-                            documentIds.Add(documentId);
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException($"The file '{filePath}' does not exist in the project.");
-                        }
-                    }
-
-                    if (_project._activeBatchScopes > 0)
-                    {
-                        _orderedDocumentsInBatch = documentIds.ToImmutable();
-                    }
-                    else
-                    {
-                        _project._workspace.ApplyChangeToWorkspace(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
-                    }
-                }
-            }
-
-            internal void UpdateSolutionForBatch(
-                SolutionChangeAccumulator solutionChanges,
-                ImmutableArray<string>.Builder documentFileNamesAdded,
-                List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
-                Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
-                WorkspaceChangeKind addDocumentChangeKind,
-                Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
-                WorkspaceChangeKind removeDocumentChangeKind)
-            {
-                // Document adding...
-                solutionChanges.UpdateSolutionForDocumentAction(
-                    newSolution: addDocuments(solutionChanges.Solution, _documentsAddedInBatch.ToImmutable()),
-                    changeKind: addDocumentChangeKind,
-                    documentIds: _documentsAddedInBatch.Select(d => d.Id));
-
-                foreach (var documentInfo in _documentsAddedInBatch)
-                {
-                    Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
-                    documentFileNamesAdded.Add(documentInfo.FilePath);
-
-                    if (_sourceTextContainersToDocumentIds.TryGetKey(documentInfo.Id, out var textContainer))
-                    {
-                        documentsToOpen.Add((documentInfo.Id, textContainer));
-                    }
-                }
-
-                ClearAndZeroCapacity(_documentsAddedInBatch);
-
-                // Document removing...
-                solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, _documentsRemovedInBatch.ToImmutableArray()),
-                    removeDocumentChangeKind,
-                    _documentsRemovedInBatch);
-
-                ClearAndZeroCapacity(_documentsRemovedInBatch);
-
-                // Update project's order of documents.
-                if (_orderedDocumentsInBatch != null)
-                {
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        _project.Id,
-                        solutionChanges.Solution.WithProjectDocumentsOrder(_project.Id, _orderedDocumentsInBatch));
-                    _orderedDocumentsInBatch = null;
-                }
-            }
-
-            private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, ImmutableArray<string> folders)
-            {
-                Contract.ThrowIfTrue(folders.IsDefault);
-
-                // we use this file path for editorconfig. 
-                var filePath = fileInfo.FilePath;
-
-                var name = FileNameUtilities.GetFileName(filePath);
-                var documentId = DocumentId.CreateNewId(_project.Id, filePath);
-
-                var textLoader = fileInfo.TextLoader;
-                var documentServiceProvider = fileInfo.DocumentServiceProvider;
-
-                return DocumentInfo.Create(
-                    documentId,
-                    name,
-                    folders: folders,
-                    sourceCodeKind: fileInfo.SourceCodeKind,
-                    loader: textLoader,
-                    filePath: filePath,
-                    isGenerated: false,
-                    designTimeOnly: true,
-                    documentServiceProvider: documentServiceProvider);
-            }
-
-            private sealed class SourceTextLoader : TextLoader
-            {
-                private readonly SourceTextContainer _textContainer;
-                private readonly string? _filePath;
-
-                public SourceTextLoader(SourceTextContainer textContainer, string? filePath)
-                {
-                    _textContainer = textContainer;
-                    _filePath = filePath;
-                }
-
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                    => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
-            }
         }
     }
 }

@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             pImage = directAccess.GetPointer();
         }
 
-        private void StreamCopy(Stream source, Stream destination, int start, int length)
+        private static void StreamCopy(Stream source, Stream destination, int start, int length)
         {
             source.Position = start;
 
@@ -312,7 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private AssemblyMetadata CreateAssemblyMetadata(
+        private static AssemblyMetadata CreateAssemblyMetadata(
             FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage>? storages,
             Func<FileKey, List<ITemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
         {

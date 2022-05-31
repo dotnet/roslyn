@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -374,7 +375,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                workspace.TryApplyChanges(document.Project.Solution);
+                var applied = workspace.TryApplyChanges(document.Project.Solution);
+                if (!applied)
+                {
+                    FatalError.ReportAndPropagate(new Exception("Failed to apply the workspace changes."), ErrorSeverity.Critical);
+                }
             }
         }
 

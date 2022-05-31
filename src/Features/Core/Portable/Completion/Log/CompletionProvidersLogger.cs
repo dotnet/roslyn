@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal enum ActionInfo
         {
             TypeImportCompletionTicks,
-            TypeImportCompletionExpanderTicks,      // time to complete the request when expander is used (i.e. no timeout or partial results)
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
             TypeImportCompletionCacheMissCount,
@@ -25,30 +24,21 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TargetTypeCompletionTicks,
 
             ExtensionMethodCompletionTicks,
-            ExtensionMethodCompletionExpanderTicks,         // time to complete the request when expander is used (i.e. no timeout or partial results)
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetSymbolsTicks,
             ExtensionMethodCompletionCreateItemsTicks,
             ExtensionMethodCompletionRemoteTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
-            ExtensionMethodCompletionTimeoutCount,
 
             CommitUsingSemicolonToAddParenthesis,
             CommitUsingDotToAddParenthesis
         }
 
-        internal static void LogTypeImportCompletionTicksDataPoint(int count, bool isExpanded)
+        internal static void LogTypeImportCompletionTicksDataPoint(int count)
         {
-            if (isExpanded)
-            {
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionExpanderTicks, count);
-            }
-            else
-            {
-                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
-            }
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
         }
 
         internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
@@ -69,17 +59,10 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TargetTypeCompletionTicks, count);
         }
 
-        internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isExpanded, bool isRemote)
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isRemote)
         {
-            if (isExpanded)
-            {
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionExpanderTicks, total);
-            }
-            else
-            {
-                s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, total);
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, total);
-            }
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, total);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, total);
 
             if (isRemote)
             {
@@ -98,9 +81,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogExtensionMethodCompletionPartialResultCount() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
-
-        internal static void LogExtensionMethodCompletionTimeoutCount() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTimeoutCount);
 
         internal static void LogCommitUsingSemicolonToAddParenthesis() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);

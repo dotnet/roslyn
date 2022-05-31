@@ -16,15 +16,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : AbstractRequestHandlerProvider, IRequestHandler<RequestType, ResponseType>
     {
-        public abstract string Method { get; }
-
         public abstract bool MutatesSolutionState { get; }
         public abstract bool RequiresLSPSolution { get; }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             return ImmutableArray.Create<IRequestHandler>(this);
         }

@@ -1221,7 +1221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return member.UpdateModifiers(modifierFlags);
         }
 
-        private IList<SyntaxTrivia> CollectComments(IList<SyntaxTrivia> triviaList)
+        private static IList<SyntaxTrivia> CollectComments(IList<SyntaxTrivia> triviaList)
         {
             var commentList = new List<SyntaxTrivia>();
 
@@ -2766,7 +2766,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
         }
 
-        private Document Delete(Document document, EnumMemberDeclarationSyntax node)
+        private static Document Delete(Document document, EnumMemberDeclarationSyntax node)
         {
             var enumDeclaration = (EnumDeclarationSyntax)node.Parent!;
             var members = enumDeclaration.Members;
@@ -2786,7 +2786,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return document.ReplaceNodeSynchronously(enumDeclaration, newEnumDeclaration, CancellationToken.None);
         }
 
-        private Document Delete(Document document, AttributeSyntax node)
+        private static Document Delete(Document document, AttributeSyntax node)
         {
             var attributeList = node.FirstAncestorOrSelf<AttributeListSyntax>();
             Contract.ThrowIfNull(attributeList);
@@ -2813,7 +2813,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
         }
 
-        private Document Delete(Document document, AttributeArgumentSyntax node)
+        private static Document Delete(Document document, AttributeArgumentSyntax node)
         {
             var argumentList = node.FirstAncestorOrSelf<AttributeArgumentListSyntax>();
             Contract.ThrowIfNull(argumentList);
@@ -2823,7 +2823,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return document.ReplaceNodeSynchronously(argumentList, newArgumentList, CancellationToken.None);
         }
 
-        private Document Delete(Document document, ParameterSyntax node)
+        private static Document Delete(Document document, ParameterSyntax node)
         {
             var parameterList = node.FirstAncestorOrSelf<ParameterListSyntax>();
             Contract.ThrowIfNull(parameterList);
@@ -2833,7 +2833,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return document.ReplaceNodeSynchronously(parameterList, newParameterList, CancellationToken.None);
         }
 
-        private Document DeleteMember(Document document, SyntaxNode node)
+        private static Document DeleteMember(Document document, SyntaxNode node)
         {
             var text = document.GetTextSynchronously(CancellationToken.None);
 
@@ -3279,7 +3279,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             throw Exceptions.ThrowEFail();
         }
 
-        private SyntaxNode EnsureAfterEndRegion(int index, SyntaxNode container)
+        private static SyntaxNode EnsureAfterEndRegion(int index, SyntaxNode container)
         {
             // If the next token after our member has only whitespace and #endregion as leading
             // trivia, we'll move that to be leading trivia of our member.

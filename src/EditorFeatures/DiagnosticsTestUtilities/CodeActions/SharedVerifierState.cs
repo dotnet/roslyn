@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 #if !CODE_STYLE
+using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 #endif
 
@@ -45,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         /// </summary>
         internal OptionsCollection Options { get; }
 
+#if !CODE_STYLE
+        internal CodeActionOptions CodeActionOptions { get; set; }
+#endif
         internal void Apply()
         {
             var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultFileExt, EditorConfig, Options);

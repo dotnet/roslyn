@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,16 +42,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 : GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken);
         }
 
-        public async Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
+        public async Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
             Project currentProject,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
             CompletionOptions options,
             CancellationToken cancellationToken)
         {
-            var getCacheResults = await GetCacheEntriesAsync(currentProject, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+            var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(currentProject, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
-            if (getCacheResults == null)
+            if (isPartialResult)
             {
                 // We use a very simple approach to build the cache in the background:
                 // queue a new task only if the previous task is completed, regardless of what
@@ -67,12 +66,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         s_cachingTask = Task.Run(() => WarmUpCacheAsync(workspace.CurrentSolution.GetProject(projectId), CancellationToken.None), CancellationToken.None);
                     }
                 }
-
-                return null;
             }
 
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            return getCacheResults.Value.SelectAsArray(GetItemsFromCacheResult);
+            return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
 
             ImmutableArray<CompletionItem> GetItemsFromCacheResult(GetCacheResult cacheResult)
             {
@@ -86,8 +83,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             }
         }
 
-        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<(ImmutableArray<GetCacheResult> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
         {
+            var isPartialResult = false;
             var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
 
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -96,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             var cacheResult = await GetCacheForProjectAsync(currentProject, forceCacheCreation: true, editorBrowsableInfo, cancellationToken).ConfigureAwait(false);
 
             // We always force create a cache for current project.
-            Debug.Assert(cacheResult.HasValue);
-            builder.Add(cacheResult!.Value);
+            Contract.ThrowIfFalse(cacheResult.HasValue);
+            builder.Add(cacheResult.Value);
 
             var solution = currentProject.Solution;
             var graph = solution.GetProjectDependencyGraph();
@@ -123,9 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     }
                     else
                     {
-                        // If there's cache miss, we just don't return any item.
-                        // This way, we will not block completion building our cache.
-                        return null;
+                        isPartialResult = true;
                     }
                 }
             }
@@ -142,14 +138,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     }
                     else
                     {
-                        // If there's cache miss, we just don't return any item.
-                        // This way, we will not block completion building our cache.
-                        return null;
+                        isPartialResult = true;
                     }
                 }
             }
 
-            return builder.ToImmutable();
+            return (builder.ToImmutable(), isPartialResult);
 
             static bool HasGlobalAlias(MetadataReference? metadataReference)
                 => metadataReference != null && (metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias));

@@ -60,13 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Conversions _conversions;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly LabelSymbol _defaultLabel;
+        /// <summary>
+        /// We might need to build a dedicated dag for lowering during which we
+        /// avoid synthesizing tests to relate alternative indexers. This won't 
+        /// affect code semantics but it results in a better code generation.
+        /// </summary>
+        private readonly bool _forLowering;
 
-        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, BindingDiagnosticBag diagnostics)
+        private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, bool forLowering, BindingDiagnosticBag diagnostics)
         {
             this._compilation = compilation;
             this._conversions = compilation.Conversions;
             _diagnostics = diagnostics;
             _defaultLabel = defaultLabel;
+            _forLowering = forLowering;
         }
 
         /// <summary>
@@ -78,9 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchGoverningExpression,
             ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForSwitchStatement(syntax, switchGoverningExpression, switchSections);
         }
 
@@ -93,9 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression switchExpressionInput,
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             LabelSymbol defaultLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForSwitchExpression(syntax, switchExpressionInput, switchArms);
         }
 
@@ -109,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool forLowering = false)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering, diagnostics);
             return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
         }
 
@@ -421,8 +431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Tests> tests)
         {
             // Add a null test if needed
-            if (input.Type.CanContainNull())
+            if (input.Type.CanContainNull() &&
+                // The slice value is assumed to be never null
+                input.Source is not BoundDagSliceEvaluation)
+            {
                 tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, isExplicitTest, input)));
+            }
         }
 
         /// <summary>
@@ -1336,7 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Returns true if the tests are related i.e. they have the same input, otherwise false.</summary>
         /// <param name="relationCondition">The pre-condition under which these tests are related.</param>
         /// <param name="relationEffect">A possible assignment node which will correspond two non-identical but related test inputs.</param>
-        private static bool CheckInputRelation(
+        private bool CheckInputRelation(
             SyntaxNode syntax,
             DagState state,
             BoundDagTest test,
@@ -1426,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                if (!_forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
                                     (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
@@ -1971,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxNode syntax = test.Syntax;
                     BoundDagTest other = this.Test;
                     if (other is BoundDagEvaluation ||
-                        !CheckInputRelation(syntax, state, test, other,
+                        !builder.CheckInputRelation(syntax, state, test, other,
                             relationCondition: out Tests relationCondition,
                             relationEffect: out Tests relationEffect))
                     {

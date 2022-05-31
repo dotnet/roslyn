@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
-[ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(ExperimentalMethods.WorkspaceDiagnostic)]
+[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(ExperimentalWorkspacePullDiagnosticsHandler)), Shared]
 internal class ExperimentalWorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
 {
     private readonly IDiagnosticService _diagnosticService;
@@ -27,8 +26,8 @@ internal class ExperimentalWorkspacePullDiagnosticHandlerProvider : AbstractRequ
         _analyzerService = analyzerService;
     }
 
-    public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+    public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
     {
-        return ImmutableArray.Create<IRequestHandler>(new ExperimentalWorkspacePullDiagnosticsHandler(_diagnosticService, _analyzerService));
+        return ImmutableArray.Create<IRequestHandler>(new ExperimentalWorkspacePullDiagnosticsHandler(serverKind, _diagnosticService, _analyzerService));
     }
 }

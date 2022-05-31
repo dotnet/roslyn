@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
+        private const string DefaultBuildInParameterName = "v";
+
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticMap.From(semanticModel, node, cancellationToken);
 
@@ -193,7 +195,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
             // plural forms
-            return type.CreateParameterName(capitalize);
+            if (type.IsSpecialType() ||
+                type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                type.TypeKind == TypeKind.Pointer)
+            {
+                return capitalize ? DefaultBuildInParameterName.ToUpper() : DefaultBuildInParameterName;
+            }
+            else
+            {
+                return type.CreateParameterName(capitalize);
+            }
         }
 
         private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)

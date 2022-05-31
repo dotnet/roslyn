@@ -546,7 +546,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private string? GetAnalyzerPath(AnalyzerReference analyzerReference)
+        private static string? GetAnalyzerPath(AnalyzerReference analyzerReference)
             => analyzerReference.FullPath;
 
         protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
@@ -628,7 +628,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private string? GetMetadataPath(MetadataReference metadataReference)
+        private static string? GetMetadataPath(MetadataReference metadataReference)
         {
             if (metadataReference is PortableExecutableReference fileMetadata)
             {
@@ -882,7 +882,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool IsWebsite(EnvDTE.Project project)
+        private static bool IsWebsite(EnvDTE.Project project)
             => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
         private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
@@ -1284,7 +1284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
         /// changes.
         /// </summary>
-        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        private static void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
         {
             if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {

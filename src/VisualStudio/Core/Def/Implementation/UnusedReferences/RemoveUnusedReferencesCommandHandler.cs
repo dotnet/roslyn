@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return referenceUpdates;
         }
 
-        private void ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
+        private static void ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
             ThreadHelper.JoinableTaskFactory.Run(
                 () => UnusedReferencesRemover.UpdateReferencesAsync(solution, projectFilePath, referenceUpdates, cancellationToken));

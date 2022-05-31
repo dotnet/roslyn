@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -11,13 +10,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class SyntaxTreeIndex
     {
-        public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;
-
-        public ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap
-            => _extensionMethodInfo.ReceiverTypeNameToExtensionMethodMap;
-
-        public bool ContainsExtensionMethod => _extensionMethodInfo.ContainsExtensionMethod;
-
         public bool ProbablyContainsIdentifier(string identifier) => _identifierInfo.ProbablyContainsIdentifier(identifier);
         public bool ProbablyContainsEscapedIdentifier(string identifier) => _identifierInfo.ProbablyContainsEscapedIdentifier(identifier);
 
@@ -41,11 +33,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
         public bool ContainsGlobalSuppressMessageAttribute => _contextInfo.ContainsGlobalSuppressMessageAttribute;
         public bool ContainsConversion => _contextInfo.ContainsConversion;
-
-        /// <summary>
-        /// Same as <see cref="DeclaredSymbolInfos"/>, just stored as a set for easy containment checks.
-        /// </summary>
-        public HashSet<DeclaredSymbolInfo> DeclaredSymbolInfoSet => _declaredSymbolInfoSet.Value;
 
         /// <summary>
         /// Gets the set of global aliases that point to something with the provided name and arity.

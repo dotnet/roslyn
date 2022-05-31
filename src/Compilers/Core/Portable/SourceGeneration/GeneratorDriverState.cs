@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
                                       DriverStateTable stateTable,
+                                      SyntaxStore syntaxStore,
                                       IncrementalGeneratorOutputKind disabledOutputs,
                                       TimeSpan runtime,
                                       bool trackIncrementalGeneratorSteps)
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
+            SyntaxStore = syntaxStore;
             DisabledOutputs = disabledOutputs;
             RunTime = runtime;
             TrackIncrementalSteps = trackIncrementalGeneratorSteps;
@@ -80,6 +82,8 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly DriverStateTable StateTable;
 
+        internal readonly SyntaxStore SyntaxStore;
+
         /// <summary>
         /// A bit field containing the output kinds that should not be produced by this generator driver.
         /// </summary>
@@ -95,6 +99,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
             DriverStateTable? stateTable = null,
+            SyntaxStore? syntaxStore = null,
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
             IncrementalGeneratorOutputKind? disabledOutputs = null,
@@ -108,6 +113,7 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
+                syntaxStore ?? this.SyntaxStore,
                 disabledOutputs ?? this.DisabledOutputs,
                 runTime ?? this.RunTime,
                 this.TrackIncrementalSteps

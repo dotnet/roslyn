@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,28 +17,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";
 
-        private readonly CachedOptions _options;
+        private readonly CSharpSyntaxFormattingOptions _options;
 
         public IndentBlockFormattingRule()
-            : this(new CachedOptions(null))
+            : this(CSharpSyntaxFormattingOptions.Default)
         {
         }
 
-        private IndentBlockFormattingRule(CachedOptions options)
+        private IndentBlockFormattingRule(CSharpSyntaxFormattingOptions options)
         {
             _options = options;
         }
 
-        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
         {
-            var cachedOptions = new CachedOptions(options);
+            var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-            if (cachedOptions == _options)
+            if (_options.LabelPositioning == newOptions.LabelPositioning &&
+                _options.Indentation == newOptions.Indentation)
             {
                 return this;
             }
 
-            return new IndentBlockFormattingRule(cachedOptions);
+            return new IndentBlockFormattingRule(newOptions);
         }
 
         public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
@@ -51,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddAlignmentBlockOperation(list, node);
 
             AddBlockIndentationOperation(list, node);
+
+            AddBracketIndentationOperation(list, node);
 
             AddLabelIndentationOperation(list, node);
 
@@ -84,23 +84,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (!_options.IndentSwitchCaseSection && !_options.IndentSwitchCaseSectionWhenBlock)
+            if (!_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) && !_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock))
             {
                 // Never indent
                 return;
             }
 
-            var alwaysIndent = _options.IndentSwitchCaseSection && _options.IndentSwitchCaseSectionWhenBlock;
+            var alwaysIndent = _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) && _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock);
             if (!alwaysIndent)
             {
                 // Only one of these values can be true at this point.
-                Debug.Assert(_options.IndentSwitchCaseSection != _options.IndentSwitchCaseSectionWhenBlock);
+                Debug.Assert(_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents) != _options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock));
 
                 var firstStatementIsBlock =
                     section.Statements.Count > 0 &&
                     section.Statements[0].IsKind(SyntaxKind.Block);
 
-                if (_options.IndentSwitchCaseSectionWhenBlock != firstStatementIsBlock)
+                if (_options.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock) != firstStatementIsBlock)
                 {
                     return;
                 }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var bracePair = node.GetBracePair();
 
             // don't put block indentation operation if the block only contains label statement
-            if (!bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }
@@ -231,19 +231,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }
 
-            if (node is BlockSyntax && !_options.IndentBlock)
+            if (node is BlockSyntax && !_options.Indentation.HasFlag(IndentationPlacement.BlockContents))
             {
                 // do not add indent operation for block
                 return;
             }
 
-            if (node is SwitchStatementSyntax && !_options.IndentSwitchSection)
+            if (node is SwitchStatementSyntax && !_options.Indentation.HasFlag(IndentationPlacement.SwitchSection))
             {
                 // do not add indent operation for switch statement
                 return;
             }
 
             AddIndentBlockOperation(list, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace.GetPreviousToken(includeZeroWidth: true));
+        }
+
+        private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        {
+            var bracketPair = node.GetBracketPair();
+
+            if (!bracketPair.IsValidBracketOrBracePair())
+            {
+                return;
+            }
+
+            if (node.IsKind(SyntaxKind.ListPattern) && node.Parent != null)
+            {
+                // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
+                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
+
+                AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
+            }
         }
 
         private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
@@ -328,61 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // embedded statement is done
                 AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
-            }
-        }
-
-        private readonly struct CachedOptions : IEquatable<CachedOptions>
-        {
-            public readonly LabelPositionOptions LabelPositioning;
-            public readonly bool IndentBlock;
-            public readonly bool IndentSwitchCaseSection;
-            public readonly bool IndentSwitchCaseSectionWhenBlock;
-            public readonly bool IndentSwitchSection;
-
-            public CachedOptions(AnalyzerConfigOptions? options)
-            {
-                LabelPositioning = GetOptionOrDefault(options, CSharpFormattingOptions2.LabelPositioning);
-                IndentBlock = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentBlock);
-                IndentSwitchCaseSection = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchCaseSection);
-                IndentSwitchCaseSectionWhenBlock = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock);
-                IndentSwitchSection = GetOptionOrDefault(options, CSharpFormattingOptions2.IndentSwitchSection);
-            }
-
-            public static bool operator ==(CachedOptions left, CachedOptions right)
-                => left.Equals(right);
-
-            public static bool operator !=(CachedOptions left, CachedOptions right)
-                => !(left == right);
-
-            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
-            {
-                if (options is null)
-                    return option.DefaultValue;
-
-                return options.GetOption(option);
-            }
-
-            public override bool Equals(object? obj)
-                => obj is CachedOptions options && Equals(options);
-
-            public bool Equals(CachedOptions other)
-            {
-                return LabelPositioning == other.LabelPositioning
-                    && IndentBlock == other.IndentBlock
-                    && IndentSwitchCaseSection == other.IndentSwitchCaseSection
-                    && IndentSwitchCaseSectionWhenBlock == other.IndentSwitchCaseSectionWhenBlock
-                    && IndentSwitchSection == other.IndentSwitchSection;
-            }
-
-            public override int GetHashCode()
-            {
-                var hashCode = 0;
-                hashCode = (hashCode << 2) + (int)LabelPositioning;
-                hashCode = (hashCode << 1) + (IndentBlock ? 1 : 0);
-                hashCode = (hashCode << 1) + (IndentSwitchCaseSection ? 1 : 0);
-                hashCode = (hashCode << 1) + (IndentSwitchCaseSectionWhenBlock ? 1 : 0);
-                hashCode = (hashCode << 1) + (IndentSwitchSection ? 1 : 0);
-                return hashCode;
             }
         }
     }

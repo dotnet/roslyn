@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // We don't want to bring up the OOP process in a VS cloud environment client instance
                 // Avoids proffering brokered services on the client instance.
-                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(_globalOptions) ||
+                if (!_globalOptions.GetOption(RemoteHostOptions.OOP64Bit) ||
                     workspaceServices.Workspace is not VisualStudioWorkspace ||
                     workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
@@ -99,8 +99,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
+                var configuration =
+                    (_globalOptions.GetOption(RemoteHostOptions.OOPCoreClrFeatureFlag) ? RemoteProcessConfiguration.Core : 0) |
+                    (_globalOptions.GetOption(RemoteHostOptions.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0);
+
                 // VS AsyncLazy does not currently support cancellation:
-                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _globalOptions, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
+                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, configuration, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
                 _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));

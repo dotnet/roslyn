@@ -17,8 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(Methods.TextDocumentLinkedEditingRangeName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(OnTypeRenameHandler)), Shared]
+    [Method(Methods.TextDocumentLinkedEditingRangeName)]
     internal class OnTypeRenameHandler : AbstractStatelessRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>
     {
         // From https://www.w3.org/TR/xml/#NT-NameStartChar
@@ -57,8 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public OnTypeRenameHandler()
         {
         }
-
-        public override string Method => Methods.TextDocumentLinkedEditingRangeName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

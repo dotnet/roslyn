@@ -12,6 +12,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -26,10 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
+        protected VisualStudioBaseTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
             : base(workspace, provider, StandardTables.TasksTable)
         {
-            _source = new TableDataSource(workspace, todoListProvider, identifier);
+            _source = new TableDataSource(workspace, threadingContext, todoListProvider, identifier);
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
@@ -70,8 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
-                : base(workspace)
+            public TableDataSource(Workspace workspace, IThreadingContext threadingContext, ITodoListProvider todoListProvider, string identifier)
+                : base(workspace, threadingContext)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -129,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public override AbstractTableEntriesSnapshot<TodoTableItem> CreateSnapshot(AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
-                => new TableEntriesSnapshot(version, items, trackingPoints);
+                => new TableEntriesSnapshot(ThreadingContext, version, items, trackingPoints);
 
             public override IEqualityComparer<TodoTableItem> GroupingComparer
                 => TodoTableItem.GroupingComparer.Instance;
@@ -192,8 +194,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private sealed class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTableItem>
             {
-                public TableEntriesSnapshot(int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
-                    : base(version, items, trackingPoints)
+                public TableEntriesSnapshot(IThreadingContext threadingContext, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                    : base(threadingContext, version, items, trackingPoints)
                 {
                 }
 
@@ -250,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 // TODO: Apply location mapping when creating the TODO item (https://github.com/dotnet/roslyn/issues/36217)
-                private LinePosition GetLineColumn(TodoTableItem item)
+                private static LinePosition GetLineColumn(TodoTableItem item)
                 {
                     return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
                         item.Workspace,
@@ -261,8 +263,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         item.Data.MappedColumn);
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
-                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
+                public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, options, cancellationToken);
             }
         }
     }

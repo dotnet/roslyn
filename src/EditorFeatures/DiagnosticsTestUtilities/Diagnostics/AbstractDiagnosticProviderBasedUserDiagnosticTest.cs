@@ -111,19 +111,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
+        [Fact]
         public void TestSupportedDiagnosticsMessageHelpLinkUri()
         {
             using (var workspace = new AdhocWorkspace())
             {
                 var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
                 if (diagnosticAnalyzer == null)
-                {
                     return;
-                }
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
+                    // These don't come up in UI.
+                    if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                        continue;
+
+                    if (descriptor.Id is "RE0001" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
+                        continue;
+
+                    if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
+                        continue;
+
+                    if (descriptor.Id == "IDE1007")
+                        continue;
+
                     Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
                 }
             }
@@ -166,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
-                dxs, fixer, testDriver, document, span, annotation, parameters.index);
+                dxs, fixer, testDriver, document, span, parameters.codeActionOptions, annotation, parameters.index);
 
             // If we are also testing non-fixable diagnostics,
             // then the result diagnostics need to include all diagnostics,

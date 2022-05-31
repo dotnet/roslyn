@@ -204,7 +204,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (documentId != null)
                 {
                     // file doesn't exist in current solution
-                    var document = project.Solution.GetDocument(documentId);
+                    var document = await project.Solution.GetDocumentAsync(
+                        documentId,
+                        includeSourceGenerated: project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true },
+                        cancellationToken).ConfigureAwait(false);
+
                     if (document == null)
                     {
                         return ImmutableArray<DiagnosticData>.Empty;
@@ -281,13 +285,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
             {
-                var infoCache = Owner.DiagnosticAnalyzerInfoCache;
-                if (infoCache.IsAnalyzerSuppressed(stateSet.Analyzer, project))
+                if (!AnalyzerHelper.IsAnalyzerEnabledForProject(stateSet.Analyzer, project))
                 {
                     return false;
                 }
 
-                if (_diagnosticIds != null && infoCache.GetDiagnosticDescriptors(stateSet.Analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
+                if (_diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
                 {
                     return false;
                 }

@@ -62,6 +62,11 @@
         <target state="translated">Olay Aboneliği Oluştur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="new">Grow raw string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Şuradan yükle: '{0}'</target>
@@ -95,6 +100,11 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Akıllı Girintileme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="new">Split raw string</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">

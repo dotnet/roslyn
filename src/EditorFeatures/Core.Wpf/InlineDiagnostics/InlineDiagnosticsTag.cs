@@ -169,11 +169,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var id = new Run(_diagnostic.Id);
                 link = null;
 
-                if (!string.IsNullOrEmpty(_diagnostic.HelpLink))
+                var helpLinkUri = _diagnostic.GetValidHelpLinkUri();
+                if (helpLinkUri != null)
                 {
                     link = new Hyperlink(id)
                     {
-                        NavigateUri = new Uri(_diagnostic.HelpLink),
+                        NavigateUri = helpLinkUri
                     };
                 }
 

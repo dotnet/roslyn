@@ -94,8 +94,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var simplifiedDocument = await Simplifier.ReduceAsync(annotatedDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
             var simplifiedRoot = await simplifiedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var documentOptions = await DocumentWithoutFinalFormatting.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var formattedDocument = simplifiedDocument.WithSyntaxRoot(Formatter.Format(simplifiedRoot, Formatter.Annotation, DocumentWithoutFinalFormatting.Project.Solution.Workspace, documentOptions, FormattingRules, cancellationToken));
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(DocumentWithoutFinalFormatting, cancellationToken).ConfigureAwait(false);
+            var services = DocumentWithoutFinalFormatting.Project.Solution.Workspace.Services;
+
+            var formattedDocument = simplifiedDocument.WithSyntaxRoot(
+                Formatter.Format(simplifiedRoot, Formatter.Annotation, services, options, FormattingRules, cancellationToken));
+
             var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (formattedDocument, formattedRoot.GetAnnotatedTokens(annotation).Single());
         }

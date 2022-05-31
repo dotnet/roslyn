@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             vsServerCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
             vsServerCapabilities.DocumentHighlightProvider = true;
             vsServerCapabilities.ProjectContextProvider = true;
+            vsServerCapabilities.BreakableRangeProvider = true;
 
             // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
             vsServerCapabilities.SupportsDiagnosticRequests = false;

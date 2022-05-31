@@ -1209,6 +1209,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (TryExtractStringArrayValueFromAttribute(targetAttribute.Handle, out var paramNames))
             {
+                Debug.Assert(!paramNames.IsDefault);
                 return (paramNames.NullToEmpty(), true);
             }
 
@@ -1905,7 +1906,15 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 var stringArray = new string?[arrayLen];
+
                 for (int i = 0; i < arrayLen; i++)
                 {
                     if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
@@ -1920,6 +1929,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = default;
+            return false;
+        }
+
+        private static bool IsArrayNull(uint length)
+        {
+            // Null arrays are represented in metadata by a length of 0xFFFF_FFFF. See ECMA 335 II.23.3.
+            const uint NullArray = 0xFFFF_FFFF;
+
+            if (length == NullArray)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -2037,6 +2059,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var boolArrayBuilder = ArrayBuilder<bool>.GetInstance((int)arrayLen);
@@ -2059,6 +2088,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var byteArrayBuilder = ArrayBuilder<byte>.GetInstance((int)arrayLen);

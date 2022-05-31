@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -17,20 +18,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         internal const string IdentifierString = nameof(MiscellaneousTodoListTable);
 
+        private readonly IThreadingContext _threadingContext;
         private readonly ITableManagerProvider _tableManagerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MiscellaneousTodoListTableWorkspaceEventListener(ITableManagerProvider tableManagerProvider)
-            => _tableManagerProvider = tableManagerProvider;
+        public MiscellaneousTodoListTableWorkspaceEventListener(IThreadingContext threadingContext, ITableManagerProvider tableManagerProvider)
+        {
+            _threadingContext = threadingContext;
+            _tableManagerProvider = tableManagerProvider;
+        }
 
         public void StartListening(Workspace workspace, ITodoListProvider service)
-            => _ = new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
+            => _ = new MiscellaneousTodoListTable(workspace, _threadingContext, service, _tableManagerProvider);
 
         private sealed class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
         {
-            public MiscellaneousTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
-                : base(workspace, todoListProvider, IdentifierString, provider)
+            public MiscellaneousTodoListTable(Workspace workspace, IThreadingContext threadingContext, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+                : base(workspace, threadingContext, todoListProvider, IdentifierString, provider)
             {
                 ConnectWorkspaceEvents();
             }

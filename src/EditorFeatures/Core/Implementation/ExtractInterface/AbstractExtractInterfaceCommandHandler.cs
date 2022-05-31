@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
                 // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0, CancellationToken.None);
+                _threadingContext.JoinableTaskFactory.Run(() =>
+                    navigationService.TryNavigateToPositionAsync(workspace, result.NavigationDocumentId, 0, CancellationToken.None));
 
                 return true;
             }

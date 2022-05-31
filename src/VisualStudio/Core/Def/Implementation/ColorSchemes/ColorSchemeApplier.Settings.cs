@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 _globalOptions = globalOptions;
             }
 
-            public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
+            public static ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
                 return new[]
                 {
@@ -41,13 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
             }
 
-            private ColorScheme GetColorScheme(SchemeName schemeName)
+            private static ColorScheme GetColorScheme(SchemeName schemeName)
             {
                 using var colorSchemeStream = GetColorSchemeXmlStream(schemeName);
                 return ColorSchemeReader.ReadColorScheme(colorSchemeStream);
             }
 
-            private Stream GetColorSchemeXmlStream(SchemeName schemeName)
+            private static Stream GetColorSchemeXmlStream(SchemeName schemeName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{schemeName}.xml");
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 foreach (var item in registryItems)
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
-                    itemKey.SetValue(item.ValueName, item.ValueData);
+                    itemKey.SetValue(RegistryItem.ValueName, item.ValueData);
                     // Flush RegistryKeys out of paranoia
                     itemKey.Flush();
                 }

@@ -301,6 +301,5 @@ dotnet_diagnostic.IDE2004.severity = warning
 
 [src/{VisualStudio}/**/*.{cs,vb}]
 # CA1822: Make member static
-# Not enforced as a build 'warning' for 'VisualStudio' layer due to large number of false positives from https://github.com/dotnet/roslyn-analyzers/issues/3857 and https://github.com/dotnet/roslyn-analyzers/issues/3858
-# Additionally, there is a risk of accidentally breaking an internal API that partners rely on though IVT.
-dotnet_diagnostic.CA1822.severity = suggestion
+# There is a risk of accidentally breaking an internal API that partners rely on though IVT.
+dotnet_code_quality.CA1822.api_surface = private

@@ -86,6 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 
         private static void VerifyCharacterSpans(string originalText, StackFrameTree tree)
         {
+            AssertEx.EqualOrDiff(originalText, tree.Root.ToFullString());
+
+            // Manually enumerate to verify that it works as expected and the spans align.
+            // This should be the same as ToFullString, but this tests that enumeration of the 
+            // tokens yields the correct order (which we can't guarantee with ToFullString depending
+            // on implementation). 
             var textSeq = VirtualCharSequence.Create(0, originalText);
             var index = 0;
             List<VirtualChar> enumeratedParsedCharacters = new();

@@ -20,13 +20,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions;
+using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Definitions
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(Methods.TextDocumentDefinitionName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(GoToDefinitionHandler)), Shared]
+    [Method(Methods.TextDocumentDefinitionName)]
     internal class GoToDefinitionHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -37,8 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
-
-        public override string Method => Methods.TextDocumentDefinitionName;
 
         public override bool MutatesSolutionState => false;
 
