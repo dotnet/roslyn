@@ -202,10 +202,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
 
             // Try to strictly obey the after option by inserting immediately after the member containing the location
-            if (info.Context.AfterThisLocation != null)
+            if (info.Context.AfterThisLocation?.SourceTree is { } afterSourceTree &&
+                afterSourceTree == declarationList.FirstOrDefault()?.SyntaxTree)
             {
                 var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= info.Context.AfterThisLocation.SourceSpan.Start);
-                if (afterMember != null && afterMember.SyntaxTree == info.Context.AfterThisLocation.SourceTree)
+                if (afterMember != null)
                 {
                     var index = declarationList.IndexOf(afterMember);
                     index = GetPreferredIndex(index + 1, availableIndices, forward: true);
@@ -217,10 +218,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // Try to strictly obey the before option by inserting immediately before the member containing the location
-            if (info.Context.BeforeThisLocation != null)
+            if (info.Context.BeforeThisLocation?.SourceTree is { } beforeSourceTree &&
+                beforeSourceTree == declarationList.FirstOrDefault()?.SyntaxTree)
             {
                 var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= info.Context.BeforeThisLocation.SourceSpan.End);
-                if (beforeMember != null && beforeMember.SyntaxTree == info.Context.BeforeThisLocation.SourceTree)
+                if (beforeMember != null)
                 {
                     var index = declarationList.IndexOf(beforeMember);
                     index = GetPreferredIndex(index, availableIndices, forward: false);
