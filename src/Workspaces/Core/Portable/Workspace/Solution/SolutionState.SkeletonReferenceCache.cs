@@ -256,7 +256,7 @@ internal partial class SolutionState
             /// </summary>
             private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime = new();
 
-            private readonly ITemporaryStreamStorage? _storage;
+            private readonly ITemporaryStreamStorage _storage;
             private readonly string? _assemblyName;
 
             /// <summary>
@@ -272,7 +272,7 @@ internal partial class SolutionState
             private readonly AsyncLazy<AssemblyMetadata?> _metadata;
 
             public SkeletonReferenceSet(
-                ITemporaryStreamStorage? storage,
+                ITemporaryStreamStorage storage,
                 string? assemblyName,
                 DeferredDocumentationProvider documentationProvider)
             {
@@ -288,9 +288,6 @@ internal partial class SolutionState
 
             private static AssemblyMetadata? ComputeMetadata(ITemporaryStreamStorage? storage, CancellationToken cancellationToken)
             {
-                if (storage == null)
-                    return null;
-
                 // first see whether we can use native memory directly.
                 var stream = storage.ReadStream(cancellationToken);
 
