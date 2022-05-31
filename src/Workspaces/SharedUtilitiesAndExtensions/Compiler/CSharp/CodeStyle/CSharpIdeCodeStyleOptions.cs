@@ -61,7 +61,6 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
     [DataMember] public CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferIndexOperator { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferRangeOperator { get; init; } = s_trueWithSuggestionEnforcement;
-    [DataMember] public CodeStyleOption2<bool> PreferUtf8StringLiterals { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<string> PreferredModifierOrder { get; init; } = s_defaultModifierOrder;
     [DataMember] public CodeStyleOption2<bool> PreferSimpleUsingStatement { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferLocalOverAnonymousFunction { get; init; } = s_trueWithSuggestionEnforcement;
@@ -95,7 +94,6 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
            PreferDeconstructedVariableDeclaration.Equals(PreferDeconstructedVariableDeclaration) &&
            PreferIndexOperator.Equals(PreferIndexOperator) &&
            PreferRangeOperator.Equals(PreferRangeOperator) &&
-           PreferUtf8StringLiterals.Equals(PreferUtf8StringLiterals) &&
            PreferredModifierOrder.Equals(PreferredModifierOrder) &&
            PreferSimpleUsingStatement.Equals(PreferSimpleUsingStatement) &&
            PreferLocalOverAnonymousFunction.Equals(PreferLocalOverAnonymousFunction) &&
@@ -123,7 +121,6 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
            Hash.Combine(PreferDeconstructedVariableDeclaration,
            Hash.Combine(PreferIndexOperator,
            Hash.Combine(PreferRangeOperator,
-           Hash.Combine(PreferUtf8StringLiterals,
            Hash.Combine(PreferredModifierOrder,
            Hash.Combine(PreferSimpleUsingStatement,
            Hash.Combine(PreferLocalOverAnonymousFunction,
@@ -132,5 +129,5 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
            Hash.Combine(UnusedValueAssignment,
            Hash.Combine(PreferMethodGroupConversion,
            Hash.Combine(PreferStaticLocalFunction,
-           Hash.Combine(PreferExpressionBodiedLambdas, 0))))))))))))))))))))))))));
+           Hash.Combine(PreferExpressionBodiedLambdas, 0)))))))))))))))))))))))));
 }

@@ -176,7 +176,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ForEachCastDiagnosticId = "IDE0220";
 
-        public const string UseUTF8StringLiteralDiagnosticId = "IDE0230";
+        // No longer exists, converted to refactoring after language change
+        // public const string UseUTF8StringLiteralDiagnosticId = "IDE0230";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

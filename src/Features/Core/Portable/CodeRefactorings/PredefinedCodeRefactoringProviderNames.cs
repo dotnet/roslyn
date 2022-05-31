@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string UseImplicitType = "Use Implicit Type Code Action Provider";
         public const string UseNamedArguments = nameof(UseNamedArguments);
         public const string UseRecursivePatterns = nameof(UseRecursivePatterns);
+        public const string UseUTF8StringLiteral = nameof(UseUTF8StringLiteral);
         public const string Wrapping = "Wrapping Code Action Provider";
     }
 }
