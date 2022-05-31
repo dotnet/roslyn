@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -44,29 +45,32 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             bool includeGlobalImports,
             CancellationToken cancellationToken)
         {
-            var (remappedProject, symbolKeyAndLineNumbers) = await GetMemberSymbolKeysAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
-
-            // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
-            // the originating project), then we're in teh same project and we should try to get global import
-            // information to display.
-            var remapped = remappedProject != document.Project;
-
-            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
-
-            if (includeGlobalImports && !remapped)
-                result.AddRange(await GetGlobalImportItemsAsync(document, spanToSearch, frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false));
-
-            if (!symbolKeyAndLineNumbers.IsEmpty)
+            var solution = document.Project.Solution;
+            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            if (remoteClient != null)
             {
-                result.AddRange(await GetSymbolItemsAsync(
-                    remappedProject,
-                    document: remapped ? null : document,
-                    symbolKeyAndLineNumbers,
-                    frozenPartialSemantics: true,
-                    cancellationToken).ConfigureAwait(false));
-            }
+                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) =>
+                        service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: true, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-            return result.ToImmutable();
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<InheritanceMarginItem>.Empty;
+                }
+
+                return result.Value;
+            }
+            else
+            {
+                return await GetInheritanceMarginItemsInProcessAsync(
+                    document,
+                    spanToSearch,
+                    includeGlobalImports: includeGlobalImports,
+                    frozenPartialSemantics: true,
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async ValueTask<(Project remapped, SymbolKeyAndLineNumberArray symbolKeyAndLineNumbers)> GetMemberSymbolKeysAsync(
