@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,13 +10,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -354,14 +353,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 return CompletionList.Empty;
             }
 
-            // TODO(DustinCa): Revisit performance of this.
-            using var _ = ArrayBuilder<CompletionItem>.GetInstance(displayNameToItemsMap.Count, out var builder);
-            builder.AddRange(displayNameToItemsMap);
-            builder.Sort();
-
             return CompletionList.Create(
                 finalCompletionListSpan,
-                builder.ToImmutable(),
+                displayNameToItemsMap.SortToSegmentedList(), // TODO(DustinCa): Revisit performance of this.
                 GetRules(options),
                 suggestionModeItem,
                 isExclusive);
@@ -448,11 +442,10 @@ namespace Microsoft.CodeAnalysis.Completion
         private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
         {
             // We might need to handle large amount of items with import completion enabled,
-            // so use a dedicated pool to minimize array allocations.
-            // Set the size of pool to a small number 5 because we don't expect more than a
-            // couple of callers at the same time.
-            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool
-                = new(factory: () => new(), size: 5);
+            // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
+            // number 5 because we don't expect more than a couple of callers at the same time.
+            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new(), size: 3);
+            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new(), size: 3);
 
             private readonly Dictionary<string, object> _displayNameToItemsMap;
             private readonly CompletionServiceWithProviders _service;
@@ -463,6 +456,22 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 _service = service;
                 _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
+            }
+
+            public SegmentedList<CompletionItem> SortToSegmentedList()
+            {
+                var list = s_sortListPool.Allocate();
+                try
+                {
+                    list.AddRange(this);
+                    list.Sort();
+                    return new(list);
+                }
+                finally
+                {
+                    list.Clear();
+                    s_sortListPool.Free(list);
+                }
             }
 
             public void Dispose()

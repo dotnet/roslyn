@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -14,11 +17,17 @@ namespace Microsoft.CodeAnalysis.Completion
     public sealed class CompletionList
     {
         private readonly bool _isExclusive;
+        private readonly Lazy<ImmutableArray<CompletionItem>> _lazyItems;
 
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
-        public ImmutableArray<CompletionItem> Items { get; }
+        public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
+
+        /// <summary>
+        /// The completion items to present to the user.
+        /// </summary>
+        internal IReadOnlyList<CompletionItem> ItemsInternal { get; }
 
         /// <summary>
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.
@@ -53,19 +62,24 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionList(
             TextSpan defaultSpan,
-            ImmutableArray<CompletionItem> items,
+            IReadOnlyList<CompletionItem> items,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             Span = defaultSpan;
+            ItemsInternal = items;
 
-            Items = items.NullToEmpty();
+            if (items is ImmutableArray<CompletionItem>)
+                _lazyItems = new(() => (ImmutableArray<CompletionItem>)ItemsInternal);
+            else
+                _lazyItems = new(() => ItemsInternal.ToImmutableArray(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
+
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
             _isExclusive = isExclusive;
 
-            foreach (var item in Items)
+            foreach (var item in ItemsInternal)
             {
                 item.Span = defaultSpan;
             }
@@ -90,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal static CompletionList Create(
             TextSpan defaultSpan,
-            ImmutableArray<CompletionItem> items,
+            IReadOnlyList<CompletionItem> items,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
             bool isExclusive)
@@ -100,17 +114,17 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionList With(
             Optional<TextSpan> span = default,
-            Optional<ImmutableArray<CompletionItem>> items = default,
+            Optional<IReadOnlyList<CompletionItem>> items = default,
             Optional<CompletionRules> rules = default,
             Optional<CompletionItem> suggestionModeItem = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
-            var newItems = items.HasValue ? items.Value : Items;
+            var newItems = items.HasValue ? items.Value : ItemsInternal;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
 
             if (newSpan == Span &&
-                newItems == Items &&
+                newItems == ItemsInternal &&
                 newRules == Rules &&
                 newSuggestionModeItem == SuggestionModeItem)
             {
@@ -118,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return Create(newSpan, newItems, newRules, newSuggestionModeItem);
+                return Create(newSpan, newItems, newRules, newSuggestionModeItem, isExclusive: false);
             }
         }
 
@@ -138,6 +152,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionList WithItems(ImmutableArray<CompletionItem> items)
             => With(items: items);
 
+        internal CompletionList WithItems(IReadOnlyList<CompletionItem> items)
+            => With(items: new(items));
+
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="Rules"/> property changed.
         /// </summary>
@@ -154,10 +171,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
         public static readonly CompletionList Empty = new(
-            default, default, CompletionRules.Default,
+            default, ImmutableArray<CompletionItem>.Empty, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
 
-        internal bool IsEmpty => Items.IsEmpty && SuggestionModeItem is null;
+        internal bool IsEmpty => ItemsInternal.Count == 0 && SuggestionModeItem is null;
 
         internal TestAccessor GetTestAccessor()
             => new(this);
