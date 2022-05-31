@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             // Try to strictly obey the after option by inserting immediately after the member containing the location
             if (info.Context.AfterThisLocation?.SourceTree is { } afterSourceTree &&
-                afterSourceTree == declarationList.FirstOrDefault()?.SyntaxTree)
+                afterSourceTree.FilePath == declarationList.FirstOrDefault()?.SyntaxTree.FilePath)
             {
                 var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= info.Context.AfterThisLocation.SourceSpan.Start);
                 if (afterMember != null)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             // Try to strictly obey the before option by inserting immediately before the member containing the location
             if (info.Context.BeforeThisLocation?.SourceTree is { } beforeSourceTree &&
-                beforeSourceTree == declarationList.FirstOrDefault()?.SyntaxTree)
+                beforeSourceTree.FilePath == declarationList.FirstOrDefault()?.SyntaxTree.FilePath)
             {
                 var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= info.Context.BeforeThisLocation.SourceSpan.End);
                 if (beforeMember != null)
