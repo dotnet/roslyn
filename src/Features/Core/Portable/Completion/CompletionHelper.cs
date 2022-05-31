@@ -312,8 +312,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
         {
-            var isItem1Expanded = item1.Flags.IsExpanded();
-            var isItem2Expanded = item2.Flags.IsExpanded();
+            var isItem1Expanded = CompletionItemFlagsHelper.IsExpanded(item1.Flags);
+            var isItem2Expanded = CompletionItemFlagsHelper.IsExpanded(item2.Flags);
 
             // Consider them equal if both items are of the same kind (i.e. both expanded or non-expanded)
             if (isItem1Expanded == isItem2Expanded)

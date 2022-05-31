@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // Cached items have a span computed at the point they were created.  This span may no 
                 // longer be valid when used again.  In that case, override the span with the latest span
                 // for the completion list itself.
-                if (roslynItem.Flags.IsCached())
+                if (CompletionItemFlagsHelper.IsCached(roslynItem.Flags))
                     roslynItem.Span = completionListSpan;
 
                 change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
