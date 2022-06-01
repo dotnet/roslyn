@@ -286,7 +286,7 @@ internal partial class SolutionState
                 _metadata = new AsyncLazy<AssemblyMetadata?>(c => Task.FromResult(ComputeMetadata(_storage, c)), cacheResult: true);
             }
 
-            private static AssemblyMetadata? ComputeMetadata(ITemporaryStreamStorage? storage, CancellationToken cancellationToken)
+            private static AssemblyMetadata? ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
             {
                 // first see whether we can use native memory directly.
                 var stream = storage.ReadStream(cancellationToken);
