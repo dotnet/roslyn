@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
                 Assert.NotEmpty(list.ItemsInternal)
-                Assert.True(list.ItemsInternal.Length = 2, "Completion List does not contain exactly two items.")
+                Assert.True(list.ItemsInternal.Count = 2, "Completion List does not contain exactly two items.")
                 Assert.Equal(String.Format(CompletionItemExclusive, 2), list.ItemsInternal.First.DisplayText)
                 Assert.Equal(String.Format(CompletionItemExclusive, 3), list.ItemsInternal.Last.DisplayText)
             End Using
