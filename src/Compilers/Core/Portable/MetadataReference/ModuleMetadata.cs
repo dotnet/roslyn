@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis
         private bool _isDisposed;
 
         private readonly PEModule _module;
-        
-        private readonly UnmanagedMemoryStream? _memoryStream;
-        private readonly PEStreamOptions _streamOptions;
 
-        private ModuleMetadata(PEReader peReader, UnmanagedMemoryStream? memoryStream = null, PEStreamOptions streamOptions = default)
+        private readonly IDisposable? _owner;
+        private readonly bool _disposeOwner;
+
+        private ModuleMetadata(PEReader peReader, IDisposable? owner = null, bool disposeOwner = false)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
-            _memoryStream = memoryStream;
-            _streamOptions = streamOptions;
+            _owner = owner;
+            _disposeOwner = disposeOwner;
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
@@ -45,8 +45,10 @@ namespace Microsoft.CodeAnalysis
             : base(isImageOwner: false, id: metadata.Id)
         {
             _module = metadata.Module;
-            _memoryStream = metadata._memoryStream;
-            _streamOptions = metadata._streamOptions;
+            // ensure that we keep the owner rooted so that it can't get GC'ed why we're alive.
+            _owner = metadata._owner;
+            // however, as we're not the image owner, we will never dispose the owner.  Only the single image owner can be responsible for that.
+            _disposeOwner = false;
         }
 
         /// <summary>
@@ -87,9 +89,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
-            => CreateFromImage(peImage, size, memoryStream: null, options: default);
+            => CreateFromImage(peImage, size, owner: null, disposeOwner: false);
 
-        private static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size, UnmanagedMemoryStream? memoryStream, PEStreamOptions options)
+        private static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size, IDisposable? owner, bool disposeOwner)
         {
             if (peImage == IntPtr.Zero)
             {
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader((byte*)peImage, size), memoryStream, options);
+            return new ModuleMetadata(new PEReader((byte*)peImage, size), owner, disposeOwner);
         }
 
         /// <summary>
@@ -180,7 +182,11 @@ namespace Microsoft.CodeAnalysis
             {
                 unsafe
                 {
-                    return CreateFromImage((IntPtr)unmanagedMemoryStream.PositionPointer, (int)unmanagedMemoryStream.Length, unmanagedMemoryStream, options);
+                    return CreateFromImage(
+                        (IntPtr)unmanagedMemoryStream.PositionPointer,
+                        (int)unmanagedMemoryStream.Length,
+                        owner: unmanagedMemoryStream,
+                        disposeOwner: !options.HasFlag(PEStreamOptions.LeaveOpen));
                 }
             }
 
@@ -249,8 +255,8 @@ namespace Microsoft.CodeAnalysis
             {
                 _module.Dispose();
 
-                if (!_streamOptions.HasFlag(PEStreamOptions.LeaveOpen))
-                    _memoryStream?.Dispose();
+                if (_disposeOwner)
+                    _owner?.Dispose();
             }
         }
 
