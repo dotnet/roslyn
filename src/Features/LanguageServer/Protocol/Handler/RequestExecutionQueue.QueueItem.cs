@@ -92,8 +92,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Set the tcs state to cancelled if the token gets cancelled outside of our callback (for example the server shutting down).
                     var registration = cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
 
-                    // Dispose of the registration as soon as we no longer need it
-                    _completionSource.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    // Dispose of the registration as soon as we no longer need it. Avoid calling Dispose on a
+                    // synchronous call stack since it can block (and potentially deadlock) if the callback is currently
+                    // executing.
+                    _completionSource.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
                 }
 
                 Metrics = new RequestMetrics(methodName, telemetryLogger);

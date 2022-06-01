@@ -142,8 +142,9 @@ namespace RunTests
                     }
                 });
 
-                // Dispose of the registration as soon as we no longer need it
-                tcs.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                // Dispose of the registration as soon as we no longer need it. Avoid calling Dispose on a synchronous
+                // call stack since it can block (and potentially deadlock) if the callback is currently executing.
+                tcs.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
             }
 
             process.Start();
