@@ -17,12 +17,20 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _display;
         private readonly Metadata _metadata;
+        private readonly object? _owner;
 
-        internal MetadataImageReference(Metadata metadata, MetadataReferenceProperties properties, DocumentationProvider? documentation, string? filePath, string? display)
+        internal MetadataImageReference(
+            Metadata metadata,
+            MetadataReferenceProperties properties,
+            DocumentationProvider? documentation,
+            string? filePath,
+            string? display,
+            object? owner = null)
             : base(properties, filePath, documentation ?? DocumentationProvider.Default)
         {
             _display = display;
             _metadata = metadata;
+            _owner = owner;
         }
 
         protected override Metadata GetMetadataImpl()
@@ -43,7 +51,8 @@ namespace Microsoft.CodeAnalysis
                 properties,
                 this.DocumentationProvider,
                 this.FilePath,
-                _display);
+                _display,
+                _owner);
         }
 
         public override string Display

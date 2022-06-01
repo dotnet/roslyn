@@ -30,9 +30,12 @@ internal partial class SolutionState
         private readonly AsyncLazy<(AssemblyMetadata metadata, ISupportDirectMemoryAccess? directMemoryAccess)> _metadataAndDirectMemoryAccess;
 
         /// <summary>
-        /// Lock this object while reading/writing from it.
+        /// Lock this object while reading/writing from it.  Used so we can return the same reference for the same
+        /// properties.  While this is isn't strictly necessary (as the important thing to keep the same is the
+        /// AssemblyMetadata), this allows higher layers to see that reference instances are the same which allow
+        /// reusing the same higher level objects (for example, the set of references a compilation has).
         /// </summary>
-        private readonly Dictionary<(AssemblyMetadata, ISupportDirectMemoryAccess?, MetadataReferenceProperties), SkeletonPortableExecutableReference> _referenceMap = new();
+        private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = new();
 
         public SkeletonReferenceSet(
             ITemporaryStreamStorage storage,
@@ -76,36 +79,35 @@ internal partial class SolutionState
             }
         }
 
-        public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
+        public PortableExecutableReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
         {
             _metadataAndDirectMemoryAccess.TryGetValue(out var tuple);
             return CreateMetadataReference(properties, tuple.metadata, tuple.directMemoryAccess);
         }
 
-        public async Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
+        public async Task<PortableExecutableReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
         {
             var (metadata, directMemberAccess) = await _metadataAndDirectMemoryAccess.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return CreateMetadataReference(properties, metadata, directMemberAccess);
         }
 
-        private SkeletonPortableExecutableReference? CreateMetadataReference(
+        private PortableExecutableReference? CreateMetadataReference(
             MetadataReferenceProperties properties, AssemblyMetadata? metadata, ISupportDirectMemoryAccess? directMemoryAccess)
         {
             if (metadata == null)
                 return null;
 
-            var key = (metadata, directMemoryAccess, properties);
             lock (_referenceMap)
             {
-                if (!_referenceMap.TryGetValue(key, out var value))
+                if (!_referenceMap.TryGetValue(properties, out var value))
                 {
-                    value = new SkeletonPortableExecutableReference(
-                        metadata,
-                        properties,
+                    value = metadata.GetReference(
                         _documentationProvider,
-                        _assemblyName,
-                        directMemoryAccess);
-                    _referenceMap.Add(key, value);
+                        aliases: properties.Aliases,
+                        embedInteropTypes: properties.EmbedInteropTypes,
+                        display: _assemblyName,
+                        owner: directMemoryAccess);
+                    _referenceMap.Add(properties, value);
                 }
 
                 return value;
