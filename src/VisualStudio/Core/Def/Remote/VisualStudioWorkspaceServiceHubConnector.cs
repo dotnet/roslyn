@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             // only push solution snapshot from primary (VS) workspace:
-            _checksumUpdater = new SolutionChecksumUpdater(workspace, _globalOptions, _listenerProvider, _disposalCancellationSource.Token);
+            _checksumUpdater = new SolutionChecksumUpdater(workspace, _listenerProvider, _disposalCancellationSource.Token);
 
             _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(workspace.Services, _disposalCancellationSource.Token);
 
