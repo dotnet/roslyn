@@ -812,6 +812,11 @@
         <target state="translated">无法将具有属性的 lambda 表达式转换为表达式树</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">行包含的空格与原始字符串字面量的右行不同: '{0}' 与 '{1}'</target>
@@ -11685,11 +11690,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">接口成员 "{0}" 没有最具体的实现。"{1}" 和 "{2}" 都不是最具体的。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">“{0}”无法在类型 "{2}" 中实现接口成员 "{1}", 因为功能 "{3}" 在 c # {4} 中不可用。请使用语言版本 "{5}" 或更高版本。</target>
         <note />
       </trans-unit>
     </body>

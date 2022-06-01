@@ -812,6 +812,11 @@
         <target state="translated">Ein Lambdaausdruck mit Attributen kann nicht in eine Ausdrucksbaumstruktur konvertiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">Die Zeile enthält andere Leerzeichen als die schließende Zeile des rohen Zeichenfolgenliterals: '{0}' im Vergleich zu '{1}'</target>
@@ -11680,11 +11685,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">Der Schnittstellenmember "{0}" weist keine spezifischste Implementierung auf. Weder "{1}" noch "{2}" sind am spezifischsten.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">"{0}" kann den Schnittstellenmember "{1}" im Typ "{2}" nicht implementieren, weil das Feature "{3}" in C# {4} nicht verfügbar ist. Verwenden Sie Sprachversion {5} oder höher.</target>
         <note />
       </trans-unit>
     </body>

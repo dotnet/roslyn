@@ -812,6 +812,11 @@
         <target state="translated">Невозможно преобразовать лямбда-выражение с атрибутами в дерево выражения</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">Строка содержит пробел, отличный от пробела закрывающей строки литерала необработанной строки: {0} и {1}</target>
@@ -11680,11 +11685,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">Член интерфейса "{0}" не имеет наиболее конкретной реализации. Ни "{1}", ни "{2}" не являются наиболее конкретными.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">"{0}" не может реализовать член интерфейса "{1}" в типе "{2}", так как функция "{3}" недоступна в C# {4}. Используйте версию языка "{5}" или более позднюю.</target>
         <note />
       </trans-unit>
     </body>
