@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
                 var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
 
-                // Temporarily disabling, https://github.com/dotnet/roslyn/issues/61517 tracks the follow up work  
-                // context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
+                context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
             });
 
         private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
