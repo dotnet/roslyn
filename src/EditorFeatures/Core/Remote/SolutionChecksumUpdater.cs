@@ -189,17 +189,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async ValueTask SynchronizeTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
             {
-                // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
-                // pushing text change worked or not doesn't affect feature's functionality.
+                // this pushes text changes to the remote side if it can.
+                // this is purely perf optimization. whether this pushing text change
+                // worked or not doesn't affect feature's functionality.
                 //
-                // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
-                // send out that text changes to remote side.
+                // this basically see whether it can cheaply find out text changes
+                // between 2 snapshots, if it can, it will send out that text changes to
+                // remote side.
                 //
-                // the remote side, once got the text change, will again see whether it can use that text change information
-                // without any high cost and create new snapshot from it.
+                // the remote side, once got the text change, will again see whether
+                // it can use that text change information without any high cost and
+                // create new snapshot from it.
                 //
-                // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
-                // times we need to do full text synchronization for typing scenario.
+                // otherwise, it will do the normal behavior of getting full text from
+                // VS side. this optimization saves times we need to do full text
+                // synchronization for typing scenario.
 
                 if ((oldDocument.TryGetText(out var oldText) == false) ||
                     (newDocument.TryGetText(out var newText) == false))
