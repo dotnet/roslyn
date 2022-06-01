@@ -19,8 +19,8 @@ internal partial class SolutionState
         private readonly DocumentationProvider _documentationProvider;
 
         /// <summary>
-        /// Tie lifetime of stream to this metadata reference.  This way the stream will not be GC'ed while the reference is
-        /// alive.
+        /// Tie lifetime of the underlying direct memory to this metadata reference.  This way the memory will not be
+        /// GC'ed while this reference is alive.
         /// </summary>
         private readonly ISupportDirectMemoryAccess? _directMemoryAccess;
 
