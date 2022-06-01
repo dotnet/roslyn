@@ -262,6 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
             else
             {
+                var count = declaredSymbolInfos.Count;
                 AddSingleDeclaredSymbolInfos(
                     container,
                     memberDeclaration,
@@ -271,7 +272,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     fullyQualifiedContainerName,
                     cancellationToken);
 
-                if (memberDeclaration is TMethodDeclarationSyntax methodDeclaration)
+                // If the AddSingle call added an item, and that item was an extension method, then go and add the
+                // information about this extension method
+                if (declaredSymbolInfos.Count != count &&
+                    declaredSymbolInfos.Last().Kind == DeclaredSymbolInfoKind.ExtensionMethod &&
+                    memberDeclaration is TMethodDeclarationSyntax methodDeclaration)
                 {
                     AddExtensionMethodInfo(
                         methodDeclaration,
@@ -334,10 +339,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             Dictionary<string, string?> aliases,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo)
         {
-            var lastInfo = declaredSymbolInfos.Last();
-            if (lastInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
-                return;
-
             var declaredSymbolInfoIndex = declaredSymbolInfos.Count - 1;
 
             var receiverTypeName = this.GetReceiverTypeName(methodDeclaration);
