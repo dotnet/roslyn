@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => new CompilerAnalyzerConfigOptionsProvider(_treeDict, globalOptions);
         
         // <Metalama>
-        internal CompilerAnalyzerConfigOptionsProvider WithMappedTrees(
+        private CompilerAnalyzerConfigOptionsProvider WithMappedTrees(
             IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap)
         {
             var builder = this._treeDict.ToBuilder();
@@ -55,6 +55,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return new CompilerAnalyzerConfigOptionsProvider(builder.ToImmutable(), this.GlobalOptions);
+        }
+
+        public static AnalyzerConfigOptionsProvider MapSyntaxTrees(
+             AnalyzerConfigOptionsProvider source, 
+             IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap )
+        {
+            return source switch
+            {
+                // This is the scenario when the code is compiled from the compiler.
+                CompilerAnalyzerConfigOptionsProvider fromCompiler => fromCompiler.WithMappedTrees(treeMap),
+
+                // This is the scenario when the code is compiled from Metalama.Try.
+                _ => source
+            };
         }
         // </Metalama>
     }

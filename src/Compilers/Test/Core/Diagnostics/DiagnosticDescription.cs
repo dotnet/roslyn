@@ -153,6 +153,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     // we don't just want to do SyntaxNode.GetText(), because getting the text via the SourceTree validates the public API
                     _squiggledText = _location.SourceTree.GetText().ToString(_location.SourceSpan);
+                    // <Metalama>
+                    _squiggledText = _squiggledText.Trim();
+                    // </Metalama>
                 }
 
                 if (dinfo != null)
@@ -256,8 +259,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (!_ignoreArgumentsWhenComparing)
             {
-                if (_squiggledText != d._squiggledText)
+                // <Metalama> Add Trim
+                if (_squiggledText?.Trim() != d._squiggledText?.Trim())
+                {
                     return false;
+                }
+                // </Metalama>
             }
 
             if (_startPosition != null)

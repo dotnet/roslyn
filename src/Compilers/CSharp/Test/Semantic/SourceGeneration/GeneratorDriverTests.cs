@@ -2807,7 +2807,7 @@ class C { }
             Assert.Single(referenceList, modifiedRef.Display);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), AlwaysSkip = "Metalama: Causes insufficient stack with our rewriter")]
         [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
         public void LongBinaryExpression()
         {

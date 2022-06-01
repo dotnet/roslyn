@@ -1281,6 +1281,7 @@ namespace Microsoft.CodeAnalysis
                     var transformersResult = RunTransformers(compilationBeforeTransformation, transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
 
                     compilation = transformersResult.TransformedCompilation;
+                    var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
                     MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
@@ -1291,10 +1292,6 @@ namespace Microsoft.CodeAnalysis
                         return;
                     }
                     
-                    // Replace analyzer options by the ones returned by RunTransformers because the mapping of SyntaxTrees to options has changed.
-                    analyzerOptions =
-                        CreateAnalyzerOptions(additionalTextFiles, transformersResult.MappedAnalyzerOptions);
-
                     // Fix whitespaces in generated syntax trees, embed them into the PDB or write them to disk.
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider)!;
@@ -1302,6 +1299,9 @@ namespace Microsoft.CodeAnalysis
 
                     if (compilation != compilationBeforeTransformation && (shouldDebugTransformedCode || hasTransformedOutputPath))
                     {
+
+                        var treeMap = new List<(SyntaxTree OldTree, SyntaxTree NewTree)>(transformersResult.TransformedTrees.Length);
+
                         if (shouldDebugTransformedCode && !hasTransformedOutputPath)
                         {
                             var diagnostic = Diagnostic.Create(new DiagnosticInfo(
@@ -1370,6 +1370,7 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             compilation = compilation.ReplaceSyntaxTree(tree, newTree);
+                            treeMap.Add((tree, newTree));
 
                             void EnsurePathIsUnique()
                             {
@@ -1392,10 +1393,17 @@ namespace Microsoft.CodeAnalysis
                                 }
                             }
                         }
+
+                        mappedAnalyzerOptions =  CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(mappedAnalyzerOptions, treeMap );
                     }
 
                     // Add a suppressor to handle the suppressions given by the transformations.
                     analyzers = analyzers.Add(new TransformerDiagnosticSuppressor(transformersResult.DiagnosticFilters));
+
+                    // Replace analyzer options by the ones returned by RunTransformers because the mapping of SyntaxTrees to options has changed.
+                    analyzerOptions =
+                        CreateAnalyzerOptions(additionalTextFiles, mappedAnalyzerOptions);
+
                 }
                 // </Metalama>
 
