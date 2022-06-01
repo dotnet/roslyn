@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private static Task VerifyNoItemForDocumentAsync(string markup, string languageName, TestHost testHost)
             => VerifyInSingleDocumentAsync(markup, languageName, testHost);
 
-        private static Task VerifyInSingleDocumentAsync(
+        private static async Task VerifyInSingleDocumentAsync(
             string markup,
             string languageName,
             TestHost testHost,
@@ -56,10 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 composition: testHost == TestHost.InProcess ? s_inProcessComposition : s_outOffProcessComposition);
 
             var testHostDocument = testWorkspace.Documents[0];
-            return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
+            await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task VerifyInMultipleDocumentsAsync(
+        private static async Task VerifyInMultipleDocumentsAsync(
             string markup1,
             string markup2,
             string languageName,
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 composition: testHost == TestHost.InProcess ? s_inProcessComposition : s_outOffProcessComposition);
 
             var testHostDocument = testWorkspace.Documents[0];
-            return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
+            await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task VerifyTestMemberInDocumentAsync(
