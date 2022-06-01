@@ -2021,12 +2021,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
-        ERR_DiscardCannotBeNullChecked = 8990,
-        ERR_MustNullCheckInImplementation = 8991,
-        ERR_NonNullableValueTypeIsNullChecked = 8992,
-        WRN_NullCheckedHasDefaultNull = 8993,
-        ERR_NullCheckingOnOutParameter = 8994,
-        WRN_NullCheckingOnNullableType = 8995,
+
+        // param-nullchecking feature removed from C# 11
+        ERR_ParameterNullCheckingNotSupported = 8989,
+        // ERR_DiscardCannotBeNullChecked = 8990,
+        // ERR_MustNullCheckInImplementation = 8991,
+        // ERR_NonNullableValueTypeIsNullChecked = 8992,
+        // WRN_NullCheckedHasDefaultNull = 8993,
+        // ERR_NullCheckingOnOutParameter = 8994,
+        // WRN_NullCheckingOnNullableType = 8995,
 
         ERR_RawStringNotInDirectives = 8996,
         ERR_UnterminatedRawString = 8997,
@@ -2067,7 +2070,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CheckedOperatorNeedsMatch = 9025,
 
         ERR_CannotBeConvertedToUTF8 = 9026,
-        ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
+        ERR_MisplacedUnchecked = 9027,
+
+        ERR_RequiredNameDisallowed = 9029,
+        ERR_OverrideMustHaveRequired = 9030,
+        ERR_RequiredMemberCannotBeHidden = 9031,
+        ERR_RequiredMemberCannotBeLessVisibleThanContainingType = 9032,
+        ERR_ExplicitRequiredMember = 9033,
+        ERR_RequiredMemberMustBeSettable = 9034,
+        ERR_RequiredMemberMustBeSet = 9035,
+        ERR_RequiredMembersMustBeAssignedValue = 9036,
+        ERR_RequiredMembersInvalid = 9037,
+        ERR_RequiredMembersBaseTypeInvalid = 9038,
+        ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers = 9039,
+        ERR_NewConstraintCannotHaveRequiredMembers = 9040,
+        ERR_UnsupportedCompilerFeature = 9041,
+        WRN_ObsoleteMembersShouldNotBeRequired = 9042,
+        ERR_RefReturningPropertiesCannotBeRequired = 9043,
 
         #endregion
 

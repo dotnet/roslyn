@@ -6,11 +6,13 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             return buffer.CurrentSnapshot.GetText();
         }
 
-        protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
+        private protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, OptionsCollection options = null, int? baseIndentation = null)
         {
             using var workspace = CreateWorkspace(code);
             var hostdoc = workspace.Documents.First();
@@ -196,24 +198,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 factory.TextSpan = spans?.First() ?? syntaxTree.GetRoot(CancellationToken.None).FullSpan;
             }
 
-            var optionSet = workspace.Options;
-            if (changedOptionSet != null)
-            {
-                foreach (var entry in changedOptionSet)
-                {
-                    optionSet = optionSet.WithChangedOption(entry.Key, entry.Value);
-                }
-            }
-
             var root = await syntaxTree.GetRootAsync();
-            var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, root.Language);
+
+            var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+
+            var formattingOptions = (options != null) ?
+                formattingService.GetFormattingOptions(options.ToAnalyzerConfigOptions(document.Project.LanguageServices), fallbackOptions: null) :
+                formattingService.DefaultOptions;
 
             document = workspace.CurrentSolution.GetDocument(syntaxTree);
             var rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document));
-            AssertFormat(workspace, expected, options, rules, clonedBuffer, root, spans);
+            AssertFormat(workspace, expected, formattingOptions, rules, clonedBuffer, root, spans);
 
             // format with node and transform
-            AssertFormatWithTransformation(workspace, expected, options, rules, root, spans);
+            AssertFormatWithTransformation(workspace, expected, formattingOptions, rules, root, spans);
         }
 
         internal void AssertFormatWithTransformation(Workspace workspace, string expected, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root, IEnumerable<TextSpan> spans)
@@ -277,18 +275,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
         }
 
-        protected async Task AssertFormatWithBaseIndentAsync(
-            string expected, string markupCode, int baseIndentation,
-            Dictionary<OptionKey, object> options = null)
+        private protected async Task AssertFormatWithBaseIndentAsync(string expected, string markupCode, int baseIndentation, OptionsCollection options = null)
         {
             TestFileMarkupParser.GetSpans(markupCode, out var code, out ImmutableArray<TextSpan> spans);
-
-            await AssertFormatAsync(
-                expected,
-                code,
-            spans,
-            changedOptionSet: options,
-            baseIndentation: baseIndentation);
+            await AssertFormatAsync(expected, code, spans, options, baseIndentation);
         }
 
         /// <summary>
@@ -300,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         {
             using var workspace = new AdhocWorkspace();
             var formattingService = workspace.Services.GetLanguageServices(node.Language).GetRequiredService<ISyntaxFormattingService>();
-            var options = formattingService.GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty);
+            var options = formattingService.GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty, fallbackOptions: null);
             var result = Formatter.Format(node, workspace.Services, options, CancellationToken.None);
             var actual = result.GetText().ToString();
 

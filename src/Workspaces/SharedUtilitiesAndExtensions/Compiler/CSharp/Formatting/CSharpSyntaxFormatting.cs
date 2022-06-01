@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override SyntaxFormattingOptions DefaultOptions
             => CSharpSyntaxFormattingOptions.Default;
 
-        public override SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options)
-            => CSharpSyntaxFormattingOptions.Create(options);
+        public override SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions)
+            => options.GetCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions?)fallbackOptions);
 
         protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
             => new AggregatedFormattingResult(node, results, formattingSpans);

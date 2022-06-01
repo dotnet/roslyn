@@ -3,8 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
@@ -12,10 +14,13 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -331,24 +336,20 @@ End Class
                                                                              Optional systemImportsFirst As Boolean = True,
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
-                Dim options = CodeActionOptions.Default
 
-                Dim solution = workspace.CurrentSolution _
-                    .WithOptions(workspace.Options _
-                        .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
-                                           LanguageNames.VisualBasic,
-                                           systemImportsFirst)) _
-                    .WithAnalyzerReferences({
-                        New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                        New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                        New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                                            })
+                ' must set global options since incremental analyzer infra reads from global options
+                Dim globalOptions = workspace.GlobalOptions
+                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), separateImportsGroups)
+                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic), systemImportsFirst)
+
+                Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
+                {
+                    New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
+                })
 
                 workspace.TryApplyChanges(solution)
-
-                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions(
-                    LineFormattingOptions.Default,
-                    separateImportDirectiveGroups:=separateImportsGroups)
 
                 ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
                 Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
@@ -365,8 +366,7 @@ End Class
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
-                    Function(language) options,
-                    formattingOptions,
+                    globalOptions.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

@@ -3,88 +3,83 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     [DataContract]
-    internal sealed class CSharpSimplifierOptions : SimplifierOptions
+    internal sealed class CSharpSimplifierOptions : SimplifierOptions, IEquatable<CSharpSimplifierOptions>
     {
-        [DataMember(Order = BaseMemberCount + 0)]
-        public readonly CodeStyleOption2<bool> VarForBuiltInTypes;
+        private static readonly CodeStyleOption2<PreferBracesPreference> s_defaultPreferBraces =
+            new(PreferBracesPreference.Always, NotificationOption2.Silent);
 
-        [DataMember(Order = BaseMemberCount + 1)]
-        public readonly CodeStyleOption2<bool> VarWhenTypeIsApparent;
+        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement =
+            new(value: true, notification: NotificationOption2.Suggestion);
 
-        [DataMember(Order = BaseMemberCount + 2)]
-        public readonly CodeStyleOption2<bool> VarElsewhere;
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
+            new(value: true, notification: NotificationOption2.Silent);
 
-        [DataMember(Order = BaseMemberCount + 3)]
-        public readonly CodeStyleOption2<bool> PreferSimpleDefaultExpression;
+        public static readonly CSharpSimplifierOptions Default = new();
 
-        [DataMember(Order = BaseMemberCount + 4)]
-        public readonly CodeStyleOption2<PreferBracesPreference> PreferBraces;
+        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOption2<bool>.Default;
+        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2<bool>.Default;
+        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2<bool>.Default;
+        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = s_trueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = s_trueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = s_trueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
+        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = s_trueWithSuggestionEnforcement;
 
-        public CSharpSimplifierOptions(
-            CodeStyleOption2<bool>? qualifyFieldAccess = null,
-            CodeStyleOption2<bool>? qualifyPropertyAccess = null,
-            CodeStyleOption2<bool>? qualifyMethodAccess = null,
-            CodeStyleOption2<bool>? qualifyEventAccess = null,
-            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInMemberAccess = null,
-            CodeStyleOption2<bool>? preferPredefinedTypeKeywordInDeclaration = null,
-            CodeStyleOption2<bool>? varForBuiltInTypes = null,
-            CodeStyleOption2<bool>? varWhenTypeIsApparent = null,
-            CodeStyleOption2<bool>? varElsewhere = null,
-            CodeStyleOption2<bool>? preferSimpleDefaultExpression = null,
-            CodeStyleOption2<PreferBracesPreference>? preferBraces = null)
-            : base(
-                qualifyFieldAccess: qualifyFieldAccess ?? Default.QualifyFieldAccess,
-                qualifyPropertyAccess: qualifyPropertyAccess ?? Default.QualifyPropertyAccess,
-                qualifyMethodAccess: qualifyMethodAccess ?? Default.QualifyMethodAccess,
-                qualifyEventAccess: qualifyEventAccess ?? Default.QualifyEventAccess,
-                preferPredefinedTypeKeywordInMemberAccess: preferPredefinedTypeKeywordInMemberAccess ?? Default.PreferPredefinedTypeKeywordInMemberAccess,
-                preferPredefinedTypeKeywordInDeclaration: preferPredefinedTypeKeywordInDeclaration ?? Default.PreferPredefinedTypeKeywordInDeclaration)
+        public override bool Equals(object? obj)
+            => Equals(obj as CSharpSimplifierOptions);
+
+        public bool Equals([AllowNull] CSharpSimplifierOptions other)
+            => other is not null &&
+               Common.Equals(other.Common) &&
+               VarForBuiltInTypes.Equals(other.VarForBuiltInTypes) &&
+               VarWhenTypeIsApparent.Equals(other.VarWhenTypeIsApparent) &&
+               VarElsewhere.Equals(other.VarElsewhere) &&
+               PreferSimpleDefaultExpression.Equals(other.PreferSimpleDefaultExpression) &&
+               PreferParameterNullChecking.Equals(other.PreferParameterNullChecking) &&
+               AllowEmbeddedStatementsOnSameLine.Equals(other.AllowEmbeddedStatementsOnSameLine) &&
+               PreferBraces.Equals(other.PreferBraces) &&
+               PreferThrowExpression.Equals(other.PreferThrowExpression);
+
+        public override int GetHashCode()
+            => Hash.Combine(VarForBuiltInTypes,
+               Hash.Combine(VarWhenTypeIsApparent,
+               Hash.Combine(VarElsewhere,
+               Hash.Combine(PreferSimpleDefaultExpression,
+               Hash.Combine(PreferParameterNullChecking,
+               Hash.Combine(AllowEmbeddedStatementsOnSameLine,
+               Hash.Combine(PreferBraces,
+               Hash.Combine(PreferThrowExpression, 0))))))));
+    }
+
+    internal static class CSharpSimplifierOptionsProviders
+    {
+        public static CSharpSimplifierOptions GetCSharpSimplifierOptions(this AnalyzerConfigOptions options, CSharpSimplifierOptions? fallbackOptions)
         {
-            VarForBuiltInTypes = varForBuiltInTypes ?? Default.VarForBuiltInTypes;
-            VarWhenTypeIsApparent = varWhenTypeIsApparent ?? Default.VarWhenTypeIsApparent;
-            VarElsewhere = varElsewhere ?? Default.VarElsewhere;
-            PreferSimpleDefaultExpression = preferSimpleDefaultExpression ?? Default.PreferSimpleDefaultExpression;
-            PreferBraces = preferBraces ?? Default.PreferBraces;
-        }
+            fallbackOptions ??= CSharpSimplifierOptions.Default;
 
-        public static readonly CSharpSimplifierOptions Default = new(
-            qualifyFieldAccess: CodeStyleOptions2.QualifyFieldAccess.DefaultValue,
-            qualifyPropertyAccess: CodeStyleOptions2.QualifyPropertyAccess.DefaultValue,
-            qualifyMethodAccess: CodeStyleOptions2.QualifyMethodAccess.DefaultValue,
-            qualifyEventAccess: CodeStyleOptions2.QualifyEventAccess.DefaultValue,
-            preferPredefinedTypeKeywordInMemberAccess: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.DefaultValue,
-            preferPredefinedTypeKeywordInDeclaration: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration.DefaultValue,
-            varForBuiltInTypes: CSharpCodeStyleOptions.VarForBuiltInTypes.DefaultValue,
-            varWhenTypeIsApparent: CSharpCodeStyleOptions.VarWhenTypeIsApparent.DefaultValue,
-            varElsewhere: CSharpCodeStyleOptions.VarElsewhere.DefaultValue,
-            preferSimpleDefaultExpression: CSharpCodeStyleOptions.PreferSimpleDefaultExpression.DefaultValue,
-            preferBraces: CSharpCodeStyleOptions.PreferBraces.DefaultValue);
-
-        internal static CSharpSimplifierOptions Create(AnalyzerConfigOptions options, CSharpSimplifierOptions? fallbackOptions)
-        {
-            fallbackOptions ??= Default;
-
-            return new(
-                qualifyFieldAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
-                qualifyPropertyAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
-                qualifyMethodAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
-                qualifyEventAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
-                preferPredefinedTypeKeywordInMemberAccess: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
-                preferPredefinedTypeKeywordInDeclaration: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration),
-                varForBuiltInTypes: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarForBuiltInTypes, fallbackOptions.VarForBuiltInTypes),
-                varWhenTypeIsApparent: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, fallbackOptions.VarWhenTypeIsApparent),
-                varElsewhere: options.GetEditorConfigOption(CSharpCodeStyleOptions.VarElsewhere, fallbackOptions.VarElsewhere),
-                preferSimpleDefaultExpression: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, fallbackOptions.PreferSimpleDefaultExpression),
-                preferBraces: options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces));
+            return new()
+            {
+                Common = options.GetCommonSimplifierOptions(fallbackOptions.Common),
+                VarForBuiltInTypes = options.GetEditorConfigOption(CSharpCodeStyleOptions.VarForBuiltInTypes, fallbackOptions.VarForBuiltInTypes),
+                VarWhenTypeIsApparent = options.GetEditorConfigOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, fallbackOptions.VarWhenTypeIsApparent),
+                VarElsewhere = options.GetEditorConfigOption(CSharpCodeStyleOptions.VarElsewhere, fallbackOptions.VarElsewhere),
+                PreferSimpleDefaultExpression = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, fallbackOptions.PreferSimpleDefaultExpression),
+                AllowEmbeddedStatementsOnSameLine = options.GetEditorConfigOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, fallbackOptions.AllowEmbeddedStatementsOnSameLine),
+                PreferBraces = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces),
+                PreferThrowExpression = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferThrowExpression, fallbackOptions.PreferThrowExpression)
+            };
         }
     }
 }

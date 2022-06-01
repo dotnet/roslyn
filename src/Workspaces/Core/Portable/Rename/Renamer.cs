@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Rename
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, nameof(newName));
 
-            var resolution = await RenameSymbolAsync(solution, symbol, newName, options, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
+            var resolution = await RenameSymbolAsync(solution, symbol, newName, options, CodeActionOptions.DefaultProvider, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
             // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
             // an exception.
@@ -91,19 +93,19 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="options">Options used to configure rename of a type contained in the document that matches the document's name.</param>
         /// <param name="newDocumentFolders">The new set of folders for the <see cref="TextDocument.Folders"/> property</param>
         public static Task<RenameDocumentActionSet> RenameDocumentAsync(
-            Document document!!,
+            Document document,
             DocumentRenameOptions options,
             string? newDocumentName,
             IReadOnlyList<string>? newDocumentFolders = null,
             CancellationToken cancellationToken = default)
         {
-            return RenameDocumentAsync(document, options, ChangeNamespaceOptions.GetDefault, newDocumentName, newDocumentFolders, cancellationToken);
+            return RenameDocumentAsync(document ?? throw new ArgumentNullException(nameof(document)), options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
         }
 
         internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
             DocumentRenameOptions options,
-            ChangeNamespaceOptionsProvider changeNamespaceOptions,
+            CodeCleanupOptionsProvider fallbackOptions,
             string? newDocumentName,
             IReadOnlyList<string>? newDocumentFolders,
             CancellationToken cancellationToken)
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (newDocumentFolders != null && !newDocumentFolders.SequenceEqual(document.Folders))
             {
-                var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, changeNamespaceOptions);
+                var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, fallbackOptions);
                 actions.AddIfNotNull(action);
             }
 
@@ -139,14 +141,15 @@ namespace Microsoft.CodeAnalysis.Rename
                 options);
         }
 
-        internal static Task<RenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CancellationToken cancellationToken)
-            => RenameLocations.FindLocationsAsync(symbol, solution, options, cancellationToken);
+        internal static Task<RenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => RenameLocations.FindLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
 
         internal static async Task<ConflictResolution> RenameSymbolAsync(
             Solution solution,
             ISymbol symbol,
             string newName,
             SymbolRenameOptions options,
+            CodeCleanupOptionsProvider fallbackOptions,
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
@@ -167,13 +170,15 @@ namespace Microsoft.CodeAnalysis.Rename
 
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                             solution,
-                            (service, solutionInfo, cancellationToken) => service.RenameSymbolAsync(
+                            (service, solutionInfo, callbackId, cancellationToken) => service.RenameSymbolAsync(
                                 solutionInfo,
+                                callbackId,
                                 serializedSymbol,
                                 newName,
                                 options,
                                 nonConflictSymbolIds,
                                 cancellationToken),
+                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)
@@ -185,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return await RenameSymbolInCurrentProcessAsync(
-                solution, symbol, newName, options,
+                solution, symbol, newName, options, fallbackOptions,
                 nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
 
@@ -194,6 +199,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             string newName,
             SymbolRenameOptions options,
+            CodeCleanupOptionsProvider cleanupOptions,
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
@@ -203,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var renameLocations = await FindRenameLocationsAsync(solution, symbol, options, cancellationToken).ConfigureAwait(false);
+            var renameLocations = await FindRenameLocationsAsync(solution, symbol, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
             return await renameLocations.ResolveConflictsAsync(newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
     }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title,
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c),
+                    c => RemoveUnnecessaryImportsAsync(context.Document, context.GetOptionsProvider(), c),
                     title),
                 context.Diagnostics);
             return Task.CompletedTask;
@@ -37,21 +38,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         protected abstract string GetTitle();
 
-#if CODE_STYLE
         private async Task<Document> RemoveUnnecessaryImportsAsync(
-#else
-        private static async Task<Document> RemoveUnnecessaryImportsAsync(
-#endif
             Document document,
+            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var formattingOptions = GetSyntaxFormatting().GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree));
-#else
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-#endif
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
             return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }

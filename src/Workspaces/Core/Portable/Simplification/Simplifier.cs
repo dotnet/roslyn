@@ -238,11 +238,15 @@ namespace Microsoft.CodeAnalysis.Simplification
                              reducers, cancellationToken).ConfigureAwait(false);
         }
 
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async Task<SimplifierOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
-            return (optionSet != null) ?
-                SimplifierOptions.Create(optionSet, document.Project.Solution.Workspace.Services, fallbackOptions: null, document.Project.Language) :
-                await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var services = document.Project.Solution.Workspace.Services;
+            var optionService = services.GetRequiredService<IOptionService>();
+            var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
+            var simplificationService = services.GetRequiredLanguageService<ISimplificationService>(document.Project.Language);
+            return simplificationService.GetSimplifierOptions(configOptionSet, fallbackOptions: null);
         }
+#pragma warning restore
     }
 }

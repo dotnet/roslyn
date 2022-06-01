@@ -1,6 +1,29 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 abstract Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultResult.get -> TResult
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
+Microsoft.CodeAnalysis.IFieldSymbol.IsRequired.get -> bool
+Microsoft.CodeAnalysis.IImportScope
+Microsoft.CodeAnalysis.IImportScope.Aliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
+Microsoft.CodeAnalysis.IImportScope.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
+Microsoft.CodeAnalysis.IImportScope.Imports.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ImportedNamespaceOrType>
+Microsoft.CodeAnalysis.IImportScope.XmlNamespaces.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ImportedXmlNamespace>
+Microsoft.CodeAnalysis.ImportedNamespaceOrType
+Microsoft.CodeAnalysis.ImportedNamespaceOrType.DeclaringSyntaxReference.get -> Microsoft.CodeAnalysis.SyntaxReference?
+Microsoft.CodeAnalysis.ImportedNamespaceOrType.ImportedNamespaceOrType() -> void
+Microsoft.CodeAnalysis.ImportedNamespaceOrType.NamespaceOrType.get -> Microsoft.CodeAnalysis.INamespaceOrTypeSymbol!
+Microsoft.CodeAnalysis.ImportedXmlNamespace
+Microsoft.CodeAnalysis.ImportedXmlNamespace.DeclaringSyntaxReference.get -> Microsoft.CodeAnalysis.SyntaxReference?
+Microsoft.CodeAnalysis.ImportedXmlNamespace.ImportedXmlNamespace() -> void
+Microsoft.CodeAnalysis.ImportedXmlNamespace.XmlNamespace.get -> string!
+Microsoft.CodeAnalysis.GeneratorDriver.GetTimingInfo() -> Microsoft.CodeAnalysis.GeneratorDriverTimingInfo
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.ElapsedTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.GeneratorDriverTimingInfo() -> void
+Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.GeneratorTimes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratorTimingInfo>
+Microsoft.CodeAnalysis.GeneratorTimingInfo
+Microsoft.CodeAnalysis.GeneratorTimingInfo.ElapsedTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.GeneratorTimingInfo.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
+Microsoft.CodeAnalysis.GeneratorTimingInfo.GeneratorTimingInfo() -> void
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
@@ -26,11 +49,14 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.IPropertySymbol.IsRequired.get -> bool
+Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IImportScope!>
 Microsoft.CodeAnalysis.ISymbol.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.SymbolVisitor() -> void
 override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
+static Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.Create(System.Collections.Immutable.ImmutableArray<byte> compressedSlotMap, System.Collections.Immutable.ImmutableArray<byte> compressedLambdaMap, System.Collections.Immutable.ImmutableArray<byte> compressedStateMachineStateMap) -> Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementOperatorName = "op_CheckedDecrement" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementOperatorName = "op_CheckedIncrement" -> string!
@@ -43,6 +69,7 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName 
 Microsoft.CodeAnalysis.OperationKind.UTF8String = 124 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IUTF8StringOperation
 Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value.get -> string!
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys.get -> System.Collections.Generic.IEnumerable<string!>!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.ISymbol! symbol, TArgument argument) -> TResult
@@ -66,5 +93,4 @@ virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitPointerTyp
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitProperty(Microsoft.CodeAnalysis.IPropertySymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitRangeVariable(Microsoft.CodeAnalysis.IRangeVariableSymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitTypeParameter(Microsoft.CodeAnalysis.ITypeParameterSymbol! symbol, TArgument argument) -> TResult
-
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift = 25 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind

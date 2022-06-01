@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseInterpolatedVerbatimString = nameof(UseInterpolatedVerbatimString);
         public const string UseIsNotExpression = nameof(UseIsNotExpression);
         public const string UseIsNullCheck = nameof(UseIsNullCheck);
-        public const string UseParameterNullChecking = nameof(UseParameterNullChecking);
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
         public const string UseLocalFunction = nameof(UseLocalFunction);
@@ -157,5 +156,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseSystemHashCode = nameof(UseSystemHashCode);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string UseTupleSwap = nameof(UseTupleSwap);
+        public const string UseUTF8StringLiteral = nameof(UseUTF8StringLiteral);
     }
 }

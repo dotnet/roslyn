@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         public static CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
-            INamedTypeSymbol destination)
+            INamedTypeSymbol destination,
+            CleanCodeGenerationOptionsProvider fallbackOptions)
         {
             var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, ImmutableArray.Create((member: selectedMember, makeAbstract: false)));
             if (result.PullUpOperationNeedsToDoExtraChanges ||
@@ -49,20 +50,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var title = string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name);
             return SolutionChangeAction.Create(
                 title,
-                cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
+                cancellationToken => PullMembersUpAsync(document, result, fallbackOptions, cancellationToken),
                 title);
         }
 
         public static Task<Solution> PullMembersUpAsync(
             Document document,
             PullMembersUpOptions pullMembersUpOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             return pullMembersUpOptions.Destination.TypeKind switch
             {
-                TypeKind.Interface => PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken),
+                TypeKind.Interface => PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, fallbackOptions, cancellationToken),
                 // We can treat VB modules as a static class
-                TypeKind.Class or TypeKind.Module => PullMembersIntoClassAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken),
+                TypeKind.Class or TypeKind.Module => PullMembersIntoClassAsync(document, pullMembersUpOptions, fallbackOptions, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination),
             };
         }
@@ -88,16 +90,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private static async Task<Solution> PullMembersIntoInterfaceAsync(
             Document document,
             PullMembersUpOptions pullMemberUpOptions,
-            Solution solution,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
+            var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-                solution, pullMemberUpOptions.Destination, CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
+                solution, pullMemberUpOptions.Destination, location: null, cancellationToken).ConfigureAwait(false);
             var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
-            var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.
-                SelectAsArray(analysisResult => GetSymbolsToPullUp(analysisResult));
+            var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.SelectAsArray(GetSymbolsToPullUp);
 
             var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
                 solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
@@ -108,8 +110,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 generateMethodBodies: false,
                 generateMembers: false);
 
-            var codeGenerationOptions = await CodeGenerationOptions.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
-            var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, codeGenerationOptions, cancellationToken);
+            var options = await destinationEditor.OriginalDocument.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = options.GetInfo(context, document.Project);
+            var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, info, cancellationToken);
 
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => destinationWithMembersAdded);
 
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                             ChangeMemberToPublicAndNonStatic(
                                 codeGenerationService, originalMemberEditor,
                                 declaration, analysisResult.Member,
-                                codeGenerationOptions, cancellationToken);
+                                info, cancellationToken);
                         }
                     }
                 }
@@ -195,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             DocumentEditor editor,
             SyntaxNode memberDeclaration,
             ISymbol member,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
             var modifiers = DeclarationModifiers.From(member).WithIsStatic(false);
@@ -208,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     eventSymbol,
                     memberDeclaration,
                     modifiers,
-                    options,
+                    info,
                     cancellationToken);
             }
             else
@@ -224,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             IEventSymbol eventSymbol,
             SyntaxNode eventDeclaration,
             DeclarationModifiers modifiers,
-            CodeGenerationOptions options,
+            CodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
             var declaration = editor.Generator.GetDeclaration(eventDeclaration);
@@ -246,8 +249,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     accessibility: Accessibility.Public,
                     modifiers: modifiers);
 
-                var eventGenerationOptions = options.WithContext(new CodeGenerationContext(generateMethodBodies: false));
-                var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, CodeGenerationDestination.ClassType, eventGenerationOptions, cancellationToken);
+                var eventGenerationInfo = info.WithContext(new CodeGenerationContext(
+                    null,
+                    null,
+                    generateMethodBodies: false));
+
+                var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, CodeGenerationDestination.ClassType, eventGenerationInfo, cancellationToken);
                 // Insert a new declaration and remove the original declaration
                 editor.InsertAfter(declaration, publicAndNonStaticSyntax);
                 editor.RemoveNode(eventDeclaration);
@@ -263,14 +270,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private static async Task<Solution> PullMembersIntoClassAsync(
             Document document,
             PullMembersUpOptions result,
-            Solution solution,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
+            var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
 
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-                solution, result.Destination, CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
+                solution, result.Destination, location: null, cancellationToken).ConfigureAwait(false);
 
             var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
                 solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
@@ -293,13 +301,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     }
                 });
 
-            var context = new CodeGenerationContext(reuseSyntax: true, generateMethodBodies: false);
+            var context = new CodeGenerationContext(
+                reuseSyntax: true,
+                generateMethodBodies: false);
 
-            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
-            var importsPlacementOptions = await AddImportPlacementOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+            var options = await destinationEditor.OriginalDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, codeGenOptions, cancellationToken);
+            var info = options.GenerationOptions.GetInfo(context, destinationEditor.OriginalDocument.Project);
+
+            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, info, cancellationToken);
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);
 
             var syntaxFacts = destinationEditor.OriginalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -368,18 +378,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 node.GetCurrentNode(newDestination),
                 sourceImports,
                 generator,
-                importsPlacementOptions,
+                options.CleanupOptions.AddImportOptions,
                 cancellationToken));
 
             var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
                 destinationEditor.GetChangedDocument(),
                 node => node.HasAnnotation(s_annotation),
-                formattingOptions,
+                options.CleanupOptions.FormattingOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // Format whitespace trivia within the import statements we pull up
-            destinationDocument = await Formatter.FormatAsync(destinationDocument, s_annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
+            destinationDocument = await Formatter.FormatAsync(destinationDocument, s_annotation, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
             var destinationRoot = AddLeadingTriviaBeforeFirstMember(
                 await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var recommendationOptions = options.ToRecommendationServiceOptions();
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, recommendationOptions, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken);
 
             if (context.IsInTaskLikeTypeContext)
             {
@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return recommendedSymbols.NamedSymbols.SelectAsArray(
                     s => IsValidForTaskLikeTypeOnlyContext(s, context),
                     s => (s, preselect: s.OriginalDefinition.Equals(taskType)));
+            }
+            else if (context.IsGenericConstraintContext)
+            {
+                // Just filter valid symbols. Nothing to preselect
+                return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
             }
             else
             {
@@ -90,6 +95,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return symbol.IsAwaitableNonDynamic(context.SemanticModel, context.Position);
+        }
+
+        private static bool IsValidForGenericConstraintContext(ISymbol symbol)
+        {
+            if (symbol.IsNamespace() ||
+                symbol.IsKind(SymbolKind.TypeParameter))
+            {
+                return true;
+            }
+
+            if (symbol is not INamedTypeSymbol namedType ||
+                symbol.IsDelegateType() ||
+                namedType.IsEnumType())
+            {
+                return false;
+            }
+
+            // If current symbol is a struct or static or sealed class then it cannot be used as a generic constraint.
+            // However it can contain other valid constraint types and if this is true we should show it
+            if (namedType.IsStructType() || namedType.IsStatic || namedType.IsSealed)
+            {
+                return namedType.GetTypeMembers().Any(IsValidForGenericConstraintContext);
+            }
+
+            return true;
         }
 
         private static ITypeSymbol? GetSymbolType(ISymbol symbol)
@@ -178,7 +208,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var relatedId in relatedDocumentIds)
             {
                 var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedId);
-                var context = await CreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                var context = await CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
+                Contract.ThrowIfNull(context);
                 var symbols = await TryGetSymbolsForContextAsync(completionContext: null, context, options, cancellationToken).ConfigureAwait(false);
 
                 if (!symbols.IsDefault)

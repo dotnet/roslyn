@@ -32,6 +32,11 @@
         <target state="new">Convert to 'Program.Main' style program</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
+      <trans-unit id="Convert_to_UTF8_string_literal">
+        <source>Convert to UTF-8 string literal</source>
+        <target state="new">Convert to UTF-8 string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">Převést na namespace pro celý blok</target>
@@ -182,6 +187,11 @@
         <target state="translated">Byl zjištěn nedosažitelný kód.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_UTF8_string_literal">
+        <source>Use UTF-8 string literal</source>
+        <target state="new">Use UTF-8 string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
         <target state="translated">Pro přístupové objekty používat text bloku</target>
@@ -190,6 +200,11 @@
       <trans-unit id="Use_block_body_for_constructors">
         <source>Use block body for constructors</source>
         <target state="translated">Pro konstruktory používat text bloku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_conversion_operators">
+        <source>Use block body for conversion operators</source>
+        <target state="new">Use block body for conversion operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
@@ -235,6 +250,11 @@
       <trans-unit id="Use_expression_body_for_constructors">
         <source>Use expression body for constructors</source>
         <target state="translated">Pro konstruktory používat text výrazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_conversion_operators">
+        <source>Use expression body for conversion operators</source>
+        <target state="new">Use expression body for conversion operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
@@ -296,11 +316,6 @@
         <source>Use 'new(...)'</source>
         <target state="translated">Použít new(...)</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_parameter_null_checking">
-        <source>Use parameter null checking</source>
-        <target state="translated">Použít kontrolu hodnoty null parametru</target>
-        <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>

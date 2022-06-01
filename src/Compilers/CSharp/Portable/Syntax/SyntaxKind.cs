@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         PercentEqualsToken = 8283,
         /// <summary>Represents <c>??=</c> token.</summary>
         QuestionQuestionEqualsToken = 8284,
-        /// <summary>Represents <c>!!</c> token.</summary>
-        ExclamationExclamationToken = 8285,
+        // Don't use 8285. It corresponds to the deleted kind ExclamationExclamationToken which was previously shipped.
+
         /// <summary>Represents <c>&gt;&gt;&gt;</c> token.</summary>
         GreaterThanGreaterThanGreaterThanToken = 8286,
         /// <summary>Represents <c>&gt;&gt;&gt;=</c> token.</summary>
@@ -404,6 +404,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ManagedKeyword = 8445,
         /// <summary>Represents <see langword="unmanaged"/>.</summary>
         UnmanagedKeyword = 8446,
+        /// <summary>Represents <see langword="required"/>.</summary>
+        RequiredKeyword = 8447,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>

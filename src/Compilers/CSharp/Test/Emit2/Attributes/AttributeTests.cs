@@ -1780,7 +1780,7 @@ public struct Test
             comp.VerifyDiagnostics(
                 // (4,13): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [field: System.Runtime.InteropServices.FieldOffset(0)]
-                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithArguments("System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
                 );
         }
 
@@ -10524,10 +10524,10 @@ class C2 { }
                 // (13,11): error CS8929: 'C.M()' cannot implement interface member 'I1.M()' in type 'C' because the target runtime doesn't support static abstract members in interfaces.
                 // class C : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("C.M()", "I1.M()", "C").WithLocation(13, 11),
-                // (19,8): error CS8920: The interface 'I1' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (19,8): error CS8920: The interface 'I1' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
                 // [Attr2<I1>]
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("Attr2<T>", "I1", "T", "I1").WithLocation(19, 8),
-                // (23,8): error CS8920: The interface 'I2' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (23,8): error CS8920: The interface 'I2' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
                 // [Attr2<I2>]
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("Attr2<T>", "I1", "T", "I2").WithLocation(23, 8));
         }

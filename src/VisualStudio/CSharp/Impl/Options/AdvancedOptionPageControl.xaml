@@ -24,6 +24,15 @@
                             <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution_Tag}" />
                         </ComboBox>
                     </StackPanel>
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}"/>
+                    <StackPanel>
+                        <ComboBox x:Name="Show_compiler_errors_and_warnings_for" IsEditable="false" AutomationProperties.Name="{x:Static local:AdvancedOptionPageStrings.Option_Show_compiler_errors_and_warnings_for}">
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_None}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_None_Tag}" />
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Visible_Files}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Visible_Files_Tag}" />
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Open_Files}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Open_Files_Tag}" />
+                            <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Full_Solution}" Tag="{x:Static local:AdvancedOptionPageStrings.Option_Compiler_Diagnostics_Scope_Full_Solution_Tag}" />
+                        </ComboBox>
+                    </StackPanel>
                     <StackPanel>
                         <CheckBox x:Name="DisplayDiagnosticsInline"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
@@ -56,6 +65,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
@@ -67,6 +77,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="UsingDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Using_Directives}">
                 <StackPanel>
@@ -87,6 +98,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_using_directives_on_paste}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="QuickActionsBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
                 <StackPanel>
@@ -94,6 +106,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>
@@ -103,11 +116,24 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableHighlightKeywords}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="OutliningGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Outlining}">
                 <StackPanel>
                     <CheckBox x:Name="EnterOutliningMode"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnterOutliningMode}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnterOutliningMode}"
+                              Checked="EnterOutliningMode_Checked"
+                              Unchecked="EnterOutliningMode_Unchecked" />
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Name="Collapse_regions_on_file_open"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_on_file_open}" />
+                        <CheckBox x:Name="Collapse_usings_on_file_open"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_usings_on_file_open}" />
+                        <CheckBox x:Name="Collapse_sourcelink_embedded_decompiled_files_on_open"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_sourcelink_embedded_decompiled_files_on_open}" />
+                        <CheckBox x:Name="Collapse_metadata_signature_files_on_open"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_metadata_signature_files_on_open}" />
+                    </StackPanel>
                     <CheckBox x:Name="DisplayLineSeparators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DisplayLineSeparators}" />
                     <CheckBox x:Name="Show_outlining_for_declaration_level_constructs"
@@ -120,6 +146,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="FadingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Fading}">
                 <StackPanel>
@@ -129,6 +156,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unreachable_code}" />
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="BlockStructureGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
                 <StackPanel>
@@ -138,8 +166,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
-
-            <GroupBox x:Uid="CommentsGuidesGroupBox"
+            
+            <GroupBox x:Uid="CommentsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
@@ -154,12 +182,15 @@
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
+                    <CheckBox x:Name="Split_string_literals_on_enter"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
+                    <CheckBox x:Name="Fix_text_pasted_into_string_literals_experimental"
+                              x:Uid="Fix_text_pasted_into_string_literals_experimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fix_text_pasted_into_string_literals_experimental}" />
                     <CheckBox x:Name="ShowRemarksInQuickInfo"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
-                    <CheckBox x:Name="Split_string_literals_on_enter"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                     <CheckBox x:Name="Underline_reassigned_variables"
@@ -308,6 +339,7 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
+            
             <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin}">
                 <StackPanel>
                     <CheckBox x:Uid="ShowInheritanceMargin"
@@ -316,6 +348,9 @@
                     <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
                               x:Name="InheritanceMarginCombinedWithIndicatorMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
+                    <CheckBox x:Uid="IncludeGlobalImports"
+                              x:Name="IncludeGlobalImports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
                 </StackPanel>
             </GroupBox>
 

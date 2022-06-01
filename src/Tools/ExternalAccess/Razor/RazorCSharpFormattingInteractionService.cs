@@ -44,13 +44,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return ImmutableArray<TextChange>.Empty;
             }
 
+            var languageServices = document.Project.LanguageServices;
+
             var services = document.Project.Solution.Workspace.Services;
+            var globalOptions = services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var optionsProvider = (OptionsProvider<SyntaxFormattingOptions>)globalOptions.CleanCodeGenerationOptionsProvider;
+            var fallbackOptions = await optionsProvider.GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false);
+            var optionService = services.GetRequiredService<IOptionService>();
+            var configOptions = documentOptions.AsAnalyzerConfigOptions(optionService, document.Project.Language);
 
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-
-            var indentationOptions = new IndentationOptions(
-               SyntaxFormattingOptions.Create(documentOptions, services, document.Project.Language),
-               globalOptions.GlobalOptions.GetAutoFormattingOptions(document.Project.Language));
+            var indentationOptions = new IndentationOptions(formattingService.GetFormattingOptions(configOptions, fallbackOptions))
+            {
+                AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(languageServices)
+            };
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
         }
@@ -78,7 +84,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
 
             var formattingOptions = GetFormattingOptions(indentationOptions);
-            var roslynIndentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions.UnderlyingObject, (FormattingOptions2.IndentStyle)indentStyle);
+            var roslynIndentationOptions = new IndentationOptions(formattingOptions)
+            {
+                AutoFormattingOptions = autoFormattingOptions.UnderlyingObject,
+                IndentStyle = (FormattingOptions2.IndentStyle)indentStyle
+            };
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, roslynIndentationOptions, cancellationToken).ConfigureAwait(false);
         }
@@ -105,10 +115,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         }
 
         private static SyntaxFormattingOptions GetFormattingOptions(RazorIndentationOptions indentationOptions)
-            => CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(
-                UseTabs: indentationOptions.UseTabs,
-                TabSize: indentationOptions.TabSize,
-                IndentationSize: indentationOptions.IndentationSize,
-                NewLine: CSharpSyntaxFormattingOptions.Default.NewLine));
+            => CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions()
+            {
+                UseTabs = indentationOptions.UseTabs,
+                TabSize = indentationOptions.TabSize,
+                IndentationSize = indentationOptions.IndentationSize,
+                NewLine = CSharpSyntaxFormattingOptions.Default.NewLine
+            });
     }
 }

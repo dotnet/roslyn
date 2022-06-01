@@ -10,10 +10,12 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
@@ -96,6 +98,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             get; set;
         }
+
+        internal IGlobalOptionService GlobalOptions
+            => State.ProjectCodeModelFactory.GlobalOptions;
 
         /// <summary>
         /// Internally, we store the DocumentId for the document that the FileCodeModel represents. If the underlying file
@@ -343,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(result, CancellationToken.None).ConfigureAwait(false);
+                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
                     var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
                     formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
 
@@ -446,6 +451,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 return GetDocument()
                     .GetRequiredSemanticModelAsync(CancellationToken.None).AsTask();
+            });
+
+        internal CodeGenerationOptions GetDocumentOptions()
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetCodeGenerationOptionsAsync(GlobalOptions, CancellationToken.None).AsTask();
             });
 
         internal Compilation GetCompilation()
@@ -705,7 +717,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         // perform expensive operations at once
                         var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                         {
-                            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(_batchDocument, fallbackOptions: null, CancellationToken.None).ConfigureAwait(false);
+                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
                             return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
                         });
 

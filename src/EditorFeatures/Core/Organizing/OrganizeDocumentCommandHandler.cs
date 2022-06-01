@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -36,11 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public OrganizeDocumentCommandHandler(IThreadingContext threadingContext)
-            => _threadingContext = threadingContext;
+        public OrganizeDocumentCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+        {
+            _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
+        }
 
         public string DisplayName => EditorFeaturesResources.Organize_Document;
 
@@ -128,13 +133,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             return true;
         }
 
-        private static void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
+        private void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                var newDocument = Formatter.OrganizeImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+                var options = document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+                var newDocument = organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
                     ApplyTextChange(document, newDocument);
@@ -149,9 +156,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 operationContext, _threadingContext);
             if (document != null)
             {
-                var formattingOptions = document.SupportsSyntaxTree ? SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken) : null;
-                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-                newDocument = Formatter.OrganizeImportsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
+                var formattingOptions = document.SupportsSyntaxTree ? document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken) : null;
+                var newDocument = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
+                var options = document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+                newDocument = organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
                     ApplyTextChange(document, newDocument);

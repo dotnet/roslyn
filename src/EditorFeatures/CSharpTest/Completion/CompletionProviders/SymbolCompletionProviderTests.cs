@@ -1346,18 +1346,114 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new [] { $$")), @"System");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClause()
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"System");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_NotStaticClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"Console");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_StillShowStaticClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"static class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : $$", @"Test");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_NotSealedClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"String");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_StillShowSealedClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"sealed class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : $$", @"Test");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_StillShowStaticAndSealedTypesNotDirectlyInConstraint()
+        {
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : IList<$$"), @"System");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : IList<$$"), @"String");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClauseList()
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"System");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_NotStaticClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"Console");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_StillShowStaticClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"static class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : A, $$", @"Test");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_NotSealedClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"String");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_StillShowSealedClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"sealed class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : A, $$", @"Test");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_StillShowStaticAndSealedTypesNotDirectlyInConstraint()
+        {
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, IList<$$"), @"System");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, IList<$$"), @"String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -11998,6 +12094,162 @@ class MyClass
 }}";
             await VerifyItemIsAbsentAsync(source, "goo");
             await VerifyItemIsAbsentAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInMethodAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    [Some(nameof(p$$))]
+    void M(int parameter) { }
+}
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterNotAvailableInMethodAttributeNameofWithNoArgument()
+        {
+            var source = @"
+class C
+{
+    [Some(nameof($$))]
+    void M(int parameter) { }
+}
+";
+            // Tracked by https://github.com/dotnet/roslyn/issues/60812
+            await VerifyItemIsAbsentAsync(MakeMarkup(source), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInMethodParameterAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M([Some(nameof(p$$))] int parameter) { }
+}
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLocalFunctionAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        [Some(nameof(p$$))]
+        void local(int parameter) { }
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLocalFunctionParameterAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        void local([Some(nameof(p$$))] int parameter) { }
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLambdaAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = [Some(nameof(p$$))] void(int parameter) => { };
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInLambdaParameterAttributeNameof()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = void([Some(nameof(p$$))] int parameter) => { };
+    }
+}
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInDelegateAttributeNameof()
+        {
+            var source = @"
+[Some(nameof(p$$))]
+delegate void MyDelegate(int parameter);
+";
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        [Fact]
+        public async Task ParameterAvailableInDelegateParameterAttributeNameof()
+        {
+            var source = @"
+delegate void MyDelegate([Some(nameof(p$$))] int parameter);
+";
+            // Speculation within attributes on local functions is broken
+            // Tracked by https://github.com/dotnet/roslyn/issues/60801
+            await VerifyItemExistsAsync(MakeMarkup(source), "parameter", skipSpeculation: true);
+
+            await VerifyItemIsAbsentAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
+        }
+
+        private static string MakeMarkup(string source, string languageVersion = "Preview")
+        {
+            return $$"""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly" CommonReferences="true" LanguageVersion="{{languageVersion}}">
+        <Document FilePath="Test.cs">
+{{source}}
+        </Document>
+    </Project>
+</Workspace>
+""";
         }
     }
 }

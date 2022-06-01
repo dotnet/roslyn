@@ -94,8 +94,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var options = _globalOptions.GetDocumentationCommentOptions(documentOptions);
+            var options = document.GetDocumentationCommentOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
             // Apply snippet in reverse order so that the first applied snippet doesn't affect span of next snippets.
             var snapshots = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).OrderByDescending(s => s.Span.Start);
@@ -337,8 +336,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var options = _globalOptions.GetDocumentationCommentOptions(documentOptions);
+            var options = document.GetDocumentationCommentOptionsAsync(_globalOptions, CancellationToken.None).AsTask().WaitAndGetResult(CancellationToken.None);
 
             var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
             if (snippet != null)

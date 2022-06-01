@@ -363,9 +363,6 @@
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
-  <data name="IDS_ParameterNullChecking" xml:space="preserve">
-    <value>parameter null-checking</value>
-  </data>
   <data name="IDS_Parameter" xml:space="preserve">
     <value>parameter</value>
   </data>
@@ -1704,7 +1701,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>One of the parameters of a binary operator must be the containing type</value>
   </data>
   <data name="ERR_BadShiftOperatorSignature" xml:space="preserve">
-    <value>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</value>
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type</value>
   </data>
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
     <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
@@ -6172,29 +6169,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
   </data>
-  <data name="ERR_DiscardCannotBeNullChecked" xml:space="preserve">
-    <value>Discard parameter cannot be null-checked.</value>
-  </data>
-  <data name="ERR_MustNullCheckInImplementation" xml:space="preserve">
-    <value>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</value>
-  </data>
-  <data name="ERR_NonNullableValueTypeIsNullChecked" xml:space="preserve">
-    <value>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</value>
-  </data>
-  <data name="WRN_NullCheckedHasDefaultNull" xml:space="preserve">
-    <value>Parameter '{0}' is null-checked but is null by default.</value>
-  </data>
-  <data name="WRN_NullCheckedHasDefaultNull_Title" xml:space="preserve">
-    <value>Parameter is null-checked but is null by default.</value>
-  </data>
-  <data name="ERR_NullCheckingOnOutParameter" xml:space="preserve">
-    <value>'out' parameter '{0}' cannot be null-checked.</value>
-  </data>
-  <data name="WRN_NullCheckingOnNullableType" xml:space="preserve">
-    <value>Nullable type '{0}' is null-checked and will throw if null.</value>
-  </data>
-  <data name="WRN_NullCheckingOnNullableType_Title" xml:space="preserve">
-    <value>Nullable type is null-checked and will throw if null.</value>
+  <data name="ERR_ParameterNullCheckingNotSupported" xml:space="preserve">
+    <value>The 'parameter null-checking' feature is not supported.</value>
   </data>
   <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
@@ -6446,7 +6422,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use '{0}' as a calling convention modifier.</value>
   </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
-    <value>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</value>
+    <value>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</value>
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</value>
@@ -6575,7 +6551,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>extension GetEnumerator</value>
   </data>
   <data name="ERR_UnmanagedCallersOnlyRequiresStatic" xml:space="preserve">
-    <value>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</value>
+    <value>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
   <data name="ERR_InvalidUnmanagedCallersOnlyCallConv" xml:space="preserve">
@@ -6911,7 +6887,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Target runtime doesn't support static abstract members in interfaces.</value>
   </data>
   <data name="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers" xml:space="preserve">
-    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</value>
+    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</value>
   </data>
   <data name="ERR_BadAbstractUnaryOperatorSignature" xml:space="preserve">
     <value>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</value>
@@ -6926,13 +6902,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</value>
   </data>
   <data name="ERR_BadAbstractShiftOperatorSignature" xml:space="preserve">
-    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</value>
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</value>
   </data>
   <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
-    <value>A static abstract interface member can be accessed only on a type parameter.</value>
+    <value>A static virtual or abstract interface member can be accessed only on a type parameter.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsAbstractStaticMemberAccess" xml:space="preserve">
-    <value>An expression tree may not contain an access of static abstract interface member</value>
+    <value>An expression tree may not contain an access of static virtual or abstract interface member</value>
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberNotStatic" xml:space="preserve">
     <value>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</value>
@@ -7055,6 +7031,39 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
+  <data name="ERR_RequiredNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'required'.</value>
+  </data>
+  <data name="IDS_FeatureRequiredMembers" xml:space="preserve">
+    <value>required members</value>
+  </data>
+  <data name="ERR_OverrideMustHaveRequired" xml:space="preserve">
+    <value>'{0}' must be required because it overrides required member '{1}'</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeHidden" xml:space="preserve">
+    <value>Required member '{0}' cannot be hidden by '{1}'.</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeLessVisibleThanContainingType" xml:space="preserve">
+    <value>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</value>
+  </data>
+  <data name="ERR_ExplicitRequiredMember" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSettable" xml:space="preserve">
+    <value>Required member '{0}' must be settable.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
+  </data>
+  <data name="ERR_RequiredMembersMustBeAssignedValue" xml:space="preserve">
+    <value>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</value>
+  </data>
+  <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
+    <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
+  </data>
+  <data name="ERR_RequiredMembersBaseTypeInvalid" xml:space="preserve">
+    <value>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</value>
+  </data>
   <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
@@ -7080,15 +7089,39 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The operator '{0}' requires a matching non-checked version of the operator to also be defined</value>
   </data>
   <data name="ERR_CannotBeConvertedToUTF8" xml:space="preserve">
-    <value>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</value>
+    <value>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</value>
   </data>
   <data name="IDS_FeatureUTF8StringLiterals" xml:space="preserve">
-    <value>Utf8 String Literals</value>
+    <value>UTF-8 string literals</value>
   </data>
   <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
-    <value>An expression tree may not contain UTF8 string conversion or literal.</value>
+    <value>An expression tree may not contain UTF-8 string conversion or literal.</value>
+  </data>
+  <data name="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers" xml:space="preserve">
+    <value>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</value>
+  </data>
+  <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
+    <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
   </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
+  </data>
+  <data name="IDS_FeatureRelaxedShiftOperator" xml:space="preserve">
+    <value>relaxed shift operator</value>
+  </data>
+  <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
+    <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired" xml:space="preserve">
+    <value>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired_Title" xml:space="preserve">
+    <value>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="ERR_RefReturningPropertiesCannotBeRequired" xml:space="preserve">
+    <value>Ref returning properties cannot be required.</value>
+  </data>
+  <data name="ERR_MisplacedUnchecked" xml:space="preserve">
+    <value>Unexpected keyword 'unchecked'</value>
   </data>
 </root>

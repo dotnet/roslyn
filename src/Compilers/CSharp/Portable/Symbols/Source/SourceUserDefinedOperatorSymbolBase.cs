@@ -50,10 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
-                !IsAbstract && (methodKind == MethodKind.Conversion || name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))
+                !IsAbstract &&
+                !(syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken)))
             {
-                // If we have an unsupported conversion or equality/inequality operator in an interface, we already have reported that fact as 
-                // an error. No need to cascade the error further.
+                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, this.Locations[0]);
+                // No need to cascade the error further.
                 return;
             }
 
@@ -88,6 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsAbstract && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
+            }
+            else if (IsAbstract && IsVirtual)
+            {
+                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
             else if (hasBody && (IsExtern || IsAbstract))
             {
@@ -137,19 +142,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
                     {
-                        allowedModifiers |= DeclarationModifiers.Sealed;
+                        allowedModifiers |= DeclarationModifiers.Sealed | DeclarationModifiers.Virtual;
                     }
                 }
             }
+            else if (inInterface)
+            {
+                Debug.Assert(isExplicitInterfaceImplementation);
+                allowedModifiers |= DeclarationModifiers.Abstract;
+            }
 
             var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                isForTypeDeclaration: false, isForInterfaceMember: inInterface,
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
 
             if (inInterface)
             {
-                if ((result & (DeclarationModifiers.Abstract | DeclarationModifiers.Sealed)) != 0)
+                if ((result & (DeclarationModifiers.Abstract | DeclarationModifiers.Virtual | DeclarationModifiers.Sealed)) != 0)
                 {
-                    if ((result & (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract))
+                    if ((result & DeclarationModifiers.Sealed) != 0 &&
+                        (result & (DeclarationModifiers.Abstract | DeclarationModifiers.Virtual)) != 0)
                     {
                         diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.Sealed));
                         result &= ~DeclarationModifiers.Sealed;
@@ -163,7 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
                         var availableVersionArgument = availableVersion.ToDisplayString();
 
-                        reportModifierIfPresent(result, DeclarationModifiers.Abstract, location, diagnostics, requiredVersionArgument, availableVersionArgument);
+                        if ((result & DeclarationModifiers.Abstract) != 0)
+                        {
+                            reportModifierIfPresent(result, DeclarationModifiers.Abstract, location, diagnostics, requiredVersionArgument, availableVersionArgument);
+                        }
+                        else
+                        {
+                            reportModifierIfPresent(result, DeclarationModifiers.Virtual, location, diagnostics, requiredVersionArgument, availableVersionArgument);
+                        }
+
                         reportModifierIfPresent(result, DeclarationModifiers.Sealed, location, diagnostics, requiredVersionArgument, availableVersionArgument);
                     }
 
@@ -172,6 +192,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if ((result & DeclarationModifiers.Static) != 0 && syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
                 {
                     Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                }
+            }
+
+            if (isExplicitInterfaceImplementation)
+            {
+                if ((result & DeclarationModifiers.Abstract) != 0)
+                {
+                    result |= DeclarationModifiers.Sealed;
                 }
             }
 
@@ -558,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // The parameter of a unary operator must be the containing type
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
             }
 
             if (this.ReturnsVoid)
@@ -583,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // The parameter of a unary operator must be the containing type
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
             }
         }
 
@@ -633,16 +661,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(parameterType.StrippedType()))
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractIncDecSignature : ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractIncDecSignature : ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
             }
             else if (!(parameterType.IsTypeParameter() ?
                          this.ReturnType.Equals(parameterType, ComparisonForUserDefinedOperators) :
-                         ((IsAbstract && IsContainingType(parameterType) && IsSelfConstrainedTypeParameter(this.ReturnType)) ||
+                         (((IsAbstract || IsVirtual) && IsContainingType(parameterType) && IsSelfConstrainedTypeParameter(this.ReturnType)) ||
                              this.ReturnType.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))))
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractIncDecRetType : ErrorCode.ERR_BadIncDecRetType, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractIncDecRetType : ErrorCode.ERR_BadIncDecRetType, this.Locations[0]);
             }
 
             diagnostics.Add(this.Locations[0], useSiteInfo);
@@ -650,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool MatchesContainingType(TypeSymbol type)
         {
-            return IsContainingType(type) || (IsAbstract && IsSelfConstrainedTypeParameter(type));
+            return IsContainingType(type) || ((IsAbstract || IsVirtual) && IsSelfConstrainedTypeParameter(type));
         }
 
         private bool IsContainingType(TypeSymbol type)
@@ -677,16 +705,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A binary <<, >> or >>> operator must take two parameters, the first
-            // SPEC: of which must have type T or T? and the second of which must
-            // SPEC: have type int or int?, and can return any type.
+            // SPEC: of which must have type T or T?, the second of which can
+            // SPEC: have any type. The operator can return any type.
 
-            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()) ||
-                this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
+            if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
-                //         same type as the containing type, and the type of the second 
-                //         operand must be int
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadShiftOperatorSignature, this.Locations[0]);
+                //         same type as the containing type
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadShiftOperatorSignature, this.Locations[0]);
+            }
+            else if (this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
+            {
+                var location = this.Locations[0];
+                Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRelaxedShiftOperator, diagnostics, location);
             }
 
             if (this.ReturnsVoid)
@@ -705,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !MatchesContainingType(this.GetParameterType(1).StrippedType()))
             {
                 // CS0563: One of the parameters of a binary operator must be the containing type
-                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractBinaryOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add((IsAbstract || IsVirtual) ? ErrorCode.ERR_BadAbstractBinaryOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
             }
 
             if (this.ReturnsVoid)

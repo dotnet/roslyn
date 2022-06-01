@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -85,10 +86,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var root = editor.OriginalRoot;
             var currentRoot = root.TrackNodes(nodesToTrack);
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
-            var makeStaticIfPossible = languageVersion >= LanguageVersion.CSharp8 &&
-                optionSet.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
+            bool makeStaticIfPossible;
+
+            if (languageVersion >= LanguageVersion.CSharp8)
+            {
+                var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                makeStaticIfPossible = options.PreferStaticLocalFunction.Value;
+            }
+            else
+            {
+                makeStaticIfPossible = false;
+            }
 
             // Process declarations in reverse order so that we see the effects of nested
             // declarations befor processing the outer decls.

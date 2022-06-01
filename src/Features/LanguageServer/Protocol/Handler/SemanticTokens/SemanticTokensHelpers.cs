@@ -38,6 +38,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.ExtensionMethodName,
             ClassificationTypeNames.FieldName,
             ClassificationTypeNames.InterfaceName,
+
+            ClassificationTypeNames.JsonArray,
+            ClassificationTypeNames.JsonComment,
+            ClassificationTypeNames.JsonConstructorName,
+            ClassificationTypeNames.JsonKeyword,
+            ClassificationTypeNames.JsonNumber,
+            ClassificationTypeNames.JsonObject,
+            ClassificationTypeNames.JsonOperator,
+            ClassificationTypeNames.JsonPropertyName,
+            ClassificationTypeNames.JsonPunctuation,
+            ClassificationTypeNames.JsonString,
+            ClassificationTypeNames.JsonText,
+
             ClassificationTypeNames.LabelName,
             ClassificationTypeNames.LocalName,
             ClassificationTypeNames.MethodName,
@@ -98,8 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         // TO-DO: Expand this mapping once support for custom token types is added:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
-        private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
-            new Dictionary<string, string>
+        internal static readonly Dictionary<string, string> ClassificationTypeToSemanticTokenTypeMap =
+            new()
             {
                 [ClassificationTypeNames.Comment] = LSP.SemanticTokenTypes.Comment,
                 [ClassificationTypeNames.Identifier] = LSP.SemanticTokenTypes.Variable,
@@ -144,11 +157,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // By default we calculate the tokens for the full document span, although the user 
             // can pass in a range if they wish.
             var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
-
-            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
-            // results but will speed up how quickly we can respond to the client's request.
-            document = document.WithFrozenPartialSemantics(cancellationToken);
-            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
                 document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
@@ -206,7 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return classifiedSpans.ToArray();
         }
 
-        private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
+        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
         {
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var updatedClassifiedSpans);
 
@@ -412,7 +420,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
         {
-            if (!s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr))
+            if (!ClassificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr))
             {
                 tokenTypeStr = classificationType;
             }
