@@ -3422,8 +3422,10 @@ class C
 
             var document = solution.GetRequiredDocument(documentId);
 
+#pragma warning disable RS0030 // Do not used banned APIs
             var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
             Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+#pragma warning restore
 
             var syntaxTree = await document.GetSyntaxTreeAsync();
             var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);

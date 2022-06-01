@@ -27,19 +27,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
             Checksum solutionChecksum,
-            ProjectId projectId,
-            DocumentId? documentIdForGlobalImports,
+            DocumentId documentId,
             TextSpan spanToSearch,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool includeGlobalImports,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, solution =>
             {
-                var project = solution.GetRequiredProject(projectId);
-                var service = (AbstractInheritanceMarginService)project.GetRequiredLanguageService<IInheritanceMarginService>();
-                var documentForGlobaImports = solution.GetDocument(documentIdForGlobalImports);
-
-                return service.GetInheritanceMemberItemAsync(project, documentForGlobaImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken);
+                var document = solution.GetRequiredDocument(documentId);
+                var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
+                return service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken);
             }, cancellationToken);
         }
     }

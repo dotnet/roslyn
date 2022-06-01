@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // (and importantly not any of the documents where we change the call sites, below)
             // For records we don't use this however, but rather leave the parameters exactly as the tuple elements
             // were defined, since they function as both the parameters and the property names.
-            var parameterNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+            var parameterNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Next, generate the full struct that will be used to replace all instances of this
             // tuple type.

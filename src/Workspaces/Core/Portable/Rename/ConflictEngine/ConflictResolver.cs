@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Renamer_ResolveConflictsAsync, cancellationToken))
             {
                 var solution = renameLocationSet.Solution;
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);

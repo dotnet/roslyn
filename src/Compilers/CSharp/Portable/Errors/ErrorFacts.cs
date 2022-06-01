@@ -457,8 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
-                case ErrorCode.WRN_NullCheckedHasDefaultNull:
-                case ErrorCode.WRN_NullCheckingOnNullableType:
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_ShouldNotReturn:
@@ -501,6 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
                 case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
+                case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                     return 1;
                 default:
                     return 0;

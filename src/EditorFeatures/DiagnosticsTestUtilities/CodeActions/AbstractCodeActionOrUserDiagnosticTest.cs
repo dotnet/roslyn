@@ -185,13 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-            workspace.ApplyOptions(parameters.options);
-
-            if (parameters.globalOptions != null)
-            {
-                workspace.ApplyOptions(parameters.globalOptions);
-                parameters.globalOptions.SetGlobalOptions(workspace.GlobalOptions);
-            }
+            parameters.globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
 #endif
             return workspace;
         }

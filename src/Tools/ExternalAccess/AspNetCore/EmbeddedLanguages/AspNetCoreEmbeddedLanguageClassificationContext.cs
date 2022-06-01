@@ -12,9 +12,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
     {
         private readonly EmbeddedLanguageClassificationContext _context;
 
-        public AspNetCoreEmbeddedLanguageClassificationContext(EmbeddedLanguageClassificationContext context)
+        internal AspNetCoreEmbeddedLanguageClassificationContext(
+            EmbeddedLanguageClassificationContext context,
+            AspNetCoreVirtualCharSequence virtualCharSequence)
         {
             _context = context;
+            VirtualCharSequence = virtualCharSequence;
         }
 
         /// <inheritdoc cref="EmbeddedLanguageClassificationContext.SyntaxToken"/>
@@ -22,6 +25,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 
         /// <inheritdoc cref="EmbeddedLanguageClassificationContext.SemanticModel"/>
         public SemanticModel SemanticModel => _context.SemanticModel;
+
+        /// <inheritdoc cref="Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence"/>
+        public AspNetCoreVirtualCharSequence VirtualCharSequence { get; }
 
         /// <inheritdoc cref="EmbeddedLanguageClassificationContext.CancellationToken"/>
         public CancellationToken CancellationToken => _context.CancellationToken;

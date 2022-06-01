@@ -52,7 +52,11 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _transformTable.ToImmutableAndFree());
             }
 
-            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(
+                Lazy<SyntaxNode> root,
+                EntryState state,
+                Lazy<SemanticModel>? model,
+                CancellationToken cancellationToken)
             {
                 // We always have no inputs steps into a SyntaxInputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
                 var noInputStepsStepInfo = _filterTable.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;

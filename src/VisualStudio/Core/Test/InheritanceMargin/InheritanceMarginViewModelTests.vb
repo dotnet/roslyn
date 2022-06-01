@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
                 ' For these tests, we need to be on UI thread, so don't call ConfigureAwait(False)
                 Dim root = Await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(True)
                 Dim inheritanceItems = Await service.GetInheritanceMemberItemsAsync(
-                    document, root.FullSpan, includeGlobalImports:=True, cancellationToken).ConfigureAwait(True)
+                    document, root.FullSpan, includeGlobalImports:=True, frozenPartialSemantics:=True, cancellationToken).ConfigureAwait(True)
 
                 Dim acutalLineToTagDictionary = inheritanceItems.GroupBy(Function(item) item.LineNumber) _
                     .ToDictionary(Function(grouping) grouping.Key,

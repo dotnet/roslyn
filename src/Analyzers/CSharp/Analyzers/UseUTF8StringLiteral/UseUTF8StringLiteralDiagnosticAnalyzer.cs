@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
-                CSharpCodeStyleOptions.PreferUTF8StringLiterals,
+                CSharpCodeStyleOptions.PreferUtf8StringLiterals,
                 LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
 
                 var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
 
-                context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
+                // Temporarily disabling, https://github.com/dotnet/roslyn/issues/61517 tracks the follow up work  
+                // context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
             });
 
         private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             var arrayCreationOperation = (IArrayCreationOperation)context.Operation;
 
             // Don't offer if the user doesn't want it
-            var option = context.GetOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals);
+            var option = context.GetCSharpAnalyzerOptions().PreferUtf8StringLiterals;
             if (!option.Value)
                 return;
 

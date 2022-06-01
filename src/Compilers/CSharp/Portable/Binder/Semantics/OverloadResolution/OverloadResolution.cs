@@ -3033,7 +3033,7 @@ outerDefault:
                 case SpecialType.System_Int16:
                 case SpecialType.System_Int32:
                 case SpecialType.System_Int64:
-                case SpecialType.System_IntPtr:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
                     return true;
 
                 default:
@@ -3054,7 +3054,7 @@ outerDefault:
                 case SpecialType.System_UInt16:
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
-                case SpecialType.System_UIntPtr:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     return true;
 
                 default:
