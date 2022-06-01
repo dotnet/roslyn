@@ -2,15 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Drawing;
-using System.Reflection;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -22,21 +17,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// DefinitionItem used for navigation.
         /// </summary>
-        public DetachedDefinitionItem DefinitionItem { get; }
+        public DefinitionItem.DetachedDefinitionItem DefinitionItem { get; }
 
         // Internal for testing purpose
         internal TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
-            DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
+            string automationName,
+            DefinitionItem.DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker, automationName)
         {
             DefinitionItem = definitionItem;
         }
 
-        public static TargetMenuItemViewModel Create(InheritanceTargetItem target, string displayContent)
-            => new(
+        public static TargetMenuItemViewModel Create(InheritanceTargetItem target)
+        {
+            var displayContent = target.DisplayName;
+            var imageMoniker = target.Glyph.GetImageMoniker();
+            return new TargetMenuItemViewModel(
                 displayContent,
-                target.Glyph.GetImageMoniker(),
+                imageMoniker,
+                displayContent,
                 target.DefinitionItem);
+        }
     }
 }

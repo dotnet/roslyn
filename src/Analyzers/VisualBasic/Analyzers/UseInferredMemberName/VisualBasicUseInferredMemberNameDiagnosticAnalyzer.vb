@@ -24,27 +24,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 SyntaxKind.NameColonEquals, SyntaxKind.NamedFieldInitializer)
         End Sub
 
-        Protected Overrides Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
+        Protected Overrides Sub LanguageSpecificAnalyzeSyntax(context As SyntaxNodeAnalysisContext,
+                syntaxTree As SyntaxTree,
+                options As AnalyzerOptions,
+                cancellationToken As CancellationToken)
+            Dim parseOptions = DirectCast(syntaxTree.Options, VisualBasicParseOptions)
             Select Case context.Node.Kind()
                 Case SyntaxKind.NameColonEquals
-                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context)
+                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NameColonEqualsSyntax), context, options, syntaxTree, parseOptions, cancellationToken)
                     Exit Select
                 Case SyntaxKind.NamedFieldInitializer
-                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NamedFieldInitializerSyntax), context)
+                    ReportDiagnosticsIfNeeded(DirectCast(context.Node, NamedFieldInitializerSyntax), context, options, syntaxTree, cancellationToken)
                     Exit Select
             End Select
         End Sub
 
-        Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax, context As SyntaxNodeAnalysisContext)
+        Private Sub ReportDiagnosticsIfNeeded(nameColonEquals As NameColonEqualsSyntax,
+                context As SyntaxNodeAnalysisContext,
+                options As AnalyzerOptions,
+                syntaxTree As SyntaxTree,
+                parseOptions As VisualBasicParseOptions,
+                cancellationToken As CancellationToken)
 
             If Not nameColonEquals.IsParentKind(SyntaxKind.SimpleArgument) Then
                 Return
             End If
 
-            Dim syntaxTree = context.Node.SyntaxTree
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
-            Dim preference = context.GetAnalyzerOptions().PreferInferredTupleNames
-            If Not preference.Value OrElse Not CanSimplifyTupleName(argument, DirectCast(syntaxTree.Options, VisualBasicParseOptions)) Then
+            Dim preference = options.GetOption(
+                CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken)
+            If Not preference.Value OrElse
+                Not CanSimplifyTupleName(argument, parseOptions) Then
                 Return
             End If
 
@@ -59,20 +69,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
 
-        Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext)
+        Private Sub ReportDiagnosticsIfNeeded(
+                fieldInitializer As NamedFieldInitializerSyntax,
+                context As SyntaxNodeAnalysisContext,
+                options As AnalyzerOptions,
+                syntaxTree As SyntaxTree,
+                cancellationToken As CancellationToken)
             If Not fieldInitializer.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
                 Return
             End If
 
-            Dim preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames
-            If Not preference.Value OrElse Not CanSimplifyNamedFieldInitializer(fieldInitializer) Then
+            Dim preference = options.GetOption(
+                CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken)
+            If Not preference.Value OrElse
+                Not CanSimplifyNamedFieldInitializer(fieldInitializer) Then
+
                 Return
             End If
 
             Dim fadeSpan = TextSpan.FromBounds(fieldInitializer.Name.SpanStart, fieldInitializer.EqualsToken.Span.End)
 
             ' Create a normal diagnostic
-            Dim syntaxTree = context.Node.SyntaxTree
             context.ReportDiagnostic(
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,

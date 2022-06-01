@@ -327,11 +327,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
-        /// <summary>
-        /// Returns true if this field is required to be set in an object initializer on object creation.
-        /// </summary>
-        internal abstract bool IsRequired { get; }
-
         #region Use-Site Diagnostics
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
@@ -373,16 +368,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if the error code is highest priority while calculating use site error for this symbol. 
+        /// Return error code that has highest priority while calculating use site error for this symbol. 
         /// </summary>
-        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus;
+        protected override int HighestPriorityUseSiteError
+        {
+            get
+            {
+                return (int)ErrorCode.ERR_BindToBogus;
+            }
+        }
 
         public sealed override bool HasUnsupportedMetadata
         {
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && info.Code is (int)ErrorCode.ERR_BindToBogus or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
+                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
 

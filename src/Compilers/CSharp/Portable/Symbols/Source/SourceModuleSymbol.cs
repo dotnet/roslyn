@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
-        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -25,9 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     internal sealed partial class EventHookupSessionManager
     {
         public readonly IThreadingContext ThreadingContext;
-        private readonly IToolTipService _toolTipService;
-        private readonly IGlobalOptionService _globalOptions;
 
+        private readonly IToolTipService _toolTipService;
         private IToolTipPresenter _toolTipPresenter;
 
         internal EventHookupSession CurrentSession { get; set; }
@@ -37,14 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EventHookupSessionManager(
-            IThreadingContext threadingContext,
-            IToolTipService toolTipService,
-            IGlobalOptionService globalOptions)
+        public EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
         {
             ThreadingContext = threadingContext;
             _toolTipService = toolTipService;
-            _globalOptions = globalOptions;
         }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
@@ -118,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             IAsynchronousOperationListener asyncListener,
             Mutex testSessionHookupMutex)
         {
-            CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, _globalOptions, testSessionHookupMutex);
+            CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, testSessionHookupMutex);
         }
 
         internal void CancelAndDismissExistingSessions()

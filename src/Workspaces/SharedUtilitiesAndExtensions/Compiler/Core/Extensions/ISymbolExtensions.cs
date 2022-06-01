@@ -280,9 +280,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 _ => false,
             };
 
-        public static bool IsRequired([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
-
         public static ITypeSymbol? GetMemberType(this ISymbol symbol)
             => symbol switch
             {
@@ -345,11 +342,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.OriginalDefinition;
         }
 
-        public static bool IsFunctionValue([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is ILocalSymbol { IsFunctionValue: true };
+        public static bool IsFunctionValue([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => symbol is ILocalSymbol && ((ILocalSymbol)symbol).IsFunctionValue;
 
-        public static bool IsThisParameter([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is IParameterSymbol { IsThis: true };
+        public static bool IsThisParameter([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => symbol?.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
 
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ISymbol? ConvertThisParameterToType(this ISymbol? symbol)
@@ -688,8 +685,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return x is
                 {
                     Name: WellKnownMemberNames.MoveNextMethodName,
-                    ReturnType.SpecialType: SpecialType.System_Boolean,
-                    Parameters.Length: 0,
+                    ReturnType: { SpecialType: SpecialType.System_Boolean },
+                    Parameters: { Length: 0 },
                 };
             }))
             {

@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -100,9 +99,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             switch (type)
             {
-                case EnumerableType.SegmentedHashSet:
+                case EnumerableType.HashSet:
                     Debug.Assert(numberOfDuplicateElements == 0, "Can not create a HashSet with duplicate elements - numberOfDuplicateElements must be zero");
-                    return CreateSegmentedHashSet(enumerableToMatchTo, count, numberOfMatchingElements);
+                    return CreateHashSet(enumerableToMatchTo, count, numberOfMatchingElements);
                 case EnumerableType.List:
                     return CreateList(enumerableToMatchTo, count, numberOfMatchingElements, numberOfDuplicateElements);
                 case EnumerableType.SortedSet:
@@ -222,16 +221,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         /// to it until it is full. It will begin by adding the desired number of matching,
         /// followed by random (deterministic) elements until the desired count is reached.
         /// </summary>
-        protected IEnumerable<T> CreateSegmentedHashSet(IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements)
+        protected IEnumerable<T> CreateHashSet(IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements)
         {
-            SegmentedHashSet<T> set = new SegmentedHashSet<T>(GetIEqualityComparer());
+            HashSet<T> set = new HashSet<T>(GetIEqualityComparer());
             int seed = 528;
-            SegmentedList<T>? match = null;
+            List<T>? match = null;
 
             // Add Matching elements
             if (enumerableToMatchTo != null)
             {
-                match = enumerableToMatchTo.ToSegmentedList();
+                match = enumerableToMatchTo.ToList();
                 for (int i = 0; i < numberOfMatchingElements; i++)
                     set.Add(match[i]);
             }

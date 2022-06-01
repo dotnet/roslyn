@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
         private readonly IMoveStaticMembersOptionsService _service;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
         public TextSpan Span { get; }
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
@@ -38,13 +37,11 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             TextSpan span,
             IMoveStaticMembersOptionsService service,
             INamedTypeSymbol selectedType,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
             ISymbol? selectedMember = null)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
-            _fallbackOptions = fallbackOptions;
             _selectedMember = selectedMember;
             Span = span;
         }
@@ -98,7 +95,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 _document.Folders,
                 newType,
                 _document,
-                _fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // get back type declaration in the newly created file
@@ -122,7 +118,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-            var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
         }

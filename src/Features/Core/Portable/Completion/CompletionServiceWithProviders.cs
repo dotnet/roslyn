@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -63,9 +61,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
             => _providerManager.GetImportedProviders();
-
-        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
-            => ProviderManager.GetProjectCompletionProviders(project);
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
             => _providerManager.GetProviders(roles);
@@ -148,14 +143,10 @@ namespace Microsoft.CodeAnalysis.Completion
             var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
             triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
-            // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
-            // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
-            var sharedContext = new SharedSyntaxContextsWithSpeculativeModel(document, caretPosition);
-
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             // Note: we keep any context with items *or* with a suggested item.  
             var triggeredContexts = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, sharedContext, cancellationToken).ConfigureAwait(false);
+                document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, cancellationToken).ConfigureAwait(false);
 
             // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
             if (!triggeredContexts.Any(cc => cc.Items.Count > 0))
@@ -174,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
 
             var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan, augmentingProviders, sharedContext, cancellationToken).ConfigureAwait(false);
+                document, caretPosition, trigger, options, defaultItemSpan, augmentingProviders, cancellationToken).ConfigureAwait(false);
 
             GC.KeepAlive(semanticModel);
 
@@ -309,7 +300,6 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document, int caretPosition, CompletionTrigger trigger,
             CompletionOptions options, TextSpan defaultItemSpan,
             ImmutableArray<CompletionProvider> providers,
-            SharedSyntaxContextsWithSpeculativeModel sharedContext,
             CancellationToken cancellationToken)
         {
             var completionContextTasks = new List<Task<CompletionContext>>();
@@ -317,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 completionContextTasks.Add(GetContextAsync(
                     provider, document, caretPosition, trigger,
-                    options, defaultItemSpan, sharedContext, cancellationToken));
+                    options, defaultItemSpan, cancellationToken));
             }
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
@@ -406,10 +396,9 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger triggerInfo,
             CompletionOptions options,
             TextSpan defaultSpan,
-            SharedSyntaxContextsWithSpeculativeModel? sharedContext,
             CancellationToken cancellationToken)
         {
-            var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
+            var context = new CompletionContext(provider, document, position, defaultSpan, triggerInfo, options, cancellationToken);
             await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
             return context;
         }
@@ -570,7 +559,6 @@ namespace Microsoft.CodeAnalysis.Completion
                     triggerInfo,
                     options,
                     defaultItemSpan,
-                    sharedContext: null,
                     cancellationToken).ConfigureAwait(false);
             }
 

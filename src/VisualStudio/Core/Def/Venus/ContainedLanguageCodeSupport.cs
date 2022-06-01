@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         public static string CreateUniqueEventName(
-            Document document, IGlobalOptionService globalOptions, string className, string objectName, string nameOfEvent, CancellationToken cancellationToken)
+            Document document, string className, string objectName, string nameOfEvent, CancellationToken cancellationToken)
         {
             var type = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(className);
             var name = objectName + "_" + nameOfEvent;
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
             var codeModel = document.GetRequiredLanguageService<ICodeModelNavigationPointService>();
-            var options = document.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
             var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
 
@@ -152,7 +152,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemidInsertionPoint,
             bool useHandlesClause,
             AbstractFormattingRule additionalFormattingRule,
-            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
@@ -210,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-            var documentOptions = targetDocument.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+            var documentOptions = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var insertionPoint = codeModel.GetEndPoint(destinationType, documentOptions, EnvDTE.vsCMPart.vsCMPartBody);
 
             if (insertionPoint == null)
@@ -218,16 +217,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var fallbackOptions = targetDocument.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().CleanCodeGenerationOptionsProvider;
+            var globalOptions = targetDocument.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().GlobalOptions;
 
-            var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+            var options = codeGenerationService.GetOptions(
+                targetSyntaxTree.Options,
+                documentOptions,
+                new CodeGenerationContext(autoInsertionLocation: false));
 
-            var info = options.GenerationOptions.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), targetDocument.Project);
-            var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
+            var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var simplifierOptions = targetDocument.GetSimplifierOptionsAsync(globalOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+
             newRoot = Simplifier.ReduceAsync(
-                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, options.CleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
+                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
@@ -235,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace.Services,
-                options.CleanupOptions.FormattingOptions,
+                formattingOptions,
                 formattingRules,
                 cancellationToken);
 
@@ -254,7 +258,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public static bool TryGetMemberNavigationPoint(
             Document thisDocument,
-            IGlobalOptionService globalOptions,
             string className,
             string uniqueMemberID,
             out VsTextSpan textSpan,
@@ -277,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             if (memberNode != null)
             {
                 var memberNodeDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
-                var options = memberNodeDocument.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+                var options = memberNodeDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var navigationPoint = codeModel.GetStartPoint(memberNode, options, EnvDTE.vsCMPart.vsCMPartNavigate);
                 if (navigationPoint != null)
                 {

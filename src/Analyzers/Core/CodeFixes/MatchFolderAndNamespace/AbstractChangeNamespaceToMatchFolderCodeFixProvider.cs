@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
@@ -35,7 +34,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                     CodeAction.Create(
                         AnalyzersResources.Change_namespace_to_match_folder_structure,
                         cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics,
-                        context.GetOptionsProvider(),
+#if CODE_STYLE
+                        options: _ => default,
+#else
+                        context.Options,
+#endif
                         cancellationToken),
                         nameof(AnalyzersResources.Change_namespace_to_match_folder_structure)),
                     context.Diagnostics);
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 documentWithInvalidFolders,
                 new DocumentRenameOptions(),
 #if !CODE_STYLE
-                options,
+                ChangeNamespaceOptions.CreateProvider(options),
 #endif
                 documentWithInvalidFolders.Name,
                 newDocumentFolders: targetFolders,

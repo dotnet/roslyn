@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         {
             private readonly RegexEmbeddedLanguage _language;
             private readonly CompletionContext _context;
-            private readonly HashSet<string> _names = new();
+            private readonly HashSet<string> _names;
 
             public readonly RegexTree Tree;
             public readonly SyntaxToken StringToken;
             public readonly int Position;
             public readonly CompletionTrigger Trigger;
-            public readonly List<RegexItem> Items = new();
+            public readonly List<RegexItem> Items;
 
             public EmbeddedCompletionContext(
                 RegexEmbeddedLanguage language,
@@ -33,10 +33,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             {
                 _language = language;
                 _context = context;
+                _names = new HashSet<string>();
                 Tree = tree;
                 StringToken = stringToken;
                 Position = _context.Position;
                 Trigger = _context.Trigger;
+                Items = new List<RegexItem>();
             }
 
             public void AddIfMissing(

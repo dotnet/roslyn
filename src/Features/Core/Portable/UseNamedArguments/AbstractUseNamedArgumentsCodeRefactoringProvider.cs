@@ -111,26 +111,23 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     potentialArgumentsToName > 1)
                 {
                     context.RegisterRefactoring(
-                        CodeAction.Create(
+                        new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false),
-                            nameof(FeaturesResources.Add_argument_name_0) + "_" + argumentName),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)),
                         argument.Span);
 
                     context.RegisterRefactoring(
-                        CodeAction.Create(
+                        new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0_including_trailing_arguments, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true),
-                            nameof(FeaturesResources.Add_argument_name_0_including_trailing_arguments) + "_" + argumentName),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
                         argument.Span);
                 }
                 else
                 {
                     context.RegisterRefactoring(
-                        CodeAction.Create(
+                        new MyCodeAction(
                             string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true),
-                            nameof(FeaturesResources.Add_argument_name_0) + "_" + argumentName),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)),
                         argument.Span);
                 }
             }
@@ -212,6 +209,14 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             if (_attributeArgumentAnalyzer != null)
             {
                 await _attributeArgumentAnalyzer.ComputeRefactoringsAsync(context, root).ConfigureAwait(false);
+            }
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
             }
         }
     }

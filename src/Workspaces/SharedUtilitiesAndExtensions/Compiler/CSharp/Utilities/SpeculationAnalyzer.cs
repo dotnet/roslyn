@@ -9,9 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Xml.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         ArgumentSyntax,
         CommonForEachStatementSyntax,
         ThrowStatementSyntax,
-        InvocationExpressionSyntax,
         Conversion>
     {
         /// <summary>
@@ -61,11 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             : base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
         {
         }
-
-        protected override CodeAnalysis.LanguageServices.ISyntaxFacts SyntaxFactsService { get; } = CSharpSyntaxFacts.Instance;
-
-        protected override bool CanAccessInstanceMemberThrough(ExpressionSyntax expression)
-            => expression.Kind() is SyntaxKind.ThisExpression or SyntaxKind.BaseExpression;
 
         protected override SyntaxNode GetSemanticRootForSpeculation(ExpressionSyntax expression)
         {

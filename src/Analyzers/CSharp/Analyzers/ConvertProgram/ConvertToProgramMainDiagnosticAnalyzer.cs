@@ -42,8 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
         private void ProcessCompilationUnit(SyntaxNodeAnalysisContext context)
         {
+            var options = context.Options;
             var root = (CompilationUnitSyntax)context.Node;
-            var option = context.GetCSharpAnalyzerOptions().PreferTopLevelStatements;
+
+            var optionSet = options.GetAnalyzerOptionSet(root.SyntaxTree, context.CancellationToken);
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
 
             if (!CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))
                 return;

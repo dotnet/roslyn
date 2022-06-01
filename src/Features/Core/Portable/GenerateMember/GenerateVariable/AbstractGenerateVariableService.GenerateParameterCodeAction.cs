@@ -17,14 +17,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _includeOverridesAndImplementations;
-            private readonly int _parameterIndex;
 
-            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex)
+            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations)
             {
                 _document = document;
                 _state = state;
                 _includeOverridesAndImplementations = includeOverridesAndImplementations;
-                _parameterIndex = parameterIndex;
             }
 
             public override string Title
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     _state.LocalType,
                     RefKind.None,
                     _state.IdentifierToken.ValueText,
-                    _parameterIndex,
+                    newParameterIndex: null,
                     _includeOverridesAndImplementations,
                     cancellationToken).AsNullable();
             }

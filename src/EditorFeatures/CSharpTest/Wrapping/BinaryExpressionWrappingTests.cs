@@ -20,17 +20,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
-        private TestParameters EndOfLine
-            => new(options: Option(CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.EndOfLine));
+        private OptionsCollection EndOfLine => Option(
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
+            OperatorPlacementWhenWrappingPreference.EndOfLine);
 
-        private TestParameters BeginningOfLine
-            => new(options: Option(CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.BeginningOfLine));
+        private OptionsCollection BeginningOfLine => Option(
+            CodeStyleOptions2.OperatorPlacementWhenWrapping,
+            OperatorPlacementWhenWrappingPreference.BeginningOfLine);
 
         private Task TestEndOfLine(string markup, string expected)
-            => TestInRegularAndScript1Async(markup, expected, EndOfLine);
+            => TestInRegularAndScript1Async(markup, expected, parameters: new TestParameters(
+                options: EndOfLine));
 
         private Task TestBeginningOfLine(string markup, string expected)
-            => TestInRegularAndScript1Async(markup, expected, BeginningOfLine);
+            => TestInRegularAndScript1Async(markup, expected, parameters: new TestParameters(
+                options: BeginningOfLine));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestMissingWithSyntaxError()

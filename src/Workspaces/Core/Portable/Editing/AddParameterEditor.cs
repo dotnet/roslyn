@@ -35,11 +35,10 @@ namespace Microsoft.CodeAnalysis.Editing
                 return;
             }
 
-            if (insertionIndex >= existingParameters.Count)
+            if (insertionIndex == existingParameters.Count)
             {
-                // The parameter is being added after the last parameter and needs to be placed on a new line.
-                // Get the indentation of the original last parameter and give the new parameter the same indentation.
-                // Even if we're adding multiple parameters past the original last parameter, we can give them all the identation of the original 'last' parameter.
+                // Placing the last parameter on its own line.  Get the indentation of the 
+                // curent last parameter and give the new last parameter the same indentation.
                 var leadingIndentation = GetDesiredLeadingIndentation(
                     generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)

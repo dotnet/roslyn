@@ -35,12 +35,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    FeaturesResources.Enable_all_JSON_editor_features,
-                    GetDocumentUpdater(context),
-                    nameof(FeaturesResources.Enable_all_JSON_editor_features)),
-                context.Diagnostics);
+            context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
             return Task.CompletedTask;
         }
 
@@ -58,12 +53,20 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
                 Fix(editor, diagnostic, cancellationToken);
 
             return Task.CompletedTask;
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Enable_all_JSON_editor_features, createChangedDocument, nameof(FeaturesResources.Enable_all_JSON_editor_features))
+            {
+            }
         }
     }
 }

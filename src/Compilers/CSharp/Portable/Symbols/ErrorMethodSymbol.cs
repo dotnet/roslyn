@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -275,14 +274,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
-
-        protected override bool HasSetsRequiredMembersImpl
-        {
-            get
-            {
-                Debug.Assert(MethodKind == MethodKind.Constructor);
-                return false;
-            }
-        }
     }
 }

@@ -5,13 +5,11 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Features.Intents
 {
-    internal sealed class IntentDataProvider
+    internal class IntentDataProvider
     {
         private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
         {
@@ -23,16 +21,11 @@ namespace Microsoft.CodeAnalysis.Features.Intents
             return serializerOptions;
         });
 
-        public readonly CleanCodeGenerationOptionsProvider FallbackOptions;
-
         private readonly string? _serializedIntentData;
 
-        public IntentDataProvider(
-            string? serializedIntentData,
-            CleanCodeGenerationOptionsProvider fallbackOptions)
+        public IntentDataProvider(string? serializedIntentData)
         {
             _serializedIntentData = serializedIntentData;
-            FallbackOptions = fallbackOptions;
         }
 
         public T? GetIntentData<T>() where T : class

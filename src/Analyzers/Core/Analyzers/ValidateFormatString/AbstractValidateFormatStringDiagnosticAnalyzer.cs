@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23583",
-            Constraint = "Reading editorconfig options is expensive and should be avoided if a syntax-based fast path exists.")]
+            Constraint = nameof(AnalyzerOptionsExtensions.GetOption) + " is expensive and should be avoided if a syntax-based fast path exists.")]
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
             var syntaxFacts = GetSyntaxFacts();
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            if (!context.GetIdeAnalyzerOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
+            if (!context.Options.GetIdeOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
             {
                 return;
             }

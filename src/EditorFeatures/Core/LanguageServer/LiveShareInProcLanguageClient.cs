@@ -25,20 +25,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [Export(typeof(ILanguageClient))]
     internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareInProcLanguageClient(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
+            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
         {
-            _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            var defaultCapabilities = _experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            var defaultCapabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
 
             // If the LSP semantic tokens feature flag is enabled, advertise no semantic tokens capabilities for this Live Share
             // LSP server as LSP semantic tokens requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and

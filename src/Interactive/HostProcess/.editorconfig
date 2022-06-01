@@ -1,2 +1,0 @@
-# Explicitly empty global editorconfig file to ensure we aren't accidentally applying unexpected rules to interactive documents
-global = true

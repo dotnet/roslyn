@@ -6,7 +6,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -15,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     // subclasses cannot change anything.  All code relevant to subclasses relating to refactorings
     // is contained in AbstractCodeStyleProvider.cs
 
-    internal abstract partial class AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>
+    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
     {
         private async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
 
-            var optionProvider = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
-            var optionValue = GetCodeStyleOption(optionProvider);
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var optionValue = optionSet.GetOption(_option);
 
             var severity = GetOptionSeverity(optionValue);
             switch (severity)
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private async Task ComputeRefactoringsAsync(
-            CodeRefactoringContext context, TOptionValue option, bool analyzerActive)
+            CodeRefactoringContext context, TOptionKind option, bool analyzerActive)
         {
             var (document, span, cancellationToken) = context;
 

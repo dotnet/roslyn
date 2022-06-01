@@ -40,6 +40,9 @@ namespace AnalyzerRunner
         internal readonly string LogFileName;
         internal readonly string ProfileRoot;
 
+        internal IdeAnalyzerOptions IdeOptions
+            => IdeAnalyzerOptions.Default;
+
         internal BackgroundAnalysisScope AnalysisScope
             => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
 

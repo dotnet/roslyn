@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.GetCSharpAnalyzerOptions().PreferDeconstructedVariableDeclaration;
+            var cancellationToken = context.CancellationToken;
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, context.Node.SyntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

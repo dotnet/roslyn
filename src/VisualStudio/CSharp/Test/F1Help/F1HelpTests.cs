@@ -1775,16 +1775,5 @@ class C
     }
 }", "checked");
         }
-
-        [Fact]
-        public async Task TestRequired()
-        {
-            await Test_KeywordAsync("""
-                public class C
-                {
-                    re[||]quired int Field;
-                }
-                """, "required");
-        }
     }
 }

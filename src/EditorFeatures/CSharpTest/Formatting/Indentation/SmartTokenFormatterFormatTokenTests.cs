@@ -645,9 +645,12 @@ class Program
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
+
             var buffer = workspace.Documents.First().GetTextBuffer();
 
-            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{', useTabs);
+            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{');
             Assert.Equal(expected, actual);
         }
 

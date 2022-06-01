@@ -23,20 +23,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         where TItem : TableItem
         where TData : notnull
     {
-        private readonly object _gate = new();
+        private readonly object _gate;
 
         // This map holds aggregation key to factory
         // Any data that shares same aggregation key will de-duplicated to same factory
-        private readonly Dictionary<object, TableEntriesFactory<TItem, TData>> _map = new();
+        private readonly Dictionary<object, TableEntriesFactory<TItem, TData>> _map;
 
         // This map holds each data source key to its aggregation key
-        private readonly Dictionary<object, object> _aggregateKeyMap = new();
+        private readonly Dictionary<object, object> _aggregateKeyMap;
 
         private ImmutableArray<SubscriptionWithoutLock> _subscriptions;
         protected bool IsStable;
 
         public AbstractTableDataSource(Workspace workspace, IThreadingContext threadingContext)
         {
+            _gate = new object();
+            _map = new Dictionary<object, TableEntriesFactory<TItem, TData>>();
+            _aggregateKeyMap = new Dictionary<object, object>();
+
             _subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
 
             Workspace = workspace;

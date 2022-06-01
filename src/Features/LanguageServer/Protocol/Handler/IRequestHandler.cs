@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Top level type for LSP request handler.
     /// </summary>
-    internal interface IRequestHandler : ILspService
+    internal interface IRequestHandler
     {
         /// <summary>
         /// Whether or not the solution state on the server is modified

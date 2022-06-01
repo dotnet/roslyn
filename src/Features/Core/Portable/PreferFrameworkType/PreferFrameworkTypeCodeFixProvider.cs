@@ -36,12 +36,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             var diagnostic = context.Diagnostics[0];
             if (diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType))
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        FeaturesResources.Use_framework_type,
-                        GetDocumentUpdater(context),
-                        nameof(FeaturesResources.Use_framework_type)),
-                    context.Diagnostics);
+                context.RegisterCodeFix(new PreferFrameworkTypeCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
             }
 
             return Task.CompletedTask;
@@ -49,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = document.GetLanguageService<SyntaxGenerator>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -69,5 +64,14 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType);
+
+        private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction
+        {
+            public PreferFrameworkTypeCodeAction(
+                Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Use_framework_type, createChangedDocument, FeaturesResources.Use_framework_type)
+            {
+            }
+        }
     }
 }

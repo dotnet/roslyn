@@ -240,55 +240,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Symbol implementedMember = null;
 
-            // Do not look in itself
-            if (containingType == (object)explicitInterfaceNamedType.OriginalDefinition)
+            if (!implementingMember.IsStatic || !containingType.IsInterface)
             {
-                // An error will be reported elsewhere.
-                // Either the interface is not implemented, or it causes a cycle in the interface hierarchy.
-                return null;
-            }
-
-            var hasParamsParam = implementingMember.HasParamsParameter();
-
-            foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
-            {
-                // At this point, we know that explicitInterfaceNamedType is an interface.
-                // However, metadata interface members can be static - we ignore them, as does Dev10.
-                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
+                // Do not look in itself
+                if (containingType == (object)explicitInterfaceNamedType.OriginalDefinition)
                 {
-                    continue;
+                    // An error will be reported elsewhere.
+                    // Either the interface is not implemented, or it causes a cycle in the interface hierarchy.
+                    return null;
                 }
 
-                if (interfaceMember is MethodSymbol interfaceMethod &&
-                    (interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator)
-                {
-                    continue;
-                }
+                var hasParamsParam = implementingMember.HasParamsParameter();
 
-                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
                 {
-                    foundMatchingMember = true;
-                    // Cannot implement accessor directly unless
-                    // the accessor is from an indexed property.
-                    if (interfaceMember.IsAccessor() && !((MethodSymbol)interfaceMember).IsIndexedPropertyAccessor())
+                    // At this point, we know that explicitInterfaceNamedType is an interface.
+                    // However, metadata interface members can be static - we ignore them, as does Dev10.
+                    if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                     {
-                        diagnostics.Add(ErrorCode.ERR_ExplicitMethodImplAccessor, memberLocation, implementingMember, interfaceMember);
+                        continue;
                     }
-                    else
-                    {
-                        if (interfaceMember.MustCallMethodsDirectly())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BogusExplicitImpl, memberLocation, implementingMember, interfaceMember);
-                        }
-                        else if (hasParamsParam && !interfaceMember.HasParamsParameter())
-                        {
-                            // Note: no error for !hasParamsParam && interfaceMethod.HasParamsParameter()
-                            // Still counts as an implementation.
-                            diagnostics.Add(ErrorCode.ERR_ExplicitImplParams, memberLocation, implementingMember, interfaceMember);
-                        }
 
-                        implementedMember = interfaceMember;
-                        break;
+                    if (interfaceMember is MethodSymbol interfaceMethod &&
+                        (interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator)
+                    {
+                        continue;
+                    }
+
+                    if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                    {
+                        foundMatchingMember = true;
+                        // Cannot implement accessor directly unless
+                        // the accessor is from an indexed property.
+                        if (interfaceMember.IsAccessor() && !((MethodSymbol)interfaceMember).IsIndexedPropertyAccessor())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ExplicitMethodImplAccessor, memberLocation, implementingMember, interfaceMember);
+                        }
+                        else
+                        {
+                            if (interfaceMember.MustCallMethodsDirectly())
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BogusExplicitImpl, memberLocation, implementingMember, interfaceMember);
+                            }
+                            else if (hasParamsParam && !interfaceMember.HasParamsParameter())
+                            {
+                                // Note: no error for !hasParamsParam && interfaceMethod.HasParamsParameter()
+                                // Still counts as an implementation.
+                                diagnostics.Add(ErrorCode.ERR_ExplicitImplParams, memberLocation, implementingMember, interfaceMember);
+                            }
+
+                            implementedMember = interfaceMember;
+                            break;
+                        }
                     }
                 }
             }

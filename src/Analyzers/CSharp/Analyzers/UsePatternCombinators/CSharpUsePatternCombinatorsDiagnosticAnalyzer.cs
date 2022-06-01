@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 return;
 
             var cancellationToken = context.CancellationToken;
-            var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatching;
+            var styleOption = context.Options.GetOption(CSharpCodeStyleOptions.PreferPatternMatching, syntaxTree, cancellationToken);
             if (!styleOption.Value)
                 return;
 

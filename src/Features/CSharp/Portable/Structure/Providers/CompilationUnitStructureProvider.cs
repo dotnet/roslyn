@@ -30,12 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             externsAndUsings.Sort((node1, node2) => node1.SpanStart.CompareTo(node2.SpanStart));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                externsAndUsings,
-                compressEmptyLines: false,
-                autoCollapse: true,
-                type: BlockTypes.Imports,
-                isCollapsible: true,
-                isDefaultCollapsed: options.CollapseImportsWhenFirstOpened));
+                externsAndUsings, compressEmptyLines: false, autoCollapse: true,
+                type: BlockTypes.Imports, isCollapsible: true));
 
             if (compilationUnit.Usings.Count > 0 ||
                 compilationUnit.Externs.Count > 0 ||

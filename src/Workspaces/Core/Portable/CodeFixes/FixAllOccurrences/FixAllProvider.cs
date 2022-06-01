@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// Implement this abstract type to provide fix all/multiple occurrences code fixes for source code problems.
     /// Alternatively, you can use any of the well known fix all providers from <see cref="WellKnownFixAllProviders"/>.
     /// </summary>
-    public abstract class FixAllProvider : IFixAllProvider
+    public abstract class FixAllProvider
     {
         private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
             = ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes)
         {
-            if (fixAllAsync is null)
+            if (fixAllAsync == null)
                 throw new ArgumentNullException(nameof(fixAllAsync));
 
             if (supportedFixAllScopes.IsDefault)
@@ -89,11 +88,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
         }
-
-        #region IFixAllProvider implementation
-        Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
-            => this.GetFixAsync((FixAllContext)fixAllContext);
-        #endregion
 
         private class CallbackDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
         {

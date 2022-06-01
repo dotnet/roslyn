@@ -985,7 +985,7 @@ class Program
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,30): error CS1003: Syntax error, ',' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(","));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",", ""));
         }
 
         [WorkItem(542486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542486")]
@@ -1004,7 +1004,7 @@ class Program
             // NOTE: Dev10 just gives a parse error on '2'
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,30): error CS1003: Syntax error, ',' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(","),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",", ""),
                 // (6,35): error CS0846: A nested array initializer is expected
                 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "1"));
         }
@@ -8043,11 +8043,9 @@ public class Derived : Base2
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         M(ref P); // CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(14, 15),
+                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("C.P"),
                 // (15,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         M(out this.Q); // CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "this.Q").WithLocation(15, 15));
+                Diagnostic(ErrorCode.ERR_RefProperty, "this.Q").WithArguments("C.Q"));
         }
 
         [Fact]
@@ -8073,11 +8071,9 @@ public class Derived : Base2
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (13,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         R(ref this[0]); // CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(13, 15),
+                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithArguments("C.this[int]"),
                 // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         O(out this[0]); // CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(14, 15));
+                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithArguments("C.this[int]"));
         }
 
         [Fact]
@@ -13451,38 +13447,27 @@ class C
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (7,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         ++local;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local").WithLocation(7, 11),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local"),
                 // (8,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         local++;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local"),
                 // (9,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         --field;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "field").WithLocation(9, 11),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "field"),
                 // (10,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         field--;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "field").WithLocation(10, 9),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "field"),
                 // (11,12): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         ++(local + 3);
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local + 3").WithLocation(11, 12),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local + 3"),
                 // (12,10): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         (local + 3)++;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local + 3").WithLocation(12, 10),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "local + 3"),
                 // (13,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         --2;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "2").WithLocation(13, 11),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "2"),
                 // (14,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         2--;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "2").WithLocation(14, 9),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "2"),
                 // (17,10): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         (d + 1)++;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "d + 1").WithLocation(17, 10),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "d + 1"),
                 // (18,12): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         --(d + 1);
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "d + 1").WithLocation(18, 12),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "d + 1"),
                 // (19,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
-                //         d++++;
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "d++").WithLocation(19, 9));
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "d++"));
         }
 
         [Fact]
@@ -13501,10 +13486,10 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         ++this; // CS1059
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "this").WithLocation(6, 11),
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "this").WithArguments("this"),
                 // (7,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         this--; // CS1059
-                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "this").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "this").WithArguments("this"));
         }
 
         [Fact]
@@ -14323,16 +14308,17 @@ public class A : Attribute
             .VerifyDiagnostics(
                 // (5,19): error CS1525: Invalid expression term ';'
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"),
                 // (5,19): error CS1003: Syntax error, ':' expected
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";"),
                 // (5,19): error CS1525: Invalid expression term ';'
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";"),
                 // (5,17): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         var s = 1?;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(5, 17));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
+                );
         }
 
         [Fact]
@@ -14352,37 +14338,16 @@ public class A : Attribute
     }
 }
 ")
-                .VerifyDiagnostics(
-                // (7,46): error CS1525: Invalid expression term ')'
-                //         System.Console.WriteLine(((x == y)) ?); // Invalid
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 46),
-                // (7,46): error CS1003: Syntax error, ':' expected
-                //         System.Console.WriteLine(((x == y)) ?); // Invalid
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(7, 46),
-                // (7,46): error CS1525: Invalid expression term ')'
-                //         System.Console.WriteLine(((x == y)) ?); // Invalid
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 46),
-                // (8,52): error CS1003: Syntax error, ':' expected
-                //         System.Console.WriteLine(((x == y)) ? (x++)); // Invalid
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(8, 52),
-                // (8,52): error CS1525: Invalid expression term ')'
-                //         System.Console.WriteLine(((x == y)) ? (x++)); // Invalid
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 52),
-                // (9,61): error CS1003: Syntax error, ',' expected
-                //         System.Console.WriteLine(((x == y)) ? (x++) : (x++) : ((((y++)))));    // Invalid
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(9, 61),
-                // (9,63): error CS1003: Syntax error, ',' expected
-                //         System.Console.WriteLine(((x == y)) ? (x++) : (x++) : ((((y++)))));    // Invalid
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(9, 63),
-                // (10,48): error CS1525: Invalid expression term ':'
-                //         System.Console.WriteLine(((x == y)) ?  : :); 	// Invalid
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(10, 48),
-                // (10,50): error CS1525: Invalid expression term ':'
-                //         System.Console.WriteLine(((x == y)) ?  : :); 	// Invalid
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(10, 50),
-                // (10,50): error CS1003: Syntax error, ',' expected
-                //         System.Console.WriteLine(((x == y)) ?  : :); 	// Invalid
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(10, 50));
+                .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "("),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":"));
         }
 
         [WorkItem(528657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528657")]
@@ -21655,12 +21620,12 @@ public class MyClass2
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
-                // (15,46): warning CS1581: Invalid return type in XML comment cref attribute
+                // (15,20): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <seealso cref="MyClass.explicit operator intt(MyClass)"/>   // CS1581
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "intt").WithLocation(15, 46),
-                // (15,20): warning CS1574: XML comment has cref attribute 'explicit operator intt(MyClass)' that could not be resolved
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "intt").WithArguments("intt", "MyClass.explicit operator intt(MyClass)"),
+                // (15,20): warning CS1574: XML comment has cref attribute 'MyClass.explicit operator intt(MyClass)' that could not be resolved
                 // /// <seealso cref="MyClass.explicit operator intt(MyClass)"/>   // CS1581
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "MyClass.explicit operator intt(MyClass)").WithArguments("explicit operator intt(MyClass)").WithLocation(15, 20));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "MyClass.explicit operator intt(MyClass)").WithArguments("explicit operator intt(MyClass)"));
         }
 
         [Fact]
@@ -22871,13 +22836,13 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
                 // (18,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var z6 = new Func<string, string>(ref BarP); 
-                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(18, 43),
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(18, 43),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
                 // (20,43): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
-                Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithLocation(20, 43),
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithArguments("Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
@@ -22904,13 +22869,13 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Goo<string>(x => x)").WithLocation(17, 47),
                 // (18,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var z6 = new Func<string, string>(ref BarP); 
-                Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithLocation(18, 47),
+                Diagnostic(ErrorCode.ERR_RefProperty, "BarP").WithArguments("Program.BarP").WithLocation(18, 47),
                 // (19,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z7 = new Func<string, string>(ref new Func<string, string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Func<string, string>(x => x)").WithLocation(19, 47),
                 // (20,47): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var z8 = new Func<string, string>(ref Program.BarP); 
-                Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithLocation(20, 47),
+                Diagnostic(ErrorCode.ERR_RefProperty, "Program.BarP").WithArguments("Program.BarP").WithLocation(20, 47),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
@@ -23022,7 +22987,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "Baz, ref Baz.Invoke").WithLocation(10, 46),
                 // (11,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
-                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(11, 42),
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(11, 42),
                 // (11,46): error CS0149: Method name expected
                 //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, BarP.Invoke").WithLocation(11, 46),
@@ -23031,7 +22996,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(12, 42),
                 // (13,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
-                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithLocation(13, 42),
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(13, 42),
                 // (13,46): error CS0149: Method name expected
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46)

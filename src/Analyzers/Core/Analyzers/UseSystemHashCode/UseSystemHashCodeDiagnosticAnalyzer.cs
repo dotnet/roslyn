@@ -64,11 +64,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // We've got multiple members to hash, or multiple statements that can be reduced at this point.
             Debug.Assert(elementCount >= 2 || statements.Length >= 2);
 
-            var option = context.Options.GetIdeOptions().PreferSystemHashCode;
+            var syntaxTree = operation.Syntax.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
+            var option = context.Options.GetOption(CodeStyleOptions2.PreferSystemHashCode, operation.Language, syntaxTree, cancellationToken);
             if (option?.Value != true)
                 return;
 
-            var cancellationToken = context.CancellationToken;
             var operationLocation = operation.Syntax.GetLocation();
             var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(

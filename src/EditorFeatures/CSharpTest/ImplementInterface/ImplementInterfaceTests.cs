@@ -7287,10 +7287,10 @@ class Class : IInterface
 
     public int Prop => throw new System.NotImplementedException();
 }",
-                CodeActionOptions = (CSharpCodeActionOptions.Default with
+                CodeActionOptions = CodeActionOptions.Default with
                 {
-                    ImplementTypeOptions = new() { InsertionBehavior = ImplementTypeInsertionBehavior.AtTheEnd }
-                }).CreateProvider()
+                    ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
+                }
             }.RunAsync();
         }
 
@@ -7462,10 +7462,10 @@ class Class : IInterface
     public int ReadWriteProp { get; set; }
     public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }",
-                CodeActionOptions = (CSharpCodeActionOptions.Default with
+                CodeActionOptions = CodeActionOptions.Default with
                 {
-                    ImplementTypeOptions = new() { PropertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferAutoProperties }
-                }).CreateProvider()
+                    ImplementTypeOptions = new ImplementTypeOptions(PropertyGenerationBehavior: ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
+                }
             }.RunAsync();
         }
 

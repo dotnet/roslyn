@@ -4,17 +4,15 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal partial class FixMultipleCodeAction : AbstractFixAllCodeFixCodeAction
+    internal partial class FixMultipleCodeAction : FixSomeCodeAction
     {
         private readonly string _title;
         private readonly string _computingFixWaitDialogMessage;
 
-        public FixMultipleCodeAction(
-            IFixAllState fixAllState,
+        internal FixMultipleCodeAction(
+            FixAllState fixAllState,
             string title,
             string computingFixWaitDialogMessage)
             : base(fixAllState, showPreviewChangesDialog: false)

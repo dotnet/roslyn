@@ -4,8 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
@@ -29,25 +27,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
+                Dim formattingOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim simplifyOptions = Await SimplifierOptions.FromDocumentAsync(document, fallbackOptions:=Nothing, CancellationToken.None)
 
-                If hostDocument.AnnotatedSpans.ContainsKey("Expand") Then
+                If (hostDocument.AnnotatedSpans.ContainsKey("Expand")) Then
                     For Each span In hostDocument.AnnotatedSpans("Expand")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                         root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                     Next
-                ElseIf hostDocument.AnnotatedSpans.ContainsKey("ExpandAndSimplify") Then
+                ElseIf (hostDocument.AnnotatedSpans.ContainsKey("ExpandAndSimplify")) Then
                     For Each span In hostDocument.AnnotatedSpans("ExpandAndSimplify")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                         root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                         document = document.WithSyntaxRoot(root)
-                        document = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, CancellationToken.None)
+                        document = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, simplifyOptions, CancellationToken.None)
                         root = Await document.GetSyntaxRootAsync()
                     Next
                 End If
 
                 document = document.WithSyntaxRoot(root)
-                document = Await Formatter.FormatAsync(document, cleanupOptions.FormattingOptions, CancellationToken.None)
+                document = Await Formatter.FormatAsync(document, FormattingOptions, CancellationToken.None)
 
                 Dim actualText = (Await document.GetTextAsync()).ToString()
 

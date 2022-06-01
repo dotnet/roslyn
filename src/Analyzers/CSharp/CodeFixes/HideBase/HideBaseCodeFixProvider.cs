@@ -7,7 +7,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
             if (originalNode == null)
                 return;
 
-            context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode, context.GetOptionsProvider()), context.Diagnostics);
+            context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
         }
     }
 }

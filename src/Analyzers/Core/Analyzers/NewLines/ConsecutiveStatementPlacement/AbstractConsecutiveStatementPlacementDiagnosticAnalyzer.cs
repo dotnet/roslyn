@@ -39,14 +39,13 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetAnalyzerOptions().AllowStatementImmediatelyAfterBlock;
+            var cancellationToken = context.CancellationToken;
+            var tree = context.Tree;
+            var option = context.GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, tree.Options.Language);
             if (option.Value)
                 return;
 
-            var cancellationToken = context.CancellationToken;
-            var root = context.Tree.GetRoot(cancellationToken);
-
-            Recurse(context, option.Notification.Severity, root, cancellationToken);
+            Recurse(context, option.Notification.Severity, tree.GetRoot(cancellationToken), cancellationToken);
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node, CancellationToken cancellationToken)

@@ -16,14 +16,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
-    internal class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
+    [Export(typeof(DefaultCapabilitiesProvider)), Shared]
+    internal class DefaultCapabilitiesProvider : ICapabilitiesProvider
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExperimentalCapabilitiesProvider(
+        public DefaultCapabilitiesProvider(
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 DocumentHighlightProvider = true,
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
+                SpellCheckingProvider = true,
 
                 // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
                 SupportsDiagnosticRequests = false,

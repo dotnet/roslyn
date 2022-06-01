@@ -588,8 +588,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _reducedFrom.GetHashCode();
         }
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
-
 #nullable enable
 
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol

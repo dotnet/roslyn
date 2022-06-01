@@ -6,8 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
-            var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), CodeActionOptions.DefaultProvider, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), nonConflictSymbols, cancellationToken).ConfigureAwait(false);
             return new RenameResult(resolution.NewSolution, resolution.ErrorMessage);
         }
     }

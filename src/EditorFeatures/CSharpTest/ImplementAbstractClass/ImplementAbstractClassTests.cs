@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
@@ -1470,7 +1469,10 @@ class T : A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestWithGroupingOff1()
         {
-            var options = Option(ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd);
+            var options = CodeActionOptions.Default with
+            {
+                ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
+            };
 
             await TestInRegularAndScriptAsync(
 @"abstract class Base
@@ -1492,7 +1494,7 @@ class Derived : Base
     void Goo() { }
 
     public override int Prop => throw new System.NotImplementedException();
-}", globalOptions: options);
+}", codeActionOptions: options);
         }
 
         [WorkItem(17274, "https://github.com/dotnet/roslyn/issues/17274")]
@@ -1645,10 +1647,9 @@ sealed class D : B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestAutoProperties()
         {
-            var options = new OptionsCollection(GetLanguage())
+            var options = CodeActionOptions.Default with
             {
-                Option(ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties),
-                Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+                ImplementTypeOptions = new ImplementTypeOptions(PropertyGenerationBehavior: ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
             };
 
             await TestInRegularAndScript1Async(
@@ -1674,7 +1675,7 @@ class C : AbstractClass
     public override int ReadOnlyProp { get; }
     public override int ReadWriteProp { get; set; }
     public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
-}", parameters: new TestParameters(globalOptions: options));
+}", parameters: new TestParameters(codeActionOptions: options));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -2074,42 +2075,6 @@ class D : C
         throw new System.NotImplementedException();
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestRequiredMember()
-        {
-            await TestAllOptionsOffAsync(
-                """
-                abstract class C
-                {
-                    public abstract required int Property { get; set; }
-                }
-                class [|D|] : C
-                {
-                }
-                """,
-                """
-                abstract class C
-                {
-                    public abstract required int Property { get; set; }
-                }
-                class D : C
-                {
-                    public override required int Property
-                    {
-                        get
-                        {
-                            throw new System.NotImplementedException();
-                        }
-
-                        set
-                        {
-                            throw new System.NotImplementedException();
-                        }
-                    }
-                }
-                """);
         }
     }
 }

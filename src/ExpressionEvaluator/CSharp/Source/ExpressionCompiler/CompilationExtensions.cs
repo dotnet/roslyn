@@ -38,11 +38,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var member in containingType.ContainingType.GetMembers(sourceMethodName))
                 {
-                    if (member is PEMethodSymbol candidateMethod &&
-                        metadataDecoder.Module.HasStateMachineAttribute(candidateMethod.Handle, out var stateMachineTypeName) &&
-                        metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
+                    if (member is PEMethodSymbol candidateMethod)
                     {
-                        return candidateMethod;
+                        var module = metadataDecoder.Module;
+                        methodHandle = candidateMethod.Handle;
+                        string stateMachineTypeName;
+                        if (module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
+                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName))
+                        {
+                            if (metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
+                            {
+                                return candidateMethod;
+                            }
+                        }
                     }
                 }
             }

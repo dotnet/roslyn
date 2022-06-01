@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -31,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             protected override EnvDTE.vsCMPart DefaultPart => EnvDTE.vsCMPart.vsCMPartWholeWithAttributes;
 
-            protected override VirtualTreePoint? GetStartPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part)
+            protected override VirtualTreePoint? GetStartPoint(SourceText text, OptionSet options, SyntaxNode node, EnvDTE.vsCMPart part)
             {
                 switch (node.Kind())
                 {
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            protected override VirtualTreePoint? GetEndPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part)
+            protected override VirtualTreePoint? GetEndPoint(SourceText text, OptionSet options, SyntaxNode node, EnvDTE.vsCMPart part)
             {
                 switch (node.Kind())
                 {
@@ -145,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     : new VirtualTreePoint(openBrace.SyntaxTree, text, openBrace.Span.End);
             }
 
-            private static VirtualTreePoint GetBodyStartPoint(SourceText text, LineFormattingOptions options, SyntaxToken openBrace, SyntaxToken closeBrace, int memberStartColumn)
+            private VirtualTreePoint GetBodyStartPoint(SourceText text, OptionSet options, SyntaxToken openBrace, SyntaxToken closeBrace, int memberStartColumn)
             {
                 Debug.Assert(!openBrace.IsMissing);
                 Debug.Assert(!closeBrace.IsMissing);
@@ -185,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                     // If the line is all whitespace then place the caret at the first indent after the start
                     // of the member.
-                    var indentSize = options.TabSize;
+                    var indentSize = GetTabSize(options);
                     var lineText = lineAfterOpenBrace.ToString();
 
                     var lineEndColumn = lineText.GetColumnFromLineOffset(lineText.Length, indentSize);
@@ -351,7 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private static VirtualTreePoint GetStartPoint(SourceText text, LineFormattingOptions options, BaseMethodDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private VirtualTreePoint GetStartPoint(SourceText text, OptionSet options, BaseMethodDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -384,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         if (node.Body != null && !node.Body.OpenBraceToken.IsMissing)
                         {
                             var line = text.Lines.GetLineFromPosition(node.SpanStart);
-                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.TabSize);
+                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(GetTabSize(options));
 
                             return GetBodyStartPoint(text, options, node.Body.OpenBraceToken, node.Body.CloseBraceToken, indentation);
                         }
@@ -440,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return node.AccessorList.Accessors.FirstOrDefault();
             }
 
-            private static VirtualTreePoint GetStartPoint(SourceText text, LineFormattingOptions options, BasePropertyDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private VirtualTreePoint GetStartPoint(SourceText text, OptionSet options, BasePropertyDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -471,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         if (firstAccessorNode != null)
                         {
                             var line = text.Lines.GetLineFromPosition(firstAccessorNode.SpanStart);
-                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.TabSize);
+                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(GetTabSize(options));
 
                             if (firstAccessorNode.Body != null)
                             {
@@ -491,7 +490,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         if (node.AccessorList != null && !node.AccessorList.OpenBraceToken.IsMissing)
                         {
                             var line = text.Lines.GetLineFromPosition(node.SpanStart);
-                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.TabSize);
+                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(GetTabSize(options));
 
                             return GetBodyStartPoint(text, options, node.AccessorList.OpenBraceToken, node.AccessorList.CloseBraceToken, indentation);
                         }
@@ -505,7 +504,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private static VirtualTreePoint GetStartPoint(SourceText text, LineFormattingOptions options, AccessorDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private VirtualTreePoint GetStartPoint(SourceText text, OptionSet options, AccessorDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -530,7 +529,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         if (node.Body != null && !node.Body.OpenBraceToken.IsMissing)
                         {
                             var line = text.Lines.GetLineFromPosition(node.SpanStart);
-                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.TabSize);
+                            var indentation = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(GetTabSize(options));
 
                             return GetBodyStartPoint(text, options, node.Body.OpenBraceToken, node.Body.CloseBraceToken, indentation);
                         }

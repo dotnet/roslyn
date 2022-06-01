@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -44,6 +43,43 @@ public class FormatterTests
             => Task.FromResult(document.WithText(SourceText.From($"Formatted with options: {lineFormattingOptions.ToString().Replace("\r", "\\r").Replace("\n", "\\n")}")));
     }
 
+    [Export(typeof(IDocumentOptionsProviderFactory)), Shared, PartNotDiscoverable]
+    internal class TestDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
+    {
+        public readonly Dictionary<OptionKey, object> Options = new();
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestDocumentOptionsProviderFactory()
+        {
+        }
+
+        public IDocumentOptionsProvider? TryCreate(Workspace workspace)
+            => new Provider(new DocumentOptions(Options));
+
+        private class Provider : IDocumentOptionsProvider
+        {
+            private readonly DocumentOptions _options;
+
+            public Provider(DocumentOptions options)
+                => _options = options;
+
+            public Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+                => Task.FromResult<IDocumentOptions?>(_options);
+        }
+
+        public class DocumentOptions : IDocumentOptions
+        {
+            private readonly Dictionary<OptionKey, object> _options;
+
+            public DocumentOptions(Dictionary<OptionKey, object> options)
+                => _options = options;
+
+            public bool TryGetDocumentOption(OptionKey option, out object? value)
+                => _options.TryGetValue(option, out value);
+        }
+    }
+
     [Fact]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport()
     {
@@ -65,9 +101,15 @@ public class FormatterTests
     [CombinatorialData]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageServiceFactory), typeof(TestFormattingService), typeof(TestDocumentOptionsProviderFactory) }).GetHostServices();
 
         using var workspace = new AdhocWorkspace(hostServices);
+
+        // register custom document options provider (Razor scenario)
+        var documentOptionsFactory = (TestDocumentOptionsProviderFactory)((IMefHostExportProvider)hostServices).GetExportedValue<IDocumentOptionsProviderFactory>();
+        documentOptionsFactory.Options.Add(new OptionKey(FormattingOptions.IndentationSize, NoCompilationConstants.LanguageName), 10);
+        var provider = documentOptionsFactory.TryCreate(workspace)!;
+        workspace.Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(provider);
 
         var project = workspace.AddProject("Dummy", NoCompilationConstants.LanguageName);
         var document = workspace.AddDocument(project.Id, "File.dummy", SourceText.From("dummy"));
@@ -80,10 +122,8 @@ public class FormatterTests
 
         document = document.Project.Solution.WithOptions(solutionOptions).GetRequiredDocument(document.Id);
 
-#pragma warning disable RS0030 // Do not used banned APIs
         var documentOptions = await document.GetOptionsAsync();
-        Assert.Equal(7, documentOptions.GetOption(FormattingOptions.IndentationSize));
-#pragma warning restore
+        Assert.Equal(10, documentOptions.GetOption(FormattingOptions.IndentationSize));
 
         var options = passExplicitOptions ? new OptionValueSet(ImmutableDictionary<OptionKey, object?>.Empty.
             Add(new OptionKey(FormattingOptions.UseTabs, NoCompilationConstants.LanguageName), true).
@@ -93,7 +133,7 @@ public class FormatterTests
 
 #pragma warning disable RS0030 // Do not used banned APIs
         var formattedDocument = await Formatter.FormatAsync(document, spans: null, options, CancellationToken.None);
-#pragma warning restore
+#pragma warning restore RS0030 // Do not used banned APIs
 
         var formattedText = await formattedDocument.GetTextAsync();
 
@@ -105,7 +145,7 @@ public class FormatterTests
         else
         {
             // document options override solution options:
-            AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = False, TabSize = 1, IndentationSize = 7, NewLine = \n }", formattedText.ToString());
+            AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = False, TabSize = 1, IndentationSize = 10, NewLine = \n }", formattedText.ToString());
         }
     }
 
@@ -122,8 +162,8 @@ public class FormatterTests
 
         // Validate that options are read from specified OptionSet:
 
-        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
-        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
+        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
+        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
 
         // Validate that options are read from solution snapshot as a fallback (we have no editorconfig file, so all options should fall back):
 
@@ -131,10 +171,8 @@ public class FormatterTests
         var csDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(csDocument.Id);
         var vbDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(vbDocument.Id);
 
-        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
-        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
-        ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(csDocumentWithUpdatedOptions, CancellationToken.None));
-        ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(vbDocumentWithUpdatedOptions, CancellationToken.None));
+        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
+        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
 
         static OptionSet GetOptionSetWithChangedPublicOptions(OptionSet options)
         {
@@ -278,11 +316,6 @@ public class FormatterTests
         static void ValidateVisualBasicOptions(VisualBasicSyntaxFormattingOptions simplifierOptions)
         {
             ValidateCommonOptions(simplifierOptions);
-        }
-
-        static void ValidateOrganizeImportsOptions(OrganizeImportsOptions options)
-        {
-            Assert.Equal("\r", options.NewLine);
         }
     }
 }

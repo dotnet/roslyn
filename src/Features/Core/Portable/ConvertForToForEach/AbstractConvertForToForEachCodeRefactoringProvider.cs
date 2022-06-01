@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         protected abstract SyntaxNode ConvertForNode(
             TForStatementSyntax currentFor, TTypeNode? typeNode, SyntaxToken foreachIdentifier,
-            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType);
+            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType, OptionSet options);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -146,14 +146,11 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Looks good.  We can convert this.
-            var title = GetTitle();
             context.RegisterRefactoring(
-                CodeAction.Create(
-                    title,
+                new MyCodeAction(GetTitle(),
                     c => ConvertForToForEachAsync(
                         document, forStatement, iterationVariable, collectionExpression,
-                        containingType, collectionType.Type, iterationType, c),
-                    title),
+                        containingType, collectionType.Type, iterationType, c)),
                 forStatement.Span);
 
             return;
@@ -350,11 +347,12 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                     SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia);
             }
 
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
                 forStatement,
                 (currentFor, _) => ConvertForNode(
                     (TForStatementSyntax)currentFor, typeNode, foreachIdentifier,
-                    collectionExpression, iterationType));
+                    collectionExpression, iterationType, options));
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
 
@@ -496,5 +494,13 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             => property.IsIndexer &&
                property.Parameters.Length == 1 &&
                property.Parameters[0].Type?.SpecialType == SpecialType.System_Int32;
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
+        }
     }
 }

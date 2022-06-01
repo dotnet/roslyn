@@ -386,10 +386,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             : "whereclause_CSharpKeyword";
 
                         return true;
-
-                    case SyntaxKind.RequiredKeyword:
-                        text = Keyword("required");
-                        return true;
                 }
             }
 

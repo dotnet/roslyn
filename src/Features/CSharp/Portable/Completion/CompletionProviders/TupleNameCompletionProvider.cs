@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -42,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             try
             {
                 var document = completionContext.Document;
+                var position = completionContext.Position;
                 var cancellationToken = completionContext.CancellationToken;
 
-                var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false) as CSharpSyntaxContext;
-                Contract.ThrowIfNull(context);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
-                var semanticModel = context.SemanticModel;
+                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
                 var index = GetElementIndex(context);
                 if (index == null)

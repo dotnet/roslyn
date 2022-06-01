@@ -41,14 +41,24 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private void AnalyzeInterpolation(OperationAnalysisContext context)
         {
-            var option = context.GetAnalyzerOptions().PreferSimplifiedInterpolation;
+            var interpolation = (IInterpolationOperation)context.Operation;
+
+            var syntaxTree = interpolation.Syntax.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var language = interpolation.Language;
+            var option = optionSet.GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, language);
             if (!option.Value)
             {
                 // No point in analyzing if the option is off.
                 return;
             }
 
-            var interpolation = (IInterpolationOperation)context.Operation;
             GetHelpers().UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                 GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
                 out var formatString, out var unnecessaryLocations);

@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 {
     internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixProvider
     {
+        public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
+
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
 
@@ -33,10 +35,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                CodeAction.Create(
-                    FeaturesResources.Make_method_synchronous,
-                    c => FixNodeAsync(context.Document, context.Diagnostics.First(), c),
-                    nameof(FeaturesResources.Make_method_synchronous)),
+                new MyCodeAction(c => FixNodeAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                 if (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol methodSymbol)
                 {
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
-                        ImmutableArray.Create<ISymbol>(methodSymbol), document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                     var referencedSymbol = references.FirstOrDefault(r => Equals(r.Definition, methodSymbol));
                     if (referencedSymbol != null)
@@ -249,6 +248,14 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                         });
                     }
                 }
+            }
+        }
+
+        private class MyCodeAction : CodeAction.SolutionChangeAction
+        {
+            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(FeaturesResources.Make_method_synchronous, createChangedSolution, AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey)
+            {
             }
         }
     }

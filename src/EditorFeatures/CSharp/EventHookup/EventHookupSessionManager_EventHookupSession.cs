@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -42,12 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         {
             public readonly Task<string> GetEventNameTask;
             private readonly IThreadingContext _threadingContext;
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
+            private readonly CancellationTokenSource _cancellationTokenSource;
             private readonly ITrackingPoint _trackingPoint;
             private readonly ITrackingSpan _trackingSpan;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
-            private readonly IGlobalOptionService _globalOptions;
 
             public event Action Dismissed = () => { };
 
@@ -102,14 +100,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 ITextView textView,
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
-                IGlobalOptionService globalOptions,
                 Mutex testSessionHookupMutex)
             {
                 _threadingContext = eventHookupSessionManager.ThreadingContext;
+                _cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
-                _globalOptions = globalOptions;
                 this.TESTSessionHookupMutex = testSessionHookupMutex;
 
                 var document = textView.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -184,9 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     var namingRule = await document.GetApplicableNamingRuleAsync(
                         new SymbolKindOrTypeKind(MethodKind.Ordinary),
                         new DeclarationModifiers(isStatic: plusEqualsToken.Value.Parent.IsInStaticContext()),
-                        Accessibility.Private,
-                        _globalOptions.CreateProvider(),
-                        cancellationToken).ConfigureAwait(false);
+                        Accessibility.Private, cancellationToken).ConfigureAwait(false);
 
                     return GetEventHandlerName(
                         eventSymbol, plusEqualsToken.Value, semanticModel,
@@ -262,17 +257,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     // This is expected -- it means the last thing is(probably) the event name. We 
                     // already have that in eventSymbol. What we need is the LHS of that dot.
 
-                    var lhs = memberAccessExpression.Expression.GetRightmostName();
+                    var lhs = memberAccessExpression.Expression;
 
-                    if (lhs is GenericNameSyntax lhsGenericNameSyntax)
+                    if (lhs is MemberAccessExpressionSyntax lhsMemberAccessExpression)
                     {
-                        // For generic we must exclude type variables
-                        return lhsGenericNameSyntax.Identifier.Text;
+                        // Okay, cool.  The name we're after is in the RHS of this dot.
+                        return lhsMemberAccessExpression.Name.ToString();
                     }
 
-                    if (lhs != null)
+                    if (lhs is NameSyntax lhsNameSyntax)
                     {
-                        return lhs.ToString();
+                        // Even easier -- the LHS of the dot is the name itself
+                        return lhsNameSyntax.ToString();
                     }
                 }
 

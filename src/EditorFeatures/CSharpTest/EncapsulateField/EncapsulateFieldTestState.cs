@@ -6,7 +6,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Xunit;
 
@@ -49,28 +47,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
             return new EncapsulateFieldTestState(workspace);
         }
 
-        public async Task EncapsulateAsync()
+        public void Encapsulate()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
             var commandHandler = Workspace.ExportProvider.GetCommandHandler<EncapsulateFieldCommandHandler>(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType);
-            var provider = Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-            var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.EncapsulateField);
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
-            await waiter.ExpeditedWaitAsync();
         }
 
         public void Dispose()
-            => Workspace?.Dispose();
-
-        public async Task AssertEncapsulateAsAsync(string expected)
         {
-            await EncapsulateAsync();
+            if (Workspace != null)
+            {
+                Workspace.Dispose();
+            }
+        }
+
+        public void AssertEncapsulateAs(string expected)
+        {
+            Encapsulate();
             Assert.Equal(expected, _testDocument.GetTextBuffer().CurrentSnapshot.GetText().ToString());
         }
 
-        public async Task AssertErrorAsync()
+        public void AssertError()
         {
-            await EncapsulateAsync();
+            Encapsulate();
             Assert.NotNull(NotificationMessage);
         }
     }

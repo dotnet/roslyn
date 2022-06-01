@@ -11,8 +11,35 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    internal sealed class FeatureOnOffOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class FeatureOnOffOptions : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FeatureOnOffOptions()
+        {
+        }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            EndConstruct,
+            AutomaticInsertionOfAbstractOrInterfaceMembers,
+            LineSeparator,
+            Outlining,
+            KeywordHighlighting,
+            ReferenceHighlighting,
+            AutoInsertBlockCommentStartString,
+            PrettyListing,
+            RenameTrackingPreview,
+            RenameTracking,
+            RefactoringVerification,
+            AddImportsOnPaste,
+            OfferRemoveUnusedReferences,
+            OfferRemoveUnusedReferencesFeatureFlag,
+            ShowInheritanceMargin,
+            InheritanceMarginCombinedWithIndicatorMargin,
+            AutomaticallyCompleteStatementOnSemicolon,
+            SkipAnalyzersForImplicitlyTriggeredBuilds);
+
         private const string FeatureName = "FeatureOnOffOptions";
 
         public static readonly PerLanguageOption2<bool> EndConstruct = new(FeatureName, "EndConstruct", defaultValue: true,
@@ -67,15 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "NavigateAsynchronously", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
 
-        /// <summary>
-        /// This option was previously "bool?" to accomodate different supported defaults
-        /// that were being provided via remote settings. The feature has stabalized and moved
-        /// to on by default, so the storage location was changed to
-        /// TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2 (note the 2 suffix).
-        /// </summary>
-        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
-            FeatureName, "AddImportsOnPaste", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2"));
+        public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
+            FeatureName, "AddImportsOnPaste", defaultValue: null,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste"));
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,
@@ -93,17 +114,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false,
             new RoamingProfileStorageLocation("TextEditor.InheritanceMarginCombinedWithIndicatorMargin"));
 
-        public static readonly PerLanguageOption2<bool> InheritanceMarginIncludeGlobalImports = new(
-            FeatureName, "InheritanceMarginIncludeGlobalImports", defaultValue: true,
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports"));
-
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             FeatureName, "AutomaticallyCompleteStatementOnSemicolon", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.AutomaticallyCompleteStatementOnSemicolon"));
-
-        public static readonly PerLanguageOption2<bool> AutomaticallyFixStringContentsOnPaste = new(
-            FeatureName, "AutomaticallyFixStringContentsOnPaste", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste"));
 
         /// <summary>
         /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.

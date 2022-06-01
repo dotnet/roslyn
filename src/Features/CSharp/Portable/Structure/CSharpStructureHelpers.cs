@@ -388,13 +388,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                textSpan, textSpan, bannerText, autoCollapse, type, isCollapsible, isDefaultCollapsed: false);
+                textSpan, textSpan, bannerText, autoCollapse, type, isCollapsible);
         }
 
         private static BlockSpan CreateBlockSpan(
             TextSpan textSpan, TextSpan hintSpan,
             string bannerText, bool autoCollapse,
-            string type, bool isCollapsible, bool isDefaultCollapsed)
+            string type, bool isCollapsible)
         {
             return new BlockSpan(
                 textSpan: textSpan,
@@ -402,8 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText: bannerText,
                 autoCollapse: autoCollapse,
                 type: type,
-                isCollapsible: isCollapsible,
-                isDefaultCollapsed: isDefaultCollapsed);
+                isCollapsible: isCollapsible);
         }
 
         public static BlockSpan CreateBlockSpan(
@@ -452,8 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText,
                 autoCollapse,
                 type,
-                isCollapsible,
-                isDefaultCollapsed: false);
+                isCollapsible);
         }
 
         private static TextSpan GetHintSpan(SyntaxNode node, int endPos)
@@ -528,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // node in the list.
         public static BlockSpan? CreateBlockSpan(
             IEnumerable<SyntaxNode> syntaxList, bool compressEmptyLines, bool autoCollapse,
-            string type, bool isCollapsible, bool isDefaultCollapsed)
+            string type, bool isCollapsible)
         {
             if (syntaxList.IsEmpty())
             {
@@ -553,8 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
                 type: type,
-                isCollapsible: isCollapsible,
-                isDefaultCollapsed: isDefaultCollapsed);
+                isCollapsible: isCollapsible);
         }
     }
 }

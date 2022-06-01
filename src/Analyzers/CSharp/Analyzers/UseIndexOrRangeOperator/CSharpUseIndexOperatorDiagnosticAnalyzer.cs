@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
 
             // Don't bother analyzing if the user doesn't like using Index/Range operators.
-            var option = context.GetCSharpAnalyzerOptions().PreferIndexOperator;
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIndexOperator, binaryExpression.SyntaxTree, cancellationToken);
             if (!option.Value)
                 return;
 

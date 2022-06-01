@@ -621,13 +621,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual, int offset, int width)
         {
             var code = GetExpectedTokenErrorCode(expected, actual);
-            if (code == ErrorCode.ERR_SyntaxError)
+            if (code == ErrorCode.ERR_SyntaxError || code == ErrorCode.ERR_IdentifierExpectedKW)
             {
-                return new SyntaxDiagnosticInfo(offset, width, code, SyntaxFacts.GetText(expected));
-            }
-            else if (code == ErrorCode.ERR_IdentifierExpectedKW)
-            {
-                return new SyntaxDiagnosticInfo(offset, width, code, /*unused*/string.Empty, SyntaxFacts.GetText(actual));
+                return new SyntaxDiagnosticInfo(offset, width, code, SyntaxFacts.GetText(expected), SyntaxFacts.GetText(actual));
             }
             else
             {
@@ -1086,6 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             where TNode : GreenNode
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
 
             // There are special error codes for some features, so handle those separately.
             switch (feature)

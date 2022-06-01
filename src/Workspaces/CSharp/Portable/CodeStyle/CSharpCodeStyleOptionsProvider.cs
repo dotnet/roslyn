@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.Options.Providers;
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
     [ExportSolutionOptionProvider(LanguageNames.CSharp), Shared]
-    internal sealed class CSharpSolutionCodeStyleOptionsProvider : IOptionProvider
+    internal sealed class CSharpCodeStyleOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSolutionCodeStyleOptionsProvider()
+        public CSharpCodeStyleOptionsProvider()
         {
         }
 

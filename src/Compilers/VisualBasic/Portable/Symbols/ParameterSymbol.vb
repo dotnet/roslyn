@@ -276,14 +276,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend MustOverride ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
 
-        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
-            Return code = ERRID.ERR_UnsupportedType1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
-        End Function
-
-        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
             Get
-                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me).DiagnosticInfo
-                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
+                Return ERRID.ERR_UnsupportedType1
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me, HighestPriorityUseSiteError).DiagnosticInfo
+                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedType1
             End Get
         End Property
 

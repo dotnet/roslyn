@@ -215,12 +215,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorSyntaxContext
     {
-        private readonly Lazy<SemanticModel>? _semanticModel;
-
-        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel)
+        internal GeneratorSyntaxContext(SyntaxNode node, SemanticModel semanticModel)
         {
             Node = node;
-            _semanticModel = semanticModel;
+            SemanticModel = semanticModel;
         }
 
         /// <summary>
@@ -231,7 +229,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="CodeAnalysis.SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
         /// </summary>
-        public SemanticModel SemanticModel => _semanticModel!.Value;
+        public SemanticModel SemanticModel { get; }
     }
 
     /// <summary>

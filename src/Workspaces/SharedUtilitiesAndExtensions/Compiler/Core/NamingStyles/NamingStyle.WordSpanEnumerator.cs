@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
-    internal partial record struct NamingStyle
+    internal partial struct NamingStyle
     {
         private struct WordSpanEnumerator
         {

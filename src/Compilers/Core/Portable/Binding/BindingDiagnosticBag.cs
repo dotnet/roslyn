@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag = diagnosticBag;
         }
 
-        [MemberNotNullWhen(true, nameof(DiagnosticBag))]
         internal bool AccumulatesDiagnostics => DiagnosticBag is object;
 
         internal void AddRange<T>(ImmutableArray<T> diagnostics) where T : Diagnostic

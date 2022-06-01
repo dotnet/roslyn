@@ -2,54 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.CodeAnalysis.OrganizeImports;
-
-[DataContract]
-internal readonly record struct OrganizeImportsOptions
+namespace Microsoft.CodeAnalysis.OrganizeImports
 {
-    [property: DataMember(Order = 0)] public bool PlaceSystemNamespaceFirst { get; init; } = AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst;
-    [property: DataMember(Order = 1)] public bool SeparateImportDirectiveGroups { get; init; } = SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups;
-    [property: DataMember(Order = 2)] public string NewLine { get; init; } = LineFormattingOptions.Default.NewLine;
-
-    public OrganizeImportsOptions()
+    internal readonly record struct OrganizeImportsOptions(
+        bool PlaceSystemNamespaceFirst,
+        bool SeparateImportDirectiveGroups,
+        string NewLine)
     {
-    }
-
-    public static readonly OrganizeImportsOptions Default = new();
-}
-
-internal interface OrganizeImportsOptionsProvider : OptionsProvider<OrganizeImportsOptions>
-{
-}
-
-internal static class OrganizeImportsOptionsProviders
-{
-    public static OrganizeImportsOptions GetOrganizeImportsOptions(this AnalyzerConfigOptions options, OrganizeImportsOptions? fallbackOptions)
-    {
-        fallbackOptions ??= OrganizeImportsOptions.Default;
-
-        return new()
+        public static async ValueTask<OrganizeImportsOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            PlaceSystemNamespaceFirst = options.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.Value.PlaceSystemNamespaceFirst),
-            SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.Value.SeparateImportDirectiveGroups),
-            NewLine = options.GetEditorConfigOption(FormattingOptions2.NewLine, fallbackOptions.Value.NewLine)
-        };
-    }
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptions? fallbackOptions, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetOrganizeImportsOptions(fallbackOptions);
+            return new(
+                PlaceSystemNamespaceFirst: options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst),
+                SeparateImportDirectiveGroups: options.GetOption(GenerationOptions.SeparateImportDirectiveGroups),
+                NewLine: options.GetOption(FormattingOptions2.NewLine));
+        }
     }
-
-    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetOrganizeImportsOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }

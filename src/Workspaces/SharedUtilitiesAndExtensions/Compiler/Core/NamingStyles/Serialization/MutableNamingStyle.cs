@@ -18,31 +18,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public string Name
         {
             get => NamingStyle.Name;
-            set => NamingStyle = NamingStyle with { Name = value };
+            set => NamingStyle = NamingStyle.With(name: value);
         }
 
         public string Prefix
         {
             get => NamingStyle.Prefix;
-            set => NamingStyle = NamingStyle with { Prefix = value };
+            set => NamingStyle = NamingStyle.With(prefix: value);
         }
 
         public string Suffix
         {
             get => NamingStyle.Suffix;
-            set => NamingStyle = NamingStyle with { Suffix = value };
+            set => NamingStyle = NamingStyle.With(suffix: value);
         }
 
         public string WordSeparator
         {
             get => NamingStyle.WordSeparator;
-            set => NamingStyle = NamingStyle with { WordSeparator = value };
+            set => NamingStyle = NamingStyle.With(wordSeparator: value);
         }
 
         public Capitalization CapitalizationScheme
         {
             get => NamingStyle.CapitalizationScheme;
-            set => NamingStyle = NamingStyle with { CapitalizationScheme = value };
+            set => NamingStyle = NamingStyle.With(capitalizationScheme: value);
         }
 
         public MutableNamingStyle()

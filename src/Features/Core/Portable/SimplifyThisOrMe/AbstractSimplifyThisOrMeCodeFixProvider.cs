@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,33 +20,36 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 {
-    internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<TMemberAccessExpressionSyntax>
+    internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<
+        TMemberAccessExpressionSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TMemberAccessExpressionSyntax : SyntaxNode
     {
+        protected AbstractSimplifyThisOrMeCodeFixProvider()
+        {
+        }
+
         protected abstract string GetTitle();
-        protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId);
+            ImmutableArray.Create(IDEDiagnosticIds.RemoveQualificationDiagnosticId);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    GetTitle(),
-                    GetDocumentUpdater(context),
-                    IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
-                context.Diagnostics);
+            context.RegisterCodeFix(new MyCodeAction(
+                GetTitle(),
+                GetDocumentUpdater(context),
+                IDEDiagnosticIds.RemoveQualificationDiagnosticId), context.Diagnostics);
 
             return Task.CompletedTask;
         }
 
-        protected sealed override async Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var memberAccessNodes = diagnostics.Select(
@@ -52,6 +57,17 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var newRoot = Rewrite(root, memberAccessNodes);
             editor.ReplaceNode(root, newRoot);
+        }
+
+        protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(
+                string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
         }
     }
 }

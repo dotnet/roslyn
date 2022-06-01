@@ -34,7 +34,7 @@ End Module
 
             Dim parameters3 As New TestParameters()
             Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters3)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
         End Function
@@ -62,7 +62,7 @@ End Class")
             Await TestDiagnosticInfoAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
                 options:=New OptionsCollection(GetLanguage()) From {{CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Error}},
-                diagnosticId:=IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
+                diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)
         End Function
 

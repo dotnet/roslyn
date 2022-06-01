@@ -16,18 +16,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     {
         public CodeRefactoringProvider CodeRefactoringProvider { get; }
 
-        public UnifiedSuggestedActionSet? FixAllFlavors { get; }
-
         public UnifiedCodeRefactoringSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
             CodeActionPriority codeActionPriority,
-            CodeRefactoringProvider codeRefactoringProvider,
-            UnifiedSuggestedActionSet? fixAllFlavors)
+            CodeRefactoringProvider codeRefactoringProvider)
             : base(workspace, codeAction, codeActionPriority)
         {
             CodeRefactoringProvider = codeRefactoringProvider;
-            FixAllFlavors = fixAllFlavors;
         }
     }
 }

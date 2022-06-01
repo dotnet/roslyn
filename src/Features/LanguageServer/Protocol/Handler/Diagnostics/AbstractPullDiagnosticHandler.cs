@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int DocumentDiagnosticIdentifier = 2;
 
         private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
-        private readonly IGlobalOptionService _globalOptions;
 
         protected readonly IDiagnosticService DiagnosticService;
 
@@ -64,12 +63,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected AbstractPullDiagnosticHandler(
             IDiagnosticService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
-            IGlobalOptionService globalOptions)
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
         {
             DiagnosticService = diagnosticService;
             _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
-            _globalOptions = globalOptions;
             _versionedCache = new(this.GetType().Name);
         }
 
@@ -109,11 +106,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
-            var diagnosticMode = GetDiagnosticMode(context);
-            // For this handler to be called, we must have already checked the diagnostic mode
-            // and set the appropriate capabilities.
-            Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.Pull, $"{diagnosticMode} is not pull");
-
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
@@ -138,6 +130,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             foreach (var document in orderedDocuments)
             {
+                context.TraceInformation($"Processing: {document.FilePath}");
+
+                // not be asked for workspace docs in razor.
+                // not send razor docs in workspace docs for c#
+
                 var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
 
                 var project = document.Project;
@@ -149,7 +146,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
+                    context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -188,7 +186,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return result;
         }
 
-        private DiagnosticMode GetDiagnosticMode(RequestContext context)
+        private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
+            RequestContext context,
+            Document document,
+            string resultId,
+            ClientCapabilities clientCapabilities,
+            CancellationToken cancellationToken)
         {
             var diagnosticModeOption = context.ServerKind switch
             {
@@ -197,25 +200,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 
-            var diagnosticMode = _globalOptions.GetDiagnosticMode(diagnosticModeOption);
-            return diagnosticMode;
-        }
+            var diagnosticMode = context.GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
+            var isPull = diagnosticMode == DiagnosticMode.Pull;
 
-        private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
-            RequestContext context,
-            Document document,
-            string resultId,
-            ClientCapabilities clientCapabilities,
-            DiagnosticMode diagnosticMode,
-            CancellationToken cancellationToken)
-        {
+            context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
+
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
-            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {document.FilePath}");
 
-            foreach (var diagnostic in diagnostics)
-                result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
+            if (isPull)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
+                context.TraceInformation($"Got {diagnostics.Length} diagnostics");
+
+                foreach (var diagnostic in diagnostics)
+                    result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
+            }
 
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulatePrivateField()
+        public void EncapsulatePrivateField()
         {
             var text = @"
 class C
@@ -59,11 +58,11 @@ class C
 }";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            await state.AssertEncapsulateAsAsync(expected);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateNonPrivateField()
+        public void EncapsulateNonPrivateField()
         {
             var text = @"
 class C
@@ -100,11 +99,11 @@ class C
 }";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            await state.AssertEncapsulateAsAsync(expected);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task DialogShownIfNotFieldsFound()
+        public void DialogShownIfNotFieldsFound()
         {
             var text = @"
 class$$ C
@@ -118,12 +117,12 @@ class$$ C
 }";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            await state.AssertErrorAsync();
+            state.AssertError();
         }
 
         [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateTwoFields()
+        public void EncapsulateTwoFields()
         {
             var text = @"
 class Program
@@ -179,7 +178,7 @@ class Program
 ";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            await state.AssertEncapsulateAsAsync(expected);
+            state.AssertEncapsulateAs(expected);
         }
 
         [WpfFact]

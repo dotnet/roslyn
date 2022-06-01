@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
-    internal sealed class CSharpToggleBlockCommentCommandHandler :
+    internal class CSharpToggleBlockCommentCommandHandler :
         ToggleBlockCommentCommandHandler
     {
         [ImportingConstructor]
@@ -33,9 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         public CSharpToggleBlockCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextStructureNavigatorSelectorService navigatorSelectorService,
-            IGlobalOptionService globalOptions)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, globalOptions)
+            ITextStructureNavigatorSelectorService navigatorSelectorService)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService)
         {
         }
 

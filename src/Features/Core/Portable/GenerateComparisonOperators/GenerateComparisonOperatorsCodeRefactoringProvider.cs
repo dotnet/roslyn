@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             if (missingComparableTypes.Count == 1)
             {
                 var missingType = missingComparableTypes[0];
-                context.RegisterRefactoring(CodeAction.Create(
+                context.RegisterRefactoring(new MyCodeAction(
                     FeaturesResources.Generate_comparison_operators,
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
                     nameof(FeaturesResources.Generate_comparison_operators)));
                 return;
             }
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             {
                 var typeArg = missingType.TypeArguments[0];
                 var displayString = typeArg.ToMinimalDisplayString(semanticModel, textSpan.Start);
-                nestedActions.Add(CodeAction.Create(
+                nestedActions.Add(new MyCodeAction(
                     string.Format(FeaturesResources.Generate_for_0, displayString),
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
                     nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
             }
 
@@ -134,7 +134,6 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             Document document,
             SyntaxNode typeDeclaration,
             INamedTypeSymbol comparableType,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -149,12 +148,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 generator, semanticModel.Compilation, containingType, comparableType,
                 GenerateLeftExpression(generator, comparableType, compareMethod));
 
-            var solutionContext = new CodeGenerationSolutionContext(
-                document.Project.Solution,
-                new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation()),
-                fallbackOptions);
+            var context = new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation());
 
-            return await codeGenService.AddMembersAsync(solutionContext, containingType, operators, cancellationToken).ConfigureAwait(false);
+            return await codeGenService.AddMembersAsync(document.Project.Solution, containingType, operators, context, cancellationToken).ConfigureAwait(false);
         }
 
         private static SyntaxNode GenerateLeftExpression(
@@ -264,5 +260,13 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.GreaterThanOrEqual => WellKnownMemberNames.GreaterThanOrEqualOperatorName,
                 _ => throw ExceptionUtilities.Unreachable,
             };
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
+        }
     }
 }

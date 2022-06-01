@@ -238,7 +238,7 @@ End Class
                 Await WaitForRename(workspace)
 
                 ' Unfocus the dashboard
-                Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, RenameDashboard)
+                Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, Dashboard)
                 dashboard.ShouldReceiveKeyboardNavigation = False
 
                 commandHandler.ExecuteCommand(New TabKeyCommandArgs(view, view.TextBuffer),

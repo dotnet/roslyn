@@ -212,17 +212,17 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var endPos = endLine.Start;
 
             context.RegisterCodeFix(
-                CodeAction.Create(takeTopText,
+                new MyCodeAction(takeTopText,
                     c => TakeTopAsync(document, startPos, equalsPos, endPos, c),
                     TakeTopEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                CodeAction.Create(takeBottomText,
+                new MyCodeAction(takeBottomText,
                     c => TakeBottomAsync(document, startPos, equalsPos, endPos, c),
                     TakeBottomEquivalenceKey),
                 context.Diagnostics);
             context.RegisterCodeFix(
-                CodeAction.Create(FeaturesResources.Take_both,
+                new MyCodeAction(FeaturesResources.Take_both,
                     c => TakeBothAsync(document, startPos, equalsPos, endPos, c),
                     TakeBothEquivalenceKey),
                 context.Diagnostics);
@@ -357,5 +357,13 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(async (context, document, diagnostics) =>
                 await this.FixAllAsync(document, diagnostics, context.CodeActionEquivalenceKey, context.CancellationToken).ConfigureAwait(false));
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
+        }
     }
 }

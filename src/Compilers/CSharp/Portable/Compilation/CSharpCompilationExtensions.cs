@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsFeatureEnabled(this SyntaxNode? syntax, MessageID feature)
         {
             return ((CSharpParseOptions?)syntax?.SyntaxTree.Options)?.IsFeatureEnabled(feature) == true;
-        }
-
-        internal static bool ShouldEmitNativeIntegerAttributes(this CSharpCompilation compilation, TypeSymbol type)
-        {
-            return compilation.ShouldEmitNativeIntegerAttributes() && type.ContainsNativeIntegerWrapperType();
         }
     }
 }

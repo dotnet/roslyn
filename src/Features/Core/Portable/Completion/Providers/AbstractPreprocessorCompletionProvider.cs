@@ -20,8 +20,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var originatingDocument = context.Document;
             var position = context.Position;
+
+            var semanticModel = await originatingDocument.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var service = originatingDocument.GetRequiredLanguageService<ISyntaxContextService>();
             var solution = originatingDocument.Project.Solution;
-            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(originatingDocument, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = service.CreateContext(originatingDocument, semanticModel, position, cancellationToken);
             if (!syntaxContext.IsPreProcessorExpressionContext)
                 return;
 

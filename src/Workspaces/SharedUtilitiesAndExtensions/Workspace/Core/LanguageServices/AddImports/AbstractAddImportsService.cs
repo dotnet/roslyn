@@ -7,10 +7,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
+#endif
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -31,19 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
 
-        public AddImportPlacementOptions GetAddImportOptions(AnalyzerConfigOptions configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
-        {
-            fallbackOptions ??= AddImportPlacementOptions.Default;
-
-            return new()
-            {
-                PlaceSystemNamespaceFirst = configOptions.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.PlaceSystemNamespaceFirst),
-                UsingDirectivePlacement = GetUsingDirectivePlacementCodeStyleOption(configOptions, fallbackOptions.UsingDirectivePlacement),
-                AllowInHiddenRegions = allowInHiddenRegions
-            };
-        }
-
-        public abstract CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(AnalyzerConfigOptions configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue);
+        public abstract bool PlaceImportsInsideNamespaces(OptionSet optionSet);
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;

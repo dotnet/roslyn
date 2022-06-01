@@ -737,7 +737,7 @@ class C
     {
         void M()
         {
-            M2(""""""
+            System.Console.WriteLine(""""""
     a
         b
             c
@@ -745,8 +745,6 @@ class C
                     e
     """"""u8);
         }
-
-        void M2(System.ReadOnlySpan<byte> x) {}
     }
 }
 ",
@@ -757,7 +755,7 @@ class C
 {
     void M()
     {
-        M2(""""""
+        System.Console.WriteLine(""""""
     a
         b
             c
@@ -765,12 +763,9 @@ class C
                     e
     """"""u8);
     }
-
-    void M2(System.ReadOnlySpan<byte> x) {}
 }
 ",
                 LanguageVersion = LanguageVersion.Preview,
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 Options =
                 {
                     { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }

@@ -452,20 +452,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 case BoundKind.RangeVariable:
-                    {
-                        // range variables can only be used as RValues
-                        var queryref = (BoundRangeVariable)expr;
-                        var errorCode = GetRangeLvalueError(valueKind);
-                        if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_RefLocalOrParamExpected)
-                        {
-                            Error(diagnostics, errorCode, node);
-                        }
-                        else
-                        {
-                            Error(diagnostics, errorCode, node, queryref.RangeVariableSymbol.Name);
-                        }
-                        return false;
-                    }
+                    // range variables can only be used as RValues
+                    var queryref = (BoundRangeVariable)expr;
+                    Error(diagnostics, GetRangeLvalueError(valueKind), node, queryref.RangeVariableSymbol.Name);
+                    return false;
 
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
@@ -546,15 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var isValueType = ((BoundThisReference)expr).Type.IsValueType;
                     if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        var errorCode = GetThisLvalueError(valueKind, isValueType);
-                        if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
-                        {
-                            Error(diagnostics, errorCode, node);
-                        }
-                        else
-                        {
-                            Error(diagnostics, errorCode, node, node);
-                        }
+                        Error(diagnostics, GetThisLvalueError(valueKind, isValueType), node, node);
                         return false;
                     }
 
@@ -694,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (localSymbol.RefKind == RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_RefLocalOrParamExpected, node.Location);
+                    diagnostics.Add(ErrorCode.ERR_RefLocalOrParamExpected, node.Location, localSymbol);
                     return false;
                 }
                 else if (!localSymbol.IsWritableVariable)
@@ -974,14 +956,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // NOTE: Dev11 reports ERR_RefProperty, as if this were a property access (since that's how it will be lowered).
                         // Roslyn reports a new, more specific, error code.
-                        if (valueKind == BindValueKind.RefOrOut)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_WinRtEventPassedByRef, eventSyntax);
-                        }
-                        else
-                        {
-                            Error(diagnostics, GetStandardLvalueError(valueKind), eventSyntax, eventSymbol);
-                        }
+                        ErrorCode errorCode = valueKind == BindValueKind.RefOrOut ? ErrorCode.ERR_WinRtEventPassedByRef : GetStandardLvalueError(valueKind);
+                        Error(diagnostics, errorCode, eventSyntax, eventSymbol);
+
                         return false;
                     }
                     else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
@@ -1093,13 +1070,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(propertySymbol.TypeWithAnnotations.HasType);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
-                else if (valueKind == BindValueKind.RefOrOut)
-                {
-                    Error(diagnostics, ErrorCode.ERR_RefProperty, node);
-                }
                 else
                 {
-                    Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                    Error(diagnostics, valueKind == BindValueKind.RefOrOut ? ErrorCode.ERR_RefProperty : GetStandardLvalueError(valueKind), node, propertySymbol);
                 }
 
                 return false;
@@ -2347,7 +2320,7 @@ moreArguments:
                     //"this" is not returnable by reference in a struct.
                     if (escapeTo == Binder.ExternalScope)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node);
+                        Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node, ThisParameterSymbol.SymbolName);
                         return false;
                     }
 
@@ -2613,7 +2586,6 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
-                case BoundKind.UTF8String:
                     // always returnable
                     return Binder.ExternalScope;
 
@@ -3019,7 +2991,6 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
-                case BoundKind.UTF8String:
                     // always returnable
                     return true;
 

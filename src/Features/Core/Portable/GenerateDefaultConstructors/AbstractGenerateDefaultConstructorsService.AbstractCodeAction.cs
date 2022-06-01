@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -23,20 +22,17 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             private readonly Document _document;
             private readonly State _state;
             private readonly string _title;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             protected AbstractCodeAction(
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors,
-                string title,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                string title)
             {
                 _document = document;
                 _state = state;
                 _constructors = constructors;
                 _title = title;
-                _fallbackOptions = fallbackOptions;
             }
 
             public override string Title => _title;
@@ -45,12 +41,10 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             {
                 Contract.ThrowIfNull(_state.ClassType);
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    new CodeGenerationSolutionContext(
-                        _document.Project.Solution,
-                        CodeGenerationContext.Default,
-                        _fallbackOptions),
+                    _document.Project.Solution,
                     _state.ClassType,
                     _constructors.Select(CreateConstructorDefinition),
+                    CodeGenerationContext.Default,
                     cancellationToken).ConfigureAwait(false);
 
                 return result;

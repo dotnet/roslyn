@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// <summary>
 /// Supports built in legacy snippets for razor scenarios.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(InlineCompletionsHandler)), Shared]
+[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(InlineCompletionsHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
@@ -44,26 +44,24 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
     private readonly XmlSnippetParser _xmlSnippetParser;
-    private readonly IGlobalOptionService _globalOptions;
 
-    public bool MutatesSolutionState => false;
+    public override bool MutatesSolutionState => false;
 
-    public bool RequiresLSPSolution => true;
+    public override bool RequiresLSPSolution => true;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser, IGlobalOptionService globalOptions)
+    public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser)
     {
         _xmlSnippetParser = xmlSnippetParser;
-        _globalOptions = globalOptions;
     }
 
-    public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
         return request.TextDocument;
     }
 
-    public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
+    public override async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
 
@@ -101,8 +99,8 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
         }
 
         // Use the formatting options specified by the client to format the snippet.
-        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, context.Document, _globalOptions, cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = await context.Document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, context.Document, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = await SimplifierOptions.FromDocumentAsync(context.Document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
         var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
 

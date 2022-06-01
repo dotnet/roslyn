@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         public enum EnumerableType
         {
-            SegmentedHashSet,
+            HashSet,
             SortedSet,
             List,
             Queue,

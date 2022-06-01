@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
             ArrayBuilder<SyntaxToken> tokens,
-            CSharpCodeGenerationContextInfo info,
+            CSharpCodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
-            if (!info.Context.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
+            if (!options.Context.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
             }
@@ -166,14 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CSharpCodeGenerationContextInfo info,
+            CSharpCodeGenerationOptions options,
             IList<bool>? availableIndices,
             Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
             Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
             where TDeclaration : SyntaxNode
         {
             var index = GetInsertionIndex(
-                declarationList, declaration, info, availableIndices,
+                declarationList, declaration, options, availableIndices,
                 CSharpDeclarationComparer.WithoutNamesInstance,
                 CSharpDeclarationComparer.WithNamesInstance,
                 after, before);
@@ -246,11 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static TSyntaxNode ConditionallyAddDocumentationCommentTo<TSyntaxNode>(
             TSyntaxNode node,
             ISymbol symbol,
-            CSharpCodeGenerationContextInfo info,
+            CSharpCodeGenerationOptions options,
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
-            if (!info.Context.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
+            if (!options.Context.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
             {
                 return node;
             }
@@ -266,11 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         /// Try use the existing syntax node and generate a new syntax node for the given <param name="symbol"/>.
         /// Note: the returned syntax node might be modified, which means its parent information might be missing.
         /// </summary>
-        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CSharpCodeGenerationContextInfo info) where T : SyntaxNode
+        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CSharpCodeGenerationOptions options) where T : SyntaxNode
         {
             Contract.ThrowIfNull(symbol);
 
-            if (info.Context.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
+            if (options.Context.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
             {
                 var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
 

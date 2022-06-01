@@ -102,10 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
-#nullable enable
-        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
-#nullable disable
-
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
         {
@@ -283,6 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
+        internal void LoadCustomAttributesFilterCompilerAttributes(EntityHandle token,
+            ref ImmutableArray<CSharpAttributeData> customAttributes,
+            out bool foundExtension,
+            out bool foundReadOnly)
+        {
+            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out foundExtension, out foundReadOnly);
+            ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
+        }
+
         internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes)
         {
@@ -294,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out CustomAttributeHandle filteredOutAttribute1,
             AttributeDescription filterOut1)
         {
-            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default, out _, default);
+            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default);
         }
 
         /// <summary>
@@ -309,15 +314,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out CustomAttributeHandle filteredOutAttribute3,
             AttributeDescription filterOut3,
             out CustomAttributeHandle filteredOutAttribute4,
-            AttributeDescription filterOut4,
-            out CustomAttributeHandle filteredOutAttribute5,
-            AttributeDescription filterOut5)
+            AttributeDescription filterOut4)
         {
             filteredOutAttribute1 = default;
             filteredOutAttribute2 = default;
             filteredOutAttribute3 = default;
             filteredOutAttribute4 = default;
-            filteredOutAttribute5 = default;
             ArrayBuilder<CSharpAttributeData> customAttributesBuilder = null;
 
             try
@@ -348,12 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (matchesFilter(customAttributeHandle, filterOut4))
                     {
                         filteredOutAttribute4 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut5))
-                    {
-                        filteredOutAttribute5 = customAttributeHandle;
                         continue;
                     }
 
@@ -438,8 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
                 filterOut2: AttributeDescription.IsReadOnlyAttribute,
                 filteredOutAttribute3: out _, filterOut3: default,
-                filteredOutAttribute4: out _, filterOut4: default,
-                filteredOutAttribute5: out _, filterOut5: default);
+                filteredOutAttribute4: out _, filterOut4: default);
 
             foundExtension = !extensionAttribute.IsNil;
             foundReadOnly = !isReadOnlyAttribute.IsNil;
@@ -760,22 +755,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return false;
         }
-
-#nullable enable
-        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
-        {
-            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.EmptyErrorInfo)
-            {
-                Interlocked.CompareExchange(
-                    ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
-                    PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, this, Token, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(this)),
-                    CSDiagnosticInfo.EmptyErrorInfo);
-            }
-
-            return _lazyCachedCompilerFeatureRequiredDiagnosticInfo ?? (_assemblySymbol as PEAssemblySymbol)?.GetCompilerFeatureRequiredDiagnostic();
-        }
-
-        public override bool HasUnsupportedMetadata
-            => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
     }
 }

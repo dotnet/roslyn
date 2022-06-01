@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var isUnsafe = false;
             var isSealed = false;
             var isAbstract = false;
-            var isRequired = false;
 
             while (IsOnStartLine(token.SpanStart, text, startLine) && !token.IsKind(SyntaxKind.None))
             {
@@ -104,9 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         isAbstract = true;
                         break;
                     case SyntaxKind.ExternKeyword:
-                        break;
-                    case SyntaxKind.RequiredKeyword:
-                        isRequired = true;
                         break;
 
                     // Filter on the most recently typed accessibility; keep the first one we see
@@ -179,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 token = previousToken;
             }
 
-            modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed, isRequired: isRequired);
+            modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed);
             return overrideToken.IsKind(SyntaxKind.OverrideKeyword) && IsOnStartLine(overrideToken.Parent!.SpanStart, text, startLine);
         }
 

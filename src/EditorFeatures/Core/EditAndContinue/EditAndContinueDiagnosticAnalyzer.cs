@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using Microsoft.VisualStudio.Debugger.Contracts;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-        public bool OpenFileOnly(SimplifierOptions? options)
+        public bool OpenFileOnly(OptionSet options)
             => false;
 
         // No syntax diagnostics produced by the EnC engine.  

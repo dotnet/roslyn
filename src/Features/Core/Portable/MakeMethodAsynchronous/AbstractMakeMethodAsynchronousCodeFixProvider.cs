@@ -60,24 +60,18 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name, context.Document);
 
             // Offer to convert to a Task return type.
-            var taskTitle = GetMakeAsyncTaskFunctionResource();
             context.RegisterCodeFix(
-                CodeAction.Create(
-                    taskTitle,
-                    c => FixNodeAsync(context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c),
-                    taskTitle),
+                new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
+                    context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
                 context.Diagnostics);
 
             // If it's a void returning method (and not an entry point), also offer to keep the void return type
             var isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
-                var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
                 context.RegisterCodeFix(
-                    CodeAction.Create(
-                        asyncVoidTitle,
-                        c => FixNodeAsync(context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c),
-                        asyncVoidTitle),
+                    new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
+                        context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
                     context.Diagnostics);
             }
         }
@@ -234,6 +228,14 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             return false;
+        }
+
+        private class MyCodeAction : CodeAction.SolutionChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution, equivalenceKey: title)
+            {
+            }
         }
     }
 }

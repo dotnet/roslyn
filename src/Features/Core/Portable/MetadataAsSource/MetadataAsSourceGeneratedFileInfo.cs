@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public readonly AssemblyIdentity AssemblyIdentity;
         public readonly string LanguageName;
-        public readonly bool SignaturesOnly;
         public readonly ImmutableArray<MetadataReference> References;
 
         public readonly string TemporaryFilePath;
@@ -30,7 +29,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             this.SourceProjectId = sourceProject.Id;
             this.Workspace = sourceProject.Solution.Workspace;
             this.LanguageName = signaturesOnly ? sourceProject.Language : LanguageNames.CSharp;
-            this.SignaturesOnly = signaturesOnly;
             if (sourceProject.Language == LanguageName)
             {
                 _parseOptions = sourceProject.ParseOptions;

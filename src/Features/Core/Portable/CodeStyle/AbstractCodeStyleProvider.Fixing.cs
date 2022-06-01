@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     // subclasses cannot change anything.  All code relevant to subclasses relating to fixing is
     // contained in AbstractCodeStyleProvider.cs
 
-    internal abstract partial class AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>
+    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
     {
         private async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -33,10 +33,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public abstract class CodeFixProvider : SyntaxEditorBasedCodeFixProvider
         {
-            public readonly TCodeStyleProvider _codeStyleProvider = new();
+            public readonly TCodeStyleProvider _codeStyleProvider;
 
             protected CodeFixProvider()
             {
+                _codeStyleProvider = new TCodeStyleProvider();
                 FixableDiagnosticIds = ImmutableArray.Create(_codeStyleProvider._descriptorId);
             }
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
                 => _codeStyleProvider.RegisterCodeFixesAsync(context);
 
-            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
                 => _codeStyleProvider.FixAllAsync(document, diagnostics, editor, cancellationToken);
         }
     }

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // Enqueue re-analysis of projects, if required.
                         foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
                         {
-                            if (GlobalOptions.IsFullSolutionAnalysisEnabled(projectsByLanguage.Key))
+                            if (GlobalOptions.GetBackgroundAnalysisScope(projectsByLanguage.Key) == BackgroundAnalysisScope.FullSolution)
                             {
                                 AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id));
                             }

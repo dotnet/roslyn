@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 : FeaturesResources.Replace_0_with_methods;
 
             context.RegisterRefactoring(
-                CodeAction.Create(
+                new ReplacePropertyWithMethodsCodeAction(
                     string.Format(resourceString, propertyName),
-                    c => ReplacePropertyWithMethodsAsync(document, propertySymbol, context.Options, c),
+                    c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
                     propertyName),
                 propertyDeclaration.Span);
         }
@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         private async Task<Solution> ReplacePropertyWithMethodsAsync(
            Document document,
            IPropertySymbol propertySymbol,
-           CodeGenerationOptionsProvider fallbackOptions,
            CancellationToken cancellationToken)
         {
             var desiredMethodSuffix = NameGenerator.GenerateUniqueName(propertySymbol.Name,
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
                 originalSolution, updatedSolution, propertyReferences, definitionToBackingField,
-                desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
 
             return updatedSolution;
         }
@@ -288,14 +287,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
             }
         }
-
         private static async Task<Solution> ReplaceDefinitionsWithMethodsAsync(
             Solution originalSolution,
             Solution updatedSolution,
             IEnumerable<ReferencedSymbol> references,
             ImmutableDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
-            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var definitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, references, cancellationToken).ConfigureAwait(false);
@@ -306,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
                     updatedSolution, documentId, definitions, definitionToBackingField,
-                    desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
             }
 
             return updatedSolution;
@@ -346,7 +343,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             MultiDictionary<DocumentId, IPropertySymbol>.ValueSet originalDefinitions,
             IDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
-            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var updatedDocument = updatedSolution.GetRequiredDocument(documentId);
@@ -373,7 +369,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     property, declaration,
                     definitionToBackingField.GetValueOrDefault(property),
                     desiredGetMethodName, desiredSetMethodName,
-                    fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
 
                 // Properly make the members fit within an interface if that's what
@@ -440,5 +435,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         public int GetHashCode((IPropertySymbol property, ReferenceLocation location) obj)
             => obj.location.Location.SourceSpan.GetHashCode();
+
+        private class ReplacePropertyWithMethodsCodeAction : CodeAction.SolutionChangeAction
+        {
+            public ReplacePropertyWithMethodsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
+                : base(title, createChangedSolution, equivalenceKey)
+            {
+            }
+        }
     }
 }

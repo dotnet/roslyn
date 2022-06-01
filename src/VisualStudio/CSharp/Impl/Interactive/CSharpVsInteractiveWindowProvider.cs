@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
@@ -29,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -43,14 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             [ImportMany] IInteractiveWindowCommand[] commands,
             IGlobalOptionService globalOptions,
-            ITextDocumentFactoryService textDocumentFactoryService,
             VisualStudioWorkspace workspace)
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
             _threadingContext = threadingContext;
             _listener = listenerProvider.GetListener(FeatureAttribute.InteractiveEvaluator);
             _globalOptions = globalOptions;
-            _textDocumentFactoryService = textDocumentFactoryService;
         }
 
         protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
@@ -77,7 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 classifierAggregator,
                 CommandsFactory,
                 Commands,
-                _textDocumentFactoryService,
                 CSharpInteractiveEvaluatorLanguageInfoProvider.Instance,
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }

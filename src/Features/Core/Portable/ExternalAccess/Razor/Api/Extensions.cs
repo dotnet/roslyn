@@ -8,7 +8,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
 {
     internal static class Extensions
     {
+        private const string RazorCSharp = "RazorCSharp";
+
         public static bool IsRazorDocument(this Document document)
-            => Host.Extensions.IsRazorDocument(document);
+        {
+            var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+            if (documentPropertiesService != null && documentPropertiesService.DiagnosticsLspClientName == RazorCSharp)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

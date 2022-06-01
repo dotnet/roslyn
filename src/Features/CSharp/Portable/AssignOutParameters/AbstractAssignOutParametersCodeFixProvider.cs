@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var unassignedParameters = await GetUnassignedParametersAsync(
                 document, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -164,6 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        protected class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
         }
     }
 }

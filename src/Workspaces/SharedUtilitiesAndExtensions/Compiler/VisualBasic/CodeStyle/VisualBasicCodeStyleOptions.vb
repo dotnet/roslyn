@@ -35,21 +35,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
         Public Shared ReadOnly Property AllOptions As ImmutableArray(Of IOption2)
 
+        Public Shared ReadOnly PreferredModifierOrderDefault As ImmutableArray(Of SyntaxKind) =
+            ImmutableArray.Create(
+                SyntaxKind.PartialKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword,
+                SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.OverridableKeyword,
+                SyntaxKind.MustOverrideKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.MustInheritKeyword,
+                SyntaxKind.NotInheritableKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword,
+                SyntaxKind.ReadOnlyKeyword, SyntaxKind.WriteOnlyKeyword, SyntaxKind.DimKeyword, SyntaxKind.ConstKeyword,
+                SyntaxKind.WithEventsKeyword, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword, SyntaxKind.CustomKeyword,
+                SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword)
+
         Public Shared ReadOnly PreferredModifierOrder As Option2(Of CodeStyleOption2(Of String)) = CreateOption(
             VisualBasicCodeStyleOptionGroups.Modifier, NameOf(PreferredModifierOrder),
-            VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder,
+            defaultValue:=New CodeStyleOption2(Of String)(String.Join(",", PreferredModifierOrderDefault.Select(AddressOf SyntaxFacts.GetText)), NotificationOption2.Silent),
             "visual_basic_preferred_modifier_order",
             $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferredModifierOrder)}")
 
         Public Shared ReadOnly PreferIsNotExpression As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
             VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferIsNotExpression),
-            VisualBasicIdeCodeStyleOptions.Default.PreferIsNotExpression,
+            defaultValue:=New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Suggestion),
             "visual_basic_style_prefer_isnot_expression",
             $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferIsNotExpression)}")
 
         Public Shared ReadOnly PreferSimplifiedObjectCreation As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
             VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferSimplifiedObjectCreation),
-            VisualBasicIdeCodeStyleOptions.Default.PreferSimplifiedObjectCreation,
+            defaultValue:=New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Suggestion),
             "visual_basic_style_prefer_simplified_object_creation",
             $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferSimplifiedObjectCreation)}")
 
@@ -59,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
                 feature:=NameOf(VisualBasicCodeStyleOptions),
                 name:=NameOf(UnusedValueExpressionStatement),
                 editorConfigName:="visual_basic_style_unused_value_expression_statement_preference",
-                defaultValue:=VisualBasicIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
+                defaultValue:=New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent),
                 optionsBuilder:=s_allOptionsBuilder)
 
         Public Shared ReadOnly UnusedValueAssignment As [Option2](Of CodeStyleOption2(Of UnusedValuePreference)) =
@@ -68,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
                 feature:=NameOf(VisualBasicCodeStyleOptions),
                 name:=NameOf(UnusedValueAssignment),
                 editorConfigName:="visual_basic_style_unused_value_assignment_preference",
-                defaultValue:=VisualBasicIdeCodeStyleOptions.Default.UnusedValueAssignment,
+                defaultValue:=New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion),
                 optionsBuilder:=s_allOptionsBuilder)
     End Class
 

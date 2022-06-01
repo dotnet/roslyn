@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, MergeDirection direction, string ifKeywordText)
         {
             var resourceText = direction == MergeDirection.Up ? FeaturesResources.Merge_with_outer_0_statement : FeaturesResources.Merge_with_nested_0_statement;
-            var title = string.Format(resourceText, ifKeywordText);
-            return CodeAction.Create(title, createChangedDocument, title);
+            return new MyCodeAction(string.Format(resourceText, ifKeywordText), createChangedDocument);
         }
 
         protected sealed override Task<bool> CanBeMergedUpAsync(
@@ -257,6 +256,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var statements2 = WalkDownScopeBlocks(blockFacts, blockFacts.GetStatementContainerStatements(elseIfOrElseClause2));
 
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
+        }
+
+        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
         }
     }
 }

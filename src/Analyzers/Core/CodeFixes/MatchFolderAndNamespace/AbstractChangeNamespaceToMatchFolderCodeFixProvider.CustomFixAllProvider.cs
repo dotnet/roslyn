@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 if (diagnostics.IsDefaultOrEmpty)
                     return null;
 
-                var title = fixAllContext.GetDefaultFixAllTitle();
+                var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
                 return CodeAction.Create(
                     title,
                     cancellationToken => FixAllByDocumentAsync(
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                         diagnostics,
                         fixAllContext.GetProgressTracker(),
 #if CODE_STYLE
-                        CodeActionOptions.DefaultProvider,
+                        options: _ => default,
 #else
                         fixAllContext.State.CodeActionOptionsProvider,
 #endif

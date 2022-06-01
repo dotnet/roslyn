@@ -117,10 +117,8 @@ class C
             SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
             var commandHandler = new CommentUncommentSelectionCommandHandler(
-                workspace.GetService<ITextUndoHistoryRegistry>(),
-                workspace.GetService<IEditorOperationsFactoryService>(),
-                workspace.GlobalOptions);
-
+                workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
+                workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
             var textView = doc.GetTextView();
             var textBuffer = doc.GetTextBuffer();
             commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());

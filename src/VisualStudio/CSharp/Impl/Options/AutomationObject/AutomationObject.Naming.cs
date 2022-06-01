@@ -4,8 +4,9 @@
 
 using System;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {

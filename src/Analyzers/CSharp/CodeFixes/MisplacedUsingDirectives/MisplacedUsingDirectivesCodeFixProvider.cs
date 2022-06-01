@@ -25,6 +25,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 {
     /// <summary>
@@ -58,13 +64,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
 
-            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
-            var simplifierOptions = options.GetSimplifierOptions();
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(syntaxRoot.SyntaxTree, cancellationToken);
+            var simplifierOptions = CSharpSimplifierOptions.Create(options, fallbackOptions: null);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: context.Options(document.Project.LanguageServices).SimplifierOptions, cancellationToken).ConfigureAwait(false);
+#endif
+            var codeStyleOption = options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
 
             // Read the preferred placement option and verify if it can be applied to this code file.
             // There are cases where we will not be able to fix the diagnostic and the user will need to resolve
             // it manually.
-            var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options.UsingDirectivePlacement);
+            var (placement, preferPreservation) = DeterminePlacement(compilationUnit, codeStyleOption);
             if (preferPreservation)
                 return;
 
@@ -141,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
             // Simplify usings now that they have been moved and are in the proper context.
 #if CODE_STYLE
-#pragma warning disable RS0030 // Do not used banned APIs (ReduceAsync with SimplifierOptions isn't public)
+#pragma warning disable RS0030 // Do not used banned APIs
             return await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
 #else

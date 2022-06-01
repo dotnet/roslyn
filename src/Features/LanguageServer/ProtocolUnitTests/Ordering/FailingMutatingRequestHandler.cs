@@ -13,9 +13,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(FailingMutatingRequestHandler)), PartNotDiscoverable, Shared]
+    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FailingMutatingRequestHandler)), PartNotDiscoverable]
     [Method(MethodName)]
-    internal class FailingMutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
+    internal class FailingMutatingRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(FailingMutatingRequestHandler);
         private const int Delay = 100;
@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => true;
+        public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
-        public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
             await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 

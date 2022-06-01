@@ -53,10 +53,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var nodeString = singleLineExpression.ToString();
 
             context.RegisterRefactoring(
-                CodeAction.Create(
+                new MyCodeAction(
                     string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                    c => IntroduceLocalAsync(document, expressionStatement, c),
-                    nameof(FeaturesResources.Introduce_local_for_0) + "_" + nodeString),
+                    c => IntroduceLocalAsync(document, expressionStatement, c)),
                 expressionStatement.Span);
         }
 
@@ -107,6 +106,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, containerOpt: null, baseName, cancellationToken)
                                           .WithAdditionalAnnotations(RenameAnnotation.Create());
             return uniqueName;
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
         }
     }
 }

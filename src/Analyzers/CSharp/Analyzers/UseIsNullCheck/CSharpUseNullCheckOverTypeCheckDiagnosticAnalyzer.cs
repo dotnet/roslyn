@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         private static bool ShouldAnalyze(OperationAnalysisContext context, out ReportDiagnostic severity)
         {
-            var option = context.GetCSharpAnalyzerOptions().PreferNullCheckOverTypeCheck;
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, context.Operation.Syntax.SyntaxTree, context.CancellationToken);
             if (!option.Value)
             {
                 severity = ReportDiagnostic.Default;

@@ -774,12 +774,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Syntax and Semantic Utils
 
-        protected override bool IsNamespaceDeclaration(SyntaxNode node)
-            => node is BaseNamespaceDeclarationSyntax;
-
-        private static bool IsTypeDeclaration(SyntaxNode node)
-            => node is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax;
-
         protected override bool IsCompilationUnitWithGlobalStatements(SyntaxNode node)
             => node is CompilationUnitSyntax unit && unit.ContainsGlobalStatements();
 
@@ -797,32 +791,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return GetDiagnosticSpan(node, EditKind.Delete);
         }
 
-        protected override IEnumerable<SyntaxNode> GetTopLevelTypeDeclarations(SyntaxNode compilationUnit)
-        {
-            using var _ = ArrayBuilder<SyntaxList<MemberDeclarationSyntax>>.GetInstance(out var stack);
-
-            stack.Add(((CompilationUnitSyntax)compilationUnit).Members);
-
-            while (stack.Count > 0)
-            {
-                var members = stack.Last();
-                stack.RemoveLast();
-
-                foreach (var member in members)
-                {
-                    if (IsTypeDeclaration(member))
-                    {
-                        yield return member;
-                    }
-
-                    if (member is BaseNamespaceDeclarationSyntax namespaceMember)
-                    {
-                        stack.Add(namespaceMember.Members);
-                    }
-                }
-            }
-        }
-
         protected override string LineDirectiveKeyword
             => "line";
 
@@ -838,6 +806,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         // there are no experimental features at this time.
         internal override bool ExperimentalFeaturesEnabled(SyntaxTree tree)
             => false;
+
+        protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
+            => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
             => SyntaxComparer.Statement.GetLabel(node1) == SyntaxComparer.Statement.GetLabel(node2);
@@ -1188,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private static bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, INamedTypeSymbol newContainingType)
         {
             if (newContainingType.IsRecord &&
-                declaration is PropertyDeclarationSyntax { Identifier.ValueText: var name })
+                declaration is PropertyDeclarationSyntax { Identifier: { ValueText: var name } })
             {
                 // We need to use symbol information to find the primary constructor, because it could be in another file if the type is partial
                 foreach (var reference in newContainingType.DeclaringSyntaxReferences)
@@ -1370,19 +1341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                     break;
-
-                case EditKind.Move:
-                    Contract.ThrowIfNull(oldNode);
-                    Contract.ThrowIfNull(newNode);
-                    Contract.ThrowIfNull(oldModel);
-
-                    Debug.Assert(oldNode.RawKind == newNode.RawKind);
-                    Debug.Assert(SupportsMove(oldNode));
-                    Debug.Assert(SupportsMove(newNode));
-
-                    return oldNode.IsKind(SyntaxKind.LocalFunctionStatement) ?
-                        OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty :
-                        OneOrMany.Create((oldSymbol, newSymbol, editKind));
             }
 
             return (editKind == EditKind.Delete ? oldSymbol : newSymbol) is null ?
@@ -1425,11 +1383,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             return symbol;
         }
-
-        private static bool SupportsMove(SyntaxNode node)
-            => node.IsKind(SyntaxKind.LocalFunctionStatement) ||
-               IsTypeDeclaration(node) ||
-               node is BaseNamespaceDeclarationSyntax;
 
         internal override bool ContainsLambda(SyntaxNode declaration)
             => declaration.DescendantNodes().Any(LambdaUtilities.IsLambda);
@@ -2268,7 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case EditKind.Update:
-                        ClassifyUpdate(_newNode!);
+                        ClassifyUpdate(_oldNode!, _newNode!);
                         return;
 
                     case EditKind.Move:
@@ -2290,11 +2243,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyMove(SyntaxNode newNode)
             {
-                if (SupportsMove(newNode))
+                if (newNode.IsKind(SyntaxKind.LocalFunctionStatement))
                 {
                     return;
                 }
 
+                // We could perhaps allow moving a type declaration to a different namespace syntax node
+                // as long as it represents semantically the same namespace as the one of the original type declaration.
                 ReportError(RudeEditKind.Move);
             }
 
@@ -2333,6 +2288,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (node.Kind())
                 {
                     case SyntaxKind.ExternAliasDirective:
+                    case SyntaxKind.NamespaceDeclaration:
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
                         ReportError(RudeEditKind.Insert);
                         return;
 
@@ -2357,6 +2314,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (oldNode.Kind())
                 {
                     case SyntaxKind.ExternAliasDirective:
+                    case SyntaxKind.NamespaceDeclaration:
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
                         // To allow removal of declarations we would need to update method bodies that 
                         // were previously binding to them but now are binding to another symbol that was previously hidden.
                         ReportError(RudeEditKind.Delete);
@@ -2378,12 +2337,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            private void ClassifyUpdate(SyntaxNode newNode)
+            private void ClassifyUpdate(SyntaxNode oldNode, SyntaxNode newNode)
             {
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.ExternAliasDirective:
                         ReportError(RudeEditKind.Update);
+                        return;
+
+                    case SyntaxKind.NamespaceDeclaration:
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        ClassifyUpdate((BaseNamespaceDeclarationSyntax)oldNode, (BaseNamespaceDeclarationSyntax)newNode);
                         return;
 
                     case SyntaxKind.Attribute:
@@ -2399,6 +2363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                         return;
                 }
+            }
+
+            private void ClassifyUpdate(BaseNamespaceDeclarationSyntax oldNode, BaseNamespaceDeclarationSyntax newNode)
+            {
+                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Name, newNode.Name));
+                ReportError(RudeEditKind.Renamed);
             }
 
             public void ClassifyDeclarationBodyRudeUpdates(SyntaxNode newDeclarationOrBody)
@@ -2453,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _ when !insertingIntoExistingContainingType => RudeEditKind.None,
 
                 // Inserting a member into an existing generic type is not allowed.
-                { ContainingType.Arity: > 0 } and not INamedTypeSymbol
+                { ContainingType: { Arity: > 0 } } and not INamedTypeSymbol
                     => RudeEditKind.InsertIntoGenericType,
 
                 // Inserting virtual or interface member into an existing type is not allowed.
@@ -2473,11 +2443,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     => RudeEditKind.InsertOperator,
 
                 // Inserting a method that explictly implements an interface method into an existing type is not allowed.
-                IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false }
+                IMethodSymbol { ExplicitInterfaceImplementations: { IsEmpty: false } }
                     => RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
 
                 // TODO: Inserting non-virtual member to an interface (https://github.com/dotnet/roslyn/issues/37128)
-                { ContainingType.TypeKind: TypeKind.Interface } and not INamedTypeSymbol
+                { ContainingType: { TypeKind: TypeKind.Interface } } and not INamedTypeSymbol
                     => RudeEditKind.InsertIntoInterface,
 
                 // Inserting a field into an enum:
@@ -2646,17 +2616,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region State Machines
 
-        protected override bool SupportsStateMachineUpdates
-            => true;
-
-        protected override bool IsStateMachineResumableStateSyntax(SyntaxNode node)
-            => SyntaxBindingUtilities.BindsToResumableStateMachineState(node);
-
-        protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
-            => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
-
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
-            => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
+            => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.GetSuspensionPoints(declaration).Any();
 
         protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds)
         {
@@ -2664,7 +2625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             kinds = StateMachineKinds.None;
 
-            if (SyntaxUtilities.IsIterator(body))
+            if (suspensionPoints.Any(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement)))
             {
                 kinds |= StateMachineKinds.Iterator;
             }
@@ -2677,7 +2638,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
-            if (newNode.IsKind(SyntaxKind.AwaitExpression) && oldNode.IsKind(SyntaxKind.AwaitExpression))
+            // TODO: changes around suspension points (foreach, lock, using, etc.)
+
+            if (newNode.IsKind(SyntaxKind.AwaitExpression))
             {
                 var oldContainingStatementPart = FindContainingStatementPart(oldNode);
                 var newContainingStatementPart = FindContainingStatementPart(newNode);

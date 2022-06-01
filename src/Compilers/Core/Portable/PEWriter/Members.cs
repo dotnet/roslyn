@@ -475,7 +475,6 @@ namespace Microsoft.Cci
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
-        StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
 
         DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
     }

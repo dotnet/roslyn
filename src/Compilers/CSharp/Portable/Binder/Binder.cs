@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Return the nearest enclosing node being bound as a nameof(...) argument, if any, or null if none.
-        protected virtual SyntaxNode? EnclosingNameofArgument => NextRequired.EnclosingNameofArgument;
+        protected virtual SyntaxNode? EnclosingNameofArgument => null;
 
-        internal virtual bool IsInsideNameof => NextRequired.IsInsideNameof;
+        private bool IsInsideNameof => this.EnclosingNameofArgument != null;
 
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.

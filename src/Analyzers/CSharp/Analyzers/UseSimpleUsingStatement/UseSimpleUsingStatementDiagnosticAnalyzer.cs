@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            var option = context.GetCSharpAnalyzerOptions().PreferSimpleUsingStatement;
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

@@ -95,7 +95,7 @@ class C
     }
 }",
                 options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Warning),
-                diagnosticId: IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
+                diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
 

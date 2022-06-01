@@ -623,7 +623,6 @@ using System;
 
 abstract class MyClass$$
 {
-    public required int RequiredProperty { get; set; }
     public void ExtractableMethod_Normal() { }
     public void ExtractableMethod_ParameterTypes(System.Diagnostics.CorrelationManager x, Nullable<Int32> y = 7, string z = ""42"") { }
     public abstract void ExtractableMethod_Abstract();
@@ -635,8 +634,6 @@ abstract class MyClass$$
 
 interface IMyClass
 {
-    int RequiredProperty { get; set; }
-
     void ExtractableMethod_Abstract();
     void ExtractableMethod_Normal();
     void ExtractableMethod_ParameterTypes(CorrelationManager x, int? y = 7, string z = ""42"");
@@ -957,7 +954,7 @@ abstract class MyClass$$
                 markup, LanguageNames.CSharp,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();

@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OperatorKeyword);
             SyntaxToken operatorKeyword = EatToken();
-            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: false, ref operatorKeyword);
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: false);
 
             SyntaxToken operatorToken;
 
@@ -1113,9 +1113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
         }
 
-        private SyntaxToken TryEatCheckedKeyword(bool isConversion, ref SyntaxToken operatorKeyword)
+        private SyntaxToken TryEatCheckedKeyword(bool isConversion)
         {
-            SyntaxToken checkedKeyword = tryEatCheckedOrHandleUnchecked(ref operatorKeyword);
+            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
 
             if (checkedKeyword is not null &&
                 (isConversion || SyntaxFacts.IsAnyOverloadableOperator(CurrentToken.Kind)))
@@ -1124,19 +1124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return checkedKeyword;
-
-            SyntaxToken tryEatCheckedOrHandleUnchecked(ref SyntaxToken operatorKeyword)
-            {
-                if (CurrentToken.Kind == SyntaxKind.UncheckedKeyword)
-                {
-                    // if we encounter `operator unchecked`, we place the `unchecked` as skipped trivia on `operator`
-                    var misplacedToken = this.AddError(this.EatToken(), ErrorCode.ERR_MisplacedUnchecked);
-                    operatorKeyword = AddTrailingSkippedSyntax(operatorKeyword, misplacedToken);
-                    return null;
-                }
-
-                return TryEatToken(SyntaxKind.CheckedKeyword);
-            }
         }
 
         /// <summary>
@@ -1149,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken implicitOrExplicit = EatToken();
 
             SyntaxToken operatorKeyword = EatToken(SyntaxKind.OperatorKeyword);
-            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: true, ref operatorKeyword);
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: true);
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
 

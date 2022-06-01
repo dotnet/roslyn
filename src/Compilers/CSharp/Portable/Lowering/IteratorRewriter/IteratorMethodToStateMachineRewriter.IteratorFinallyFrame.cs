@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IteratorFinallyFrame()
             {
-                this.finalizeState = StateMachineStates.NotStartedOrRunningState;
+                this.finalizeState = StateMachineStates.NotStartedStateMachine;
             }
 
             public bool IsRoot()

@@ -20,11 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     {
         protected override Task<ImmutableArray<CodeAction>> ComputeCodeActionsAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var title = diagnostic.GetMessage();
-            var codeAction = CodeAction.Create(
-                title,
-                c => FixWithSyntaxEditorAsync(document, diagnostic, c),
-                title);
+            var codeAction = new MyCodeAction(
+                diagnostic.GetMessage(),
+                c => FixWithSyntaxEditorAsync(document, diagnostic, c));
 
             return Task.FromResult(ImmutableArray.Create<CodeAction>(codeAction));
         }

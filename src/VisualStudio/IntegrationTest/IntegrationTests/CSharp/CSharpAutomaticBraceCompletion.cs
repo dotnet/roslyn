@@ -299,7 +299,6 @@ class C {
 
         [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoubleQuote_InsertionAndTabCompletion(bool showCompletionInArgumentLists)
-
         {
             SetUpEditor(@"
 class C {

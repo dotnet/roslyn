@@ -104,27 +104,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
             if (CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))
             {
-                var title = UseExpressionBodyTitle.ToString();
-                result.Add(CodeAction.Create(
-                    title,
+                result.Add(new MyCodeAction(
+                    UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c),
-                    title));
+                        document, root, lambdaNode, c)));
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
             {
-                var title = UseBlockBodyTitle.ToString();
-                result.Add(CodeAction.Create(
-                    title,
+                result.Add(new MyCodeAction(
+                    UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c),
-                    title));
+                        document, root, lambdaNode, c)));
             }
 
             return result.ToImmutable();

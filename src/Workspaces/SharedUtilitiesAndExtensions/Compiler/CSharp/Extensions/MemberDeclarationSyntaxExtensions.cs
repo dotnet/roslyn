@@ -16,14 +16,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class MemberDeclarationSyntaxExtensions
     {
-        private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>> s_declarationCache = new();
+        private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>> s_declarationCache =
+            new();
+        private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>>.CreateValueCallback s_createLocalDeclarationMap = CreateLocalDeclarationMap;
 
         public static LocalDeclarationMap GetLocalDeclarationMap(this MemberDeclarationSyntax member)
-            => new(s_declarationCache.GetValue(member, static member =>
-            {
-                var dictionary = DeclarationFinder.GetAllDeclarations(member);
-                return dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutable());
-            }));
+        {
+            var result = s_declarationCache.GetValue(member, s_createLocalDeclarationMap);
+            return new LocalDeclarationMap(result);
+        }
+
+        private static Dictionary<string, ImmutableArray<SyntaxToken>> CreateLocalDeclarationMap(MemberDeclarationSyntax member)
+        {
+            var dictionary = DeclarationFinder.GetAllDeclarations(member);
+            return dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutable<SyntaxToken>());
+        }
 
         public static SyntaxToken GetNameToken(this MemberDeclarationSyntax member)
         {

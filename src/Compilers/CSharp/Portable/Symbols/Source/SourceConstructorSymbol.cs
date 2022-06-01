@@ -110,8 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
-            bool isInterface = ContainingType.IsInterface;
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: isInterface, modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -130,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 mods |= DeclarationModifiers.Private; // we mark static constructors private in the symbol table
 
-                if (isInterface)
+                if (this.ContainingType.IsInterface)
                 {
                     ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                                 DeclarationModifiers.Extern,

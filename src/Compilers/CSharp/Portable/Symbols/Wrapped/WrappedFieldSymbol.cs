@@ -204,7 +204,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingField.IsStatic;
             }
         }
-
-        internal sealed override bool IsRequired => _underlyingField.IsRequired;
     }
 }

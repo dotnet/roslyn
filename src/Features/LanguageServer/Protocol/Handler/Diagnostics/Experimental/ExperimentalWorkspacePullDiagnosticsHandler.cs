@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -27,9 +25,8 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     public ExperimentalWorkspacePullDiagnosticsHandler(
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
-        IGlobalOptionService globalOptions)
-        : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+        : base(diagnosticService, editAndContinueDiagnosticUpdateSource)
     {
         _analyzerService = analyzerService;
     }

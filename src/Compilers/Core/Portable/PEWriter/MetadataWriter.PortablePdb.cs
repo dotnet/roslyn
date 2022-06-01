@@ -817,18 +817,6 @@ namespace Microsoft.Cci
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
                     value: _debugMetadataOpt.GetOrAddBlob(writer));
             }
-
-            if (!encInfo.StateMachineStates.IsDefaultOrEmpty)
-            {
-                var writer = new BlobBuilder();
-
-                encInfo.SerializeStateMachineStates(writer);
-
-                _debugMetadataOpt.AddCustomDebugInformation(
-                    parent: method,
-                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncStateMachineStateMap),
-                    value: _debugMetadataOpt.GetOrAddBlob(writer));
-            }
         }
 
         #endregion

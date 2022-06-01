@@ -5,18 +5,18 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => this;
 
-        public async Task<Solution> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
+        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllContext fixAllContext)
         {
             var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-            IFixAllContext fixAllContext, bool showPreviewChangesDialog)
+            FixAllContext fixAllContext, bool showPreviewChangesDialog)
         {
             var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
@@ -57,18 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 codeAction, showPreviewChangesDialog, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<CodeAction> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
+        private static async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
         {
-            var fixAllKind = fixAllContext.State.FixAllKind;
-            var functionId = fixAllKind switch
-            {
-                FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesComputation,
-                FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesComputation,
-                _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
-            };
-
             using (Logger.LogBlock(
-                functionId,
+                FunctionId.CodeFixes_FixAllOccurrencesComputation,
                 KeyValueLogMessage.Create(LogType.UserAction, m =>
                 {
                     m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
@@ -83,17 +75,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
                 catch (OperationCanceledException)
                 {
-                    FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false);
+                    FixAllLogger.LogComputationResult(fixAllContext.State.CorrelationId, completed: false);
                 }
                 finally
                 {
                     if (action != null)
                     {
-                        FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: true);
+                        FixAllLogger.LogComputationResult(fixAllContext.State.CorrelationId, completed: true);
                     }
                     else
                     {
-                        FixAllLogger.LogComputationResult(fixAllKind, fixAllContext.State.CorrelationId, completed: false, timedOut: true);
+                        FixAllLogger.LogComputationResult(fixAllContext.State.CorrelationId, completed: false, timedOut: true);
                     }
                 }
 
@@ -103,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
             CodeAction codeAction, bool showPreviewChangesDialog,
-            IFixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllState fixAllState, CancellationToken cancellationToken)
         {
             // We have computed the fix all occurrences code fix.
             // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
@@ -127,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     newSolution,
                     FeaturesResources.Fix_all_occurrences,
                     codeAction.Title,
-                    fixAllState.FixAllKind,
                     fixAllState.Project.Language,
                     workspace,
                     fixAllState.CorrelationId,
@@ -147,23 +138,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Solution newSolution,
             string fixAllPreviewChangesTitle,
             string fixAllTopLevelHeader,
-            FixAllKind fixAllKind,
             string languageOpt,
             Workspace workspace,
             int? correlationId = null,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var functionId = fixAllKind switch
-            {
-                FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges,
-                FixAllKind.Refactoring => FunctionId.Refactoring_FixAllOccurrencesPreviewChanges,
-                _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
-            };
-
             using (Logger.LogBlock(
-                functionId,
+                FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges,
                 KeyValueLogMessage.Create(LogType.UserAction, m =>
                 {
                     // only set when correlation id is given
@@ -205,11 +187,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (changedSolution == null)
                 {
                     // User clicked cancel.
-                    FixAllLogger.LogPreviewChangesResult(fixAllKind, correlationId, applied: false);
+                    FixAllLogger.LogPreviewChangesResult(correlationId, applied: false);
                     return null;
                 }
 
-                FixAllLogger.LogPreviewChangesResult(fixAllKind, correlationId, applied: true, allChangesApplied: changedSolution == newSolution);
+                FixAllLogger.LogPreviewChangesResult(correlationId, applied: true, allChangesApplied: changedSolution == newSolution);
                 return changedSolution;
             }
         }

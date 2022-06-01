@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -54,22 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = completionContext.Position;
                 var document = completionContext.Document;
                 var cancellationToken = completionContext.CancellationToken;
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
                 if (!completionContext.CompletionOptions.ShowNameSuggestions)
                 {
                     return;
                 }
 
-                var context = (CSharpSyntaxContext)await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
                 if (context.IsInNonUserCode)
-                {
-                    return;
-                }
-
-                // Do not show name suggestions for unbound "async" identifier.
-                // Most likely user is writing an async method, so name suggestion will just interfere him
-                if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
-                    context.SemanticModel.GetSymbolInfo(context.TargetToken).GetAnySymbol() is null)
                 {
                     return;
                 }
@@ -85,11 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         AddNamesFromExistingOverloads(context, partialSemanticModel, result, cancellationToken);
                 }
 
-                var baseNames = GetBaseNames(context.SemanticModel, nameInfo);
+                var baseNames = GetBaseNames(semanticModel, nameInfo);
                 if (baseNames != default)
                 {
-                    var namingStyleOptions = await document.GetNamingStylePreferencesAsync(completionContext.CompletionOptions.NamingStyleFallbackOptions, cancellationToken).ConfigureAwait(false);
-                    GetRecommendedNames(baseNames, nameInfo, context, result, namingStyleOptions, cancellationToken);
+                    await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, result, cancellationToken).ConfigureAwait(false);
                 }
 
                 var recommendedNames = result.ToImmutable();
@@ -254,16 +245,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (type, wasPlural);
         }
 
-        private static void GetRecommendedNames(
+        private static async Task GetRecommendedNamesAsync(
             ImmutableArray<ImmutableArray<string>> baseNames,
             NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
+            Document document,
             ArrayBuilder<(string name, SymbolKind kind)> result,
-            NamingStylePreferences namingStyleOptions,
             CancellationToken cancellationToken)
         {
-            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
-
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionFallbackRules, cancellationToken).ConfigureAwait(false);
             var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
             var semanticFactsService = context.GetRequiredLanguageService<ISemanticFactsService>();
 

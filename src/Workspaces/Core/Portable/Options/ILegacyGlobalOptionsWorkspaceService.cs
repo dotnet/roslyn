@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -14,22 +12,6 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal interface ILegacyGlobalOptionsWorkspaceService : IWorkspaceService
     {
-        public bool RazorUseTabs { get; }
-        public int RazorTabSize { get; }
-
-        public bool GenerateOverrides { get; set; }
-        public bool InlineHintsOptionsDisplayAllOverride { get; set; }
-
-        public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language);
-        public void SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language, bool value);
-
-        public bool GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language);
-        public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value);
-
-        public bool GetGenerateConstructorFromMembersOptionsAddNullChecks(string language);
-        public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value);
-
-        public AutoFormattingOptions GetAutoFormattingOptions(HostLanguageServices languageServices);
-        public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider { get; }
+        public IGlobalOptionService GlobalOptions { get; }
     }
 }

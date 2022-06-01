@@ -8,8 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -699,11 +697,9 @@ public class C
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-
-            var options = new CompletionOptions()
-            {
-                NamingStyleFallbackOptions = ParameterCamelCaseWithPascalCaseFallback()
-            };
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                ParameterCamelCaseWithPascalCaseFallback())));
 
             var markup = @"
 using System.Threading;
@@ -712,8 +708,8 @@ public class C
     void Goo(CancellationToken $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter, options: options);
-            await VerifyItemIsAbsentAsync(markup, "CancellationToken", options: options);
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+            await VerifyItemIsAbsentAsync(markup, "CancellationToken");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2419,11 +2415,9 @@ public class Class1
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-
-            var options = new CompletionOptions()
-            {
-                NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
-            };
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                NamesEndWithSuffixPreferences())));
 
             var markup = @"
 class Configuration
@@ -2432,13 +2426,13 @@ class Configuration
 }
 ";
             await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
             await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
             await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal", options: options);
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction", options: options);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2447,11 +2441,9 @@ class Configuration
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-
-            var options = new CompletionOptions()
-            {
-                NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
-            };
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                NamesEndWithSuffixPreferences())));
 
             var markup = @"
 class Configuration
@@ -2463,12 +2455,12 @@ class Configuration
 }
 ";
             await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
             await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
-                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationField", options: options);
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod", options: options);
-            await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty", options: options);
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty");
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
@@ -2861,31 +2853,15 @@ class ClassA
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestNotForUnboundAsync()
-        {
-            var markup = @"
-class C
-{
-    async $$
-}
-";
-            await VerifyItemIsAbsentAsync(markup, "async");
-            await VerifyItemIsAbsentAsync(markup, "Async");
-            await VerifyItemIsAbsentAsync(markup, "GetAsync");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
         public async Task ConflictingLocalVariable()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-
-            var options = new CompletionOptions()
-            {
-                NamingStyleFallbackOptions = MultipleCamelCaseLocalRules()
-            };
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                MultipleCamelCaseLocalRules())));
 
             var markup = @"
 public class MyClass
@@ -2897,7 +2873,7 @@ public class MyClass
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local, options: options);
+            await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local);
         }
 
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
@@ -2918,8 +2894,8 @@ public class MyClass
             static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string name)
             {
                 var symbolSpecification = new SymbolSpecification(
-                    Guid.NewGuid(),
-                    name,
+                    id: null,
+                    symbolSpecName: name,
                     ImmutableArray.Create(kind));
 
                 var namingStyle = new NamingStyle(
@@ -2952,8 +2928,8 @@ public class MyClass
             static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
             {
                 var symbolSpecification = new SymbolSpecification(
-                    Guid.NewGuid(),
-                    name: suffix,
+                    id: null,
+                    symbolSpecName: suffix,
                     ImmutableArray.Create(kind),
                     accessibilityList: default,
                     modifiers: default);
@@ -2975,13 +2951,13 @@ public class MyClass
             var symbolSpecifications = ImmutableArray.Create(
                 new SymbolSpecification(
                     id: Guid.NewGuid(),
-                    name: "parameters",
+                    symbolSpecName: "parameters",
                     ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter)),
                     accessibilityList: default,
                     modifiers: default),
                 new SymbolSpecification(
                     id: Guid.NewGuid(),
-                    name: "fallback",
+                    symbolSpecName: "fallback",
                     ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local)),
                     accessibilityList: default,
                     modifiers: default));

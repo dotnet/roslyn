@@ -18,8 +18,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             private readonly ImmutableArray<ISymbol> _symbols;
 
-            public NonCascadingSymbolSet(FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet searchSymbols) : base(engine)
-                => _symbols = searchSymbols.ToImmutableArray();
+            public NonCascadingSymbolSet(FindReferencesSearchEngine engine, ISymbol searchSymbol) : base(engine)
+            {
+                _symbols = ImmutableArray.Create(searchSymbol);
+            }
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
                 => _symbols;

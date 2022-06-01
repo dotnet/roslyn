@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
             var coalesceExpression = (BinaryExpressionSyntax)context.Node;
 
-            var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
+            var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, coalesceExpression.Language);
 
             // Bail immediately if the user has disabled this feature.
             if (!option.Value)

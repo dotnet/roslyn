@@ -315,7 +315,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              block:=body,
                                              lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
                                              closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
-                                             stateMachineStateDebugInfos:=ImmutableArray(Of StateMachineStateDebugInfo).Empty,
                                              stateMachineTypeOpt:=Nothing,
                                              variableSlotAllocatorOpt:=Nothing,
                                              debugDocumentProvider:=Nothing,
@@ -887,7 +886,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          block:=boundBody,
                                                          lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
                                                          closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
-                                                         stateMachineStateDebugInfos:=ImmutableArray(Of StateMachineStateDebugInfo).Empty,
                                                          stateMachineTypeOpt:=Nothing,
                                                          variableSlotAllocatorOpt:=Nothing,
                                                          debugDocumentProvider:=If(_emitTestCoverageData, _debugDocumentProvider, Nothing),
@@ -918,11 +916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub CompileSynthesizedMethods(additionalTypes As ImmutableArray(Of NamedTypeSymbol))
             Debug.Assert(_moduleBeingBuiltOpt IsNot Nothing)
 
-            Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
-            Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
-            Dim stateMachineStateDebugInfoBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
             Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
-
             For Each additionalType In additionalTypes
                 Dim methodOrdinal As Integer = 0
 
@@ -937,6 +931,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim lazyVariableSlotAllocator As VariableSlotAllocator = Nothing
                         Dim statemachineTypeOpt As StateMachineTypeSymbol = Nothing
 
+                        Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
+                        Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
                         Dim delegateRelaxationIdDispenser = 0
                         Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
 
@@ -953,7 +949,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             lazyVariableSlotAllocator:=lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
                             closureDebugInfoBuilder:=closureDebugInfoBuilder,
-                            stateMachineStateDebugInfoBuilder:=stateMachineStateDebugInfoBuilder,
                             delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
                             stateMachineTypeOpt:=statemachineTypeOpt,
                             allowOmissionOfConditionalCalls:=_moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls,
@@ -968,7 +963,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              rewrittenBody,
                                                              lambdaDebugInfoBuilder.ToImmutable(),
                                                              closureDebugInfoBuilder.ToImmutable(),
-                                                             stateMachineStateDebugInfoBuilder.ToImmutable(),
                                                              statemachineTypeOpt,
                                                              lazyVariableSlotAllocator,
                                                              debugDocumentProvider:=Nothing,
@@ -977,6 +971,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              emitTestCoverageData:=False,
                                                              dynamicAnalysisSpans:=dynamicAnalysisSpans)
                         End If
+
+                        lambdaDebugInfoBuilder.Free()
+                        closureDebugInfoBuilder.Free()
                     End If
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
@@ -991,10 +988,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
                     End If
 
-                    lambdaDebugInfoBuilder.Clear()
-                    closureDebugInfoBuilder.Clear()
-                    stateMachineStateDebugInfoBuilder.Clear()
-
                     methodOrdinal += 1
                 Next
             Next
@@ -1004,9 +997,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             compilationState.Free()
-            lambdaDebugInfoBuilder.Free()
-            closureDebugInfoBuilder.Free()
-            stateMachineStateDebugInfoBuilder.Free()
         End Sub
 
         Private Sub CompileSynthesizedMethods(compilationState As TypeCompilationState)
@@ -1027,7 +1017,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          block:=methodWithBody.Body,
                                                          lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
                                                          closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
-                                                         stateMachineStateDebugInfos:=ImmutableArray(Of StateMachineStateDebugInfo).Empty,
                                                          stateMachineTypeOpt:=Nothing,
                                                          variableSlotAllocatorOpt:=Nothing,
                                                          debugDocumentProvider:=_debugDocumentProvider,
@@ -1362,7 +1351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
                 Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
-                Dim stateMachineStateDebugInfoBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
 
                 setterBody = Rewriter.LowerBodyOrInitializer(setter,
                                                              withEventPropertyIdDispenser,
@@ -1376,20 +1364,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              lazyVariableSlotAllocator:=Nothing,
                                                              lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
                                                              closureDebugInfoBuilder:=closureDebugInfoBuilder,
-                                                             stateMachineStateDebugInfoBuilder:=stateMachineStateDebugInfoBuilder,
                                                              delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
                                                              stateMachineTypeOpt:=Nothing,
                                                              allowOmissionOfConditionalCalls:=True,
                                                              isBodySynthesized:=True)
 
-                ' There shall be no lambdas and no awaits/yields in the synthesized accessor but delegate relaxation conversions:
-                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty())
-                Debug.Assert(closureDebugInfoBuilder.IsEmpty())
-                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty())
+                ' There shall be no lambdas in the synthesized accessor but delegate relaxation conversions:
+                Debug.Assert(Not lambdaDebugInfoBuilder.Any())
+                Debug.Assert(Not closureDebugInfoBuilder.Any())
 
                 lambdaDebugInfoBuilder.Free()
                 closureDebugInfoBuilder.Free()
-                stateMachineStateDebugInfoBuilder.Free()
 
                 compilationState.AddMethodWrapper(setter, setter, setterBody)
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, setter.GetCciAdapter())
@@ -1474,7 +1459,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim allowOmissionOfConditionalCalls = _moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls
             Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
             Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
-            Dim stateMachineStateDebugInfoBuilder = ArrayBuilder(Of StateMachineStateDebugInfo).GetInstance()
             Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
 
             body = Rewriter.LowerBodyOrInitializer(method,
@@ -1489,7 +1473,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    lazyVariableSlotAllocator,
                                                    lambdaDebugInfoBuilder,
                                                    closureDebugInfoBuilder,
-                                                   stateMachineStateDebugInfoBuilder,
                                                    delegateRelaxationIdDispenser,
                                                    stateMachineTypeOpt,
                                                    allowOmissionOfConditionalCalls,
@@ -1530,7 +1513,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               body,
                                                               lambdaDebugInfoBuilder.ToImmutable(),
                                                               closureDebugInfoBuilder.ToImmutable(),
-                                                              stateMachineStateDebugInfoBuilder.ToImmutable(),
                                                               stateMachineTypeOpt,
                                                               lazyVariableSlotAllocator,
                                                               _debugDocumentProvider,
@@ -1558,7 +1540,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   block As BoundStatement,
                                                   lambdaDebugInfo As ImmutableArray(Of LambdaDebugInfo),
                                                   closureDebugInfo As ImmutableArray(Of ClosureDebugInfo),
-                                                  stateMachineStateDebugInfos As ImmutableArray(Of StateMachineStateDebugInfo),
                                                   stateMachineTypeOpt As StateMachineTypeSymbol,
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
                                                   debugDocumentProvider As DebugDocumentProvider,
@@ -1690,7 +1671,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       stateMachineHoistedLocalScopes:=stateMachineHoistedLocalScopes,
                                       stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,
                                       stateMachineAwaiterSlots:=stateMachineAwaiterSlots,
-                                      stateMachineStatesDebugInfo:=StateMachineStatesDebugInfo.Create(variableSlotAllocatorOpt, stateMachineStateDebugInfos),
                                       stateMachineMoveNextDebugInfoOpt:=moveNextBodyDebugInfoOpt,
                                       dynamicAnalysisDataOpt:=dynamicAnalysisDataOpt)
             Finally

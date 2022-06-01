@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             this.AddMemberLookupSymbolsInfo(result, _container, options, originalBinder);
         }

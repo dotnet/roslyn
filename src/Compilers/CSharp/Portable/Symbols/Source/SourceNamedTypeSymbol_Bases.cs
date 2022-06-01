@@ -547,13 +547,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (this.IsStatic)
                         {
                             // '{0}': static classes cannot implement interfaces
-                            diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this);
+                            diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this, baseType);
                         }
 
                         if (this.IsRefLikeType)
                         {
                             // '{0}': ref structs cannot implement interfaces
-                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this);
+                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this, baseType);
                         }
 
                         if (baseType.ContainsDynamic())

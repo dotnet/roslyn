@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     // subclasses cannot change anything.  All code relevant to subclasses relating to analysis
     // is contained in AbstractCodeStyleProvider.cs
 
-    internal abstract partial class AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>
+    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
     {
         public abstract class DiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         {
@@ -76,52 +76,52 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     c => analyze(c.Compilation, _this));
             }
 
-            public void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext, CodeStyleOption2<TOptionValue>> analyze)
+            public void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext, CodeStyleOption2<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterCodeBlockAction(
-                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree));
+                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree, c.CancellationToken));
             }
 
-            public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext, CodeStyleOption2<TOptionValue>> analyze)
+            public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext, CodeStyleOption2<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterSemanticModelAction(
-                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree));
+                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree, c.CancellationToken));
             }
 
-            public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext, CodeStyleOption2<TOptionValue>> analyze)
+            public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext, CodeStyleOption2<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterSyntaxTreeAction(
-                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.Tree));
+                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.Tree, c.CancellationToken));
             }
 
             public void RegisterOperationAction(
-                Action<OperationAnalysisContext, CodeStyleOption2<TOptionValue>> analyze,
+                Action<OperationAnalysisContext, CodeStyleOption2<TOptionKind>> analyze,
                 params OperationKind[] operationKinds)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterOperationAction(
-                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.Operation.SemanticModel.SyntaxTree),
+                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.Operation.SemanticModel.SyntaxTree, c.CancellationToken),
                     operationKinds);
             }
 
             public void RegisterSyntaxNodeAction<TSyntaxKind>(
-                Action<SyntaxNodeAnalysisContext, CodeStyleOption2<TOptionValue>> analyze,
+                Action<SyntaxNodeAnalysisContext, CodeStyleOption2<TOptionKind>> analyze,
                 params TSyntaxKind[] syntaxKinds) where TSyntaxKind : struct
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterSyntaxNodeAction(
-                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree),
+                    c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree, c.CancellationToken),
                     syntaxKinds);
             }
 
             private static void AnalyzeIfEnabled<TContext>(
-                TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption2<TOptionValue>> analyze,
-                AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree)
+                TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption2<TOptionKind>> analyze,
+                AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             {
-                var optionValue = provider.GetCodeStyleOption(analyzerOptions.GetAnalyzerOptions(syntaxTree));
+                var optionValue = options.GetOption(provider._option, syntaxTree, cancellationToken);
                 var severity = GetOptionSeverity(optionValue);
                 switch (severity)
                 {

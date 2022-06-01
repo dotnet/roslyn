@@ -75,8 +75,8 @@ namespace BasicGenerateFromUsage
         }
 
         [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task RegionsShouldBeCollapsedByDefault()
         {
             const string code = @"
 class C
@@ -88,13 +88,8 @@ class C
     #endregion|}
 }";
 
-            var options = GetDefaultOptions() with
-            {
-                CollapseRegionsWhenFirstOpened = collapseRegionsWhenFirstOpened
-            };
-
-            await VerifyBlockSpansAsync(code, options,
-                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: collapseRegionsWhenFirstOpened));
+            await VerifyBlockSpansAsync(code,
+                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));
         }
 
         [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]

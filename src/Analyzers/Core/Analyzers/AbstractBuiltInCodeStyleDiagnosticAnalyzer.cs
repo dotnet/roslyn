@@ -4,11 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -207,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
-        public virtual bool OpenFileOnly(SimplifierOptions? options)
+        public virtual bool OpenFileOnly(OptionSet options)
             => false;
     }
 }

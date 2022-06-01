@@ -8,12 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -86,12 +84,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
         }
 
-        private sealed class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
+        private class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
         {
             public ImplementInterfaceWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeGenerationOptions options,
+                ImplementTypeOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeGenerationOptions options,
+                ImplementTypeOptions options,
                 State state)
             {
                 return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeGenerationOptions options,
+                ImplementTypeOptions options,
                 State state)
             {
                 return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
@@ -160,12 +158,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     sortMembers: false,
                     autoInsertionLocation: false);
 
-                var options = await document.GetCodeGenerationOptionsAsync(Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                var codeGenerationOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
 
                 var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    options.GetInfo(context, document.Project),
+                    codeGenerationOptions,
                     cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
@@ -325,39 +323,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return result;
             }
 
-            /// <summary>
-            /// This helper is implementing access to the editorconfig option. This would usually be done via <see cref="CodeFixOptionsProvider"/> but
-            /// we do not have access to <see cref="CodeActionOptionsProvider"/> here since the code action implementation is also used to implement <see cref="IImplementInterfaceService "/>.
-            /// TODO: remove - see https://github.com/dotnet/roslyn/issues/60990.
-            /// </summary>
-            public async ValueTask<AccessibilityModifiersRequired> GetAccessibilityModifiersRequiredAsync(Document document, CancellationToken cancellationToken)
-            {
-                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-
-                if (configOptions.TryGetEditorConfigOption<CodeStyleOption2<AccessibilityModifiersRequired>>(CodeStyleOptions2.AccessibilityModifiersRequired, out var value))
-                {
-                    return value.Value;
-                }
-
-                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false);
-
-                return fallbackFormattingOptions.AccessibilityModifiersRequired;
-            }
-
-            private async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
+            private static async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
                 Document document,
                 INamedTypeSymbol containingType,
                 CancellationToken cancellationToken)
             {
                 var rule = await document.GetApplicableNamingRuleAsync(
-                    SymbolKind.Field, Accessibility.Private, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                var requireAccessiblity = await GetAccessibilityModifiersRequiredAsync(document, cancellationToken).ConfigureAwait(false);
+                    SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var requireAccessiblity = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                var accessibilityLevel = requireAccessiblity is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
+                var accessibilityLevel = requireAccessiblity.Value is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
                     ? Accessibility.NotApplicable
                     : Accessibility.Private;
 

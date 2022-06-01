@@ -11,7 +11,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal class MetadataReferenceManager
     {
-        private static readonly ConditionalWeakTable<ProjectState, WeakReference<Compilation>> s_compilationReferenceMap = new();
+        private static readonly ConditionalWeakTable<ProjectState, WeakReference<Compilation>> s_compilationReferenceMap =
+            new();
+
+        private static readonly ConditionalWeakTable<ProjectState, WeakReference<Compilation>>.CreateValueCallback s_createValue =
+            k => new WeakReference<Compilation>(null);
 
         private static readonly object s_guard = new();
 
@@ -20,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // it can be collected.
         internal static Compilation GetCompilationForMetadataReference(ProjectState projectState, Compilation compilation)
         {
-            var weakReference = s_compilationReferenceMap.GetValue(projectState, static _ => new WeakReference<Compilation>(null));
+            var weakReference = s_compilationReferenceMap.GetValue(projectState, s_createValue);
             Compilation reference;
             lock (s_guard)
             {

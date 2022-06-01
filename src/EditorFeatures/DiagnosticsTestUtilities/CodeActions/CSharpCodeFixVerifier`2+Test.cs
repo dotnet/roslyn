@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal OptionsCollection Options => _sharedState.Options;
 
 #if !CODE_STYLE
-            internal CodeActionOptionsProvider CodeActionOptions
+            internal CodeActionOptions CodeActionOptions
             {
                 get => _sharedState.CodeActionOptions;
                 set => _sharedState.CodeActionOptions = value;
@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.GetIdeAnalyzerOptions(project));
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.IdeAnalyzerOptions);
 
             protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, isBlocking: false, cancellationToken);
+                => new(document, span, diagnostics, registerCodeFix, _ => _sharedState.CodeActionOptions, cancellationToken);
 
             protected override FixAllContext CreateFixAllContext(
                 Document? document,
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
                 CancellationToken cancellationToken)
                 => new(new FixAllState(
-                    fixAllProvider: NoOpFixAllProvider.Instance,
+                    fixAllProvider: null,
                     diagnosticSpan: null,
                     document,
                     project,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     codeActionEquivalenceKey,
                     diagnosticIds,
                     fixAllDiagnosticProvider,
-                    _sharedState.CodeActionOptions),
+                    _ => _sharedState.CodeActionOptions),
                   new ProgressTracker(), cancellationToken);
 #endif
 

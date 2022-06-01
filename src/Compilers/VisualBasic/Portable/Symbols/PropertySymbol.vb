@@ -404,33 +404,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(IsDefinition)
 
             ' Check return type.
-            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
 
-            If MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type)) Then
+            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
                 Return useSiteInfo
             End If
 
             ' Check return type custom modifiers.
             Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If MergeUseSiteInfo(useSiteInfo, refModifiersUseSiteInfo) Then
-                Return useSiteInfo
+            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return refModifiersUseSiteInfo
             End If
 
             Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.TypeCustomModifiers)
 
-            If MergeUseSiteInfo(useSiteInfo, typeModifiersUseSiteInfo) Then
-                Return useSiteInfo
+            If typeModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return typeModifiersUseSiteInfo
             End If
 
             ' Check parameters.
             Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
 
-            If MergeUseSiteInfo(useSiteInfo, parametersUseSiteInfo) Then
-                Return useSiteInfo
+            If parametersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return parametersUseSiteInfo
             End If
 
-            Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
+            Dim errorInfo As DiagnosticInfo = If(useSiteInfo.DiagnosticInfo,
+                                              If(refModifiersUseSiteInfo.DiagnosticInfo,
+                                              If(typeModifiersUseSiteInfo.DiagnosticInfo,
+                                                 parametersUseSiteInfo.DiagnosticInfo)))
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
@@ -461,14 +464,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Return error code that has highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
-            Return code = ERRID.ERR_UnsupportedProperty1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
-        End Function
+        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
+            Get
+                Return ERRID.ERR_UnsupportedProperty1
+            End Get
+        End Property
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
                 Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
-                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedProperty1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
+                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedProperty1
             End Get
         End Property
 
@@ -569,12 +574,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_SetMethod As IMethodSymbol Implements IPropertySymbol.SetMethod
             Get
                 Return Me.SetMethod
-            End Get
-        End Property
-
-        Private ReadOnly Property IPropertySymbol_IsRequired As Boolean Implements IPropertySymbol.IsRequired
-            Get
-                Return False
             End Get
         End Property
 

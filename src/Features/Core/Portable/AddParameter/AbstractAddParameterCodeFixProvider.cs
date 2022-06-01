@@ -247,10 +247,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
                     var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
-                    var codeAction = CodeAction.Create(
-                        title,
-                        data.CreateChangedSolutionNonCascading,
-                        equivalenceKey: title);
+                    CodeAction codeAction = new MyCodeAction(
+                        title: title,
+                        data.CreateChangedSolutionNonCascading);
                     if (data.CreateChangedSolutionCascading != null)
                     {
                         // We have two fixes to offer. We nest the two fixes in an inlinable CodeAction 
@@ -262,10 +261,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             title: titleForNesting,
                             ImmutableArray.Create(
                                 codeAction,
-                                CodeAction.Create(
-                                    titleCascading,
-                                    data.CreateChangedSolutionCascading,
-                                    equivalenceKey: titleCascading)),
+                                new MyCodeAction(
+                                    title: titleCascading,
+                                    data.CreateChangedSolutionCascading)),
                             isInlinable: true);
                     }
 
@@ -283,7 +281,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var nonCascadingActions = codeFixData.SelectAsArray(data =>
                 {
                     var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
-                    return CodeAction.Create(title, data.CreateChangedSolutionNonCascading, equivalenceKey: title);
+                    return (CodeAction)new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
                 });
 
                 var cascadingActions = codeFixData.SelectAsArray(
@@ -291,7 +289,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     data =>
                     {
                         var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
-                        return CodeAction.Create(title, data.CreateChangedSolutionCascading!, equivalenceKey: title);
+                        return (CodeAction)new MyCodeAction(title: title, data.CreateChangedSolutionCascading!);
                     });
 
                 var aMethod = codeFixData.First().Method; // We need to term the MethodGroup and need an arbitrary IMethodSymbol to do so.
@@ -562,6 +560,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
 
             return false;
+        }
+
+        private class MyCodeAction : CodeAction.SolutionChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution, title)
+            {
+            }
         }
     }
 }

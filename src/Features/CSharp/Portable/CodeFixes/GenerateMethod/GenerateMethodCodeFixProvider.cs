@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
-    internal sealed class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+    internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -91,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateParameterizedMemberService>();
-            return service.GenerateMethodAsync(document, node, fallbackOptions, cancellationToken);
+            return service.GenerateMethodAsync(document, node, cancellationToken);
         }
     }
 }

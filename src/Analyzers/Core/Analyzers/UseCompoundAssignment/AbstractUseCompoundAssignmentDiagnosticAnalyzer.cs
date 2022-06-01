@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = assignment.SyntaxTree;
-            var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
+            var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, assignment.Language);
             if (!option.Value)
             {
                 // Bail immediately if the user has disabled this feature.

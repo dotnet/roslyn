@@ -151,8 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override bool IsRequired => false;
-
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }

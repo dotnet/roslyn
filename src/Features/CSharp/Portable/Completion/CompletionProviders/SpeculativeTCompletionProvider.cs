@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -44,10 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             try
             {
                 var document = context.Document;
+                var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
                 var showSpeculativeT = await document.IsValidContextForDocumentOrLinkedDocumentsAsync(
-                    (doc, ct) => ShouldShowSpeculativeTCompletionItemAsync(doc, context, ct),
+                    (doc, ct) => ShouldShowSpeculativeTCompletionItemAsync(doc, position, ct),
                     cancellationToken).ConfigureAwait(false);
 
                 if (showSpeculativeT)
@@ -63,9 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, CompletionContext completionContext, CancellationToken cancellationToken)
+        private static async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var position = completionContext.Position;
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
                 syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
@@ -76,8 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // We could be in the middle of a ref/generic/tuple type, instead of a simple T case.
             // If we managed to walk out and get a different SpanStart, we treat it as a simple $$T case.
 
-            var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
 
+            var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
             if (context.IsInTaskLikeTypeContext)
                 return false;
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var oldSpanStart = spanStart;
 
-                spanStart = WalkOutOfGenericType(syntaxTree, spanStart, context.SemanticModel, cancellationToken);
+                spanStart = WalkOutOfGenericType(syntaxTree, spanStart, semanticModel, cancellationToken);
                 spanStart = WalkOutOfTupleType(syntaxTree, spanStart, cancellationToken);
                 spanStart = WalkOutOfRefType(syntaxTree, spanStart, cancellationToken);
 

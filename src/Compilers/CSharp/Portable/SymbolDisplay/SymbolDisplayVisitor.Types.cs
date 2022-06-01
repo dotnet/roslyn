@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!this.isFirstSymbolVisited)
                 {
-                    AddCustomModifiersIfNeeded(arrayType.CustomModifiers, leadingSpace: true);
+                    AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
                 }
 
                 AddArrayRank(arrayType);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.isFirstSymbolVisited)
             {
-                AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true);
+                AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true);
             }
             AddPunctuation(SyntaxKind.AsteriskToken);
         }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.isFirstSymbolVisited)
             {
-                AddTypeParameterVarianceIfNeeded(symbol);
+                AddTypeParameterVarianceIfRequired(symbol);
             }
 
             //variance and constraints are handled by methods and named types
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         typeArg.Accept(this.NotFirstVisitor);
-                        AddCustomModifiersIfNeeded(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfRequired(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
 
                         AddPunctuation(SyntaxKind.QuestionToken);
 
@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var invokeMethod = symbol.DelegateInvokeMethod;
                     if (invokeMethod.ReturnsByRef)
                     {
-                        AddRefIfNeeded();
+                        AddRefIfRequired();
                     }
                     else if (invokeMethod.ReturnsByRefReadonly)
                     {
-                        AddRefReadonlyIfNeeded();
+                        AddRefReadonlyIfRequired();
                     }
 
                     if (invokeMethod.ReturnsVoid)
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var method = symbol.DelegateInvokeMethod;
                     AddPunctuation(SyntaxKind.OpenParenToken);
-                    AddParametersIfNeeded(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
+                    AddParametersIfRequired(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
                     AddPunctuation(SyntaxKind.CloseParenToken);
                 }
             }
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddTypeParameterVarianceIfNeeded(ITypeParameterSymbol symbol)
+        private void AddTypeParameterVarianceIfRequired(ITypeParameterSymbol symbol)
         {
             if (format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeVariance))
             {
@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeParam = (ITypeParameterSymbol)typeArg;
 
-                        AddTypeParameterVarianceIfNeeded(typeParam);
+                        AddTypeParameterVarianceIfRequired(typeParam);
 
                         visitor = this.NotFirstVisitor;
                     }
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!modifiers.IsDefault)
                     {
-                        AddCustomModifiersIfNeeded(modifiers[i], leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
                     }
                 }
 

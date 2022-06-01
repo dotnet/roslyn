@@ -10,8 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             string markup,
             bool expectedSuccess = true,
             string expectedMarkup = null,
-            TestParameters testParameters = null,
+            TestParameters? testParameters = null,
             string targetNamespace = null,
             bool optionCancelled = false,
             IReadOnlyDictionary<string, string> expectedSymbolChanges = null)
@@ -41,17 +39,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 ? MoveToNamespaceOptionsResult.Cancelled
                 : new MoveToNamespaceOptionsResult(targetNamespace);
 
-            var workspace = CreateWorkspaceFromOptions(markup, testParameters);
+            var workspace = CreateWorkspaceFromOptions(markup, testParameters.Value);
             using var testState = new TestState(workspace);
 
             testState.TestMoveToNamespaceOptionsService.SetOptions(moveToNamespaceOptions);
             if (expectedSuccess)
             {
                 var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
-                    testState.InvocationDocument,
-                    testState.TestInvocationDocument.SelectedSpans.Single(),
-                    CodeActionOptions.DefaultProvider,
-                    CancellationToken.None);
+                        testState.InvocationDocument,
+                        testState.TestInvocationDocument.SelectedSpans.Single(),
+                        language => ChangeNamespaceOptions.GetDefault(workspace.Services.GetLanguageServices(GetLanguage())),
+                        CancellationToken.None);
 
                 var operationTasks = actions
                     .Cast<AbstractMoveToNamespaceCodeAction>()
@@ -91,12 +89,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 
                 if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))
                 {
-                    await TestInRegularAndScriptAsync(markup, expectedMarkup, options: testParameters.options);
+                    await TestInRegularAndScriptAsync(markup, expectedMarkup);
                 }
             }
             else
             {
-                await TestMissingInRegularAndScriptAsync(markup, parameters: testParameters);
+                await TestMissingInRegularAndScriptAsync(markup, parameters: testParameters.Value);
             }
         }
 

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
             public override void HandleException(object provider, Exception exception)
             {
-                if (provider is CodeFixProvider or CodeFixes.FixAllProvider or CodeRefactoringProvider or CodeRefactorings.FixAllProvider)
+                if (provider is CodeFixProvider or FixAllProvider or CodeRefactoringProvider)
                 {
                     if (!IsIgnored(provider) &&
                         _globalOptions.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))

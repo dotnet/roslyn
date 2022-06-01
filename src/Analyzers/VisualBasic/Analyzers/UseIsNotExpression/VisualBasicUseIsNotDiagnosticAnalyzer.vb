@@ -50,8 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
                 Return
             End If
 
+            Dim options = syntaxContext.Options
+            Dim cancellationToken = syntaxContext.CancellationToken
+
             ' Bail immediately if the user has disabled this feature.
-            Dim styleOption = syntaxContext.GetVisualBasicAnalyzerOptions().PreferIsNotExpression
+            Dim styleOption = options.GetOption(VisualBasicCodeStyleOptions.PreferIsNotExpression, syntaxTree, cancellationToken)
             If Not styleOption.Value Then
                 Return
             End If

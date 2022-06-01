@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 
@@ -75,8 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim fallbackOptions = _globalOptions.GetVisualBasicSyntaxFormattingOptions()
-                Dim formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document,
                     formattingOptions,
@@ -92,7 +90,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                Concat(commitFormattingCleanup)
 
                 Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
-                Dim cleanupOptions = document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
+                Dim simplifierOptions = document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim addImportOptions = AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim cleanupOptions = New CodeCleanupOptions(formattingOptions, simplifierOptions, addImportOptions)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then

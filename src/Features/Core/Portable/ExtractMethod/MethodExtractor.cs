@@ -10,10 +10,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -21,17 +20,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal abstract partial class MethodExtractor
     {
         protected readonly SelectionResult OriginalSelectionResult;
-        protected readonly ExtractMethodGenerationOptions Options;
         protected readonly bool LocalFunction;
 
-        public MethodExtractor(
-            SelectionResult selectionResult,
-            ExtractMethodGenerationOptions options,
-            bool localFunction)
+        public MethodExtractor(SelectionResult selectionResult, bool localFunction)
         {
             Contract.ThrowIfNull(selectionResult);
             OriginalSelectionResult = selectionResult;
-            Options = options;
             LocalFunction = localFunction;
         }
 
@@ -40,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
+        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
         protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
@@ -69,12 +63,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
+            var options = await analyzeResult.SemanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var generatedCode = await GenerateCodeAsync(
                 insertionPoint.With(expandedDocument),
                 OriginalSelectionResult.With(expandedDocument),
                 analyzeResult.With(expandedDocument),
-                Options.CodeGenerationOptions,
+                options,
                 cancellationToken).ConfigureAwait(false);
 
             var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);

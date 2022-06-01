@@ -273,7 +273,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     {
                         case Microsoft.Cci.PrimitiveTypeCode.UInt32:
                         case Microsoft.Cci.PrimitiveTypeCode.UInt64:
-                        case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                             this.EmitOpCode(ILOpCode.Conv_r_un);
                             break;
                     }
@@ -285,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     {
                         case Microsoft.Cci.PrimitiveTypeCode.UInt32:
                         case Microsoft.Cci.PrimitiveTypeCode.UInt64:
-                        case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                             this.EmitOpCode(ILOpCode.Conv_r_un);
                             break;
                     }

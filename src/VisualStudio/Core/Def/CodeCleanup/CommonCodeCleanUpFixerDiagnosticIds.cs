@@ -13,20 +13,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
     internal static class CommonCodeCleanUpFixerDiagnosticIds
     {
         [Export]
-        [FixId(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId)]
-        [Name(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId)]
+        [FixId(IDEDiagnosticIds.AddQualificationDiagnosticId)]
+        [Name(IDEDiagnosticIds.AddQualificationDiagnosticId)]
         [Order(After = IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
         [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId}")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.AddQualificationDiagnosticId}")]
         [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Add_this_or_Me_qualification))]
         public static readonly FixIdDefinition? AddQualificationDiagnosticId;
 
         [Export]
-        [FixId(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId)]
-        [Name(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId)]
+        [FixId(IDEDiagnosticIds.RemoveQualificationDiagnosticId)]
+        [Name(IDEDiagnosticIds.RemoveQualificationDiagnosticId)]
         [Order(After = IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
         [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId}")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.RemoveQualificationDiagnosticId}")]
         [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Add_this_or_Me_qualification))]
         public static readonly FixIdDefinition? RemoveQualificationDiagnosticId;
 
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         [Export]
         [FixId(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
         [Name(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.AddQualificationDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId}")]
         [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Make_field_readonly))]

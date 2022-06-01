@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             var start = Position;
-            while (Position < Text.Length && RegexCharClass.IsBoundaryWordChar(this.CurrentChar))
+            while (Position < Text.Length && RegexCharClass.IsWordChar(this.CurrentChar))
             {
                 Position++;
             }

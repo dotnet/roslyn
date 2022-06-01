@@ -11,8 +11,21 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal sealed class CompletionViewOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class CompletionViewOptions : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CompletionViewOptions()
+        {
+        }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            ShowCompletionItemFilters,
+            HighlightMatchingPortionsOfCompletionListItems,
+            EnableArgumentCompletionSnippets,
+            BlockForCompletionItems);
+
         private const string FeatureName = "CompletionOptions";
 
         public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems =

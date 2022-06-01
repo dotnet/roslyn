@@ -9,7 +9,7 @@ using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal abstract class LspWorkspaceRegistrationService : IDisposable
+internal abstract class LspWorkspaceRegistrationService
 {
     private readonly object _gate = new();
     private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
@@ -17,12 +17,7 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     public abstract string GetHostWorkspaceKind();
 
     public ImmutableArray<Workspace> GetAllRegistrations()
-    {
-        lock (_gate)
-        {
-            return _registrations;
-        }
-    }
+        => _registrations;
 
     public virtual void Register(Workspace workspace)
     {
@@ -39,32 +34,10 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
             _registrations = _registrations.Add(workspace);
         }
 
-        // Forward workspace change events for all registered LSP workspaces.
-        workspace.WorkspaceChanged += OnLspWorkspaceChanged;
+        WorkspaceRegistered?.Invoke(this, new LspWorkspaceRegisteredEventArgs(workspace));
     }
 
-    private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-    {
-        LspSolutionChanged?.Invoke(this, e);
-    }
-
-    public void Dispose()
-    {
-        lock (_gate)
-        {
-            foreach (var workspace in _registrations)
-            {
-                workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Indicates whether the LSP solution has changed in a non-tracked document context.
-    /// 
-    /// <b>IMPORTANT:</b> Implementations of this event handler should do as little synchronous work as possible since this will block.
-    /// </summary>
-    public EventHandler<WorkspaceChangeEventArgs>? LspSolutionChanged;
+    public event EventHandler<LspWorkspaceRegisteredEventArgs>? WorkspaceRegistered;
 }
 
 internal class LspWorkspaceRegisteredEventArgs : EventArgs

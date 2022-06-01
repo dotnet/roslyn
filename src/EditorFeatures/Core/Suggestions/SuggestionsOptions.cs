@@ -11,8 +11,18 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal sealed class SuggestionsOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class SuggestionsOptions : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SuggestionsOptions()
+        {
+        }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            AsynchronousQuickActionsDisableFeatureFlag);
+
         private const string FeatureName = "SuggestionsOptions";
 
         public static readonly Option2<bool?> Asynchronous = new(FeatureName, nameof(Asynchronous), defaultValue: null,

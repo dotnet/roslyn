@@ -31,10 +31,9 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             context.RegisterRefactoring(
-                CodeAction.Create(
+                new MyCodeAction(
                     string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
-                    c => AddNamedElementAsync(document, span, cancellationToken),
-                    nameof(FeaturesResources.Add_tuple_element_name_0) + "_" + elementName),
+                    c => AddNamedElementAsync(document, span, cancellationToken)),
                 argument.Span);
         }
 
@@ -87,6 +86,14 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var newArgument = WithName(argument, elementName).WithTriviaFrom(argument);
             var newRoot = root.ReplaceNode(argument, newArgument);
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
         }
     }
 }

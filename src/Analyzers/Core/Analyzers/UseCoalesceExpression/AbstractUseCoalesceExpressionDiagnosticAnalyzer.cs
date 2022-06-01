@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             var cancellationToken = context.CancellationToken;
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
+            var option = context.GetOption(CodeStyleOptions2.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
                 return;
 

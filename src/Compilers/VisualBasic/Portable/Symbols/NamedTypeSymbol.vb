@@ -995,15 +995,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check definition.
             Dim definitionUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.OriginalDefinition)
 
-            If definitionUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(definitionUseSiteInfo.DiagnosticInfo.Code) Then
+            If definitionUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedType1 Then
                 Return definitionUseSiteInfo
             End If
 
             ' Check type arguments.
             Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromTypeArguments()
 
-            MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
-            Return definitionUseSiteInfo
+            Return MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
         End Function
 
         Private Function DeriveUseSiteInfoFromTypeArguments() As UseSiteInfo(Of AssemblySymbol)
@@ -1012,14 +1011,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Do
                 For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
-                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg)) Then
+                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg), ERRID.ERR_UnsupportedType1) Then
                         Return argsUseSiteInfo
                     End If
                 Next
 
                 If currentType.HasTypeArgumentsCustomModifiers Then
                     For i As Integer = 0 To Me.Arity - 1
-                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i))) Then
+                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)), ERRID.ERR_UnsupportedType1) Then
                             Return argsUseSiteInfo
                         End If
                     Next

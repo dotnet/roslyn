@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
-                private readonly object _gate = new();
+                private readonly object _gate;
                 private readonly SemaphoreSlim _semaphore;
                 private bool _disposed;
 
@@ -28,11 +28,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
-                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
+                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap;
 
                 public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                 {
+                    _gate = new object();
                     _semaphore = new SemaphoreSlim(initialCount: 0);
+                    _cancellationMap = new Dictionary<object, CancellationTokenSource>();
 
                     _workspace = workspace;
                     _progressReporter = progressReporter;

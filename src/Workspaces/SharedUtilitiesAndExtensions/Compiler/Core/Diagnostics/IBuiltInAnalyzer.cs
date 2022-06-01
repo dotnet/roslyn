@@ -3,7 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Simplification;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -28,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// This indicates whether this built-in analyzer will only run on opened files.
         /// </summary>
-        bool OpenFileOnly(SimplifierOptions? options);
+        bool OpenFileOnly(OptionSet options);
 
         /// <summary>
         /// What priority this provider should run at.  This value is not allowed to be <see cref="CodeActionRequestPriority.None"/>.

@@ -722,7 +722,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool IsNullableAnalysisEnabled() => false;
-
-        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

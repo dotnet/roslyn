@@ -51,18 +51,13 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
             if (ShouldOfferFix(methodSymbol.ReturnType, knownTypes))
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        FeaturesResources.Remove_async_modifier,
-                        GetDocumentUpdater(context),
-                        nameof(FeaturesResources.Remove_async_modifier)),
-                    context.Diagnostics);
+                context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
             }
         }
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -249,6 +244,14 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 }
 
                 return expression;
+            }
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Remove_async_modifier, createChangedDocument, FeaturesResources.Remove_async_modifier)
+            {
             }
         }
     }

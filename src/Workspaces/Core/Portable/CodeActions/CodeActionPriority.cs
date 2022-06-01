@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         Lowest = 0,
         Low = 1,
         Medium = 2,
-        High = 3,
-
-        Default = Medium
+        High = 3
     }
 }

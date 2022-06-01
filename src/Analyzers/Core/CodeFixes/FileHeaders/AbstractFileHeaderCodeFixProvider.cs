@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         CodeFixesResources.Add_file_header,
-                        cancellationToken => GetTransformedDocumentAsync(context.Document, context.GetOptionsProvider(), cancellationToken),
+                        cancellationToken => GetTransformedDocumentAsync(context.Document, cancellationToken),
                         nameof(AbstractFileHeaderCodeFixProvider)),
                     diagnostic);
             }
@@ -43,14 +42,21 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return Task.CompletedTask;
         }
 
-        private async Task<Document> GetTransformedDocumentAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false));
+        private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
+            => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
 
-        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
-            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+#if CODE_STYLE
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+            var newLine = options.GetOption(FormattingOptions2.NewLine, document.Project.Language);
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var newLineTrivia = generator.EndOfLine(options.NewLine);
+            var newLineTrivia = generator.EndOfLine(newLine);
 
             return await GetTransformedSyntaxRootAsync(generator.SyntaxFacts, FileHeaderHelper, newLineTrivia, document, fileHeaderTemplate: null, cancellationToken).ConfigureAwait(false);
         }
@@ -62,13 +68,13 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             // If we weren't given a header lets get the one from editorconfig
             if (fileHeaderTemplate is null &&
-                !document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree).TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, out fileHeaderTemplate))
+                !document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out fileHeaderTemplate))
             {
                 // No header supplied, no editorconfig setting, nothing to do
                 return root;
             }
 
-            if (RoslynString.IsNullOrEmpty(fileHeaderTemplate))
+            if (string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // Header template is empty, nothing to do. This shouldn't be possible if this method is called in
                 // reaction to a diagnostic, but this method is also used when creating new documents so lets be defensive.
@@ -232,7 +238,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 if (diagnostics.IsEmpty)
                     return null;
 
-                return await this.GetTransformedDocumentAsync(document, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false);
+                return await this.GetTransformedDocumentAsync(document, context.CancellationToken).ConfigureAwait(false);
             });
     }
 }

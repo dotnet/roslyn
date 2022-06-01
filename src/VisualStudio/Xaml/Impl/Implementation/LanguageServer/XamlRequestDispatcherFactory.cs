@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -21,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
     /// <summary>
     /// Implements the Language Server Protocol for XAML
     /// </summary>
-    [ExportLspServiceFactory(typeof(RequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
-    internal sealed class XamlRequestDispatcherFactory : RequestDispatcherFactory
+    [Export(typeof(XamlRequestDispatcherFactory)), Shared]
+    internal sealed class XamlRequestDispatcherFactory : AbstractRequestDispatcherFactory
     {
         private readonly XamlProjectService _projectService;
         private readonly IXamlLanguageServerFeedbackService? _feedbackService;
@@ -30,16 +31,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlRequestDispatcherFactory(
+            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
+            : base(requestHandlerProviders)
         {
             _projectService = projectService;
             _feedbackService = feedbackService;
         }
 
-        public override ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        public override RequestDispatcher CreateRequestDispatcher(WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
+            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, serverKind);
         }
 
         private class XamlRequestDispatcher : RequestDispatcher
@@ -49,8 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 
             public XamlRequestDispatcher(
                 XamlProjectService projectService,
-                LspServices services,
-                IXamlLanguageServerFeedbackService? feedbackService) : base(services)
+                ImmutableArray<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+                IXamlLanguageServerFeedbackService? feedbackService,
+                WellKnownLspServerKinds serverKind) : base(requestHandlerProviders, serverKind)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
@@ -84,6 +88,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                     }
                 }
             }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class ExportXamlLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
+    {
+        public ExportXamlLspRequestHandlerProviderAttribute(Type first, params Type[] handlerTypes) : base(StringConstants.XamlLspLanguagesContract, first, handlerTypes)
+        {
         }
     }
 }

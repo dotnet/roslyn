@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
     internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private readonly ISyntaxFacts _syntaxFacts;
+        private readonly Option2<CodeStyleOption2<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersDiagnosticAnalyzer(
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                    new LocalizableResourceString(nameof(AnalyzersResources.Modifiers_are_not_ordered), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _syntaxFacts = syntaxFacts;
+            _option = option;
             _helpers = helpers;
         }
 
@@ -38,11 +40,9 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 
-        protected abstract CodeStyleOption2<string> GetPreferredOrderStyle(SyntaxTreeAnalysisContext context);
-
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var option = GetPreferredOrderStyle(context);
+            var option = context.GetOption(_option);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;

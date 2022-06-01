@@ -14,8 +14,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     /// <summary>
     /// options to indicate whether a certain component in Roslyn is enabled or not
     /// </summary>
-    internal sealed class EditorComponentOnOffOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class EditorComponentOnOffOptions : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public EditorComponentOnOffOptions()
+        {
+        }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            Adornment,
+            Tagger,
+            CodeRefactorings);
+
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Components\";
         private const string FeatureName = "EditorComponentOnOffOptions";
 

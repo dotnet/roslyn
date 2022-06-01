@@ -4,13 +4,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
@@ -28,9 +26,15 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         static AbstractAddRequiredParenthesesDiagnosticAnalyzer()
         {
+            var options = new[]
+            {
+                CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses,
+                CodeStyleOptions2.OtherParentheses, CodeStyleOptions2.RelationalBinaryParentheses
+            };
+
             var includeArray = new[] { false, true };
 
-            foreach (var equivalenceKey in GetAllEquivalenceKeys())
+            foreach (var option in options)
             {
                 foreach (var includeInFixAll in includeArray)
                 {
@@ -40,11 +44,15 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                         properties = properties.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
                     }
 
+                    var equivalenceKey = GetEquivalenceKey(option);
                     properties = properties.Add(AddRequiredParenthesesConstants.EquivalenceKey, equivalenceKey);
                     s_cachedProperties.Add((includeInFixAll, equivalenceKey), properties);
                 }
             }
         }
+
+        private static string GetEquivalenceKey(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> parentPrecedence)
+            => parentPrecedence.Name;
 
         private static ImmutableDictionary<string, string?> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
@@ -86,20 +94,16 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var options = context.GetAnalyzerOptions();
-            var childPrecedenceKind = _precedenceService.GetPrecedenceKind(binaryLike);
-            var parentPrecedenceKind = _precedenceService.GetPrecedenceKind(parentBinaryLike);
-
-            var childEquivalenceKey = GetEquivalenceKey(childPrecedenceKind);
-            var parentEquivalenceKey = GetEquivalenceKey(parentPrecedenceKind);
+            var childPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(binaryLike));
+            var parentPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(parentBinaryLike));
 
             // only add parentheses within the same precedence band.
-            if (childEquivalenceKey != parentEquivalenceKey)
+            if (parentPrecedence != childPrecedence)
             {
                 return;
             }
 
-            var preference = GetLanguageOption(options, childPrecedenceKind);
+            var preference = context.GetOption(parentPrecedence, binaryLike.Language);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
@@ -107,13 +111,14 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
             var additionalLocations = ImmutableArray.Create(binaryLike.GetLocation());
             var precedence = GetPrecedence(binaryLike);
+            var equivalenceKey = GetEquivalenceKey(parentPrecedence);
 
             // In a case like "a + b * c * d", we'll add parens to make "a + (b * c * d)".
             // To make this user experience more pleasant, we will place the diagnostic on
             // both *'s.
             AddDiagnostics(
                 context, binaryLike, precedence, preference.Notification.Severity,
-                additionalLocations, childEquivalenceKey, includeInFixAll: true);
+                additionalLocations, equivalenceKey, includeInFixAll: true);
         }
 
         private void AddDiagnostics(

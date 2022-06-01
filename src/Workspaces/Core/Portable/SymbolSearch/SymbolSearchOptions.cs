@@ -4,18 +4,18 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch;
-
-[DataContract]
-internal readonly record struct SymbolSearchOptions
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    [DataMember] public bool SearchReferenceAssemblies { get; init; } = true;
-    [DataMember] public bool SearchNuGetPackages { get; init; } = true;
-
-    // required to make sure new SymbolSearchOptions() runs property initializers
-    public SymbolSearchOptions()
+    [DataContract]
+    internal readonly record struct SymbolSearchOptions(
+        [property: DataMember(Order = 0)] bool SearchReferenceAssemblies = true,
+        [property: DataMember(Order = 1)] bool SearchNuGetPackages = true)
     {
-    }
+        public SymbolSearchOptions()
+            : this(SearchReferenceAssemblies: true)
+        {
+        }
 
-    public static readonly SymbolSearchOptions Default = new();
+        public static readonly SymbolSearchOptions Default = new();
+    }
 }

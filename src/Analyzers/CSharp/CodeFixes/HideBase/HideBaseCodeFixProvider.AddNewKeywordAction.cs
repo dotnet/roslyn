@@ -12,45 +12,54 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CodeActions;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
     internal partial class HideBaseCodeFixProvider
     {
-        private class AddNewKeywordAction : CodeAction
+        private class AddNewKeywordAction : CodeActions.CodeAction
         {
             private readonly Document _document;
             private readonly SyntaxNode _node;
-            private readonly CodeActionOptionsProvider _fallbackOptions;
 
             public override string Title => CSharpCodeFixesResources.Hide_base_member;
 
-            public AddNewKeywordAction(Document document, SyntaxNode node, CodeActionOptionsProvider fallbackOptions)
+            public AddNewKeywordAction(Document document, SyntaxNode node)
             {
                 _document = document;
                 _node = node;
-                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var options = await _document.GetCSharpCodeFixOptionsProviderAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var newNode = GetNewNode(_node, options.PreferredModifierOrder.Value);
+#if CODE_STYLE
+                var options = _document.Project.AnalyzerOptions.GetAnalyzerOptionSet(_node.SyntaxTree, cancellationToken);
+#else
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+                var newNode = GetNewNode(_node, options);
                 var newRoot = root.ReplaceNode(_node, newNode);
 
                 return _document.WithSyntaxRoot(newRoot);
             }
 
-            private static SyntaxNode GetNewNode(SyntaxNode node, string preferredModifierOrder)
+            private static SyntaxNode GetNewNode(SyntaxNode node, OptionSet options)
             {
                 var syntaxFacts = CSharpSyntaxFacts.Instance;
                 var modifiers = syntaxFacts.GetModifiers(node);
                 var newModifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
 
-                if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(preferredModifierOrder, out var preferredOrder) ||
+                var option = options.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder);
+                if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder) ||
                     !AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
                 {
                     return syntaxFacts.WithModifiers(node, newModifiers);

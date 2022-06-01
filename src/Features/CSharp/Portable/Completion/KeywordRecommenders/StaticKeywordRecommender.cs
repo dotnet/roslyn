@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             SyntaxKind.SealedKeyword,
             SyntaxKind.UnsafeKeyword,
             SyntaxKind.VolatileKeyword,
-            SyntaxKind.VirtualKeyword,
         };
 
         private static readonly ISet<SyntaxKind> s_validGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)

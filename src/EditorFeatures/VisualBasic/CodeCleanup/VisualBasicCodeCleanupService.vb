@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 New DiagnosticSet(FeaturesResources.Apply_file_header_preferences,
                     IDEDiagnosticIds.FileHeaderMismatch),
                 New DiagnosticSet(AnalyzersResources.Add_this_or_Me_qualification,
-                    IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId, IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
+                    IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_language_framework_type_preferences,
                     IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_parentheses_preferences,

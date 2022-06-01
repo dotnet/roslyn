@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     <[UseExportProvider]>
     Public Class EncapsulateFieldCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Async Function PrivateField() As Task
+        Public Sub PrivateField()
             Dim text = <File>
 Class C
     Private goo$$ As Integer
@@ -45,12 +45,12 @@ Class C
 End Class</File>.ConvertTestSourceTag()
 
             Using state = EncapsulateFieldTestState.Create(text)
-                Await state.AssertEncapsulateAsAsync(expected)
+                state.AssertEncapsulateAs(expected)
             End Using
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Async Function NonPrivateField() As Task
+        Public Sub NonPrivateField()
             Dim text = <File>
 Class C
     Protected goo$$ As Integer
@@ -79,13 +79,13 @@ Class C
 End Class</File>.ConvertTestSourceTag()
 
             Using state = EncapsulateFieldTestState.Create(text)
-                Await state.AssertEncapsulateAsAsync(expected)
+                state.AssertEncapsulateAs(expected)
             End Using
-        End Function
+        End Sub
 
         <WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Async Function EncapsulateTwoFields() As Task
+        Public Sub EncapsulateTwoFields()
             Dim text = "
 Class Program
     [|Shared A As Integer = 1
@@ -128,9 +128,9 @@ End Class
 "
 
             Using state = EncapsulateFieldTestState.Create(text)
-                Await state.AssertEncapsulateAsAsync(expected)
+                state.AssertEncapsulateAs(expected)
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>

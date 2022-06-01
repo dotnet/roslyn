@@ -61,7 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
 
         private void AnalyzeLocalDeclarationStatement(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferTupleSwap;
+            var options = syntaxContext.Options;
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var cancellationToken = syntaxContext.CancellationToken;
+
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferTupleSwap, syntaxTree, cancellationToken);
             if (!styleOption.Value)
                 return;
 

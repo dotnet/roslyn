@@ -1002,24 +1002,16 @@ namespace Microsoft.CodeAnalysis
             /// compilation. Only actual compilation references are returned. Could potentially 
             /// return null if nothing can be provided.
             /// </summary>
-            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+            public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 var state = ReadState();
 
-                if (ProjectState.LanguageServices == fromProject.LanguageServices)
+                // get compilation in any state it happens to be in right now.
+                if (state.CompilationWithoutGeneratedDocuments is { } compilationOpt &&
+                    ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
-                    // if we have a compilation and its the correct language, use a simple compilation reference in any
-                    // state it happens to be in right now
-                    if (state.CompilationWithoutGeneratedDocuments is { } compilation)
-                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                }
-                else
-                {
-                    // Cross project reference.  We need a skeleton reference.  Skeletons are too expensive to
-                    // generate on demand.  So just try to see if we can grab the last generated skeleton for that
-                    // project.
-                    var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return this.SkeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
+                    // if we have a compilation and its the correct language, use a simple compilation reference
+                    return compilationOpt.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
 
                 return null;

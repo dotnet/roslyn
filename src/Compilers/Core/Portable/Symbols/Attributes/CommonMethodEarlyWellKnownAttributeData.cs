@@ -52,23 +52,5 @@ namespace Microsoft.CodeAnalysis
             }
         }
         #endregion
-
-        #region SetsRequiredMembers
-        private bool _hasSetsRequiredMembers = false;
-        public bool HasSetsRequiredMembersAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasSetsRequiredMembers;
-            }
-            set
-            {
-                VerifySealed(false);
-                _hasSetsRequiredMembers = value;
-                SetDataStored();
-            }
-        }
-        #endregion
     }
 }

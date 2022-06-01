@@ -307,6 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.ExclamationExclamationToken:
                         return true;
                     default:
                         return SyntaxFacts.IsContextualKeyword(kind);

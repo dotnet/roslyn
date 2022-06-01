@@ -15,18 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Private ReadOnly _targetSymbol As INamedTypeSymbol
             Private ReadOnly _generatedEvent As IEventSymbol
             Private ReadOnly _codeGenService As ICodeGenerationService
-            Private ReadOnly _fallbackOptions As CodeAndImportGenerationOptionsProvider
 
             Public Sub New(solution As Solution,
                     targetSymbol As INamedTypeSymbol,
                     generatedEvent As IEventSymbol,
-                    codeGenService As ICodeGenerationService,
-                    fallbackOptions As CodeAndImportGenerationOptionsProvider)
+                    codeGenService As ICodeGenerationService)
                 _solution = solution
                 _targetSymbol = targetSymbol
                 _generatedEvent = generatedEvent
                 _codeGenService = codeGenService
-                _fallbackOptions = fallbackOptions
             End Sub
 
             Public Overrides ReadOnly Property Title As String
@@ -37,13 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Protected Overrides Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Return _codeGenService.AddEventAsync(
-                    New CodeGenerationSolutionContext(
-                        _solution,
-                        CodeGenerationContext.Default,
-                        _fallbackOptions),
-                    _targetSymbol,
-                    _generatedEvent,
-                    cancellationToken)
+                    _solution, _targetSymbol, _generatedEvent,
+                    CodeGenerationContext.Default, cancellationToken)
             End Function
         End Class
     End Class

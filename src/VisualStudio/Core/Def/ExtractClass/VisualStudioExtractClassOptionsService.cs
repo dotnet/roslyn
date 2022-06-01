@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,20 +32,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
         private readonly IThreadingContext _threadingContext;
         private readonly IGlyphService _glyphService;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioExtractClassOptionsService(
             IThreadingContext threadingContext,
             IGlyphService glyphService,
-            IUIThreadOperationExecutor uiThreadOperationExecutor,
-            IGlobalOptionService globalOptions)
+            IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _threadingContext = threadingContext;
             _glyphService = glyphService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
-            _globalOptions = globalOptions;
         }
 
         public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember, CancellationToken cancellationToken)
@@ -77,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
 
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, selectedType, membersInType, cancellationToken);
 
             var viewModel = new ExtractClassViewModel(

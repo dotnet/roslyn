@@ -13,7 +13,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class INamespaceOrTypeSymbolExtensions
     {
-        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>> s_namespaceOrTypeToNameMap = new();
+        private static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>> s_namespaceOrTypeToNameMap =
+            new();
+        public static readonly ConditionalWeakTable<INamespaceOrTypeSymbol, List<string>>.CreateValueCallback s_getNamePartsCallBack =
+            namespaceSymbol =>
+            {
+                var result = new List<string>();
+                GetNameParts(namespaceSymbol, result);
+                return result;
+            };
 
         private static readonly SymbolDisplayFormat s_shortNameFormat = new(
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.ExpandNullable);
@@ -29,12 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IReadOnlyList<string> GetNameParts(this INamespaceOrTypeSymbol symbol)
-            => s_namespaceOrTypeToNameMap.GetValue(symbol, static symbol =>
-            {
-                var result = new List<string>();
-                GetNameParts(symbol, result);
-                return result;
-            });
+            => s_namespaceOrTypeToNameMap.GetValue(symbol, s_getNamePartsCallBack);
 
         public static int CompareNameParts(
             IReadOnlyList<string> names1, IReadOnlyList<string> names2,

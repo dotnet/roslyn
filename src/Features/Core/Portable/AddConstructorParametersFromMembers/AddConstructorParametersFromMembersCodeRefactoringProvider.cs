@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 return;
             }
 
-            var result = await AddConstructorParametersFromMembersAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+            var result = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
                 return;
@@ -54,8 +53,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             context.RegisterRefactorings(actions);
         }
 
-        private static async Task<AddConstructorParameterResult?> AddConstructorParametersFromMembersAsync(
-            Document document, TextSpan textSpan, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<AddConstructorParameterResult?> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
@@ -67,13 +65,10 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (info != null)
                 {
-                    var state = await State.GenerateAsync(info.SelectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
                     if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                     {
-                        var codeGenOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                        var contextInfo = codeGenOptions.GetInfo(CodeGenerationContext.Default, document.Project);
-
-                        return CreateCodeActions(document, contextInfo, state);
+                        return CreateCodeActions(document, state);
                     }
                 }
 
@@ -113,7 +108,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             return actions.ToImmutable();
         }
 
-        private static AddConstructorParameterResult CreateCodeActions(Document document, CodeGenerationContextInfo info, State state)
+        private static AddConstructorParameterResult CreateCodeActions(Document document, State state)
         {
             using var _0 = ArrayBuilder<AddConstructorParametersCodeAction>.GetInstance(out var requiredParametersActions);
             using var _1 = ArrayBuilder<AddConstructorParametersCodeAction>.GetInstance(out var optionalParametersActions);
@@ -126,7 +121,6 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 {
                     requiredParametersActions.Add(new AddConstructorParametersCodeAction(
                         document,
-                        info,
                         constructorCandidate,
                         containingType,
                         constructorCandidate.MissingParameters,
@@ -135,7 +129,6 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 optionalParametersActions.Add(GetOptionalContructorParametersCodeAction(
                     document,
-                    info,
                     constructorCandidate,
                     containingType,
                     useSubMenuName: useSubMenu));
@@ -147,7 +140,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
                    => parameters.Length == 0 || !parameters.Last().IsOptional;
 
-            static AddConstructorParametersCodeAction GetOptionalContructorParametersCodeAction(Document document, CodeGenerationContextInfo info, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
+            static AddConstructorParametersCodeAction GetOptionalContructorParametersCodeAction(Document document, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
             {
                 var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(
                     p => CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -160,14 +153,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                         hasDefaultValue: true));
 
                 return new AddConstructorParametersCodeAction(
-                    document, info, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
+                    document, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
             }
         }
 
-        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
-            Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
         {
-            var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
             if (addConstructorParametersResult == null)
             {
                 return ImmutableArray<IntentProcessorResult>.Empty;

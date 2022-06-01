@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = CSharpSimplifierOptions.Create(configOptions, (CSharpSimplifierOptions)context.Options(document.Project.LanguageServices).SimplifierOptions);
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, simplifierOptions, cancellationToken);
             if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
             {
@@ -66,10 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             }
 
             context.RegisterRefactoring(
-                CodeAction.Create(
+                new MyCodeAction(
                     Title,
-                    c => UpdateDocumentAsync(document, declaredType, c),
-                    Title),
+                    c => UpdateDocumentAsync(document, declaredType, c)),
                 declaredType.Span);
         }
 
@@ -130,6 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
         }
     }
 }

@@ -13,13 +13,14 @@ namespace Roslyn.Test.Utilities
     public sealed class AsynchronousOperationBlocker : IDisposable
     {
         private readonly ManualResetEvent _waitHandle;
-        private readonly object _lockObj = new();
+        private readonly object _lockObj;
         private bool _blocking;
         private bool _disposed;
 
         public AsynchronousOperationBlocker()
         {
             _waitHandle = new ManualResetEvent(false);
+            _lockObj = new object();
             _blocking = true;
         }
 

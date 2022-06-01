@@ -69,8 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return true; }
             }
-
-            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed partial class AnonymousTypePropertyGetAccessorSymbol : SynthesizedMethodBase

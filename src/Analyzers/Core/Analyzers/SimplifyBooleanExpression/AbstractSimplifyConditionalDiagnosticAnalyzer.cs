@@ -63,15 +63,20 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
         private void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
         {
-            var styleOption = context.GetAnalyzerOptions().PreferSimplifiedBooleanExpressions;
+            var semanticModel = context.SemanticModel;
+            var syntaxTree = semanticModel.SyntaxTree;
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+
+            var styleOption = options.GetOption(
+                CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
+                semanticModel.Language, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
             }
 
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
             SyntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);

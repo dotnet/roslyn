@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -20,10 +19,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
-        private sealed partial class State
+        private partial class State
         {
             public SemanticDocument Document { get; }
-            public CodeCleanupOptions Options { get; }
             public TExpressionSyntax Expression { get; private set; }
 
             public bool InAttributeContext { get; private set; }
@@ -40,21 +38,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private SemanticMap _semanticMap;
             private readonly TService _service;
 
-            public State(TService service, SemanticDocument document, CodeCleanupOptions options)
+            public State(TService service, SemanticDocument document)
             {
                 _service = service;
                 Document = document;
-                Options = options;
             }
 
             public static async Task<State> GenerateAsync(
                 TService service,
                 SemanticDocument document,
-                CodeCleanupOptions options,
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                var state = new State(service, document, options);
+                var state = new State(service, document);
                 if (!await state.TryInitializeAsync(document, textSpan, cancellationToken).ConfigureAwait(false))
                 {
                     return null;

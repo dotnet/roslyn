@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly ILspLoggerFactory _lspLoggerFactory;
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly AbstractLspServiceProvider _lspServiceProvider;
+        private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
+        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -99,16 +100,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
         public AbstractInProcLanguageClient(
-            AbstractLspServiceProvider lspServiceProvider,
+            AbstractRequestDispatcherFactory requestDispatcherFactory,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
-            _lspServiceProvider = lspServiceProvider;
+            _requestDispatcherFactory = requestDispatcherFactory;
             GlobalOptions = globalOptions;
             _listenerProvider = listenerProvider;
+            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
             _middleLayer = middleLayer;
@@ -224,9 +227,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ILspLogger logger)
         {
             return new LanguageServerTarget(
-                _lspServiceProvider,
+                _requestDispatcherFactory,
                 jsonRpc,
                 capabilitiesProvider,
+                _lspWorkspaceRegistrationService,
+                lspMiscellaneousFilesWorkspace: null,
+                GlobalOptions,
                 _listenerProvider,
                 logger,
                 SupportedLanguages,

@@ -159,8 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return false; }
             }
 
-            internal override bool IsRequired => throw ExceptionUtilities.Unreachable;
-
             public override FlowAnalysisAnnotations FlowAnalysisAnnotations
             {
                 get { return FlowAnalysisAnnotations.None; }

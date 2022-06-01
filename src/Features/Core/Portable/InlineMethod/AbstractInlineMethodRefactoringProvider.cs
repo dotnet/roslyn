@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IInvocationOperation invocationOperation)
         {
             var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
-            var codeActionRemovesCallee = CodeAction.Create(
+            var codeActionRemovesCallee = new MySolutionChangeAction(
                 string.Format(FeaturesResources.Inline_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(
@@ -265,10 +265,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         callerMethodNode,
                         inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: true, cancellationToken: cancellationToken),
-                nameof(FeaturesResources.Inline_0) + "_" + calleeMethodName);
+                        removeCalleeDeclarationNode: true, cancellationToken: cancellationToken));
 
-            var codeActionKeepsCallee = CodeAction.Create(
+            var codeActionKeepsCallee = new MySolutionChangeAction(
                 string.Format(FeaturesResources.Inline_and_keep_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(
@@ -280,8 +279,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         callerMethodNode,
                         inlineExpression,
                         invocationOperation,
-                        removeCalleeDeclarationNode: false, cancellationToken: cancellationToken),
-                nameof(FeaturesResources.Inline_and_keep_0) + "_" + calleeMethodName);
+                        removeCalleeDeclarationNode: false, cancellationToken: cancellationToken));
 
             return ImmutableArray.Create<CodeAction>(codeActionRemovesCallee, codeActionKeepsCallee);
         }
@@ -590,6 +588,16 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             return null;
+        }
+
+        private class MySolutionChangeAction : CodeAction.SolutionChangeAction
+        {
+            public MySolutionChangeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution, title)
+            {
+            }
         }
     }
 }

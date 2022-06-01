@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 return;
             }
 
-            var option = context.GetCSharpAnalyzerOptions().PreferStaticLocalFunction;
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, syntaxTree, cancellationToken);
             if (!option.Value)
             {
                 return;

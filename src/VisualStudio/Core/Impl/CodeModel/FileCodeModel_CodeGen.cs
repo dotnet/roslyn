@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
@@ -194,7 +193,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
             var baseArray = GetValidArray(bases, allowMultipleElements: false);
             Debug.Assert(baseArray.Length is 0 or 1);
@@ -213,7 +211,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Class,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                options,
                 baseType: baseTypeSymbol,
                 implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
@@ -228,11 +225,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
             var returnType = (INamedTypeSymbol)CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
 
-            var newType = CreateDelegateTypeDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, returnType, options);
+            var newType = CreateDelegateTypeDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, returnType);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newType = InsertMember(containerNode, newType, insertionIndex);
@@ -244,9 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         internal EnvDTE.CodeEnum AddEnum(SyntaxNode containerNode, string name, object position, object bases, EnvDTE.vsCMAccess access)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            var options = GetDocumentOptions();
-
-            var newType = CreateTypeDeclaration(containerNode, TypeKind.Enum, name, access, options);
+            var newType = CreateTypeDeclaration(containerNode, TypeKind.Enum, name, access);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newType = InsertMember(containerNode, newType, insertionIndex);
@@ -262,7 +256,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
             var type = (ITypeSymbol?)semanticModel.GetDeclaredSymbol(containerNode);
             if (type == null)
@@ -270,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            var newField = CreateFieldDeclaration(containerNode, CodeModelService.GetUnescapedName(name), EnvDTE.vsCMAccess.vsCMAccessPublic, type, options);
+            var newField = CreateFieldDeclaration(containerNode, CodeModelService.GetUnescapedName(name), EnvDTE.vsCMAccess.vsCMAccessPublic, type);
             if (value != null)
             {
                 newField = CodeModelService.AddInitExpression(newField, (string)value);
@@ -287,11 +280,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
             var eventType = (INamedTypeSymbol)CodeModelService.GetTypeSymbol(fullDelegateName, semanticModel, containerNodePosition);
 
-            var newEvent = CreateEventDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, eventType, options, createPropertyStyleEvent);
+            var newEvent = CreateEventDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, eventType, createPropertyStyleEvent);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newEvent = InsertMember(containerNode, newEvent, insertionIndex);
@@ -301,7 +293,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal EnvDTE.CodeFunction AddFunction(SyntaxNode containerNode, string name, EnvDTE.vsCMFunction kind, object type, object position, EnvDTE.vsCMAccess access)
         {
-            var options = GetDocumentOptions();
             kind = CodeModelService.ValidateFunctionKind(containerNode, kind, name);
 
             SyntaxNode newMember;
@@ -315,15 +306,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     ? CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition)
                     : semanticModel.Compilation.GetSpecialType(SpecialType.System_Void);
 
-                newMember = CreateMethodDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, returnType, options);
+                newMember = CreateMethodDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, returnType);
             }
             else if (kind == EnvDTE.vsCMFunction.vsCMFunctionConstructor)
             {
-                newMember = CreateConstructorDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, options);
+                newMember = CreateConstructorDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access);
             }
             else
             {
-                newMember = CreateDestructorDeclaration(containerNode, CodeModelService.GetUnescapedName(name), options);
+                newMember = CreateDestructorDeclaration(containerNode, CodeModelService.GetUnescapedName(name));
             }
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
@@ -347,7 +338,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
             var implementedInterfaceArray = GetValidArray(bases, allowMultipleElements: true);
 
@@ -359,7 +349,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Interface,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                options,
                 implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
@@ -371,8 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal EnvDTE.CodeNamespace AddNamespace(SyntaxNode containerNode, string name, object position)
         {
-            var options = GetDocumentOptions();
-            var newNamespace = CreateNamespaceDeclaration(containerNode, name, options);
+            var newNamespace = CreateNamespaceDeclaration(containerNode, name);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newNamespace = InsertMember(containerNode, newNamespace, insertionIndex);
@@ -393,8 +381,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
+            var options = State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetOptionsAsync(CancellationToken.None));
             var propertyType = CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
             var newProperty = CreatePropertyDeclaration(
                 containerNode,
@@ -417,7 +405,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
             var implementedInterfaceArray = GetValidArray(bases, allowMultipleElements: true);
 
@@ -429,7 +416,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Struct,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                options,
                 implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
@@ -443,10 +429,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
-            var options = GetDocumentOptions();
 
             var fieldType = CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
-            var newField = CreateFieldDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, fieldType, options);
+            var newField = CreateFieldDeclaration(containerNode, CodeModelService.GetUnescapedName(name), access, fieldType);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newField = InsertMember(containerNode, newField, insertionIndex);

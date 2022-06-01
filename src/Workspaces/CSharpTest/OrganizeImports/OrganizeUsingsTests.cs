@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -29,16 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("Document", initial.ReplaceLineEndings(endOfLine ?? Environment.NewLine));
 
-            var options = new OrganizeImportsOptions()
-            {
-                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
-                SeparateImportDirectiveGroups = separateImportGroups,
-                NewLine = endOfLine ?? OrganizeImportsOptions.Default.NewLine
-            };
+            var newOptions = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
+            newOptions = newOptions.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
 
-            var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-            var newDocument = await organizeImportsService.OrganizeImportsAsync(document, options, CancellationToken.None);
-            var newRoot = await newDocument.GetRequiredSyntaxRootAsync(default);
+            if (endOfLine is not null)
+                newOptions = newOptions.WithChangedOption(new OptionKey(FormattingOptions2.NewLine, document.Project.Language), endOfLine);
+
+            document = document.WithSolutionOptions(newOptions);
+
+            var newRoot = await (await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetRequiredSyntaxRootAsync(default);
             Assert.Equal(final.ReplaceLineEndings(endOfLine ?? Environment.NewLine), newRoot.ToFullString());
         }
 

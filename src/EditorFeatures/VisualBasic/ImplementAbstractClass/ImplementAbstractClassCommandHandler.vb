@@ -33,16 +33,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 
         Protected Overrides Function TryGetNewDocument(
             document As Document,
-            options As ImplementTypeGenerationOptions,
-            typeSyntax As TypeSyntax,
+            options As ImplementTypeOptions,
+            TypeSyntax As TypeSyntax,
             cancellationToken As CancellationToken
         ) As Document
 
-            If typeSyntax.Parent.Kind <> SyntaxKind.InheritsStatement Then
+            If TypeSyntax.Parent.Kind <> SyntaxKind.InheritsStatement Then
                 Return Nothing
             End If
 
-            Dim classBlock = TryCast(typeSyntax.Parent.Parent, ClassBlockSyntax)
+            Dim classBlock = TryCast(TypeSyntax.Parent.Parent, ClassBlockSyntax)
             If classBlock Is Nothing Then
                 Return Nothing
             End If

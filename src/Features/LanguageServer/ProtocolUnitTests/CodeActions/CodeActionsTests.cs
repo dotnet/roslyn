@@ -298,8 +298,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static CodeActionsCache GetCodeActionsCache(TestLspServer testLspServer)
         {
-            var cache = testLspServer.GetRequiredLspService<CodeActionsCache>();
-            return cache;
+            var dispatchAccessor = testLspServer.GetDispatcherAccessor();
+            var handler = (CodeActionsHandler)dispatchAccessor.GetHandler<LSP.CodeActionParams, LSP.CodeAction[]>(LSP.Methods.TextDocumentCodeActionName);
+            Assert.NotNull(handler);
+            var cache = handler.GetTestAccessor().GetCache();
+            return Assert.IsType<CodeActionsCache>(cache);
         }
 
         private static Document GetDocument(Workspace workspace, LSP.TextDocumentIdentifier textDocument)

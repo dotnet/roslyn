@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
@@ -130,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences ClassNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
                 accessibilityList: default,
@@ -160,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences FieldNamesAreCamelCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences FieldNamesAreCamelCaseWithUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -224,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -294,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences MethodNamesAreCasedOption(Capitalization capitalization)
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)),
                 accessibilityList: default,
@@ -325,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences MethodNamesArePascalCaseOption(ImmutableArray<Accessibility> accessibilities)
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)),
                 accessibilities,
@@ -356,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds)
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 symbolKinds,
                 accessibilityList: default,
@@ -387,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences AccessibilitiesArePascalCaseOption(ImmutableArray<Accessibility> accessibilities)
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 symbolKindList: default,
                 accessibilityList: accessibilities,
@@ -418,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences ParameterNamesAreCamelCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
                 accessibilityList: default,
@@ -450,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name2",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
                 accessibilityList: default,
@@ -482,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name2",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
                 accessibilityList: default,
@@ -514,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences LocalNamesAreCamelCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
                 accessibilityList: default,
@@ -546,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences LocalFunctionNamesAreCamelCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)),
                 accessibilityList: default,
@@ -578,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences PropertyNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property)),
                 accessibilityList: default,
@@ -610,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences InterfaceNamesStartWithIOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Interface)),
                 accessibilityList: default,
@@ -642,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences TypeParameterNamesStartWithTOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter)),
                 accessibilityList: default,
@@ -674,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences ConstantsAreUpperCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(
                     new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
@@ -708,14 +707,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences LocalsAreCamelCaseConstantsAreUpperCaseOption()
         {
             var localsSymbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Locals",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
                 accessibilityList: default,
                 modifiers: default);
 
             var constLocalsSymbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Const Locals",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
                 accessibilityList: default,
@@ -762,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         private static NamingStylePreferences AsyncFunctionNamesEndWithAsyncOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(
                     new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary),

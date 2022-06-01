@@ -6,25 +6,15 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal interface IRemoteInheritanceMarginService
     {
-        ValueTask<ImmutableArray<InheritanceMarginItem>> GetGlobalImportItemsAsync(
-            Checksum solutionChecksum,
-            DocumentId documentId,
-            TextSpan spanToSearch,
-            bool frozenPartialSemantics,
-            CancellationToken cancellationToken);
-
-        ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
+        ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMarginItemsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
-            DocumentId? documentId,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
-            bool frozenPartialSemantics,
             CancellationToken cancellationToken);
     }
 }

@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -41,14 +40,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
+            var switchStatement = context.Node;
+            var syntaxTree = switchStatement.SyntaxTree;
+
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
                 // User has disabled this feature.
                 return;
             }
 
-            var switchStatement = context.Node;
             if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
                 return;

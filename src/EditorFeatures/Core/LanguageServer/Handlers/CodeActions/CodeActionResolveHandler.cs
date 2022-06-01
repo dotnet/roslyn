@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,21 +32,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// EditorFeatures references in <see cref="RunCodeActionHandler"/> are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionResolveHandler)), Shared]
     [Method(LSP.Methods.CodeActionResolveName)]
     internal class CodeActionResolveHandler : IRequestHandler<LSP.CodeAction, LSP.CodeAction>
     {
+        private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IGlobalOptionService _globalOptions;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionResolveHandler(
+            CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             IGlobalOptionService globalOptions)
         {
+            _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
             _globalOptions = globalOptions;
@@ -70,9 +68,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
-            var codeActionsCache = context.GetRequiredLspService<CodeActionsCache>();
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                codeActionsCache,
+                _codeActionsCache,
                 document,
                 data.Range,
                 options,

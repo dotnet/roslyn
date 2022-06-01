@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
                 var progressTracker = fixAllContext.GetProgressTracker();
-                progressTracker.Description = fixAllContext.GetDefaultFixAllTitle();
+                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
                 var fixAllState = fixAllContext.State;
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
@@ -151,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
-                    return fixAllState.Provider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
                 }, cancellationToken));
             }
 
@@ -250,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
-            => FixAllHelper.GetDefaultFixAllTitle(fixAllState.Scope, title: fixAllState.DiagnosticIds.First(), fixAllState.Document!, fixAllState.Project);
+            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
 
         public virtual async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,

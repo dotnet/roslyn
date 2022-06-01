@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -16,16 +15,10 @@ namespace Microsoft.CodeAnalysis.Classification
         protected AbstractFallbackEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-
-            using var array = TemporaryArray<int>.Empty;
-
-            array.Add(info.SyntaxKinds.CharacterLiteralToken);
-            array.Add(info.SyntaxKinds.StringLiteralToken);
-            array.Add(info.SyntaxKinds.InterpolatedStringTextToken);
-
-            array.AsRef().AddIfNotNull(info.SyntaxKinds.UTF8StringLiteralToken);
-
-            _supportedKinds = array.ToImmutableAndClear();
+            _supportedKinds = ImmutableArray.Create(
+                info.SyntaxKinds.CharacterLiteralToken,
+                info.SyntaxKinds.StringLiteralToken,
+                info.SyntaxKinds.InterpolatedStringTextToken);
         }
 
         public void RegisterClassifications(EmbeddedLanguageClassificationContext context)

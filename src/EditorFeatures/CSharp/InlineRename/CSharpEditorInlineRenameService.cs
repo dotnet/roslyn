@@ -12,19 +12,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
 {
     [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpEditorInlineRenameService : AbstractEditorInlineRenameService
+    internal class CSharpEditorInlineRenameService : AbstractEditorInlineRenameService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorInlineRenameService(
-            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IGlobalOptionService globalOptions)
-            : base(refactorNotifyServices, globalOptions)
+            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices) : base(refactorNotifyServices)
         {
         }
 

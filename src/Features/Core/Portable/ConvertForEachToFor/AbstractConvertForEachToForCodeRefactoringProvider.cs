@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var semanticFact = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var foreachInfo = GetForeachInfo(semanticFact, model, foreachStatement, cancellationToken);
             if (foreachInfo == null || !ValidLocation(foreachInfo))
             {
@@ -75,10 +76,9 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             }
 
             context.RegisterRefactoring(
-                CodeAction.Create(
+                new ForEachToForCodeAction(
                     Title,
-                    c => ConvertForeachToForAsync(document, foreachInfo, c),
-                    Title),
+                    c => ConvertForeachToForAsync(document, foreachInfo, c)),
                 foreachStatement.Span);
         }
 
@@ -458,6 +458,15 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             public ITypeSymbol ForEachElementType { get; }
             public bool RequireCollectionStatement { get; }
             public TForEachStatement ForEachStatement { get; }
+        }
+
+        private class ForEachToForCodeAction : CodeAction.DocumentChangeAction
+        {
+            public ForEachToForCodeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument, title)
+            {
+            }
         }
     }
 }

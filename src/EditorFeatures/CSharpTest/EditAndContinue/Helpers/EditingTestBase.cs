@@ -43,12 +43,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         public static string GetResource(string keyword)
             => keyword switch
             {
-                "enum" => FeaturesResources.enum_,
                 "class" => FeaturesResources.class_,
-                "interface" => FeaturesResources.interface_,
-                "delegate" => FeaturesResources.delegate_,
                 "struct" => CSharpFeaturesResources.struct_,
-                "record" or "record class" => CSharpFeaturesResources.record_,
+                "interface" => FeaturesResources.interface_,
+                "record" => CSharpFeaturesResources.record_,
                 "record struct" => CSharpFeaturesResources.record_struct,
                 _ => throw ExceptionUtilities.UnexpectedValue(keyword)
             };

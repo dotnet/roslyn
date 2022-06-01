@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -17,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.ExtractInterface)]
-    internal sealed class ExtractInterfaceCommandHandler : AbstractExtractInterfaceCommandHandler
+    internal class ExtractInterfaceCommandHandler : AbstractExtractInterfaceCommandHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExtractInterfaceCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
-            : base(threadingContext, globalOptions)
+        public ExtractInterfaceCommandHandler(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
     }

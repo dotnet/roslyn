@@ -4648,7 +4648,8 @@ class Class
             Throw New System.NotImplementedException()
         End Set
     End Property
-end class", parameters:=New TestParameters(globalOptions:=[Option](ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
+end class", parameters:=New TestParameters(codeActionOptions:=New CodeActionOptions(
+            implementTypeOptions:=New ImplementTypeOptions(PropertyGenerationBehavior:=ImplementTypePropertyGenerationBehavior.PreferAutoProperties))))
         End Function
     End Class
 End Namespace

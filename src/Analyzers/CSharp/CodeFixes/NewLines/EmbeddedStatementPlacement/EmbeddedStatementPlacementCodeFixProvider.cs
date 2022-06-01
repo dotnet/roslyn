@@ -39,20 +39,27 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             context.RegisterCodeFix(
                 CodeAction.Create(
                     CSharpCodeFixesResources.Place_statement_on_following_line,
-                    c => FixAllAsync(document, ImmutableArray.Create(diagnostic), context.GetOptionsProvider(), c),
+                    c => UpdateDocumentAsync(document, diagnostic, c),
                     nameof(CSharpCodeFixesResources.Place_statement_on_following_line)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
-        public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider codeActionOptionsProvider, CancellationToken cancellationToken)
+        private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
+
+        public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
 
-            var options = await document.GetCSharpCodeFixOptionsProviderAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
-            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(options.NewLine);
+            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(options.GetOption(FormattingOptions2.NewLine, LanguageNames.CSharp));
 
             foreach (var diagnostic in diagnostics)
                 FixOne(editor, diagnostic, endOfLineTrivia, cancellationToken);
@@ -135,6 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(
-                async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false));
+                async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
     }
 }

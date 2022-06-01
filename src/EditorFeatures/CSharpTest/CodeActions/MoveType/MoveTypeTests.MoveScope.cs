@@ -6,7 +6,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
@@ -913,7 +912,7 @@ namespace N1
 
         private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
         {
-            using var workspace = CreateWorkspaceFromOptions(originalCode);
+            using var workspace = CreateWorkspaceFromOptions(originalCode, default);
             var documentToModifyId = workspace.Documents[0].Id;
             var textSpan = workspace.Documents[0].SelectedSpans[0];
             var documentToModify = workspace.CurrentSolution.GetDocument(documentToModifyId);
@@ -921,7 +920,7 @@ namespace N1
             var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
             Assert.NotNull(moveTypeService);
 
-            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CodeActionOptions.DefaultProvider, CancellationToken.None).ConfigureAwait(false);
+            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CancellationToken.None).ConfigureAwait(false);
 
             if (expectOperation)
             {

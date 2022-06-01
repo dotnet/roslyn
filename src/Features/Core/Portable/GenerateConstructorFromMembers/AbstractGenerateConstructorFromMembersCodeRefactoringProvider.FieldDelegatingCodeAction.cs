@@ -15,26 +15,23 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private sealed class FieldDelegatingCodeAction : CodeAction
+        private class FieldDelegatingCodeAction : CodeAction
         {
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public FieldDelegatingCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
-                bool addNullChecks,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
+                bool addNullChecks)
             {
                 _service = service;
                 _document = document;
                 _state = state;
                 _addNullChecks = addNullChecks;
-                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -53,7 +50,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
-                var preferThrowExpression = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var preferThrowExpression = _service.PrefersThrowExpression(options);
 
                 var members = factory.CreateMemberDelegatingConstructor(
                     semanticModel,
@@ -77,14 +75,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     : null;
 
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    new CodeGenerationSolutionContext(
-                        _document.Project.Solution,
-                        new CodeGenerationContext(
-                            contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                            afterThisLocation: afterThisLocation),
-                        _fallbackOptions),
+                    _document.Project.Solution,
                     _state.ContainingType,
                     members,
+                    new CodeGenerationContext(
+                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                        afterThisLocation: afterThisLocation),
                     cancellationToken).ConfigureAwait(false);
 
                 return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);

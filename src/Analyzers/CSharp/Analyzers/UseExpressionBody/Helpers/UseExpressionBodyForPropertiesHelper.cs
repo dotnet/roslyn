@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,9 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    ImmutableArray.Create(SyntaxKind.PropertyDeclaration))
         {
         }
-
-        public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
-            => options.PreferExpressionBodiedProperties;
 
         protected override BlockSyntax GetBody(PropertyDeclarationSyntax declaration)
             => GetBodyFromSingleGetAccessor(declaration.AccessorList);

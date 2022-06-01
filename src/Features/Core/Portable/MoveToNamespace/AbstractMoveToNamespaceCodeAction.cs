@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
@@ -19,13 +18,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     {
         private readonly IMoveToNamespaceService _moveToNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
-        private readonly CodeCleanupOptionsProvider _cleanupOptions;
+        private readonly ChangeNamespaceOptionsProvider _changeNamespaceOptions;
 
-        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService moveToNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
+        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService moveToNamespaceService, MoveToNamespaceAnalysisResult analysisResult, ChangeNamespaceOptionsProvider changeNamespaceOptions)
         {
             _moveToNamespaceService = moveToNamespaceService;
             _moveToNamespaceAnalysisResult = analysisResult;
-            _cleanupOptions = cleanupOptions;
+            _changeNamespaceOptions = changeNamespaceOptions;
         }
 
         public override object GetOptions(CancellationToken cancellationToken)
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                     _moveToNamespaceAnalysisResult,
                     moveToNamespaceOptions.Namespace,
-                    _cleanupOptions,
+                    _changeNamespaceOptions,
                     cancellationToken).ConfigureAwait(false);
 
                 if (moveToNamespaceResult.Succeeded)
@@ -86,11 +85,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return operations.ToImmutable();
         }
 
-        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
+        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, ChangeNamespaceOptionsProvider changeNamespaceOptions)
             => analysisResult.Container switch
             {
-                MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
-                MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
+                MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult, changeNamespaceOptions),
+                MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult, changeNamespaceOptions),
                 _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
             };
     }

@@ -9,14 +9,11 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,16 +25,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
     internal class IntentSourceProvider : IIntentSourceProvider
     {
         private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public IntentSourceProvider(
-            [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders,
-            IGlobalOptionService globalOptions)
+        public IntentSourceProvider([ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
         {
             _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
-            _globalOptions = globalOptions;
         }
 
         private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
@@ -77,11 +70,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 originalDocument,
                 selectionTextSpan,
                 currentDocument,
-                new IntentDataProvider(
-                    intentRequestContext.IntentData,
-                    _globalOptions.CreateProvider()),
+                new IntentDataProvider(intentRequestContext.IntentData),
                 cancellationToken).ConfigureAwait(false);
-
             if (results.IsDefaultOrEmpty)
             {
                 return ImmutableArray<IntentSource>.Empty;

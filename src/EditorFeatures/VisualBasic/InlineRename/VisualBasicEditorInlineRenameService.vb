@@ -5,7 +5,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InlineRename
     <ExportLanguageService(GetType(IEditorInlineRenameService), LanguageNames.VisualBasic), [Shared]>
@@ -15,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InlineRename
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), globalOptions As IGlobalOptionService)
-            MyBase.New(refactorNotifyServices, globalOptions)
+            <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService))
+            MyBase.New(refactorNotifyServices)
         End Sub
 
         Protected Overrides Function CheckLanguageSpecificIssues(semanticModel As SemanticModel, symbol As ISymbol, triggerToken As SyntaxToken, ByRef langError As String) As Boolean

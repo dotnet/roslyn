@@ -82,10 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
 
             If endStatement.Parent.Kind = SyntaxKind.PropertyBlock Then
                 context.RegisterCodeFix(
-                    CodeAction.Create(
+                    New MyCodeAction(
                         VBFeaturesResources.Insert_the_missing_End_Property_statement,
-                        Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent, PropertyBlockSyntax), c),
-                        NameOf(VBFeaturesResources.Insert_the_missing_End_Property_statement)),
+                        Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent, PropertyBlockSyntax), c)),
                     context.Diagnostics)
                 Return
             End If
@@ -93,21 +92,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             If endStatement.Kind = SyntaxKind.EndGetStatement OrElse endStatement.Kind = SyntaxKind.EndSetStatement Then
                 If endStatement?.Parent?.Parent.Kind = SyntaxKind.PropertyBlock Then
                     context.RegisterCodeFix(
-                        CodeAction.Create(
+                        New MyCodeAction(
                             VBFeaturesResources.Insert_the_missing_End_Property_statement,
-                            Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent.Parent, PropertyBlockSyntax), c),
-                            NameOf(VBFeaturesResources.Insert_the_missing_End_Property_statement)),
+                            Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent.Parent, PropertyBlockSyntax), c)),
                         context.Diagnostics)
                     Return
                 End If
             End If
 
-            Dim title = GetDescription(endStatement)
             context.RegisterCodeFix(
-                CodeAction.Create(
-                    title,
-                    Function(c) GenerateEndConstructAsync(context.Document, endStatement, c),
-                    title),
+                New MyCodeAction(
+                    GetDescription(endStatement),
+                    Function(c) GenerateEndConstructAsync(context.Document, endStatement, c)),
                 context.Diagnostics)
         End Function
 
@@ -258,5 +254,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
 
             Return updatedDocument
         End Function
+
+        Private Class MyCodeAction
+            Inherits CodeAction.DocumentChangeAction
+
+            Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
+                MyBase.New(title, createChangedDocument, title)
+            End Sub
+        End Class
     End Class
 End Namespace

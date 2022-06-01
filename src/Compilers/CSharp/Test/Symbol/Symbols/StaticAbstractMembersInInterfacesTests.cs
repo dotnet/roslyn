@@ -66,22 +66,22 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(4, 26),
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
                 // (7,25): error CS0501: 'I1.M02()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static void M02()
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M02").WithArguments("I1.M02()").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static void M03() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "9.0", "preview").WithLocation(10, 24),
                 // (10,24): error CS0501: 'I1.M03()' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed static void M03() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M03").WithArguments("I1.M03()").WithLocation(10, 24),
@@ -91,39 +91,36 @@ public interface I1
                 // (13,26): error CS0501: 'I1.M04()' must declare a body because it is not marked abstract, extern, or partial
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M04").WithArguments("I1.M04()").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
-                // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
-                //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "9.0", "preview").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static void M06()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "9.0", "preview").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static void M07()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "9.0", "preview").WithLocation(22, 35),
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "9.0", "preview").WithLocation(25, 32),
                 // (25,32): error CS0501: 'I1.M08()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M08").WithArguments("I1.M08()").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
@@ -133,9 +130,9 @@ public interface I1
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static void M10() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "9.0", "preview").WithLocation(31, 33),
                 // (31,33): error CS0501: 'I1.M10()' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M10").WithArguments("I1.M10()").WithLocation(31, 33)
@@ -162,14 +159,14 @@ public interface I1
             var m02 = i1.GetMember<MethodSymbol>("M02");
 
             Assert.False(m02.IsAbstract);
-            Assert.True(m02.IsVirtual);
-            Assert.True(m02.IsMetadataVirtual());
+            Assert.False(m02.IsVirtual);
+            Assert.False(m02.IsMetadataVirtual());
             Assert.False(m02.IsSealed);
             Assert.True(m02.IsStatic);
             Assert.False(m02.IsExtern);
             Assert.False(m02.IsAsync);
             Assert.False(m02.IsOverride);
-            Assert.Same(m02, i1.FindImplementationForInterfaceMember(m02));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m02));
 
             var m03 = i1.GetMember<MethodSymbol>("M03");
 
@@ -198,7 +195,7 @@ public interface I1
             var m05 = i1.GetMember<MethodSymbol>("M05");
 
             Assert.True(m05.IsAbstract);
-            Assert.True(m05.IsVirtual);
+            Assert.False(m05.IsVirtual);
             Assert.True(m05.IsMetadataVirtual());
             Assert.False(m05.IsSealed);
             Assert.True(m05.IsStatic);
@@ -234,26 +231,26 @@ public interface I1
             var m08 = i1.GetMember<MethodSymbol>("M08");
 
             Assert.False(m08.IsAbstract);
-            Assert.True(m08.IsVirtual);
-            Assert.True(m08.IsMetadataVirtual());
+            Assert.False(m08.IsVirtual);
+            Assert.False(m08.IsMetadataVirtual());
             Assert.False(m08.IsSealed);
             Assert.True(m08.IsStatic);
             Assert.False(m08.IsExtern);
             Assert.False(m08.IsAsync);
             Assert.False(m08.IsOverride);
-            Assert.Same(m08, i1.FindImplementationForInterfaceMember(m08));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m08));
 
             var m09 = i1.GetMember<MethodSymbol>("M09");
 
             Assert.False(m09.IsAbstract);
-            Assert.True(m09.IsVirtual);
-            Assert.True(m09.IsMetadataVirtual());
+            Assert.False(m09.IsVirtual);
+            Assert.False(m09.IsMetadataVirtual());
             Assert.False(m09.IsSealed);
             Assert.True(m09.IsStatic);
             Assert.False(m09.IsExtern);
             Assert.False(m09.IsAsync);
             Assert.False(m09.IsOverride);
-            Assert.Same(m09, i1.FindImplementationForInterfaceMember(m09));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m09));
 
             var m10 = i1.GetMember<MethodSymbol>("M10");
 
@@ -307,73 +304,70 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(4, 26),
                 // (4,26): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static void M01()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static void M03() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "9.0", "preview").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "9.0", "preview").WithLocation(16, 34),
                 // (16,34): error CS0500: 'I1.M05()' cannot declare a body because it is marked abstract
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M05").WithArguments("I1.M05()").WithLocation(16, 34),
-                // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
-                //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static void M06()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "9.0", "preview").WithLocation(19, 33),
                 // (19,33): error CS0500: 'I1.M06()' cannot declare a body because it is marked abstract
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M06").WithArguments("I1.M06()").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static void M07()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "9.0", "preview").WithLocation(22, 35),
                 // (22,35): error CS0500: 'I1.M07()' cannot declare a body because it is marked abstract
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M07").WithArguments("I1.M07()").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "9.0", "preview").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static void M10() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "9.0", "preview").WithLocation(31, 33)
                 );
 
             ValidateMethodModifiers_01(compilation1);
@@ -422,6 +416,9 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual static void M02()
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
                 // (7,25): error CS0501: 'I1.M02()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static void M02()
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M02").WithArguments("I1.M02()").WithLocation(7, 25),
@@ -434,21 +431,24 @@ public interface I1
                 // (13,26): error CS0501: 'I1.M04()' must declare a body because it is not marked abstract, extern, or partial
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M04").WithArguments("I1.M04()").WithLocation(13, 26),
-                // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
                 // (25,32): error CS0501: 'I1.M08()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M08").WithArguments("I1.M08()").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static void M09() 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
@@ -512,12 +512,15 @@ public interface I1
                 // (4,26): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static void M01()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(4, 26),
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual static void M02()
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (16,34): error CS0500: 'I1.M05()' cannot declare a body because it is marked abstract
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M05").WithArguments("I1.M05()").WithLocation(16, 34),
@@ -533,9 +536,12 @@ public interface I1
                 // (22,35): error CS0500: 'I1.M07()' cannot declare a body because it is marked abstract
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M07").WithArguments("I1.M07()").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static void M09() 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
@@ -593,9 +599,12 @@ public interface I1
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract static void M01()
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
+                // (7,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
+                //     virtual static void M02()
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("static", "7.3", "8.0").WithLocation(7, 25),
                 // (7,25): error CS0501: 'I1.M02()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static void M02()
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M02").WithArguments("I1.M02()").WithLocation(7, 25),
@@ -614,15 +623,12 @@ public interface I1
                 // (13,26): error CS0501: 'I1.M04()' must declare a body because it is not marked abstract, extern, or partial
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M04").WithArguments("I1.M04()").WithLocation(13, 26),
-                // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
@@ -635,21 +641,24 @@ public interface I1
                 // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "7.3", "preview").WithLocation(25, 32),
                 // (25,32): error CS0501: 'I1.M08()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M08").WithArguments("I1.M08()").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static void M09() 
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,34): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("static", "7.3", "8.0").WithLocation(28, 34),
                 // (28,34): error CS0501: 'I1.M09()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M09").WithArguments("I1.M09()").WithLocation(28, 34),
@@ -716,9 +725,12 @@ public interface I1
                 // (4,26): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static void M01()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
+                // (7,25): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     virtual static void M02()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M02").WithArguments("default interface implementation", "8.0").WithLocation(7, 25),
                 // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     sealed static void M03() 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 24),
@@ -728,18 +740,15 @@ public interface I1
                 // (13,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M04").WithArguments("default interface implementation", "8.0").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
                 // (16,34): error CS0500: 'I1.M05()' cannot declare a body because it is marked abstract
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M05").WithArguments("I1.M05()").WithLocation(16, 34),
-                // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
-                //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
@@ -758,18 +767,21 @@ public interface I1
                 // (22,35): error CS0500: 'I1.M07()' cannot declare a body because it is marked abstract
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M07").WithArguments("I1.M07()").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "7.3", "preview").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
+                // (28,34): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     virtual override static void M09() 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M09").WithArguments("default interface implementation", "8.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
@@ -946,22 +958,19 @@ partial interface I3
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void AbstractStaticConstructor_01(bool isVirtual)
+        [Fact]
+        public void AbstractStaticConstructor_01()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static I1();
+    abstract static I1();
 }
 
 interface I2
 {
-    " + modifier + @" static I2() {}
+    abstract static I2() {}
 }
 
 interface I3
@@ -976,10 +985,10 @@ interface I3
             compilation1.VerifyDiagnostics(
                 // (4,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static I1();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments(modifier.Trim()).WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("abstract").WithLocation(4, 21),
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static I2() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments(modifier.Trim()).WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("abstract").WithLocation(9, 21),
                 // (14,12): error CS0501: 'I3.I3()' must declare a body because it is not marked abstract, extern, or partial
                 //     static I3();
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I3").WithArguments("I3.I3()").WithLocation(14, 12)
@@ -1168,80 +1177,6 @@ partial interface I1
         }
 
         [Fact]
-        public void PartialVirtualStatic_011()
-        {
-            var source1 =
-@"
-partial interface I1
-{
-    virtual static partial void M01();
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,33): error CS8798: Partial method 'I1.M01()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
-                //     virtual static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M01").WithArguments("I1.M01()").WithLocation(4, 33)
-                );
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var m01 = i1.GetMember<MethodSymbol>("M01");
-
-            Assert.False(m01.IsAbstract);
-            Assert.True(m01.IsVirtual);
-            Assert.True(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialDefinition());
-            Assert.Null(m01.PartialImplementationPart);
-        }
-
-        [Fact]
-        public void PartialVirtualStatic_012()
-        {
-            var source1 =
-@"
-partial interface I1
-{
-    public virtual static partial void M01();
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,40): error CS8795: Partial method 'I1.M01()' must have an implementation part because it has accessibility modifiers.
-                //     public virtual static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M01").WithArguments("I1.M01()").WithLocation(4, 40)
-                );
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var m01 = i1.GetMember<MethodSymbol>("M01");
-
-            Assert.False(m01.IsAbstract);
-            Assert.True(m01.IsVirtual);
-            Assert.True(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialDefinition());
-            Assert.Null(m01.PartialImplementationPart);
-        }
-
-        [Fact]
         public void PartialAbstractStatic_02()
         {
             var source1 =
@@ -1303,57 +1238,6 @@ partial interface I1
         }
 
         [Fact]
-        public void PartialVirtualStatic_021()
-        {
-            var source1 =
-@"
-partial interface I1
-{
-    public virtual static partial void M01();
-}
-partial interface I1
-{
-    public virtual static partial void M01() {}
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics();
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var m01 = i1.GetMember<MethodSymbol>("M01");
-
-            Assert.False(m01.IsAbstract);
-            Assert.True(m01.IsVirtual);
-            Assert.True(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialDefinition());
-            Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
-
-            m01 = m01.PartialImplementationPart;
-
-            Assert.False(m01.IsAbstract);
-            Assert.True(m01.IsVirtual);
-            Assert.True(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialImplementation());
-        }
-
-        [Fact]
         public void PartialAbstractStatic_03()
         {
             var source1 =
@@ -1389,119 +1273,6 @@ partial interface I1
             Assert.False(m01.IsAsync);
             Assert.False(m01.IsOverride);
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialDefinition());
-            Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
-
-            m01 = m01.PartialImplementationPart;
-
-            Assert.False(m01.IsAbstract);
-            Assert.False(m01.IsVirtual);
-            Assert.False(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialImplementation());
-        }
-
-        [Fact]
-        public void PartialVirtualStatic_031()
-        {
-            var source1 =
-@"
-partial interface I1
-{
-    public virtual static partial void M01();
-}
-partial interface I1
-{
-    static partial void M01() {}
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (8,25): error CS8799: Both partial method declarations must have identical accessibility modifiers.
-                //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "M01").WithLocation(8, 25),
-                // (8,25): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
-                //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 25)
-                );
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var m01 = i1.GetMember<MethodSymbol>("M01");
-
-            Assert.False(m01.IsAbstract);
-            Assert.True(m01.IsVirtual);
-            Assert.True(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialDefinition());
-            Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
-
-            m01 = m01.PartialImplementationPart;
-
-            Assert.False(m01.IsAbstract);
-            Assert.False(m01.IsVirtual);
-            Assert.False(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
-
-            Assert.True(m01.IsPartialImplementation());
-        }
-
-        [Fact]
-        public void PartialVirtualStatic_032()
-        {
-            var source1 =
-@"
-partial interface I1
-{
-    public virtual static partial void M01();
-}
-partial interface I1
-{
-    public static partial void M01() {}
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (8,32): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
-                //     public static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 32)
-                );
-
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var m01 = i1.GetMember<MethodSymbol>("M01");
-
-            Assert.False(m01.IsAbstract);
-            Assert.True(m01.IsVirtual);
-            Assert.True(m01.IsMetadataVirtual());
-            Assert.False(m01.IsSealed);
-            Assert.True(m01.IsStatic);
-            Assert.False(m01.IsExtern);
-            Assert.False(m01.IsAsync);
-            Assert.False(m01.IsOverride);
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
 
             Assert.True(m01.IsPartialDefinition());
             Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
@@ -1579,32 +1350,17 @@ partial interface I1
             Assert.True(m01.IsPartialImplementation());
         }
 
-        private (string modifier, string body) GetModifierAndBody(bool isVirtual)
+        [Fact]
+        public void PrivateAbstractStatic_01()
         {
-            if (isVirtual)
-            {
-                return ("virtual ", " => throw null;");
-            }
-            else
-            {
-                return ("abstract", ";");
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void PrivateAbstractStatic_01(bool isVirtual)
-        {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
-@"#pragma warning disable CS0067 // The event 'I1.E01' is never used
+@"
 interface I1
 {
-    private " + modifier + @" static void M01()" + body + @"
-    private " + modifier + @" static bool P01 { get; }
-    private " + modifier + @" static event System.Action E01;
-    private " + modifier + @" static I1 operator+ (I1 x)" + body + @"
+    private abstract static void M01();
+    private abstract static bool P01 { get; }
+    private abstract static event System.Action E01;
+    private abstract static I1 operator+ (I1 x);
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -1666,61 +1422,58 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool M01 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(4, 26),
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static bool M03 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "9.0", "preview").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
-                // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "9.0", "preview").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static bool M06 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "9.0", "preview").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static bool M07 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "9.0", "preview").WithLocation(22, 35),
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "9.0", "preview").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static bool M10 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "9.0", "preview").WithLocation(31, 33)
                 );
 
             ValidatePropertyModifiers_01(compilation1);
@@ -1744,12 +1497,12 @@ public interface I1
                 var m02 = i1.GetMember<PropertySymbol>("M02");
 
                 Assert.False(m02.IsAbstract);
-                Assert.True(m02.IsVirtual);
+                Assert.False(m02.IsVirtual);
                 Assert.False(m02.IsSealed);
                 Assert.True(m02.IsStatic);
                 Assert.False(m02.IsExtern);
                 Assert.False(m02.IsOverride);
-                Assert.Same(m02, i1.FindImplementationForInterfaceMember(m02));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m02));
 
                 var m03 = i1.GetMember<PropertySymbol>("M03");
 
@@ -1774,7 +1527,7 @@ public interface I1
                 var m05 = i1.GetMember<PropertySymbol>("M05");
 
                 Assert.True(m05.IsAbstract);
-                Assert.True(m05.IsVirtual);
+                Assert.False(m05.IsVirtual);
                 Assert.False(m05.IsSealed);
                 Assert.True(m05.IsStatic);
                 Assert.False(m05.IsExtern);
@@ -1804,22 +1557,22 @@ public interface I1
                 var m08 = i1.GetMember<PropertySymbol>("M08");
 
                 Assert.False(m08.IsAbstract);
-                Assert.True(m08.IsVirtual);
+                Assert.False(m08.IsVirtual);
                 Assert.False(m08.IsSealed);
                 Assert.True(m08.IsStatic);
                 Assert.False(m08.IsExtern);
                 Assert.False(m08.IsOverride);
-                Assert.Same(m08, i1.FindImplementationForInterfaceMember(m08));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m08));
 
                 var m09 = i1.GetMember<PropertySymbol>("M09");
 
                 Assert.False(m09.IsAbstract);
-                Assert.True(m09.IsVirtual);
+                Assert.False(m09.IsVirtual);
                 Assert.False(m09.IsSealed);
                 Assert.True(m09.IsStatic);
                 Assert.False(m09.IsExtern);
                 Assert.False(m09.IsOverride);
-                Assert.Same(m09, i1.FindImplementationForInterfaceMember(m09));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m09));
 
                 var m10 = i1.GetMember<PropertySymbol>("M10");
 
@@ -1847,14 +1600,14 @@ public interface I1
                 var m02 = i1.GetMember<PropertySymbol>("M02").GetMethod;
 
                 Assert.False(m02.IsAbstract);
-                Assert.True(m02.IsVirtual);
-                Assert.True(m02.IsMetadataVirtual());
+                Assert.False(m02.IsVirtual);
+                Assert.False(m02.IsMetadataVirtual());
                 Assert.False(m02.IsSealed);
                 Assert.True(m02.IsStatic);
                 Assert.False(m02.IsExtern);
                 Assert.False(m02.IsAsync);
                 Assert.False(m02.IsOverride);
-                Assert.Same(m02, i1.FindImplementationForInterfaceMember(m02));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m02));
 
                 var m03 = i1.GetMember<PropertySymbol>("M03").GetMethod;
 
@@ -1883,7 +1636,7 @@ public interface I1
                 var m05 = i1.GetMember<PropertySymbol>("M05").GetMethod;
 
                 Assert.True(m05.IsAbstract);
-                Assert.True(m05.IsVirtual);
+                Assert.False(m05.IsVirtual);
                 Assert.True(m05.IsMetadataVirtual());
                 Assert.False(m05.IsSealed);
                 Assert.True(m05.IsStatic);
@@ -1919,26 +1672,26 @@ public interface I1
                 var m08 = i1.GetMember<PropertySymbol>("M08").GetMethod;
 
                 Assert.False(m08.IsAbstract);
-                Assert.True(m08.IsVirtual);
-                Assert.True(m08.IsMetadataVirtual());
+                Assert.False(m08.IsVirtual);
+                Assert.False(m08.IsMetadataVirtual());
                 Assert.False(m08.IsSealed);
                 Assert.True(m08.IsStatic);
                 Assert.False(m08.IsExtern);
                 Assert.False(m08.IsAsync);
                 Assert.False(m08.IsOverride);
-                Assert.Same(m08, i1.FindImplementationForInterfaceMember(m08));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m08));
 
                 var m09 = i1.GetMember<PropertySymbol>("M09").GetMethod;
 
                 Assert.False(m09.IsAbstract);
-                Assert.True(m09.IsVirtual);
-                Assert.True(m09.IsMetadataVirtual());
+                Assert.False(m09.IsVirtual);
+                Assert.False(m09.IsMetadataVirtual());
                 Assert.False(m09.IsSealed);
                 Assert.True(m09.IsStatic);
                 Assert.False(m09.IsExtern);
                 Assert.False(m09.IsAsync);
                 Assert.False(m09.IsOverride);
-                Assert.Same(m09, i1.FindImplementationForInterfaceMember(m09));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m09));
 
                 var m10 = i1.GetMember<PropertySymbol>("M10").GetMethod;
 
@@ -1993,73 +1746,70 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool M01 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(4, 26),
                 // (4,32): error CS0500: 'I1.M01.get' cannot declare a body because it is marked abstract
                 //     abstract static bool M01 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M01.get").WithLocation(4, 32),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static bool M03 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "9.0", "preview").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
-                // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "9.0", "preview").WithLocation(16, 34),
                 // (16,40): error CS0500: 'I1.M05.get' cannot declare a body because it is marked abstract
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M05.get").WithLocation(16, 40),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static bool M06 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "9.0", "preview").WithLocation(19, 33),
                 // (19,39): error CS0500: 'I1.M06.get' cannot declare a body because it is marked abstract
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M06.get").WithLocation(19, 39),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static bool M07 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "9.0", "preview").WithLocation(22, 35),
                 // (22,41): error CS0500: 'I1.M07.get' cannot declare a body because it is marked abstract
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M07.get").WithLocation(22, 41),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "9.0", "preview").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static bool M10 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "9.0", "preview").WithLocation(31, 33)
                 );
 
             ValidatePropertyModifiers_01(compilation1);
@@ -2108,21 +1858,27 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual static bool M02 { get
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static bool M09 { get
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
@@ -2180,12 +1936,15 @@ public interface I1
                 // (4,32): error CS0500: 'I1.M01.get' cannot declare a body because it is marked abstract
                 //     abstract static bool M01 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M01.get").WithLocation(4, 32),
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual static bool M02 { get
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (16,40): error CS0500: 'I1.M05.get' cannot declare a body because it is marked abstract
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M05.get").WithLocation(16, 40),
@@ -2201,9 +1960,12 @@ public interface I1
                 // (22,41): error CS0500: 'I1.M07.get' cannot declare a body because it is marked abstract
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M07.get").WithLocation(22, 41),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static bool M09 { get
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
@@ -2261,9 +2023,12 @@ public interface I1
                 // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract static bool M01 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
+                // (7,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
+                //     virtual static bool M02 { get
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("static", "7.3", "8.0").WithLocation(7, 25),
                 // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     sealed static bool M03 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 24),
@@ -2273,12 +2038,9 @@ public interface I1
                 // (13,26): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M04").WithArguments("static", "7.3", "8.0").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
-                // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
@@ -2294,18 +2056,21 @@ public interface I1
                 // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 35),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "7.3", "preview").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static bool M09 { get
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,34): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("static", "7.3", "8.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
@@ -2366,9 +2131,12 @@ public interface I1
                 // (4,32): error CS0500: 'I1.M01.get' cannot declare a body because it is marked abstract
                 //     abstract static bool M01 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M01.get").WithLocation(4, 32),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 25),
+                // (7,25): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     virtual static bool M02 { get
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M02").WithArguments("default interface implementation", "8.0").WithLocation(7, 25),
                 // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     sealed static bool M03 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 24),
@@ -2378,12 +2146,9 @@ public interface I1
                 // (13,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M04").WithArguments("default interface implementation", "8.0").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
-                // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 34),
                 // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
@@ -2408,18 +2173,21 @@ public interface I1
                 // (22,41): error CS0500: 'I1.M07.get' cannot declare a body because it is marked abstract
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M07.get").WithLocation(22, 41),
-                // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,32): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 32),
+                // (25,32): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "7.3", "preview").WithLocation(25, 32),
+                // (28,34): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static bool M09 { get
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,34): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M09").WithArguments("default interface implementation", "8.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
@@ -2472,61 +2240,58 @@ public interface I1
 public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event D M01
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 29),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(4, 29),
+                // (7,28): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static event D M02
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 28),
-                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 28),
+                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static event D M03
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "9.0", "preview").WithLocation(10, 27),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
-                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,37): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 37),
+                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 37),
-                // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
-                //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "9.0", "preview").WithLocation(16, 37),
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
-                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static event D M06
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 36),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "9.0", "preview").WithLocation(19, 36),
                 // (22,38): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static event D M07
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 38),
-                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static event D M07
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 38),
-                // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "9.0", "preview").WithLocation(22, 38),
+                // (25,35): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static event D M08
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 35),
+                // (25,35): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static event D M08
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "9.0", "preview").WithLocation(25, 35),
+                // (28,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static event D M09
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 37),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static event D M09
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
-                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static event D M10
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 36)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "9.0", "preview").WithLocation(31, 36)
                 );
 
             ValidateEventModifiers_01(compilation1);
@@ -2550,12 +2315,12 @@ public delegate void D();
                 var m02 = i1.GetMember<EventSymbol>("M02");
 
                 Assert.False(m02.IsAbstract);
-                Assert.True(m02.IsVirtual);
+                Assert.False(m02.IsVirtual);
                 Assert.False(m02.IsSealed);
                 Assert.True(m02.IsStatic);
                 Assert.False(m02.IsExtern);
                 Assert.False(m02.IsOverride);
-                Assert.Same(m02, i1.FindImplementationForInterfaceMember(m02));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m02));
 
                 var m03 = i1.GetMember<EventSymbol>("M03");
 
@@ -2580,7 +2345,7 @@ public delegate void D();
                 var m05 = i1.GetMember<EventSymbol>("M05");
 
                 Assert.True(m05.IsAbstract);
-                Assert.True(m05.IsVirtual);
+                Assert.False(m05.IsVirtual);
                 Assert.False(m05.IsSealed);
                 Assert.True(m05.IsStatic);
                 Assert.False(m05.IsExtern);
@@ -2610,22 +2375,22 @@ public delegate void D();
                 var m08 = i1.GetMember<EventSymbol>("M08");
 
                 Assert.False(m08.IsAbstract);
-                Assert.True(m08.IsVirtual);
+                Assert.False(m08.IsVirtual);
                 Assert.False(m08.IsSealed);
                 Assert.True(m08.IsStatic);
                 Assert.False(m08.IsExtern);
                 Assert.False(m08.IsOverride);
-                Assert.Same(m08, i1.FindImplementationForInterfaceMember(m08));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m08));
 
                 var m09 = i1.GetMember<EventSymbol>("M09");
 
                 Assert.False(m09.IsAbstract);
-                Assert.True(m09.IsVirtual);
+                Assert.False(m09.IsVirtual);
                 Assert.False(m09.IsSealed);
                 Assert.True(m09.IsStatic);
                 Assert.False(m09.IsExtern);
                 Assert.False(m09.IsOverride);
-                Assert.Same(m09, i1.FindImplementationForInterfaceMember(m09));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m09));
 
                 var m10 = i1.GetMember<EventSymbol>("M10");
 
@@ -2655,14 +2420,14 @@ public delegate void D();
                 var m02 = getAccessor(i1.GetMember<EventSymbol>("M02"), addAccessor);
 
                 Assert.False(m02.IsAbstract);
-                Assert.True(m02.IsVirtual);
-                Assert.True(m02.IsMetadataVirtual());
+                Assert.False(m02.IsVirtual);
+                Assert.False(m02.IsMetadataVirtual());
                 Assert.False(m02.IsSealed);
                 Assert.True(m02.IsStatic);
                 Assert.False(m02.IsExtern);
                 Assert.False(m02.IsAsync);
                 Assert.False(m02.IsOverride);
-                Assert.Same(m02, i1.FindImplementationForInterfaceMember(m02));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m02));
 
                 var m03 = getAccessor(i1.GetMember<EventSymbol>("M03"), addAccessor);
 
@@ -2691,7 +2456,7 @@ public delegate void D();
                 var m05 = getAccessor(i1.GetMember<EventSymbol>("M05"), addAccessor);
 
                 Assert.True(m05.IsAbstract);
-                Assert.True(m05.IsVirtual);
+                Assert.False(m05.IsVirtual);
                 Assert.True(m05.IsMetadataVirtual());
                 Assert.False(m05.IsSealed);
                 Assert.True(m05.IsStatic);
@@ -2727,26 +2492,26 @@ public delegate void D();
                 var m08 = getAccessor(i1.GetMember<EventSymbol>("M08"), addAccessor);
 
                 Assert.False(m08.IsAbstract);
-                Assert.True(m08.IsVirtual);
-                Assert.True(m08.IsMetadataVirtual());
+                Assert.False(m08.IsVirtual);
+                Assert.False(m08.IsMetadataVirtual());
                 Assert.False(m08.IsSealed);
                 Assert.True(m08.IsStatic);
                 Assert.False(m08.IsExtern);
                 Assert.False(m08.IsAsync);
                 Assert.False(m08.IsOverride);
-                Assert.Same(m08, i1.FindImplementationForInterfaceMember(m08));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m08));
 
                 var m09 = getAccessor(i1.GetMember<EventSymbol>("M09"), addAccessor);
 
                 Assert.False(m09.IsAbstract);
-                Assert.True(m09.IsVirtual);
-                Assert.True(m09.IsMetadataVirtual());
+                Assert.False(m09.IsVirtual);
+                Assert.False(m09.IsMetadataVirtual());
                 Assert.False(m09.IsSealed);
                 Assert.True(m09.IsStatic);
                 Assert.False(m09.IsExtern);
                 Assert.False(m09.IsAsync);
                 Assert.False(m09.IsOverride);
-                Assert.Same(m09, i1.FindImplementationForInterfaceMember(m09));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m09));
 
                 var m10 = getAccessor(i1.GetMember<EventSymbol>("M10"), addAccessor);
 
@@ -2807,73 +2572,70 @@ public interface I1
 public delegate void D();
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event D M01 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 29),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(4, 29),
                 // (4,33): error CS8712: 'I1.M01': abstract event cannot use event accessor syntax
                 //     abstract static event D M01 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M01").WithLocation(4, 33),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,28): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static event D M02 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 28),
-                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 28),
+                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static event D M03 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "9.0", "preview").WithLocation(10, 27),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
-                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,37): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 37),
+                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 37),
-                // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
-                //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "9.0", "preview").WithLocation(16, 37),
                 // (16,41): error CS8712: 'I1.M05': abstract event cannot use event accessor syntax
                 //     abstract virtual static event D M05 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M05").WithLocation(16, 41),
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
-                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static event D M06 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 36),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "9.0", "preview").WithLocation(19, 36),
                 // (19,40): error CS8712: 'I1.M06': abstract event cannot use event accessor syntax
                 //     abstract sealed static event D M06 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M06").WithLocation(19, 40),
                 // (22,38): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 38),
-                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static event D M07 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "9.0", "preview").WithLocation(22, 38),
                 // (22,42): error CS8712: 'I1.M07': abstract event cannot use event accessor syntax
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M07").WithLocation(22, 42),
-                // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,35): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static event D M08 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 35),
+                // (25,35): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static event D M08 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "9.0", "preview").WithLocation(25, 35),
+                // (28,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static event D M09 { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 37),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static event D M09 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
-                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static event D M10 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 36)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "9.0", "preview").WithLocation(31, 36)
                 );
 
             ValidateEventModifiers_01(compilation1);
@@ -2924,21 +2686,27 @@ public delegate void D();
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
+                // (7,28): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual static event D M02
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 28),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
-                // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
+                // (16,37): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 37),
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
                 // (22,38): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static event D M07
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 38),
-                // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,35): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static event D M08
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 35),
+                // (28,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static event D M09
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 37),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
@@ -2997,12 +2765,15 @@ public delegate void D();
                 // (4,33): error CS8712: 'I1.M01': abstract event cannot use event accessor syntax
                 //     abstract static event D M01 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M01").WithLocation(4, 33),
+                // (7,28): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual static event D M02 { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 28),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
-                // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
+                // (16,37): error CS0112: A static member cannot be marked as 'virtual'
                 //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 37),
                 // (16,41): error CS8712: 'I1.M05': abstract event cannot use event accessor syntax
                 //     abstract virtual static event D M05 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M05").WithLocation(16, 41),
@@ -3018,9 +2789,12 @@ public delegate void D();
                 // (22,42): error CS8712: 'I1.M07': abstract event cannot use event accessor syntax
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M07").WithLocation(22, 42),
-                // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,35): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static event D M08 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 35),
+                // (28,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static event D M09 { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 37),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
@@ -3080,9 +2854,12 @@ public delegate void D();
                 // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract static event D M01
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 29),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,28): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static event D M02
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 28),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 28),
+                // (7,28): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
+                //     virtual static event D M02
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("static", "7.3", "8.0").WithLocation(7, 28),
                 // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     sealed static event D M03
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 27),
@@ -3092,15 +2869,12 @@ public delegate void D();
                 // (13,29): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     override static event D M04
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M04").WithArguments("static", "7.3", "8.0").WithLocation(13, 29),
+                // (16,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     abstract virtual static event D M05
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 37),
                 // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static event D M05
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 37),
-                // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
-                //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
@@ -3113,18 +2887,21 @@ public delegate void D();
                 // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract override static event D M07
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 38),
-                // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,35): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static event D M08
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 35),
+                // (25,35): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static event D M08
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "7.3", "preview").WithLocation(25, 35),
+                // (28,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static event D M09
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 37),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,37): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     virtual override static event D M09
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("static", "7.3", "8.0").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
@@ -3186,9 +2963,12 @@ public delegate void D();
                 // (4,33): error CS8712: 'I1.M01': abstract event cannot use event accessor syntax
                 //     abstract static event D M01 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M01").WithLocation(4, 33),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,28): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static event D M02 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 28),
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M02").WithArguments("virtual").WithLocation(7, 28),
+                // (7,28): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     virtual static event D M02 { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M02").WithArguments("default interface implementation", "8.0").WithLocation(7, 28),
                 // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     sealed static event D M03 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 27),
@@ -3198,15 +2978,12 @@ public delegate void D();
                 // (13,29): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static event D M04 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M04").WithArguments("default interface implementation", "8.0").WithLocation(13, 29),
+                // (16,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     abstract virtual static event D M05 { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M05").WithArguments("virtual").WithLocation(16, 37),
                 // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static event D M05 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 37),
-                // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
-                //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
                 // (16,41): error CS8712: 'I1.M05': abstract event cannot use event accessor syntax
                 //     abstract virtual static event D M05 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M05").WithLocation(16, 41),
@@ -3228,18 +3005,21 @@ public delegate void D();
                 // (22,42): error CS8712: 'I1.M07': abstract event cannot use event accessor syntax
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M07").WithLocation(22, 42),
-                // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,35): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual sealed static event D M08 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M08").WithArguments("virtual").WithLocation(25, 35),
+                // (25,35): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static event D M08 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("sealed", "7.3", "preview").WithLocation(25, 35),
+                // (28,37): error CS0112: A static member cannot be marked as 'virtual'
+                //     virtual override static event D M09 { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M09").WithArguments("virtual").WithLocation(28, 37),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual override static event D M09 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M09").WithArguments("default interface implementation", "8.0").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
@@ -3290,22 +3070,22 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static I1 operator+ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "9.0", "preview").WithLocation(4, 32),
+                // (7,31): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(7, 31),
                 // (7,31): error CS0501: 'I1.operator -(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static I1 operator- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1)").WithLocation(7, 31),
-                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static I1 operator++ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "10.0", "preview").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "9.0", "preview").WithLocation(10, 30),
                 // (10,30): error CS0501: 'I1.operator ++(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed static I1 operator++ (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "++").WithArguments("I1.operator ++(I1)").WithLocation(10, 30),
@@ -3315,48 +3095,48 @@ public interface I1
                 // (13,32): error CS0501: 'I1.operator --(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "--").WithArguments("I1.operator --(I1)").WithLocation(13, 32),
-                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,40): error CS0106: The modifier 'virtual' is not valid for this item
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "10.0", "preview").WithLocation(16, 40),
-                // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("virtual").WithLocation(16, 40),
+                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "9.0", "preview").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
-                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static I1 operator~ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "10.0", "preview").WithLocation(19, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "9.0", "preview").WithLocation(19, 39),
                 // (22,41): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("override").WithLocation(22, 41),
-                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static I1 operator+ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(22, 41),
-                // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "9.0", "preview").WithLocation(22, 41),
+                // (25,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(25, 38),
+                // (25,38): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("sealed", "9.0", "preview").WithLocation(25, 38),
                 // (25,38): error CS0501: 'I1.operator -(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1, I1)").WithLocation(25, 38),
+                // (28,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual override static I1 operator* (I1 x, I1 y) 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("virtual").WithLocation(28, 40),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "10.0", "preview").WithLocation(28, 40),
                 // (28,40): error CS0501: 'I1.operator *(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "*").WithArguments("I1.operator *(I1, I1)").WithLocation(28, 40),
                 // (31,39): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "/").WithArguments("override").WithLocation(31, 39),
-                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static I1 operator/ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "10.0", "preview").WithLocation(31, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "9.0", "preview").WithLocation(31, 39),
                 // (31,39): error CS0501: 'I1.operator /(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "/").WithArguments("I1.operator /(I1, I1)").WithLocation(31, 39)
@@ -3383,14 +3163,14 @@ public interface I1
             var m02 = i1.GetMember<MethodSymbol>("op_UnaryNegation");
 
             Assert.False(m02.IsAbstract);
-            Assert.True(m02.IsVirtual);
-            Assert.True(m02.IsMetadataVirtual());
+            Assert.False(m02.IsVirtual);
+            Assert.False(m02.IsMetadataVirtual());
             Assert.False(m02.IsSealed);
             Assert.True(m02.IsStatic);
             Assert.False(m02.IsExtern);
             Assert.False(m02.IsAsync);
             Assert.False(m02.IsOverride);
-            Assert.Same(m02, i1.FindImplementationForInterfaceMember(m02));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m02));
 
             var m03 = i1.GetMember<MethodSymbol>("op_Increment");
 
@@ -3419,7 +3199,7 @@ public interface I1
             var m05 = i1.GetMember<MethodSymbol>("op_LogicalNot");
 
             Assert.True(m05.IsAbstract);
-            Assert.True(m05.IsVirtual);
+            Assert.False(m05.IsVirtual);
             Assert.True(m05.IsMetadataVirtual());
             Assert.False(m05.IsSealed);
             Assert.True(m05.IsStatic);
@@ -3455,26 +3235,26 @@ public interface I1
             var m08 = i1.GetMember<MethodSymbol>("op_Subtraction");
 
             Assert.False(m08.IsAbstract);
-            Assert.True(m08.IsVirtual);
-            Assert.True(m08.IsMetadataVirtual());
+            Assert.False(m08.IsVirtual);
+            Assert.False(m08.IsMetadataVirtual());
             Assert.False(m08.IsSealed);
             Assert.True(m08.IsStatic);
             Assert.False(m08.IsExtern);
             Assert.False(m08.IsAsync);
             Assert.False(m08.IsOverride);
-            Assert.Same(m08, i1.FindImplementationForInterfaceMember(m08));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m08));
 
             var m09 = i1.GetMember<MethodSymbol>("op_Multiply");
 
             Assert.False(m09.IsAbstract);
-            Assert.True(m09.IsVirtual);
-            Assert.True(m09.IsMetadataVirtual());
+            Assert.False(m09.IsVirtual);
+            Assert.False(m09.IsMetadataVirtual());
             Assert.False(m09.IsSealed);
             Assert.True(m09.IsStatic);
             Assert.False(m09.IsExtern);
             Assert.False(m09.IsAsync);
             Assert.False(m09.IsOverride);
-            Assert.Same(m09, i1.FindImplementationForInterfaceMember(m09));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m09));
 
             var m10 = i1.GetMember<MethodSymbol>("op_Division");
 
@@ -3528,67 +3308,70 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static I1 operator+ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "9.0", "preview").WithLocation(4, 32),
                 // (4,32): error CS0500: 'I1.operator +(I1)' cannot declare a body because it is marked abstract
                 //     abstract static I1 operator+ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1)").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,31): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(7, 31),
-                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(7, 31),
+                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static I1 operator++ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "10.0", "preview").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "9.0", "preview").WithLocation(10, 30),
                 // (13,32): error CS0106: The modifier 'override' is not valid for this item
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "--").WithArguments("override").WithLocation(13, 32),
-                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,40): error CS0106: The modifier 'virtual' is not valid for this item
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "10.0", "preview").WithLocation(16, 40),
-                // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("virtual").WithLocation(16, 40),
+                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "9.0", "preview").WithLocation(16, 40),
+                // (16,40): error CS0500: 'I1.operator !(I1)' cannot declare a body because it is marked abstract
+                //     abstract virtual static I1 operator! (I1 x)
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!").WithArguments("I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
-                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static I1 operator~ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "10.0", "preview").WithLocation(19, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "9.0", "preview").WithLocation(19, 39),
                 // (19,39): error CS0500: 'I1.operator ~(I1)' cannot declare a body because it is marked abstract
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "~").WithArguments("I1.operator ~(I1)").WithLocation(19, 39),
                 // (22,41): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("override").WithLocation(22, 41),
-                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract override static I1 operator+ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(22, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "9.0", "preview").WithLocation(22, 41),
                 // (22,41): error CS0500: 'I1.operator +(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1, I1)").WithLocation(22, 41),
-                // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(25, 38),
+                // (25,38): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("sealed", "9.0", "preview").WithLocation(25, 38),
+                // (28,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual override static I1 operator* (I1 x, I1 y) 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("virtual").WithLocation(28, 40),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "10.0", "preview").WithLocation(28, 40),
                 // (31,39): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "/").WithArguments("override").WithLocation(31, 39),
-                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed override static I1 operator/ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "10.0", "preview").WithLocation(31, 39)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "9.0", "preview").WithLocation(31, 39)
                 );
 
             ValidateOperatorModifiers_01(compilation1);
@@ -3637,6 +3420,9 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
+                // (7,31): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual static I1 operator- (I1 x)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(7, 31),
                 // (7,31): error CS0501: 'I1.operator -(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static I1 operator- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1)").WithLocation(7, 31),
@@ -3649,21 +3435,24 @@ public interface I1
                 // (13,32): error CS0501: 'I1.operator --(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "--").WithArguments("I1.operator --(I1)").WithLocation(13, 32),
-                // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
+                // (16,40): error CS0106: The modifier 'virtual' is not valid for this item
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("virtual").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
                 // (22,41): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("override").WithLocation(22, 41),
-                // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(25, 38),
                 // (25,38): error CS0501: 'I1.operator -(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1, I1)").WithLocation(25, 38),
+                // (28,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual override static I1 operator* (I1 x, I1 y) 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("virtual").WithLocation(28, 40),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
@@ -3727,12 +3516,18 @@ public interface I1
                 // (4,32): error CS0500: 'I1.operator +(I1)' cannot declare a body because it is marked abstract
                 //     abstract static I1 operator+ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1)").WithLocation(4, 32),
+                // (7,31): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual static I1 operator- (I1 x)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(7, 31),
                 // (13,32): error CS0106: The modifier 'override' is not valid for this item
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "--").WithArguments("override").WithLocation(13, 32),
-                // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
+                // (16,40): error CS0106: The modifier 'virtual' is not valid for this item
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("virtual").WithLocation(16, 40),
+                // (16,40): error CS0500: 'I1.operator !(I1)' cannot declare a body because it is marked abstract
+                //     abstract virtual static I1 operator! (I1 x)
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!").WithArguments("I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
@@ -3745,9 +3540,12 @@ public interface I1
                 // (22,41): error CS0500: 'I1.operator +(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1, I1)").WithLocation(22, 41),
-                // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(25, 38),
+                // (28,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual override static I1 operator* (I1 x, I1 y) 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("virtual").WithLocation(28, 40),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
@@ -3805,9 +3603,12 @@ public interface I1
                 // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract static I1 operator+ (I1 x)
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "preview").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,31): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(7, 31),
+                // (7,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     virtual static I1 operator- (I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-").WithArguments("default interface implementation", "8.0").WithLocation(7, 31),
                 // (7,31): error CS0501: 'I1.operator -(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static I1 operator- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1)").WithLocation(7, 31),
@@ -3826,12 +3627,12 @@ public interface I1
                 // (13,32): error CS0501: 'I1.operator --(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "--").WithArguments("I1.operator --(I1)").WithLocation(13, 32),
+                // (16,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     abstract virtual static I1 operator! (I1 x)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("virtual").WithLocation(16, 40),
                 // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "7.3", "preview").WithLocation(16, 40),
-                // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
-                //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
@@ -3844,21 +3645,24 @@ public interface I1
                 // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "preview").WithLocation(22, 41),
-                // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(25, 38),
+                // (25,38): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("sealed", "7.3", "preview").WithLocation(25, 38),
                 // (25,38): error CS0501: 'I1.operator -(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1, I1)").WithLocation(25, 38),
+                // (28,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual override static I1 operator* (I1 x, I1 y) 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("virtual").WithLocation(28, 40),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,40): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "7.3", "preview").WithLocation(28, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "*").WithArguments("default interface implementation", "8.0").WithLocation(28, 40),
                 // (28,40): error CS0501: 'I1.operator *(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "*").WithArguments("I1.operator *(I1, I1)").WithLocation(28, 40),
@@ -3925,9 +3729,12 @@ public interface I1
                 // (4,32): error CS0500: 'I1.operator +(I1)' cannot declare a body because it is marked abstract
                 //     abstract static I1 operator+ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1)").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,31): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(7, 31),
+                // (7,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     virtual static I1 operator- (I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-").WithArguments("default interface implementation", "8.0").WithLocation(7, 31),
                 // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     sealed static I1 operator++ (I1 x)
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "7.3", "preview").WithLocation(10, 30),
@@ -3937,12 +3744,15 @@ public interface I1
                 // (13,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "--").WithArguments("default interface implementation", "8.0").WithLocation(13, 32),
+                // (16,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     abstract virtual static I1 operator! (I1 x)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!").WithArguments("virtual").WithLocation(16, 40),
                 // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "7.3", "preview").WithLocation(16, 40),
-                // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
+                // (16,40): error CS0500: 'I1.operator !(I1)' cannot declare a body because it is marked abstract
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!").WithArguments("I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
@@ -3961,18 +3771,21 @@ public interface I1
                 // (22,41): error CS0500: 'I1.operator +(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1, I1)").WithLocation(22, 41),
-                // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
+                // (25,38): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(25, 38),
+                // (25,38): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("sealed", "7.3", "preview").WithLocation(25, 38),
+                // (28,40): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual override static I1 operator* (I1 x, I1 y) 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("virtual").WithLocation(28, 40),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,40): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "7.3", "preview").WithLocation(28, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "*").WithArguments("default interface implementation", "8.0").WithLocation(28, 40),
                 // (31,39): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "/").WithArguments("override").WithLocation(31, 39),
@@ -4056,16 +3869,16 @@ public interface I3
             validate();
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "preview").WithLocation(4, 34),
-                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "9.0", "preview").WithLocation(4, 34),
+                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "preview").WithLocation(6, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "9.0", "preview").WithLocation(6, 34),
                 // (6,34): error CS0500: 'I1.operator !=(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I1.operator !=(I1, I1)").WithLocation(6, 34),
@@ -4084,15 +3897,15 @@ public interface I3
                 // (18,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool operator== (I3 x, I3 y);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(18, 41),
-                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "preview").WithLocation(18, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "9.0", "preview").WithLocation(18, 41),
                 // (20,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(20, 41),
-                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "preview").WithLocation(20, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "9.0", "preview").WithLocation(20, 41),
                 // (20,41): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 41)
@@ -4266,19 +4079,19 @@ public interface I3
             validate();
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.Regular10,
+                                             parseOptions: TestOptions.Regular9,
                                              targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(4, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(4, 39),
                 // (4,39): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
                 //     abstract static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 39),
-                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "10.0", "preview").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "9.0", "preview").WithLocation(6, 39),
                 // (6,39): error CS0500: 'I1.explicit operator I1(bool)' cannot declare a body because it is marked abstract
                 //     abstract static explicit operator I1(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
@@ -4306,18 +4119,18 @@ public interface I3
                 // (18,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(18, 46),
-                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(18, 46),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(18, 46),
                 // (18,46): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
                 //     abstract sealed static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 46),
                 // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(20, 46),
-                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "10.0", "preview").WithLocation(20, 46),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "9.0", "preview").WithLocation(20, 46),
                 // (20,46): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46),
@@ -4423,510 +4236,6 @@ public interface I3
         }
 
         [Fact]
-        public void OperatorModifiers_09()
-        {
-            var source1 =
-@"
-public interface I1
-{
-    virtual static bool operator== (I1 x, I1 y); 
-
-    virtual static bool operator!= (I1 x, I1 y) {return false;} 
-}
-
-public interface I2
-{
-    virtual sealed static bool operator== (I2 x, I2 y);
-
-    virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-}
-
-public interface I3
-{
-    abstract virtual static bool operator== (I3 x, I3 y);
-
-    abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,33): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(4, 33),
-                // (4,33): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 33),
-                // (6,33): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(6, 33),
-                // (6,33): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(6, 33),
-                // (11,40): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 40),
-                // (11,40): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(11, 40),
-                // (11,40): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(11, 40),
-                // (13,40): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 40),
-                // (13,40): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(13, 40),
-                // (13,40): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(13, 40),
-                // (18,42): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(18, 42),
-                // (18,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "preview").WithLocation(18, 42),
-                // (20,42): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(20, 42),
-                // (20,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "preview").WithLocation(20, 42),
-                // (20,42): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 42)
-                );
-
-            validate();
-
-            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.Regular10,
-                                             targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,33): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(4, 33),
-                // (4,33): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 33),
-                // (6,33): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(6, 33),
-                // (6,33): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(6, 33),
-                // (11,40): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 40),
-                // (11,40): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(11, 40),
-                // (11,40): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(11, 40),
-                // (13,40): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 40),
-                // (13,40): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(13, 40),
-                // (13,40): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(13, 40),
-                // (18,42): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(18, 42),
-                // (18,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "preview").WithLocation(18, 42),
-                // (20,42): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(20, 42),
-                // (20,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "preview").WithLocation(20, 42),
-                // (20,42): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 42)
-                );
-
-            validate();
-
-            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,33): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(4, 33),
-                // (4,33): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 33),
-                // (6,33): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(6, 33),
-                // (6,33): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(6, 33),
-                // (11,40): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 40),
-                // (11,40): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(11, 40),
-                // (11,40): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(11, 40),
-                // (13,40): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 40),
-                // (13,40): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(13, 40),
-                // (13,40): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(13, 40),
-                // (18,42): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("virtual").WithLocation(18, 42),
-                // (20,42): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("virtual").WithLocation(20, 42),
-                // (20,42): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
-                //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 42)
-                );
-
-            validate();
-
-            void validate()
-            {
-                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I1").GetMembers())
-                {
-                    Assert.False(m01.IsAbstract);
-                    Assert.False(m01.IsVirtual);
-                    Assert.False(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsExtern);
-                    Assert.False(m01.IsAsync);
-                    Assert.False(m01.IsOverride);
-                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
-                }
-
-                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I2").GetMembers())
-                {
-                    Assert.False(m01.IsAbstract);
-                    Assert.False(m01.IsVirtual);
-                    Assert.False(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsExtern);
-                    Assert.False(m01.IsAsync);
-                    Assert.False(m01.IsOverride);
-                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
-                }
-
-                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I3").GetMembers())
-                {
-                    Assert.True(m01.IsAbstract);
-                    Assert.False(m01.IsVirtual);
-                    Assert.True(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsExtern);
-                    Assert.False(m01.IsAsync);
-                    Assert.False(m01.IsOverride);
-                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
-                }
-            }
-        }
-
-        [Fact]
-        public void OperatorModifiers_10()
-        {
-            var source1 =
-@"
-public interface I1
-{
-    virtual static implicit operator int(I1 x); 
-
-    virtual static explicit operator I1(bool x) {return null;} 
-}
-
-public interface I2
-{
-    virtual sealed static implicit operator int(I2 x);
-
-    virtual sealed static explicit operator I2(bool x) {return null;} 
-}
-
-public interface I3
-{
-    abstract virtual static implicit operator int(I3 x);
-
-    abstract virtual static explicit operator I3(bool x) {return null;} 
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(4, 38),
-                // (4,38): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 38),
-                // (4,38): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 38),
-                // (6,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("virtual").WithLocation(6, 38),
-                // (6,38): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 38),
-                // (6,38): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I1").WithLocation(6, 38),
-                // (11,45): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 45),
-                // (11,45): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(11, 45),
-                // (11,45): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 45),
-                // (11,45): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 45),
-                // (13,45): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 45),
-                // (13,45): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("virtual").WithLocation(13, 45),
-                // (13,45): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 45),
-                // (13,45): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 45),
-                // (18,47): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(18, 47),
-                // (18,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "preview").WithLocation(18, 47),
-                // (18,47): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 47),
-                // (20,47): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("virtual").WithLocation(20, 47),
-                // (20,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "7.3", "preview").WithLocation(20, 47),
-                // (20,47): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 47),
-                // (20,47): error CS0552: 'I3.explicit operator I3(bool)': user-defined conversions to or from an interface are not allowed
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 47)
-                );
-
-            validate();
-
-            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.Regular10,
-                                             targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(4, 38),
-                // (4,38): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 38),
-                // (4,38): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 38),
-                // (6,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("virtual").WithLocation(6, 38),
-                // (6,38): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 38),
-                // (6,38): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I1").WithLocation(6, 38),
-                // (11,45): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 45),
-                // (11,45): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(11, 45),
-                // (11,45): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 45),
-                // (11,45): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 45),
-                // (13,45): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 45),
-                // (13,45): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("virtual").WithLocation(13, 45),
-                // (13,45): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 45),
-                // (13,45): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 45),
-                // (18,47): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(18, 47),
-                // (18,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(18, 47),
-                // (18,47): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 47),
-                // (20,47): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("virtual").WithLocation(20, 47),
-                // (20,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "10.0", "preview").WithLocation(20, 47),
-                // (20,47): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 47),
-                // (20,47): error CS0552: 'I3.explicit operator I3(bool)': user-defined conversions to or from an interface are not allowed
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 47)
-                );
-
-            validate();
-
-            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(4, 38),
-                // (4,38): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 38),
-                // (4,38): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 38),
-                // (6,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("virtual").WithLocation(6, 38),
-                // (6,38): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 38),
-                // (6,38): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I1").WithLocation(6, 38),
-                // (11,45): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 45),
-                // (11,45): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(11, 45),
-                // (11,45): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 45),
-                // (11,45): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 45),
-                // (13,45): error CS0106: The modifier 'sealed' is not valid for this item
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 45),
-                // (13,45): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("virtual").WithLocation(13, 45),
-                // (13,45): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 45),
-                // (13,45): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 45),
-                // (18,47): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("virtual").WithLocation(18, 47),
-                // (18,47): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
-                //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 47),
-                // (20,47): error CS0106: The modifier 'virtual' is not valid for this item
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("virtual").WithLocation(20, 47),
-                // (20,47): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 47),
-                // (20,47): error CS0552: 'I3.explicit operator I3(bool)': user-defined conversions to or from an interface are not allowed
-                //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 47)
-                );
-
-            validate();
-
-            void validate()
-            {
-                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I1").GetMembers())
-                {
-                    Assert.False(m01.IsAbstract);
-                    Assert.False(m01.IsVirtual);
-                    Assert.False(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsExtern);
-                    Assert.False(m01.IsAsync);
-                    Assert.False(m01.IsOverride);
-                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
-                }
-
-                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I2").GetMembers())
-                {
-                    Assert.False(m01.IsAbstract);
-                    Assert.False(m01.IsVirtual);
-                    Assert.False(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsExtern);
-                    Assert.False(m01.IsAsync);
-                    Assert.False(m01.IsOverride);
-                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
-                }
-
-                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I3").GetMembers())
-                {
-                    Assert.True(m01.IsAbstract);
-                    Assert.False(m01.IsVirtual);
-                    Assert.True(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsExtern);
-                    Assert.False(m01.IsAsync);
-                    Assert.False(m01.IsOverride);
-                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
-                }
-            }
-        }
-
-        [Fact]
         public void FieldModifiers_01()
         {
             var source1 =
@@ -4937,7 +4246,6 @@ public interface I1
     sealed static int F2; 
     abstract int F3; 
     sealed int F4; 
-    virtual static int F5;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -4962,10 +4270,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F4").WithArguments("sealed").WithLocation(7, 16),
                 // (7,16): error CS0525: Interfaces cannot contain instance fields
                 //     sealed int F4; 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F4").WithLocation(7, 16),
-                // (8,24): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual static int F5;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F5").WithArguments("virtual").WithLocation(8, 24)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F4").WithLocation(7, 16)
                 );
         }
 
@@ -5003,39 +4308,6 @@ interface I1
         }
 
         [Fact]
-        public void ExternVirtualStatic_01()
-        {
-            var source1 =
-@"
-interface I1
-{
-    extern virtual static void M01();
-    extern virtual static bool P01 { get; }
-    extern virtual static event System.Action E01;
-    extern virtual static I1 operator+ (I1 x);
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,32): warning CS0626: Method, operator, or accessor 'I1.M01()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern virtual static void M01();
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M01").WithArguments("I1.M01()").WithLocation(4, 32),
-                // (5,38): warning CS0626: Method, operator, or accessor 'I1.P01.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern virtual static bool P01 { get; }
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.P01.get").WithLocation(5, 38),
-                // (6,47): warning CS0626: Method, operator, or accessor 'I1.E01.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern virtual static event System.Action E01;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E01").WithArguments("I1.E01.remove").WithLocation(6, 47),
-                // (7,38): warning CS0626: Method, operator, or accessor 'I1.operator +(I1)' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern virtual static I1 operator+ (I1 x);
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "+").WithArguments("I1.operator +(I1)").WithLocation(7, 38)
-                );
-        }
-
-        [Fact]
         public void ExternAbstractStatic_02()
         {
             var source1 =
@@ -5068,42 +4340,6 @@ interface I1
                 // (7,39): error CS0180: 'I1.operator +(I1)' cannot be both extern and abstract
                 //     extern abstract static I1 operator+ (I1 x) => null;
                 Diagnostic(ErrorCode.ERR_AbstractAndExtern, "+").WithArguments("I1.operator +(I1)").WithLocation(7, 39)
-                );
-        }
-
-        [Fact]
-        public void ExternVirtualStatic_02()
-        {
-            var source1 =
-@"
-interface I1
-{
-    extern virtual static void M01() {}
-    extern virtual static bool P01 { get => false; }
-    extern virtual static event System.Action E01 { add {} remove {} }
-    extern virtual static I1 operator+ (I1 x) => null;
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,32): error CS0179: 'I1.M01()' cannot be extern and declare a body
-                //     extern virtual static void M01() {}
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "M01").WithArguments("I1.M01()").WithLocation(4, 32),
-                // (5,38): error CS0179: 'I1.P01.get' cannot be extern and declare a body
-                //     extern virtual static bool P01 { get => false; }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("I1.P01.get").WithLocation(5, 38),
-                // (6,53): error CS0179: 'I1.E01.add' cannot be extern and declare a body
-                //     extern virtual static event System.Action E01 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.E01.add").WithLocation(6, 53),
-                // (6,60): error CS0179: 'I1.E01.remove' cannot be extern and declare a body
-                //     extern virtual static event System.Action E01 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.E01.remove").WithLocation(6, 60),
-                // (7,38): error CS0179: 'I1.operator +(I1)' cannot be extern and declare a body
-                //     extern virtual static I1 operator+ (I1 x) => null;
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "+").WithArguments("I1.operator +(I1)").WithLocation(7, 38)
                 );
         }
 
@@ -5150,66 +4386,18 @@ abstract class C1
                 // (4,33): error CS0112: A static member cannot be marked as 'abstract'
                 //     public abstract static void M01();
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M01").WithArguments("abstract").WithLocation(4, 33),
-                // (4,33): error CS0501: 'C1.M01()' must declare a body because it is not marked abstract, extern, or partial
-                //     public abstract static void M01();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M01").WithArguments("C1.M01()").WithLocation(4, 33),
                 // (5,33): error CS0112: A static member cannot be marked as 'abstract'
                 //     public abstract static bool P01 { get; }
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P01").WithArguments("abstract").WithLocation(5, 33),
                 // (6,48): error CS0112: A static member cannot be marked as 'abstract'
                 //     public abstract static event System.Action E01;
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "E01").WithArguments("abstract").WithLocation(6, 48),
-                // (6,48): warning CS0067: The event 'C1.E01' is never used
-                //     public abstract static event System.Action E01;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E01").WithArguments("C1.E01").WithLocation(6, 48),
                 // (7,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public abstract static C1 operator+ (C1 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("abstract").WithLocation(7, 39),
                 // (7,39): error CS0501: 'C1.operator +(C1)' must declare a body because it is not marked abstract, extern, or partial
                 //     public abstract static C1 operator+ (C1 x);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C1.operator +(C1)").WithLocation(7, 39)
-                );
-        }
-
-        [Fact]
-        public void VirtualStaticInClass_01()
-        {
-            var source1 =
-@"
-abstract class C1
-{
-    public virtual static void M01();
-    public virtual static bool P01 { get; }
-    public virtual static event System.Action E01;
-    public virtual static C1 operator+ (C1 x);
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,32): error CS0112: A static member cannot be marked as 'virtual'
-                //     public virtual static void M01();
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M01").WithArguments("virtual").WithLocation(4, 32),
-                // (4,32): error CS0501: 'C1.M01()' must declare a body because it is not marked abstract, extern, or partial
-                //     public virtual static void M01();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M01").WithArguments("C1.M01()").WithLocation(4, 32),
-                // (5,32): error CS0112: A static member cannot be marked as 'virtual'
-                //     public virtual static bool P01 { get; }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P01").WithArguments("virtual").WithLocation(5, 32),
-                // (6,47): error CS0112: A static member cannot be marked as 'virtual'
-                //     public virtual static event System.Action E01;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "E01").WithArguments("virtual").WithLocation(6, 47),
-                // (6,47): warning CS0067: The event 'C1.E01' is never used
-                //     public virtual static event System.Action E01;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E01").WithArguments("C1.E01").WithLocation(6, 47),
-                // (7,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     public virtual static C1 operator+ (C1 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("virtual").WithLocation(7, 38),
-                // (7,38): error CS0501: 'C1.operator +(C1)' must declare a body because it is not marked abstract, extern, or partial
-                //     public virtual static C1 operator+ (C1 x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C1.operator +(C1)").WithLocation(7, 38)
                 );
         }
 
@@ -5267,66 +4455,18 @@ struct C1
                 // (4,33): error CS0112: A static member cannot be marked as 'abstract'
                 //     public abstract static void M01();
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M01").WithArguments("abstract").WithLocation(4, 33),
-                // (4,33): error CS0501: 'C1.M01()' must declare a body because it is not marked abstract, extern, or partial
-                //     public abstract static void M01();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M01").WithArguments("C1.M01()").WithLocation(4, 33),
                 // (5,33): error CS0112: A static member cannot be marked as 'abstract'
                 //     public abstract static bool P01 { get; }
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P01").WithArguments("abstract").WithLocation(5, 33),
                 // (6,48): error CS0112: A static member cannot be marked as 'abstract'
                 //     public abstract static event System.Action E01;
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "E01").WithArguments("abstract").WithLocation(6, 48),
-                // (6,48): warning CS0067: The event 'C1.E01' is never used
-                //     public abstract static event System.Action E01;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E01").WithArguments("C1.E01").WithLocation(6, 48),
                 // (7,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public abstract static C1 operator+ (C1 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("abstract").WithLocation(7, 39),
                 // (7,39): error CS0501: 'C1.operator +(C1)' must declare a body because it is not marked abstract, extern, or partial
                 //     public abstract static C1 operator+ (C1 x);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C1.operator +(C1)").WithLocation(7, 39)
-                );
-        }
-
-        [Fact]
-        public void VirtualStaticInStruct_01()
-        {
-            var source1 =
-@"
-struct C1
-{
-    public virtual static void M01();
-    public virtual static bool P01 { get; }
-    public virtual static event System.Action E01;
-    public virtual static C1 operator+ (C1 x);
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (4,32): error CS0112: A static member cannot be marked as 'virtual'
-                //     public virtual static void M01();
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M01").WithArguments("virtual").WithLocation(4, 32),
-                // (4,32): error CS0501: 'C1.M01()' must declare a body because it is not marked abstract, extern, or partial
-                //     public virtual static void M01();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M01").WithArguments("C1.M01()").WithLocation(4, 32),
-                // (5,32): error CS0112: A static member cannot be marked as 'virtual'
-                //     public virtual static bool P01 { get; }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P01").WithArguments("virtual").WithLocation(5, 32),
-                // (6,47): error CS0112: A static member cannot be marked as 'virtual'
-                //     public virtual static event System.Action E01;
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "E01").WithArguments("virtual").WithLocation(6, 47),
-                // (6,47): warning CS0067: The event 'C1.E01' is never used
-                //     public virtual static event System.Action E01;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E01").WithArguments("C1.E01").WithLocation(6, 47),
-                // (7,38): error CS0106: The modifier 'virtual' is not valid for this item
-                //     public virtual static C1 operator+ (C1 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("virtual").WithLocation(7, 38),
-                // (7,38): error CS0501: 'C1.operator +(C1)' must declare a body because it is not marked abstract, extern, or partial
-                //     public virtual static C1 operator+ (C1 x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C1.operator +(C1)").WithLocation(7, 38)
                 );
         }
 
@@ -5398,40 +4538,6 @@ interface I1
         }
 
         [Fact]
-        public void DefineVirtualStaticMethod_01()
-        {
-            var source1 =
-@"
-interface I1
-{
-    virtual static void M01(){}
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
-
-            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            void validate(ModuleSymbol module)
-            {
-                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
-
-                Assert.False(m01.IsMetadataNewSlot());
-                Assert.False(m01.IsAbstract);
-                Assert.True(m01.IsMetadataVirtual());
-                Assert.False(m01.IsMetadataFinal);
-                Assert.True(m01.IsVirtual);
-                Assert.False(m01.IsSealed);
-                Assert.True(m01.IsStatic);
-                Assert.False(m01.IsOverride);
-            }
-        }
-
-        [Fact]
         public void DefineAbstractStaticMethod_02()
         {
             var source1 =
@@ -5461,43 +4567,6 @@ interface I1
             compilation2.VerifyDiagnostics(
                 // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
-                );
-
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
-        }
-
-        [Fact]
-        public void DefineVirtualStaticMethod_02()
-        {
-            var source1 =
-@"
-interface I1
-{
-    virtual  static void M01(){}
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
-
-            compilation1.VerifyDiagnostics(
-                // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static void M01(){}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
-                );
-
-            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
-
-            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.Net50);
-
-            compilation2.VerifyDiagnostics(
-                // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static void M01(){}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
                 );
 
@@ -5573,74 +4642,6 @@ partial interface I1
             }
         }
 
-        [Theory]
-        [InlineData("I1", "+", "(I1 x)")]
-        [InlineData("I1", "-", "(I1 x)")]
-        [InlineData("I1", "!", "(I1 x)")]
-        [InlineData("I1", "~", "(I1 x)")]
-        [InlineData("I1", "++", "(I1 x)")]
-        [InlineData("I1", "--", "(I1 x)")]
-        [InlineData("I1", "+", "(I1 x, I1 y)")]
-        [InlineData("I1", "-", "(I1 x, I1 y)")]
-        [InlineData("I1", "*", "(I1 x, I1 y)")]
-        [InlineData("I1", "/", "(I1 x, I1 y)")]
-        [InlineData("I1", "%", "(I1 x, I1 y)")]
-        [InlineData("I1", "&", "(I1 x, I1 y)")]
-        [InlineData("I1", "|", "(I1 x, I1 y)")]
-        [InlineData("I1", "^", "(I1 x, I1 y)")]
-        [InlineData("I1", "<<", "(I1 x, int y)")]
-        [InlineData("I1", ">>", "(I1 x, int y)")]
-        [InlineData("I1", ">>>", "(I1 x, int y)")]
-        [InlineData("I1", "checked -", "(I1 x)")]
-        [InlineData("I1", "checked ++", "(I1 x)")]
-        [InlineData("I1", "checked --", "(I1 x)")]
-        [InlineData("I1", "checked +", "(I1 x, I1 y)")]
-        [InlineData("I1", "checked -", "(I1 x, I1 y)")]
-        [InlineData("I1", "checked *", "(I1 x, I1 y)")]
-        [InlineData("I1", "checked /", "(I1 x, I1 y)")]
-        public void DefineVirtualStaticOperator_01(string type, string op, string paramList)
-        {
-            var source1 =
-@"
-partial interface I1
-{
-    virtual static " + type + " operator " + op + " " + paramList + @" => throw null;
-}
-";
-
-            if (op.StartsWith("checked "))
-            {
-                source1 +=
-@"
-partial interface I1
-{
-    virtual static " + type + " operator " + op.Substring(8) + " " + paramList + @" => throw null;
-}
-";
-            }
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            void validate(ModuleSymbol module)
-            {
-                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
-                {
-                    Assert.False(m01.IsMetadataNewSlot());
-                    Assert.False(m01.IsAbstract);
-                    Assert.True(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsMetadataFinal);
-                    Assert.True(m01.IsVirtual);
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsOverride);
-                }
-            }
-        }
-
         [Fact]
         public void DefineAbstractStaticOperator_02()
         {
@@ -5682,48 +4683,6 @@ interface I1
                 }
 
                 Assert.Equal(8, count);
-            }
-        }
-
-        [Fact]
-        public void DefineVirtualStaticOperator_02()
-        {
-            var source1 =
-@"
-interface I1
-{
-    virtual  static bool operator true (I1 x) => throw null;
-    virtual  static bool operator false (I1 x) => throw null;
-    virtual  static I1 operator > (I1 x, I1 y) => throw null;
-    virtual  static I1 operator < (I1 x, I1 y) => throw null;
-    virtual  static I1 operator >= (I1 x, I1 y) => throw null;
-    virtual  static I1 operator <= (I1 x, I1 y) => throw null;
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            void validate(ModuleSymbol module)
-            {
-                int count = 0;
-                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
-                {
-                    Assert.False(m01.IsMetadataNewSlot());
-                    Assert.False(m01.IsAbstract);
-                    Assert.True(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsMetadataFinal);
-                    Assert.True(m01.IsVirtual);
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsOverride);
-
-                    count++;
-                }
-
-                Assert.Equal(6, count);
             }
         }
 
@@ -5774,53 +4733,6 @@ interface I1
                 );
         }
 
-        [Theory]
-        [InlineData("I1", "+", "(I1 x)")]
-        [InlineData("I1", "-", "(I1 x)")]
-        [InlineData("I1", "!", "(I1 x)")]
-        [InlineData("I1", "~", "(I1 x)")]
-        [InlineData("I1", "++", "(I1 x)")]
-        [InlineData("I1", "--", "(I1 x)")]
-        [InlineData("I1", "+", "(I1 x, I1 y)")]
-        [InlineData("I1", "-", "(I1 x, I1 y)")]
-        [InlineData("I1", "*", "(I1 x, I1 y)")]
-        [InlineData("I1", "/", "(I1 x, I1 y)")]
-        [InlineData("I1", "%", "(I1 x, I1 y)")]
-        [InlineData("I1", "&", "(I1 x, I1 y)")]
-        [InlineData("I1", "|", "(I1 x, I1 y)")]
-        [InlineData("I1", "^", "(I1 x, I1 y)")]
-        [InlineData("I1", "<<", "(I1 x, int y)")]
-        [InlineData("I1", ">>", "(I1 x, int y)")]
-        [InlineData("I1", ">>>", "(I1 x, int y)")]
-        [InlineData("I1", "checked -", "(I1 x)")]
-        [InlineData("I1", "checked ++", "(I1 x)")]
-        [InlineData("I1", "checked --", "(I1 x)")]
-        [InlineData("I1", "checked +", "(I1 x, I1 y)")]
-        [InlineData("I1", "checked -", "(I1 x, I1 y)")]
-        [InlineData("I1", "checked *", "(I1 x, I1 y)")]
-        [InlineData("I1", "checked /", "(I1 x, I1 y)")]
-        public void DefineVirtualStaticOperator_03(string type, string op, string paramList)
-        {
-            var source1 =
-@"
-interface I1
-{
-    virtual  static " + type + " operator " + op + " " + paramList + @" => throw null;
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
-
-            bool isChecked = op.StartsWith("checked ");
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static I1 operator + (I1 x);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op.Substring(isChecked ? 8 : 0)).WithLocation(4, 31 + type.Length + (isChecked ? 8 : 0))
-                );
-        }
-
         [Fact]
         public void DefineAbstractStaticOperator_04()
         {
@@ -5867,47 +4779,6 @@ interface I1
                 // (11,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator != (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "!=").WithLocation(11, 33)
-                );
-        }
-
-        [Fact]
-        public void DefineVirtualStaticOperator_04()
-        {
-            var source1 =
-@"
-interface I1
-{
-    virtual  static bool operator true (I1 x) => throw null;
-    virtual  static bool operator false (I1 x) => throw null;
-    virtual  static I1 operator > (I1 x, I1 y) => throw null;
-    virtual  static I1 operator < (I1 x, I1 y) => throw null;
-    virtual  static I1 operator >= (I1 x, I1 y) => throw null;
-    virtual  static I1 operator <= (I1 x, I1 y) => throw null;
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
-
-            compilation1.VerifyDiagnostics(
-                // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static bool operator true (I1 x);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(4, 35),
-                // (5,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static bool operator false (I1 x);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(5, 35),
-                // (6,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static I1 operator > (I1 x, I1 y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">").WithLocation(6, 33),
-                // (7,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static I1 operator < (I1 x, I1 y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<").WithLocation(7, 33),
-                // (8,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static I1 operator >= (I1 x, I1 y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">=").WithLocation(8, 33),
-                // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static I1 operator <= (I1 x, I1 y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<=").WithLocation(9, 33)
                 );
         }
 
@@ -6025,51 +4896,6 @@ interface I1
         }
 
         [Fact]
-        public void DefineVirtualStaticProperty_01()
-        {
-            var source1 =
-@"
-interface I1
-{
-    virtual static int P01 { get; set; }
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            void validate(ModuleSymbol module)
-            {
-                var p01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
-
-                Assert.False(p01.IsAbstract);
-                Assert.True(p01.IsVirtual);
-                Assert.False(p01.IsSealed);
-                Assert.True(p01.IsStatic);
-                Assert.False(p01.IsOverride);
-
-                int count = 0;
-                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
-                {
-                    Assert.False(m01.IsMetadataNewSlot());
-                    Assert.False(m01.IsAbstract);
-                    Assert.True(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsMetadataFinal);
-                    Assert.True(m01.IsVirtual);
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsOverride);
-
-                    count++;
-                }
-
-                Assert.Equal(2, count);
-            }
-        }
-
-        [Fact]
         public void DefineAbstractStaticProperty_02()
         {
             var source1 =
@@ -6089,30 +4915,6 @@ interface I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 31),
                 // (4,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 36)
-                );
-        }
-
-        [Fact]
-        public void DefineVirtualStaticProperty_02()
-        {
-            var source1 =
-@"
-interface I1
-{
-    virtual  static int P01 { get; set; }
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
-
-            compilation1.VerifyDiagnostics(
-                // (4,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 31),
-                // (4,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 36)
                 );
         }
@@ -6163,52 +4965,6 @@ interface I1
         }
 
         [Fact]
-        public void DefineVirtualStaticEvent_01()
-        {
-            var source1 =
-@"
-#pragma warning disable CS0067 // The event 'I1.E01' is never used
-interface I1
-{
-    virtual static event System.Action E01;
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            void validate(ModuleSymbol module)
-            {
-                var e01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
-
-                Assert.False(e01.IsAbstract);
-                Assert.True(e01.IsVirtual);
-                Assert.False(e01.IsSealed);
-                Assert.True(e01.IsStatic);
-                Assert.False(e01.IsOverride);
-
-                int count = 0;
-                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
-                {
-                    Assert.False(m01.IsMetadataNewSlot());
-                    Assert.False(m01.IsAbstract);
-                    Assert.True(m01.IsMetadataVirtual());
-                    Assert.False(m01.IsMetadataFinal);
-                    Assert.True(m01.IsVirtual);
-                    Assert.False(m01.IsSealed);
-                    Assert.True(m01.IsStatic);
-                    Assert.False(m01.IsOverride);
-
-                    count++;
-                }
-
-                Assert.Equal(2, count);
-            }
-        }
-
-        [Fact]
         public void DefineAbstractStaticEvent_02()
         {
             var source1 =
@@ -6230,37 +4986,13 @@ interface I1
         }
 
         [Fact]
-        public void DefineVirtualStaticEvent_02()
+        public void ConstraintChecks_01()
         {
-            var source1 =
-@"#pragma warning disable CS0067 // The event 'I1.E01' is never used
-interface I1
-{
-    virtual  static event System.Action E01;
-}
-";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
-
-            compilation1.VerifyDiagnostics(
-                // (4,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     virtual  static event System.Action E01;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "E01").WithLocation(4, 41)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void ConstraintChecks_01(bool isVirtual)
-        {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 public interface I2 : I1
@@ -6352,34 +5084,34 @@ class C8
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
-                // (4,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
+                // (4,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract members.
                 //     void Test(C1<I2> x)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C1<T1>", "I1", "T1", "I2").WithLocation(4, 22),
-                // (15,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
+                // (15,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract members.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C2.M<T2>()", "I1", "T2", "I2").WithLocation(15, 11),
-                // (21,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
+                // (21,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C3<T3>", "I2", "T3", "I2").WithLocation(21, 22),
-                // (21,32): error CS8920: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C3<T3>", "I2", "T3", "I3").WithLocation(21, 32),
-                // (32,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
+                // (32,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C4.M<T4>()", "I2", "T4", "I2").WithLocation(32, 11),
-                // (33,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract or virtual members.
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C4.M<T4>()", "I2", "T4", "I3").WithLocation(33, 11),
-                // (39,22): error CS8920: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract or virtual members.
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract members.
                 //     void Test(C5<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C5<T5>", "I3", "T5", "I3").WithLocation(39, 22),
-                // (50,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract or virtual members.
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract members.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C6.M<T6>()", "I3", "T6", "I3").WithLocation(50, 11),
-                // (56,22): error CS8920: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
+                // (56,22): error CS8920: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract members.
                 //     void Test(C7<I1> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C7<T7>", "I1", "T7", "I1").WithLocation(56, 22),
-                // (67,11): error CS8920: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
+                // (67,11): error CS8920: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract members.
                 //         x.M<I1>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("C8.M<T8>()", "I1", "T8", "I1").WithLocation(67, 11)
             };
@@ -6394,17 +5126,14 @@ class C8
             compilation2.VerifyDiagnostics(expected);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConstraintChecks_02(bool isVirtual)
+        [Fact]
+        public void ConstraintChecks_02()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 public class C : I1
@@ -6484,20 +5213,17 @@ class C6 : C5<I1>
             compilation2.VerifyEmitDiagnostics();
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void VarianceSafety_01(bool isVirtual)
+        [Fact]
+        public void VarianceSafety_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I2<out T1, in T2>
 {
-    " + modifier + @" static T1 P1 { get" + body + @" }
-    " + modifier + @" static T2 P2 { get" + body + @" }
-    " + modifier + @" static T1 P3 { set" + body + @" }
-    " + modifier + @" static T2 P4 { set" + body + @" }
+    abstract static T1 P1 { get; }
+    abstract static T2 P2 { get; }
+    abstract static T1 P3 { set; }
+    abstract static T2 P4 { set; }
 }
 ";
 
@@ -6514,20 +5240,17 @@ interface I2<out T1, in T2>
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void VarianceSafety_02(bool isVirtual)
+        [Fact]
+        public void VarianceSafety_02()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I2<out T1, in T2>
 {
-    " + modifier + @" static T1 M1()" + body + @"
-    " + modifier + @" static T2 M2()" + body + @"
-    " + modifier + @" static void M3(T1 x)" + body + @"
-    " + modifier + @" static void M4(T2 x)" + body + @"
+    abstract static T1 M1();
+    abstract static T2 M2();
+    abstract static void M3(T1 x);
+    abstract static void M4(T2 x);
 }
 ";
 
@@ -6544,20 +5267,17 @@ interface I2<out T1, in T2>
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void VarianceSafety_03(bool isVirtual)
+        [Fact]
+        public void VarianceSafety_03()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
-@"#pragma warning disable CS0067 // The event 'I2<T1, T2>.E1' is never used
+@"
 interface I2<out T1, in T2>
 {
-    " + modifier + @" static event System.Action<System.Func<T1>> E1;
-    " + modifier + @" static event System.Action<System.Func<T2>> E2;
-    " + modifier + @" static event System.Action<System.Action<T1>> E3;
-    " + modifier + @" static event System.Action<System.Action<T2>> E4;
+    abstract static event System.Action<System.Func<T1>> E1;
+    abstract static event System.Action<System.Func<T2>> E2;
+    abstract static event System.Action<System.Action<T1>> E3;
+    abstract static event System.Action<System.Action<T2>> E4;
 }
 ";
 
@@ -6574,22 +5294,19 @@ interface I2<out T1, in T2>
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void VarianceSafety_04(bool isVirtual)
+        [Fact]
+        public void VarianceSafety_04()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I2<out T2>
 {
-    " + modifier + @" static int operator +(I2<T2> x)" + body + @"
+    abstract static int operator +(I2<T2> x);
 }
 
 interface I3<out T3>
 {
-    " + modifier + @" static int operator +(I3<T3> x)" + body + @"
+    abstract static int operator +(I3<T3> x);
 }
 ";
 
@@ -6607,11 +5324,14 @@ interface I3<out T3>
         }
 
         [Theory]
-        [CombinatorialData]
-        public void OperatorSignature_01([CombinatorialValues("+", "-", "!", "~", "true", "false")] string op, bool isVirtual)
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("!")]
+        [InlineData("~")]
+        [InlineData("true")]
+        [InlineData("false")]
+        public void OperatorSignature_01(string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1<T1> where T1 : I1<T1>
@@ -6626,56 +5346,56 @@ interface I2<T2> where T2 : struct, I2<T2>
 
 interface I3<T3> where T3 : I3<T3>
 {
-    static " + modifier + @" bool operator " + op + @"(T3 x)" + body + @"
+    static abstract bool operator " + op + @"(T3 x);
 }
 
 interface I4<T4> where T4 : struct, I4<T4>
 {
-    static " + modifier + @" bool operator " + op + @"(T4? x)" + body + @"
+    static abstract bool operator " + op + @"(T4? x);
 }
 
 class C5<T5> where T5 : C5<T5>.I6
 {
     public interface I6
     {
-        static " + modifier + @" bool operator " + op + @"(T5 x)" + body + @"
+        static abstract bool operator " + op + @"(T5 x);
     }
 }
 
 interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
 {
-    static " + modifier + @" bool operator " + op + @"(T71 x)" + body + @"
+    static abstract bool operator " + op + @"(T71 x);
 }
 
 interface I8<T8> where T8 : I9<T8>
 {
-    static " + modifier + @" bool operator " + op + @"(T8 x)" + body + @"
+    static abstract bool operator " + op + @"(T8 x);
 }
 
 interface I9<T9> : I8<T9> where T9 : I9<T9> {}
 
 interface I10<T10> where T10 : C11<T10>
 {
-    static " + modifier + @" bool operator " + op + @"(T10 x)" + body + @"
+    static abstract bool operator " + op + @"(T10 x);
 }
 
 class C11<T11> : I10<T11> where T11 : C11<T11> {}
 
 interface I12
 {
-    static " + modifier + @" bool operator " + op + @"(int x)" + body + @"
+    static abstract bool operator " + op + @"(int x);
 }
 
 interface I13
 {
-    static " + modifier + @" bool operator " + op + @"(I13 x)" + body + @"
+    static abstract bool operator " + op + @"(I13 x);
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_UnimplementedInterfaceMember)).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (4,26): error CS0562: The parameter of a unary operator must be the containing type
                 //     static bool operator +(T1 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, op).WithLocation(4, 26),
@@ -6694,6 +5414,9 @@ interface I13
                 // (44,35): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T10 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(44, 35),
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator false(T11)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11)").WithLocation(47, 18),
                 // (51,35): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator false(int x);
                 Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(51, 35)
@@ -6701,11 +5424,10 @@ interface I13
         }
 
         [Theory]
-        [CombinatorialData]
-        public void OperatorSignature_02([CombinatorialValues("++", "--")] string op, bool isVirtual)
+        [InlineData("++")]
+        [InlineData("--")]
+        public void OperatorSignature_02(string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1<T1> where T1 : I1<T1>
@@ -6720,56 +5442,56 @@ interface I2<T2> where T2 : struct, I2<T2>
 
 interface I3<T3> where T3 : I3<T3>
 {
-    static " + modifier + @" T3 operator " + op + @"(T3 x)" + body + @"
+    static abstract T3 operator " + op + @"(T3 x);
 }
 
 interface I4<T4> where T4 : struct, I4<T4>
 {
-    static " + modifier + @" T4? operator " + op + @"(T4? x)" + body + @"
+    static abstract T4? operator " + op + @"(T4? x);
 }
 
 class C5<T5> where T5 : C5<T5>.I6
 {
     public interface I6
     {
-        static " + modifier + @" T5 operator " + op + @"(T5 x)" + body + @"
+        static abstract T5 operator " + op + @"(T5 x);
     }
 }
 
 interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
 {
-    static " + modifier + @" T71 operator " + op + @"(T71 x)" + body + @"
+    static abstract T71 operator " + op + @"(T71 x);
 }
 
 interface I8<T8> where T8 : I9<T8>
 {
-    static " + modifier + @" T8 operator " + op + @"(T8 x)" + body + @"
+    static abstract T8 operator " + op + @"(T8 x);
 }
 
 interface I9<T9> : I8<T9> where T9 : I9<T9> {}
 
 interface I10<T10> where T10 : C11<T10>
 {
-    static " + modifier + @" T10 operator " + op + @"(T10 x)" + body + @"
+    static abstract T10 operator " + op + @"(T10 x);
 }
 
 class C11<T11> : I10<T11> where T11 : C11<T11> {}
 
 interface I12
 {
-    static " + modifier + @" int operator " + op + @"(int x)" + body + @"
+    static abstract int operator " + op + @"(int x);
 }
 
 interface I13
 {
-    static " + modifier + @" I13 operator " + op + @"(I13 x)" + body + @"
+    static abstract I13 operator " + op + @"(I13 x);
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_UnimplementedInterfaceMember).Verify(
+            compilation1.VerifyDiagnostics(
                 // (4,24): error CS0559: The parameter type for ++ or -- operator must be the containing type
                 //     static T1 operator ++(T1 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(4, 24),
@@ -6788,6 +5510,9 @@ interface I13
                 // (44,34): error CS8922: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract T10 operator ++(T10 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(44, 34),
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator --(T11)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11)").WithLocation(47, 18),
                 // (51,34): error CS8922: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract int operator ++(int x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(51, 34)
@@ -6795,11 +5520,10 @@ interface I13
         }
 
         [Theory]
-        [CombinatorialData]
-        public void OperatorSignature_03([CombinatorialValues("++", "--")] string op, bool isVirtual)
+        [InlineData("++")]
+        [InlineData("--")]
+        public void OperatorSignature_03(string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1<T1> where T1 : I1<T1>
@@ -6814,59 +5538,59 @@ interface I2<T2> where T2 : struct, I2<T2>
 
 interface I3<T3> where T3 : I3<T3>
 {
-    static " + modifier + @" T3 operator " + op + @"(I3<T3> x)" + body + @"
+    static abstract T3 operator " + op + @"(I3<T3> x);
 }
 
 interface I4<T4> where T4 : struct, I4<T4>
 {
-    static " + modifier + @" T4? operator " + op + @"(I4<T4> x)" + body + @"
+    static abstract T4? operator " + op + @"(I4<T4> x);
 }
 
 class C5<T5> where T5 : C5<T5>.I6
 {
     public interface I6
     {
-        static " + modifier + @" T5 operator " + op + @"(I6 x)" + body + @"
+        static abstract T5 operator " + op + @"(I6 x);
     }
 }
 
 interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
 {
-    static " + modifier + @" T71 operator " + op + @"(I7<T71, T72> x)" + body + @"
+    static abstract T71 operator " + op + @"(I7<T71, T72> x);
 }
 
 interface I8<T8> where T8 : I9<T8>
 {
-    static " + modifier + @" T8 operator " + op + @"(I8<T8> x)" + body + @"
+    static abstract T8 operator " + op + @"(I8<T8> x);
 }
 
 interface I9<T9> : I8<T9> where T9 : I9<T9> {}
 
 interface I10<T10> where T10 : C11<T10>
 {
-    static " + modifier + @" T10 operator " + op + @"(I10<T10> x)" + body + @"
+    static abstract T10 operator " + op + @"(I10<T10> x);
 }
 
 class C11<T11> : I10<T11> where T11 : C11<T11> {}
 
 interface I12
 {
-    static " + modifier + @" int operator " + op + @"(I12 x)" + body + @"
+    static abstract int operator " + op + @"(I12 x);
 }
 
 interface I13<T13> where T13 : struct, I13<T13>
 {
-    static " + modifier + @" T13? operator " + op + @"(T13 x)" + body + @"
+    static abstract T13? operator " + op + @"(T13 x);
 }
 
 interface I14<T14> where T14 : struct, I14<T14>
 {
-    static " + modifier + @" T14 operator " + op + @"(T14? x)" + body + @"
+    static abstract T14 operator " + op + @"(T14? x);
 }
 
 interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T152>
 {
-    static " + modifier + @" T151 operator " + op + @"(T152 x)" + body + @"
+    static abstract T151 operator " + op + @"(T152 x);
 }
 
 ";
@@ -6874,7 +5598,7 @@ interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T1
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_UnimplementedInterfaceMember).Verify(
+            compilation1.VerifyDiagnostics(
                 // (4,24): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                 //     static T1 operator ++(I1<T1> x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(4, 24),
@@ -6896,6 +5620,9 @@ interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T1
                 // (44,34): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T10 operator ++(I10<T10> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(44, 34),
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator ++(I10<T11>)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(I10<T11>)").WithLocation(47, 18),
                 // (51,34): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract int operator ++(I12 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(51, 34),
@@ -6913,15 +5640,8 @@ interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T1
 
         [Theory]
         [CombinatorialData]
-        public void OperatorSignature_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isVirtual)
+        public void OperatorSignature_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1<T1> where T1 : I1<T1>
@@ -6936,56 +5656,56 @@ interface I2<T2> where T2 : struct, I2<T2>
 
 interface I3<T3> where T3 : I3<T3>
 {
-    static " + modifier + @" bool operator " + op + @"(T3 x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(T3 x, bool y);
 }
 
 interface I4<T4> where T4 : struct, I4<T4>
 {
-    static " + modifier + @" bool operator " + op + @"(T4? x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(T4? x, bool y);
 }
 
 class C5<T5> where T5 : C5<T5>.I6
 {
     public interface I6
     {
-        static " + modifier + @" bool operator " + op + @"(T5 x, bool y)" + body + @"
+        static abstract bool operator " + op + @"(T5 x, bool y);
     }
 }
 
 interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
 {
-    static " + modifier + @" bool operator " + op + @"(T71 x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(T71 x, bool y);
 }
 
 interface I8<T8> where T8 : I9<T8>
 {
-    static " + modifier + @" bool operator " + op + @"(T8 x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(T8 x, bool y);
 }
 
 interface I9<T9> : I8<T9> where T9 : I9<T9> {}
 
 interface I10<T10> where T10 : C11<T10>
 {
-    static " + modifier + @" bool operator " + op + @"(T10 x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(T10 x, bool y);
 }
 
 class C11<T11> : I10<T11> where T11 : C11<T11> {}
 
 interface I12
 {
-    static " + modifier + @" bool operator " + op + @"(int x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(int x, bool y);
 }
 
 interface I13
 {
-    static " + modifier + @" bool operator " + op + @"(I13 x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(I13 x, bool y);
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators or (int)ErrorCode.ERR_UnimplementedInterfaceMember)).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators)).Verify(
                 // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(T1 x, bool y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(4, 26),
@@ -7004,6 +5724,9 @@ interface I13
                 // (44,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T10 x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(44, 35),
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator /(T11, bool)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11, bool)").WithLocation(47, 18),
                 // (51,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(int x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(51, 35)
@@ -7012,15 +5735,8 @@ interface I13
 
         [Theory]
         [CombinatorialData]
-        public void OperatorSignature_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isVirtual)
+        public void OperatorSignature_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1<T1> where T1 : I1<T1>
@@ -7035,56 +5751,56 @@ interface I2<T2> where T2 : struct, I2<T2>
 
 interface I3<T3> where T3 : I3<T3>
 {
-    static " + modifier + @" bool operator " + op + @"(bool y, T3 x)" + body + @"
+    static abstract bool operator " + op + @"(bool y, T3 x);
 }
 
 interface I4<T4> where T4 : struct, I4<T4>
 {
-    static " + modifier + @" bool operator " + op + @"(bool y, T4? x)" + body + @"
+    static abstract bool operator " + op + @"(bool y, T4? x);
 }
 
 class C5<T5> where T5 : C5<T5>.I6
 {
     public interface I6
     {
-        static " + modifier + @" bool operator " + op + @"(bool y, T5 x)" + body + @"
+        static abstract bool operator " + op + @"(bool y, T5 x);
     }
 }
 
 interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
 {
-    static " + modifier + @" bool operator " + op + @"(bool y, T71 x)" + body + @"
+    static abstract bool operator " + op + @"(bool y, T71 x);
 }
 
 interface I8<T8> where T8 : I9<T8>
 {
-    static " + modifier + @" bool operator " + op + @"(bool y, T8 x)" + body + @"
+    static abstract bool operator " + op + @"(bool y, T8 x);
 }
 
 interface I9<T9> : I8<T9> where T9 : I9<T9> {}
 
 interface I10<T10> where T10 : C11<T10>
 {
-    static " + modifier + @" bool operator " + op + @"(bool y, T10 x)" + body + @"
+    static abstract bool operator " + op + @"(bool y, T10 x);
 }
 
 class C11<T11> : I10<T11> where T11 : C11<T11> {}
 
 interface I12
 {
-    static " + modifier + @" bool operator " + op + @"(bool y, int x)" + body + @"
+    static abstract bool operator " + op + @"(bool y, int x);
 }
 
 interface I13
 {
-    static " + modifier + @" bool operator " + op + @"(bool y, I13 x)" + body + @"
+    static abstract bool operator " + op + @"(bool y, I13 x);
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators or (int)ErrorCode.ERR_UnimplementedInterfaceMember)).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators)).Verify(
                 // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(bool y, T1 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(4, 26),
@@ -7103,6 +5819,9 @@ interface I13
                 // (44,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(bool y, T10 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(44, 35),
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator <=(bool, T11)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(bool, T11)").WithLocation(47, 18),
                 // (51,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(bool y, int x);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(51, 35)
@@ -7110,11 +5829,11 @@ interface I13
         }
 
         [Theory]
-        [CombinatorialData]
-        public void OperatorSignature_06([CombinatorialValues("<<", ">>", ">>>")] string op, bool isVirtual)
+        [InlineData("<<")]
+        [InlineData(">>")]
+        [InlineData(">>>")]
+        public void OperatorSignature_06(string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1<T1> where T1 : I1<T1>
@@ -7129,82 +5848,88 @@ interface I2<T2> where T2 : struct, I2<T2>
 
 interface I3<T3> where T3 : I3<T3>
 {
-    static " + modifier + @" bool operator " + op + @"(T3 x, int y)" + body + @"
+    static abstract bool operator " + op + @"(T3 x, int y);
 }
 
 interface I4<T4> where T4 : struct, I4<T4>
 {
-    static " + modifier + @" bool operator " + op + @"(T4? x, int y)" + body + @"
+    static abstract bool operator " + op + @"(T4? x, int y);
 }
 
 class C5<T5> where T5 : C5<T5>.I6
 {
     public interface I6
     {
-        static " + modifier + @" bool operator " + op + @"(T5 x, int y)" + body + @"
+        static abstract bool operator " + op + @"(T5 x, int y);
     }
 }
 
 interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
 {
-    static " + modifier + @" bool operator " + op + @"(T71 x, int y)" + body + @"
+    static abstract bool operator " + op + @"(T71 x, int y);
 }
 
 interface I8<T8> where T8 : I9<T8>
 {
-    static " + modifier + @" bool operator " + op + @"(T8 x, int y)" + body + @"
+    static abstract bool operator " + op + @"(T8 x, int y);
 }
 
 interface I9<T9> : I8<T9> where T9 : I9<T9> {}
 
 interface I10<T10> where T10 : C11<T10>
 {
-    static " + modifier + @" bool operator " + op + @"(T10 x, int y)" + body + @"
+    static abstract bool operator " + op + @"(T10 x, int y);
 }
 
 class C11<T11> : I10<T11> where T11 : C11<T11> {}
 
 interface I12
 {
-    static " + modifier + @" bool operator " + op + @"(int x, int y)" + body + @"
+    static abstract bool operator " + op + @"(int x, int y);
 }
 
 interface I13
 {
-    static " + modifier + @" bool operator " + op + @"(I13 x, int y)" + body + @"
+    static abstract bool operator " + op + @"(I13 x, int y);
 }
 
 interface I14
 {
-    static " + modifier + @" bool operator " + op + @"(I14 x, bool y)" + body + @"
+    static abstract bool operator " + op + @"(I14 x, bool y);
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_UnimplementedInterfaceMember)).Verify(
-                // (4,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     static bool operator <<(T1 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, op).WithLocation(4, 26),
-                // (9,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type
+                // (9,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     static bool operator <<(T2? x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
+                // (26,39): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //         static abstract bool operator <<(T5 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
+                // (32,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(T71 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
+                // (37,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(T8 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
+                // (44,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(T10 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(44, 35),
-                // (51,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator >>(T11, int)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11, int)").WithLocation(47, 18),
+                // (51,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(int x, int y);
-                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(51, 35)
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(51, 35),
+                // (61,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                //     static abstract bool operator <<(I14 x, bool y);
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(61, 35)
                 );
         }
 
@@ -7450,17 +6175,14 @@ interface I19<T19_1, T19_2> where T19_1 : I19<T19_1, T19_2>, T19_2
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 
     static void M02()
     {
@@ -7476,7 +6198,7 @@ interface I1
 
     static void M04() {}
 
-    protected " + modifier + @" static void M05()" + body + @"
+    protected abstract static void M05();
 }
 
 class Test
@@ -7505,7 +6227,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         M01();
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "M01").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -7514,7 +6236,7 @@ class Test
                 // (15,9): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.M04();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 9),
-                // (27,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.M01();
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.M01").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -7535,23 +6257,20 @@ class Test
                 // (38,11): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         T.M05();
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 11),
-                // (40,71): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.M01());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01()").WithLocation(40, 71)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_02(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_02()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 
     static void M02()
     {
@@ -7567,7 +6286,7 @@ interface I1
 
     static void M04() {}
 
-    protected " + modifier + @" static void M05()" + body + @"
+    protected abstract static void M05();
 }
 
 class Test
@@ -7609,18 +6328,15 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_03()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
-    " + modifier + @" static void M04(int x)" + body + @"
+    abstract static void M01();
+    abstract static void M04(int x);
 }
 
 class Test
@@ -7733,17 +6449,14 @@ IInvocationOperation (virtual void I1.M01()) (OperationKind.Invocation, Type: Sy
             Assert.Contains("M01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_04()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -7782,17 +6495,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_05(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_05()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static I1 Select(System.Func<int, int> p)" + body + @"
+    abstract static I1 Select(System.Func<int, int> p);
 }
 
 class Test
@@ -7813,23 +6523,20 @@ class Test
                 // (11,23): error CS0119: 'T' is a type parameter, which is not valid in the given context
                 //         _ = from t in T select t + 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(11, 23),
-                // (12,26): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (12,26): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = from t in I1 select t + 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "select t + 1").WithLocation(12, 26)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_06()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -7847,7 +6554,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -7858,16 +6565,16 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         T.M01();
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
                 );
         }
 
@@ -7887,21 +6594,14 @@ class Test
         [InlineData("", "--", true)]
         public void ConsumeAbstractUnaryOperator_01(string prefixOp, string postfixOp, bool isChecked)
         {
-            consumeAbstractUnaryOperator_01(prefixOp, postfixOp, isChecked, isVirtual: false);
-            consumeAbstractUnaryOperator_01(prefixOp, postfixOp, isChecked, isVirtual: true);
+            string checkedKeyword = isChecked ? " checked " : "";
 
-            void consumeAbstractUnaryOperator_01(string prefixOp, string postfixOp, bool isChecked, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-
-                string checkedKeyword = isChecked ? " checked " : "";
-
-                var source1 =
+            var source1 =
 @"
 partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator" + checkedKeyword + prefixOp + postfixOp + @" (T x)" + body + @"
-    " + modifier + @" static I1<T> operator" + checkedKeyword + prefixOp + postfixOp + @" (I1<T> x)" + body + @"
+    abstract static T operator" + checkedKeyword + prefixOp + postfixOp + @" (T x);
+    abstract static I1<T> operator" + checkedKeyword + prefixOp + postfixOp + @" (I1<T> x);
     static void M02(I1<T> x)
     {" + checkedKeyword + @"{
         _ = " + prefixOp + "x" + postfixOp + @";
@@ -7927,30 +6627,29 @@ class Test<T> where T : I1<T>
 }
 ";
 
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
-                compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (8,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                    //         _ = -x;
-                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "x" + postfixOp).WithLocation(8, 13),
-                    // (13,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                    //         _ = -y;
-                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "y" + postfixOp).WithLocation(13, 13),
-                    // (21,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                    //         _ = -a;
-                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "a" + postfixOp).WithLocation(21, 13),
-                    (prefixOp + postfixOp).Length == 1 ?
-                        // (26,78): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (-b).ToString());
-                        Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, prefixOp + "b" + postfixOp).WithLocation(26, 78)
-                        :
-                        // (26,78): error CS0832: An expression tree may not contain an assignment operator
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b--).ToString());
-                        Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, prefixOp + "b" + postfixOp).WithLocation(26, 78)
-                    );
-            }
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = -x;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "x" + postfixOp).WithLocation(8, 13),
+                // (13,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = -y;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "y" + postfixOp).WithLocation(13, 13),
+                // (21,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = -a;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "a" + postfixOp).WithLocation(21, 13),
+                (prefixOp + postfixOp).Length == 1 ?
+                    // (26,78): error CS8927: An expression tree may not contain an access of static abstract interface member
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (-b).ToString());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, prefixOp + "b" + postfixOp).WithLocation(26, 78)
+                    :
+                    // (26,78): error CS0832: An expression tree may not contain an assignment operator
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b--).ToString());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, prefixOp + "b" + postfixOp).WithLocation(26, 78)
+                );
         }
 
         [Theory]
@@ -7982,31 +6681,25 @@ class Test<T> where T : I1<T>
         [InlineData("", "--", "op_CheckedDecrement", "Decrement", true, true)]
         public void ConsumeAbstractUnaryOperator_03(string prefixOp, string postfixOp, string metadataName, string opKind, bool isCheckedOperator, bool isCheckedContext)
         {
-            consumeAbstractUnaryOperator_03(prefixOp, postfixOp, metadataName, opKind, isCheckedOperator, isCheckedContext, isVirtual: false);
-            consumeAbstractUnaryOperator_03(prefixOp, postfixOp, metadataName, opKind, isCheckedOperator, isCheckedContext, isVirtual: true);
+            string contextKeyword = isCheckedContext ? " checked " : " unchecked ";
 
-            void consumeAbstractUnaryOperator_03(string prefixOp, string postfixOp, string metadataName, string opKind, bool isCheckedOperator, bool isCheckedContext, bool isVirtual)
-            {
-                string contextKeyword = isCheckedContext ? " checked " : " unchecked ";
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-
-                var source1 =
+            var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + prefixOp + postfixOp + @" (T x)" + body + @"
+    abstract static T operator " + prefixOp + postfixOp + @" (T x);
 "
-    ;
-                if (isCheckedOperator)
-                {
-                    source1 +=
-@"
-    " + modifier + @" static T operator checked " + prefixOp + postfixOp + @" (T x)" + body + @"
-"
-    ;
-                }
-
+;
+            if (isCheckedOperator)
+            {
                 source1 +=
+@"
+    abstract static T operator checked " + prefixOp + postfixOp + @" (T x);
+"
+;
+            }
+
+            source1 +=
 @"}
 
 class Test
@@ -8022,156 +6715,23 @@ class Test
     }}
 }
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
-
-                CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
-
-                compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
-
-                var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
-
-                switch ((prefixOp, postfixOp))
-                {
-                    case ("++", ""):
-                    case ("--", ""):
-                        verifier.VerifyIL("Test.M02<T, U>(T)",
-@"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  constrained. ""T""
-  IL_0007:  call       ""T I1<T>." + metadataName + @"(T)""
-  IL_000c:  dup
-  IL_000d:  starg.s    V_0
-  IL_000f:  ret
-}
-");
-                        verifier.VerifyIL("Test.M03<T, U>(T?)",
-@"
-{
-  // Code size       49 (0x31)
-  .maxstack  2
-  .locals init (T? V_0,
-                T? V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""readonly bool T?.HasValue.get""
-  IL_0009:  brtrue.s   IL_0016
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  initobj    ""T?""
-  IL_0013:  ldloc.1
-  IL_0014:  br.s       IL_002d
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""readonly T T?.GetValueOrDefault()""
-  IL_001d:  constrained. ""T""
-  IL_0023:  call       ""T I1<T>." + metadataName + @"(T)""
-  IL_0028:  newobj     ""T?..ctor(T)""
-  IL_002d:  dup
-  IL_002e:  starg.s    V_0
-  IL_0030:  ret
-}
-");
-                        break;
-
-                    case ("", "++"):
-                    case ("", "--"):
-                        verifier.VerifyIL("Test.M02<T, U>(T)",
-@"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  constrained. ""T""
-  IL_0008:  call       ""T I1<T>." + metadataName + @"(T)""
-  IL_000d:  starg.s    V_0
-  IL_000f:  ret
-}
-");
-                        verifier.VerifyIL("Test.M03<T, U>(T?)",
-@"
-{
-  // Code size       49 (0x31)
-  .maxstack  2
-  .locals init (T? V_0,
-                T? V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  stloc.0
-  IL_0003:  ldloca.s   V_0
-  IL_0005:  call       ""readonly bool T?.HasValue.get""
-  IL_000a:  brtrue.s   IL_0017
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  initobj    ""T?""
-  IL_0014:  ldloc.1
-  IL_0015:  br.s       IL_002e
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""readonly T T?.GetValueOrDefault()""
-  IL_001e:  constrained. ""T""
-  IL_0024:  call       ""T I1<T>." + metadataName + @"(T)""
-  IL_0029:  newobj     ""T?..ctor(T)""
-  IL_002e:  starg.s    V_0
-  IL_0030:  ret
-}
-");
-                        break;
-
-                    default:
-                        verifier.VerifyIL("Test.M02<T, U>(T)",
-@"
-{
-  // Code size       13 (0xd)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  constrained. ""T""
-  IL_0007:  call       ""T I1<T>." + metadataName + @"(T)""
-  IL_000c:  ret
-}
-");
-                        verifier.VerifyIL("Test.M03<T, U>(T?)",
-@"
-{
-  // Code size       45 (0x2d)
-  .maxstack  1
-  .locals init (T? V_0,
-                T? V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""readonly bool T?.HasValue.get""
-  IL_0009:  brtrue.s   IL_0015
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  initobj    ""T?""
-  IL_0013:  ldloc.1
-  IL_0014:  ret
-  IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""readonly T T?.GetValueOrDefault()""
-  IL_001c:  constrained. ""T""
-  IL_0022:  call       ""T I1<T>." + metadataName + @"(T)""
-  IL_0027:  newobj     ""T?..ctor(T)""
-  IL_002c:  ret
-}
-");
-                        break;
-                }
-
-                compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-                verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+            CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-                switch ((prefixOp, postfixOp))
-                {
-                    case ("++", ""):
-                    case ("--", ""):
-                        verifier.VerifyIL("Test.M02<T, U>(T)",
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            switch ((prefixOp, postfixOp))
+            {
+                case ("++", ""):
+                case ("--", ""):
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       16 (0x10)
@@ -8184,7 +6744,7 @@ class Test
   IL_000f:  ret
 }
 ");
-                        verifier.VerifyIL("Test.M03<T, U>(T?)",
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
   // Code size       49 (0x31)
@@ -8210,11 +6770,11 @@ class Test
   IL_0030:  ret
 }
 ");
-                        break;
+                    break;
 
-                    case ("", "++"):
-                    case ("", "--"):
-                        verifier.VerifyIL("Test.M02<T, U>(T)",
+                case ("", "++"):
+                case ("", "--"):
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       16 (0x10)
@@ -8227,7 +6787,7 @@ class Test
   IL_000f:  ret
 }
 ");
-                        verifier.VerifyIL("Test.M03<T, U>(T?)",
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
   // Code size       49 (0x31)
@@ -8253,10 +6813,10 @@ class Test
   IL_0030:  ret
 }
 ");
-                        break;
+                    break;
 
-                    default:
-                        verifier.VerifyIL("Test.M02<T, U>(T)",
+                default:
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       13 (0xd)
@@ -8267,7 +6827,7 @@ class Test
   IL_000c:  ret
 }
 ");
-                        verifier.VerifyIL("Test.M03<T, U>(T?)",
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
   // Code size       45 (0x2d)
@@ -8291,22 +6851,155 @@ class Test
   IL_002c:  ret
 }
 ");
-                        break;
-                }
+                    break;
+            }
 
-                var tree = compilation1.SyntaxTrees.Single();
-                var model = compilation1.GetSemanticModel(tree);
-                var node = postfixOp != "" ? (ExpressionSyntax)tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().First() : tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().First();
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: _supportingFramework);
 
-                Assert.Equal(prefixOp + "x" + postfixOp, node.ToString());
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-                switch ((prefixOp, postfixOp))
-                {
-                    case ("++", ""):
-                    case ("--", ""):
-                    case ("", "++"):
-                    case ("", "--"):
-                        VerifyOperationTreeForNode(compilation1, model, node,
+            switch ((prefixOp, postfixOp))
+            {
+                case ("++", ""):
+                case ("--", ""):
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_000c:  dup
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_002d
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001d:  constrained. ""T""
+  IL_0023:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_0028:  newobj     ""T?..ctor(T)""
+  IL_002d:  dup
+  IL_002e:  starg.s    V_0
+  IL_0030:  ret
+}
+");
+                    break;
+
+                case ("", "++"):
+                case ("", "--"):
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""readonly bool T?.HasValue.get""
+  IL_000a:  brtrue.s   IL_0017
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  initobj    ""T?""
+  IL_0014:  ldloc.1
+  IL_0015:  br.s       IL_002e
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_0029:  newobj     ""T?..ctor(T)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ret
+}
+");
+                    break;
+
+                default:
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_000c:  ret
+}
+");
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001c:  constrained. ""T""
+  IL_0022:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_0027:  newobj     ""T?..ctor(T)""
+  IL_002c:  ret
+}
+");
+                    break;
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = postfixOp != "" ? (ExpressionSyntax)tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().First() : tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().First();
+
+            Assert.Equal(prefixOp + "x" + postfixOp, node.ToString());
+
+            switch ((prefixOp, postfixOp))
+            {
+                case ("++", ""):
+                case ("--", ""):
+                case ("", "++"):
+                case ("", "--"):
+                    VerifyOperationTreeForNode(compilation1, model, node,
 // https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
 //                                                reflected in the IOperation tree. Should we change the shape of the tree in order
 //                                                to expose this information? 
@@ -8315,10 +7008,10 @@ IIncrementOrDecrementOperation (" + (prefixOp != "" ? "Prefix" : "Postfix") + (i
   Target: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
 ");
-                        break;
+                    break;
 
-                    default:
-                        VerifyOperationTreeForNode(compilation1, model, node,
+                default:
+                    VerifyOperationTreeForNode(compilation1, model, node,
 // https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
 //                                                reflected in the IOperation tree. Should we change the shape of the tree in order
 //                                                to expose this information? 
@@ -8327,8 +7020,7 @@ IUnaryOperation (UnaryOperatorKind." + opKind + (isCheckedOperator && isCheckedC
   Operand: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
 ");
-                        break;
-                }
+                    break;
             }
         }
 
@@ -8348,22 +7040,16 @@ IUnaryOperation (UnaryOperatorKind." + opKind + (isCheckedOperator && isCheckedC
         [InlineData("", "--", true)]
         public void ConsumeAbstractUnaryOperator_04(string prefixOp, string postfixOp, bool isChecked)
         {
-            consumeAbstractUnaryOperator_04(prefixOp, postfixOp, isChecked, isVirtual: false);
-            consumeAbstractUnaryOperator_04(prefixOp, postfixOp, isChecked, isVirtual: true);
+            string checkedKeyword = isChecked ? " checked " : "";
 
-            void consumeAbstractUnaryOperator_04(string prefixOp, string postfixOp, bool isChecked, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-                string checkedKeyword = isChecked ? " checked " : "";
-
-                var source1 =
+            var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator" + checkedKeyword + prefixOp + postfixOp + @" (T x)" + body + @"
+    abstract static T operator" + checkedKeyword + prefixOp + postfixOp + @" (T x);
 }
 ";
-                var source2 =
+            var source2 =
 @"
 class Test
 {
@@ -8373,31 +7059,30 @@ class Test
     }}
 }
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
-                                                     references: new[] { compilation1.ToMetadataReference() });
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
 
-                compilation2.VerifyDiagnostics(
-                    // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                    //         _ = -x;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, prefixOp + "x" + postfixOp).WithLocation(6, 13)
-                    );
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = -x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, prefixOp + "x" + postfixOp).WithLocation(6, 13)
+                );
 
-                var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended);
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
 
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                    //     abstract static T operator- (T x);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, prefixOp + postfixOp).WithLocation(12, 31 + checkedKeyword.Length)
-                    );
-            }
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static T operator- (T x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, prefixOp + postfixOp).WithLocation(12, 31 + checkedKeyword.Length)
+                );
         }
 
         [Theory]
@@ -8416,22 +7101,16 @@ class Test
         [InlineData("", "--", true)]
         public void ConsumeAbstractUnaryOperator_06(string prefixOp, string postfixOp, bool isChecked)
         {
-            consumeAbstractUnaryOperator_06(prefixOp, postfixOp, isChecked, isVirtual: false);
-            consumeAbstractUnaryOperator_06(prefixOp, postfixOp, isChecked, isVirtual: true);
+            string checkedKeyword = isChecked ? " checked " : "";
 
-            void consumeAbstractUnaryOperator_06(string prefixOp, string postfixOp, bool isChecked, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-                string checkedKeyword = isChecked ? " checked " : "";
-
-                var source1 =
+            var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator" + checkedKeyword + prefixOp + postfixOp + @" (T x)" + body + @"
+    abstract static T operator" + checkedKeyword + prefixOp + postfixOp + @" (T x);
 }
 ";
-                var source2 =
+            var source2 =
 @"
 class Test
 {
@@ -8441,73 +7120,69 @@ class Test
     }}
 }
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular10,
-                                                     targetFramework: _supportingFramework,
-                                                     references: new[] { compilation1.ToMetadataReference() });
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.ToMetadataReference() });
 
-                if (isChecked)
-                {
-                    compilation2.VerifyDiagnostics(
-                        // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = -x;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces").WithLocation(6, 13),
-                        // (6,13): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = -x;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("checked user-defined operators").WithLocation(6, 13)
-                        );
-                }
-                else
-                {
-                    compilation2.VerifyDiagnostics(
-                        // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = -x;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces").WithLocation(6, 13)
-                        );
-                }
+            if (isChecked)
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = -x;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces").WithLocation(6, 13),
+                    // (6,13): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = -x;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("checked user-defined operators").WithLocation(6, 13)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = -x;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                    );
+            }
 
-                var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular10,
-                                                     targetFramework: _supportingFramework);
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: _supportingFramework);
 
-                if (isChecked)
-                {
-                    compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                        // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     abstract static T operator checked - (T x);
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
-                        // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static T operator checked - (T x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 40)
-                        );
-                }
-                else
-                {
-                    compilation3.VerifyDiagnostics(
-                        // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static T operator- (T x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 31)
-                        );
-                }
+            if (isChecked)
+            {
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                    // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static T operator checked - (T x);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
+                    // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator checked - (T x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments("abstract", "9.0", "preview").WithLocation(12, 40)
+                    );
+            }
+            else
+            {
+                compilation3.VerifyDiagnostics(
+                    // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator- (T x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments("abstract", "9.0", "preview").WithLocation(12, 31)
+                    );
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractTrueOperator_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractTrueOperator_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static bool operator true (I1 x)" + body + @"
-    " + modifier + @" static bool operator false (I1 x)" + body + @"
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
 
     static void M02(I1 x)
     {
@@ -8538,33 +7213,30 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (9,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (9,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = x ? true : false;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x").WithLocation(9, 13),
-                // (14,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (14,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = y ? true : false;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y").WithLocation(14, 13),
-                // (22,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (22,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = a ? true : false;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a").WithLocation(22, 13),
-                // (27,78): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (27,78): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b ? true : false).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b").WithLocation(27, 78)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractTrueOperator_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractTrueOperator_03()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static bool operator true (T x)" + body + @"
-    " + modifier + @" static bool operator false (T x)" + body + @"
+    abstract static bool operator true (T x);
+    abstract static bool operator false (T x);
 }
 
 class Test
@@ -8637,18 +7309,15 @@ IConditionalOperation (OperationKind.Conditional, Type: System.Boolean) (Syntax:
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractTrueOperator_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractTrueOperator_04()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static bool operator true (I1 x)" + body + @"
-    " + modifier + @" static bool operator false (I1 x)" + body + @"
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
 }
 ";
             var source2 =
@@ -8690,18 +7359,15 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractTrueOperator_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractTrueOperator_06()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static bool operator true (I1 x)" + body + @"
-    " + modifier + @" static bool operator false (I1 x)" + body + @"
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
 }
 ";
             var source2 =
@@ -8719,7 +7385,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -8730,31 +7396,29 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator true (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 35),
-                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments("abstract", "9.0", "preview").WithLocation(12, 35),
+                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator false (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(13, 35)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments("abstract", "9.0", "preview").WithLocation(13, 35)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op, bool isVirtual)
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static bool operator true (I1 x)" + body + @"
-    " + modifier + @" static bool operator false (I1 x)" + body + @"
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
 
     static void M02((int, C<I1>) x)
     {
@@ -8794,13 +7458,13 @@ class C<T>
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (9,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (9,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = x == x;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(9, 13),
-                // (14,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (14,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = y == y;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(14, 13),
-                // (22,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (22,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = a == a;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(22, 13),
                 // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
@@ -8811,16 +7475,14 @@ class C<T>
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op, bool isVirtual)
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static bool operator true (T x)" + body + @"
-    " + modifier + @" static bool operator false (T x)" + body + @"
+    abstract static bool operator true (T x);
+    abstract static bool operator false (T x);
 }
 
 class Test
@@ -9007,16 +7669,14 @@ ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEqual
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op, bool isVirtual)
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static bool operator true (I1 x)" + body + @"
-    " + modifier + @" static bool operator false (I1 x)" + body + @"
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
 }
 ";
             var source2 =
@@ -9069,16 +7729,14 @@ class C<T>
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op, bool isVirtual)
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op)
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static bool operator true (I1 x)" + body + @"
-    " + modifier + @" static bool operator false (I1 x)" + body + @"
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
 }
 ";
             var source2 =
@@ -9105,7 +7763,7 @@ class C<T>
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -9116,40 +7774,33 @@ class C<T>
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (21,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (21,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator true (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(21, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments("abstract", "9.0", "preview").WithLocation(21, 35),
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator false (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(22, 35)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments("abstract", "9.0", "preview").WithLocation(22, 35)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ConsumeAbstractBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 partial interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @" (I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @" (I1 x, int y);
 
     static void M02(I1 x)
     {" + checkedKeyword + @"{
@@ -9184,7 +7835,7 @@ class Test
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator" + matchingOp + @" (I1 x, int y)" + body + @"
+    abstract static I1 operator" + matchingOp + @" (I1 x, int y);
 }
 ";
             }
@@ -9196,13 +7847,13 @@ public partial interface I1
             if (isChecked && op == "/")
             {
                 compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = x - 1;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " 1").WithLocation(8, 13),
-                    // (13,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (13,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = y - 2;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " 2").WithLocation(13, 13),
-                    // (21,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (21,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = a - 3;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " 3").WithLocation(21, 13),
                     // (26,78): error CS7053: An expression tree may not contain 'I1.operator checked /(I1, int)'
@@ -9213,16 +7864,16 @@ public partial interface I1
             else if (op == ">>>")
             {
                 compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = x >>> 1;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x >>> 1").WithLocation(8, 13),
-                    // (13,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (13,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = y >>> 2;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y >>> 2").WithLocation(13, 13),
-                    // (21,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (21,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = a >>> 3;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a >>> 3").WithLocation(21, 13),
-                    // (26,78): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                    // (26,78): error CS8927: An expression tree may not contain an access of static abstract interface member
                     //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b >>> 4).ToString());
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b >>> 4").WithLocation(26, 78),
                     // (26,78): error CS7053: An expression tree may not contain '>>>'
@@ -9233,16 +7884,16 @@ public partial interface I1
             else
             {
                 compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = x - 1;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " 1").WithLocation(8, 13),
-                    // (13,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (13,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = y - 2;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " 2").WithLocation(13, 13),
-                    // (21,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                    // (21,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = a - 3;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " 3").WithLocation(21, 13),
-                    // (26,78): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                    // (26,78): error CS8927: An expression tree may not contain an access of static abstract interface member
                     //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b - 4).ToString());
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + " 4").WithLocation(26, 78)
                     );
@@ -9260,20 +7911,13 @@ public partial interface I1
         [InlineData("|", false, false, true, true)]
         public void ConsumeAbstractLogicalBinaryOperator_01(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool success)
         {
-            consumeAbstractLogicalBinaryOperator_01(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, success, isVirtual: false);
-            consumeAbstractLogicalBinaryOperator_01(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, success, isVirtual: true);
-
-            void consumeAbstractLogicalBinaryOperator_01(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool success, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-
-                var source1 =
+            var source1 =
 @"
 interface I1
 {
-    " + (binaryIsAbstract ? modifier : "") + @" static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? body : " => throw null;") + @"
-    " + (trueIsAbstract ? modifier : "") + @" static bool operator true (I1 x)" + (trueIsAbstract ? body : " => throw null;") + @"
-    " + (falseIsAbstract ? modifier : "") + @" static bool operator false (I1 x)" + (falseIsAbstract ? body : " => throw null;") + @"
+    " + (binaryIsAbstract ? "abstract " : "") + @"static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? ";" : " => throw null;") + @"
+    " + (trueIsAbstract ? "abstract " : "") + @"static bool operator true (I1 x)" + (trueIsAbstract ? ";" : " => throw null;") + @"
+    " + (falseIsAbstract ? "abstract " : "") + @"static bool operator false (I1 x)" + (falseIsAbstract ? ";" : " => throw null;") + @"
 
     static void M02(I1 x)
     {
@@ -9303,35 +7947,35 @@ class Test
         _ = b " + op + op + @" c;
     }
 ";
-                if (!success)
-                {
-                    source1 +=
-    @"
+            if (!success)
+            {
+                source1 +=
+@"
     static void MT4<T>() where T : I1
     {
         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d " + op + op + @" e).ToString());
     }
 ";
-                }
+            }
 
-                source1 +=
+            source1 +=
 @"
 }
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
-                if (success)
-                {
-                    Assert.False(binaryIsAbstract);
-                    Assert.False(op == "&" ? falseIsAbstract : trueIsAbstract);
-                    var binaryMetadataName = op == "&" ? "op_BitwiseAnd" : "op_BitwiseOr";
-                    var unaryMetadataName = op == "&" ? "op_False" : "op_True";
+            if (success)
+            {
+                Assert.False(binaryIsAbstract);
+                Assert.False(op == "&" ? falseIsAbstract : trueIsAbstract);
+                var binaryMetadataName = op == "&" ? "op_BitwiseAnd" : "op_BitwiseOr";
+                var unaryMetadataName = op == "&" ? "op_False" : "op_True";
 
-                    var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+                var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-                    verifier.VerifyIL("Test.MT1(I1)",
+                verifier.VerifyIL("Test.MT1(I1)",
 @"
 {
   // Code size       22 (0x16)
@@ -9352,9 +7996,9 @@ class Test
 }
 ");
 
-                    if (op == "&")
-                    {
-                        verifier.VerifyIL("Test.MT3(I1, dynamic)",
+                if (op == "&")
+                {
+                    verifier.VerifyIL("Test.MT3(I1, dynamic)",
 @"
 {
   // Code size       97 (0x61)
@@ -9398,10 +8042,10 @@ class Test
   IL_0060:  ret
 }
 ");
-                    }
-                    else
-                    {
-                        verifier.VerifyIL("Test.MT3(I1, dynamic)",
+                }
+                else
+                {
+                    verifier.VerifyIL("Test.MT3(I1, dynamic)",
 @"
 {
   // Code size       98 (0x62)
@@ -9445,63 +8089,60 @@ class Test
   IL_0061:  ret
 }
 ");
-                    }
                 }
-                else
+            }
+            else
+            {
+                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+
+                builder.AddRange(
+                    // (10,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                    //         _ = x && x;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + op + " x").WithLocation(10, 13),
+                    // (15,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                    //         _ = y && y;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + op + " y").WithLocation(15, 13),
+                    // (23,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                    //         _ = a && a;
+                    Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + op + " a").WithLocation(23, 13),
+                    // (28,78): error CS8927: An expression tree may not contain an access of static abstract interface member
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b && b).ToString());
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + op + " b").WithLocation(28, 78)
+                    );
+
+                if (op == "&" ? falseIsAbstract : trueIsAbstract)
                 {
-                    var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                    builder.AddRange(
-                        // (10,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                        //         _ = x && x;
-                        Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + op + " x").WithLocation(10, 13),
-                        // (15,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                        //         _ = y && y;
-                        Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + op + " y").WithLocation(15, 13),
-                        // (23,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                        //         _ = a && a;
-                        Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + op + " a").WithLocation(23, 13),
-                        // (28,78): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b && b).ToString());
-                        Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + op + " b").WithLocation(28, 78)
-                        );
-
-                    if (op == "&" ? falseIsAbstract : trueIsAbstract)
-                    {
-                        builder.Add(
-                            // (33,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                            //         _ = b || c;
-                            Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "b " + op + op + " c").WithLocation(33, 13)
-                            );
-                    }
-
                     builder.Add(
-                        // (38,98): error CS7083: Expression must be implicitly convertible to Boolean or its type 'T' must define operator 'true'.
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d || e).ToString());
-                        Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "d").WithArguments("T", op == "&" ? "false" : "true").WithLocation(38, 98)
+                        // (33,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                        //         _ = b || c;
+                        Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "b " + op + op + " c").WithLocation(33, 13)
                         );
-
-                    compilation1.VerifyDiagnostics(builder.ToArrayAndFree());
                 }
+
+                builder.Add(
+                    // (38,98): error CS7083: Expression must be implicitly convertible to Boolean or its type 'T' must define operator 'true'.
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d || e).ToString());
+                    Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "d").WithArguments("T", op == "&" ? "false" : "true").WithLocation(38, 98)
+                    );
+
+                compilation1.VerifyDiagnostics(builder.ToArrayAndFree());
             }
         }
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked, bool isVirtual)
+        public void ConsumeAbstractCompoundBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @" (I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @" (I1 x, int y);
 
     static void M02(I1 x)
     {" + checkedKeyword + @"{
@@ -9516,7 +8157,7 @@ interface I1
 
 interface I2<T> where T : I2<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @" (T x, int y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @" (T x, int y);
 }
 
 class Test
@@ -9537,13 +8178,13 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (8,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x /= 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + "= 1").WithLocation(8, 9),
-                // (13,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (13,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         y /= 2;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + "= 2").WithLocation(13, 9),
-                // (26,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (26,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         a /= 3;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + "= 3").WithLocation(26, 9),
                 // (31,78): error CS0832: An expression tree may not contain an assignment operator
@@ -9655,13 +8296,13 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (12,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (12,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = x == x;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(12, 13),
-                // (17,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (17,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = y == y;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(17, 13),
-                // (25,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (25,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = a == a;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(25, 13),
                 // (30,92): error CS8382: An expression tree may not contain a tuple == or != operator
@@ -9672,7 +8313,7 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isCheckedOperator, bool isCheckedContext, bool isVirtual)
+        public void ConsumeAbstractBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isCheckedOperator, bool isCheckedContext)
         {
             string metadataName = GetBinaryOperatorName(op, isCheckedOperator, out string checkedKeyword);
 
@@ -9688,20 +8329,19 @@ class Test
 
             string contextKeyword = isCheckedContext ? " checked " : " unchecked ";
             bool isShiftOperator = op is "<<" or ">>" or ">>>";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1<T0> where T0 : I1<T0>
 {
-    " + modifier + @" static T0 operator" + op + @" (T0 x, int a)" + body + @"
+    abstract static T0 operator" + op + @" (T0 x, int a);
 "
 ;
             if (isCheckedOperator)
             {
                 source1 +=
 @"
-    " + modifier + @" static T0 operator checked" + op + @" (T0 x, int a)" + body + @"
+    abstract static T0 operator checked" + op + @" (T0 x, int a);
 "
 ;
             }
@@ -9729,18 +8369,18 @@ partial class Test
                 source1 += @"
 public partial interface I1<T0>
 {
-    " + modifier + @" static T0 operator" + op + @" (int a, T0 x)" + body + @"
-    " + modifier + @" static T0 operator" + op + @" (I1<T0> x, T0 a)" + body + @"
-    " + modifier + @" static T0 operator" + op + @" (T0 x, I1<T0> a)" + body + @"
+    abstract static T0 operator" + op + @" (int a, T0 x);
+    abstract static T0 operator" + op + @" (I1<T0> x, T0 a);
+    abstract static T0 operator" + op + @" (T0 x, I1<T0> a);
 "
 ;
                 if (isCheckedOperator)
                 {
                     source1 +=
 @"
-    " + modifier + @" static T0 operator checked " + op + @" (int a, T0 x)" + body + @"
-    " + modifier + @" static T0 operator checked " + op + @" (I1<T0> x, T0 a)" + body + @"
-    " + modifier + @" static T0 operator checked " + op + @" (T0 x, I1<T0> a)" + body + @"
+    abstract static T0 operator checked " + op + @" (int a, T0 x);
+    abstract static T0 operator checked " + op + @" (I1<T0> x, T0 a);
+    abstract static T0 operator checked " + op + @" (T0 x, I1<T0> a);
 "
     ;
                 }
@@ -10009,24 +8649,18 @@ IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + (isCheckedOper
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractComparisonBinaryOperator_03([CombinatorialValues("<", ">", "<=", ">=", "==", "!=")] string op, bool isVirtual)
+        public void ConsumeAbstractComparisonBinaryOperator_03([CombinatorialValues("<", ">", "<=", ">=", "==", "!=")] string op)
         {
-            if (isVirtual && op is ("==" or "!="))
-            {
-                return;
-            }
-
             string metadataName = BinaryOperatorName(op);
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1<T0> where T0 : I1<T0>
 {
-    " + modifier + @" static bool operator" + op + @" (T0 x, int a)" + body + @"
-    " + modifier + @" static bool operator" + op + @" (int a, T0 x)" + body + @"
-    " + modifier + @" static bool operator" + op + @" (I1<T0> x, T0 a)" + body + @"
-    " + modifier + @" static bool operator" + op + @" (T0 x, I1<T0> a)" + body + @"
+    abstract static bool operator" + op + @" (T0 x, int a);
+    abstract static bool operator" + op + @" (int a, T0 x);
+    abstract static bool operator" + op + @" (I1<T0> x, T0 a);
+    abstract static bool operator" + op + @" (T0 x, I1<T0> a);
 }
 
 partial class Test
@@ -10058,10 +8692,10 @@ partial class Test
 @"
 public partial interface I1<T0>
 {
-    " + modifier + @" static bool operator" + matchingOp + @" (T0 x, int a)" + body + @"
-    " + modifier + @" static bool operator" + matchingOp + @" (int a, T0 x)" + body + @"
-    " + modifier + @" static bool operator" + matchingOp + @" (I1<T0> x, T0 a)" + body + @"
-    " + modifier + @" static bool operator" + matchingOp + @" (T0 x, I1<T0> a)" + body + @"
+    abstract static bool operator" + matchingOp + @" (T0 x, int a);
+    abstract static bool operator" + matchingOp + @" (int a, T0 x);
+    abstract static bool operator" + matchingOp + @" (I1<T0> x, T0 a);
+    abstract static bool operator" + matchingOp + @" (T0 x, I1<T0> a);
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -10210,21 +8844,15 @@ IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @") (OperatorM
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractLiftedComparisonBinaryOperator_03([CombinatorialValues("<", ">", "<=", ">=", "==", "!=")] string op, bool isVirtual)
+        public void ConsumeAbstractLiftedComparisonBinaryOperator_03([CombinatorialValues("<", ">", "<=", ">=", "==", "!=")] string op)
         {
-            if (isVirtual && op is ("==" or "!="))
-            {
-                return;
-            }
-
             string metadataName = BinaryOperatorName(op);
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1<T0> where T0 : I1<T0>
 {
-    " + modifier + @" static bool operator" + op + @" (T0 x, T0 a)" + body + @"
+    abstract static bool operator" + op + @" (T0 x, T0 a);
 }
 
 partial class Test
@@ -10241,7 +8869,7 @@ partial class Test
 @"
 public partial interface I1<T0>
 {
-    " + modifier + @" static bool operator" + matchingOp + @" (T0 x, T0 a)" + body + @"
+    abstract static bool operator" + matchingOp + @" (T0 x, T0 a);
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -10407,18 +9035,17 @@ IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @", IsLifted) 
         }
 
         [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractLogicalBinaryOperator_03([CombinatorialValues("&", "|")] string op, bool binaryIsAbstract, bool unaryIsAbstract, bool isVirtual)
+        [InlineData("&", true, true)]
+        [InlineData("|", true, true)]
+        [InlineData("&", true, false)]
+        [InlineData("|", true, false)]
+        [InlineData("&", false, true)]
+        [InlineData("|", false, true)]
+        public void ConsumeAbstractLogicalBinaryOperator_03(string op, bool binaryIsAbstract, bool unaryIsAbstract)
         {
-            if (!binaryIsAbstract && !unaryIsAbstract)
-            {
-                return;
-            }
-
             var binaryMetadataName = op == "&" ? "op_BitwiseAnd" : "op_BitwiseOr";
             var unaryMetadataName = op == "&" ? "op_False" : "op_True";
             var opKind = op == "&" ? "ConditionalAnd" : "ConditionalOr";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             if (binaryIsAbstract && unaryIsAbstract)
             {
@@ -10435,16 +9062,16 @@ IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @", IsLifted) 
 @"
 public interface I1<T0> where T0 : I1<T0>
 {
-    " + modifier + @" static T0 operator" + op + @" (T0 a, T0 x)" + body + @"
-    " + modifier + @" static bool operator true (T0 x)" + body + @"
-    " + modifier + @" static bool operator false (T0 x)" + body + @"
+    abstract static T0 operator" + op + @" (T0 a, T0 x);
+    abstract static bool operator true (T0 x);
+    abstract static bool operator false (T0 x);
 }
 
 public interface I2<T0> where T0 : struct, I2<T0>
 {
-    " + modifier + @" static T0 operator" + op + @" (T0 a, T0 x)" + body + @"
-    " + modifier + @" static bool operator true (T0? x)" + body + @"
-    " + modifier + @" static bool operator false (T0? x)" + body + @"
+    abstract static T0 operator" + op + @" (T0 a, T0 x);
+    abstract static bool operator true (T0? x);
+    abstract static bool operator false (T0? x);
 }
 
 class Test
@@ -10610,9 +9237,9 @@ IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: T I1<T>."
 @"
 public interface I1
 {
-    " + (binaryIsAbstract ? modifier : "") + @" static I1 operator" + op + @" (I1 a, I1 x)" + (binaryIsAbstract ? body : " => throw null;") + @"
-    " + (unaryIsAbstract ? modifier : "") + @" static bool operator true (I1 x)" + (unaryIsAbstract ? body : " => throw null;") + @"
-    " + (unaryIsAbstract ? modifier : "") + @" static bool operator false (I1 x)" + (unaryIsAbstract ? body : " => throw null;") + @"
+    " + (binaryIsAbstract ? "abstract " : "") + @"static I1 operator" + op + @" (I1 a, I1 x)" + (binaryIsAbstract ? ";" : " => throw null;") + @"
+    " + (unaryIsAbstract ? "abstract " : "") + @"static bool operator true (I1 x)" + (unaryIsAbstract ? ";" : " => throw null;") + @"
+    " + (unaryIsAbstract ? "abstract " : "") + @"static bool operator false (I1 x)" + (unaryIsAbstract ? ";" : " => throw null;") + @"
 }
 
 class Test
@@ -10870,7 +9497,7 @@ IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." +
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isCheckedOperator, bool isCheckedContext, bool isVirtual)
+        public void ConsumeAbstractCompoundBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isCheckedOperator, bool isCheckedContext)
         {
             string metadataName = GetBinaryOperatorName(op, isCheckedOperator, out string checkedKeyword);
 
@@ -10886,7 +9513,6 @@ IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." +
 
             string contextKeyword = isCheckedContext ? " checked " : " unchecked ";
             bool isShiftOperator = op is "<<" or ">>" or ">>>";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
@@ -10896,31 +9522,31 @@ public interface I1<T0> where T0 : I1<T0>
             if (!isShiftOperator)
             {
                 source1 += @"
-    " + modifier + @" static int operator" + op + @" (int a, T0 x)" + body + @"
-    " + modifier + @" static I1<T0> operator" + op + @" (I1<T0> x, T0 a)" + body + @"
-    " + modifier + @" static T0 operator" + op + @" (T0 x, I1<T0> a)" + body + @"
+    abstract static int operator" + op + @" (int a, T0 x);
+    abstract static I1<T0> operator" + op + @" (I1<T0> x, T0 a);
+    abstract static T0 operator" + op + @" (T0 x, I1<T0> a);
 ";
 
                 if (isCheckedOperator)
                 {
                     source1 +=
 @"
-    " + modifier + @" static int operator checked " + op + @" (int a, T0 x)" + body + @"
-    " + modifier + @" static I1<T0> operator checked " + op + @" (I1<T0> x, T0 a)" + body + @"
-    " + modifier + @" static T0 operator checked " + op + @" (T0 x, I1<T0> a)" + body + @"
+    abstract static int operator checked " + op + @" (int a, T0 x);
+    abstract static I1<T0> operator checked " + op + @" (I1<T0> x, T0 a);
+    abstract static T0 operator checked " + op + @" (T0 x, I1<T0> a);
 "
     ;
                 }
             }
 
             source1 += @"
-    " + modifier + @" static T0 operator" + op + @" (T0 x, int a)" + body + @"
+    abstract static T0 operator" + op + @" (T0 x, int a);
 ";
             if (isCheckedOperator)
             {
                 source1 +=
 @"
-    " + modifier + @" static T0 operator checked " + op + @" (T0 x, int a)" + body + @"
+    abstract static T0 operator checked " + op + @" (T0 x, int a);
 "
 ;
             }
@@ -11421,25 +10047,18 @@ ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEqual
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ConsumeAbstractBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @" (I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @" (I1 x, int y);
 }
 ";
             var source2 =
@@ -11489,23 +10108,16 @@ class Test
         [InlineData("|", false, false, true, true)]
         public void ConsumeAbstractLogicalBinaryOperator_04(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool success)
         {
-            consumeAbstractLogicalBinaryOperator_04(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, success, isVirtual: false);
-            consumeAbstractLogicalBinaryOperator_04(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, success, isVirtual: true);
-
-            void consumeAbstractLogicalBinaryOperator_04(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool success, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-
-                var source1 =
+            var source1 =
 @"
 public interface I1
 {
-    " + (binaryIsAbstract ? modifier : "") + @" static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? body : " => throw null;") + @"
-    " + (trueIsAbstract ? modifier : "") + @" static bool operator true (I1 x)" + (trueIsAbstract ? body : " => throw null;") + @"
-    " + (falseIsAbstract ? modifier : "") + @" static bool operator false (I1 x)" + (falseIsAbstract ? body : " => throw null;") + @"
+    " + (binaryIsAbstract ? "abstract " : "") + @"static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? ";" : " => throw null;") + @"
+    " + (trueIsAbstract ? "abstract " : "") + @"static bool operator true (I1 x)" + (trueIsAbstract ? ";" : " => throw null;") + @"
+    " + (falseIsAbstract ? "abstract " : "") + @"static bool operator false (I1 x)" + (falseIsAbstract ? ";" : " => throw null;") + @"
 }
 ";
-                var source2 =
+            var source2 =
 @"
 class Test
 {
@@ -11515,81 +10127,78 @@ class Test
     }
 }
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
-                                                     references: new[] { compilation1.ToMetadataReference() });
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
 
-                if (success)
-                {
-                    compilation2.VerifyDiagnostics();
-                }
-                else
-                {
-                    compilation2.VerifyDiagnostics(
-                        // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                        //         _ = x && y;
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + op + " y").WithLocation(6, 13)
-                        );
-                }
-
-                var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended);
-
-                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                if (binaryIsAbstract)
-                {
-                    builder.Add(
-                        // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                        //     abstract static I1 operator& (I1 x, I1 y);
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32)
-                        );
-                }
-
-                if (trueIsAbstract)
-                {
-                    builder.Add(
-                        // (13,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                        //     abstract static bool operator true (I1 x);
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(13, 35)
-                        );
-                }
-
-                if (falseIsAbstract)
-                {
-                    builder.Add(
-                        // (14,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                        //     abstract static bool operator false (I1 x);
-                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(14, 35)
-                        );
-                }
-
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation).Verify(builder.ToArrayAndFree());
+            if (success)
+            {
+                compilation2.VerifyDiagnostics();
             }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //         _ = x && y;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + op + " y").WithLocation(6, 13)
+                    );
+            }
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+
+            if (binaryIsAbstract)
+            {
+                builder.Add(
+                    // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     abstract static I1 operator& (I1 x, I1 y);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32)
+                    );
+            }
+
+            if (trueIsAbstract)
+            {
+                builder.Add(
+                    // (13,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     abstract static bool operator true (I1 x);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(13, 35)
+                    );
+            }
+
+            if (falseIsAbstract)
+            {
+                builder.Add(
+                    // (14,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     abstract static bool operator false (I1 x);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(14, 35)
+                    );
+            }
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation).Verify(builder.ToArrayAndFree());
         }
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked, bool isVirtual)
+        public void ConsumeAbstractCompoundBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @" (T x, int y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @" (T x, int y);
 }
 ";
             var source2 =
@@ -11681,25 +10290,18 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ConsumeAbstractBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @" (I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @" (I1 x, int y);
 }
 ";
             var source2 =
@@ -11717,7 +10319,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -11753,7 +10355,7 @@ class Test
             }
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             if (isChecked)
@@ -11762,17 +10364,17 @@ class Test
                     // (12,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static I1 operator checked - (I1 x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 33),
-                    // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator checked - (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 41)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 41)
                     );
             }
             else if (op != ">>>")
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
-                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator - (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 33)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 33)
                     );
             }
             else
@@ -11781,9 +10383,9 @@ class Test
                     // (12,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static I1 operator >>> (I1 x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 33),
-                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator >>> (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 33)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(12, 33)
                     );
             }
         }
@@ -11799,23 +10401,16 @@ class Test
         [InlineData("|", false, false, true, true)]
         public void ConsumeAbstractLogicalBinaryOperator_06(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool success)
         {
-            consumeAbstractLogicalBinaryOperator_06(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, success, isVirtual: false);
-            consumeAbstractLogicalBinaryOperator_06(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, success, isVirtual: true);
-
-            void consumeAbstractLogicalBinaryOperator_06(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool success, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-
-                var source1 =
+            var source1 =
 @"
 public interface I1
 {
-    " + (binaryIsAbstract ? modifier : "") + @" static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? body : " => throw null;") + @"
-    " + (trueIsAbstract ? modifier : "") + @" static bool operator true (I1 x)" + (trueIsAbstract ? body : " => throw null;") + @"
-    " + (falseIsAbstract ? modifier : "") + @" static bool operator false (I1 x)" + (falseIsAbstract ? body : " => throw null;") + @"
+    " + (binaryIsAbstract ? "abstract " : "") + @"static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? ";" : " => throw null;") + @"
+    " + (trueIsAbstract ? "abstract " : "") + @"static bool operator true (I1 x)" + (trueIsAbstract ? ";" : " => throw null;") + @"
+    " + (falseIsAbstract ? "abstract " : "") + @"static bool operator false (I1 x)" + (falseIsAbstract ? ";" : " => throw null;") + @"
 }
 ";
-                var source2 =
+            var source2 =
 @"
 class Test
 {
@@ -11825,81 +10420,78 @@ class Test
     }
 }
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular10,
-                                                     targetFramework: _supportingFramework,
-                                                     references: new[] { compilation1.ToMetadataReference() });
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { compilation1.ToMetadataReference() });
 
-                if (success)
-                {
-                    compilation2.VerifyDiagnostics();
-                }
-                else
-                {
-                    compilation2.VerifyDiagnostics(
-                        // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = x && y;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
-                        );
-                }
-
-                var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular10,
-                                                     targetFramework: _supportingFramework);
-
-                var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                if (binaryIsAbstract)
-                {
-                    builder.Add(
-                        // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static I1 operator& (I1 x, I1 y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 32)
-                        );
-                }
-
-                if (trueIsAbstract)
-                {
-                    builder.Add(
-                        // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static bool operator true (I1 x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(13, 35)
-                        );
-                }
-
-                if (falseIsAbstract)
-                {
-                    builder.Add(
-                        // (14,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static bool operator false (I1 x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 35)
-                        );
-                }
-
-                compilation3.VerifyDiagnostics(builder.ToArrayAndFree());
+            if (success)
+            {
+                compilation2.VerifyDiagnostics();
             }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = x && y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                    );
+            }
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: _supportingFramework);
+
+            var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+
+            if (binaryIsAbstract)
+            {
+                builder.Add(
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator& (I1 x, I1 y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
+                    );
+            }
+
+            if (trueIsAbstract)
+            {
+                builder.Add(
+                    // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static bool operator true (I1 x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments("abstract", "9.0", "preview").WithLocation(13, 35)
+                    );
+            }
+
+            if (falseIsAbstract)
+            {
+                builder.Add(
+                    // (14,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static bool operator false (I1 x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments("abstract", "9.0", "preview").WithLocation(14, 35)
+                    );
+            }
+
+            compilation3.VerifyDiagnostics(builder.ToArrayAndFree());
         }
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked, bool isVirtual)
+        public void ConsumeAbstractCompoundBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op, bool isChecked)
         {
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @" (T x, int y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @" (T x, int y);
 }
 ";
             var source2 =
@@ -11917,7 +10509,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -11953,7 +10545,7 @@ class Test
             }
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             if (isChecked)
@@ -11962,17 +10554,17 @@ class Test
                     // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static T operator checked - (T x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
-                    // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator checked - (T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 40)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 40)
                     );
             }
             else if (op != ">>>")
             {
                 compilation3.VerifyDiagnostics(
-                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator << (T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 32)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
                     );
             }
             else
@@ -11981,9 +10573,9 @@ class Test
                     // (12,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static T operator >>> (T x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 32),
-                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator >>> (T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 32)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
                     );
             }
         }
@@ -12015,7 +10607,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -12026,30 +10618,27 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator == (T x, T y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "preview").WithLocation(12, 35),
-                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "9.0", "preview").WithLocation(12, 35),
+                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static bool operator != (T x, T y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "preview").WithLocation(13, 35)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "9.0", "preview").WithLocation(13, 35)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyGet_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyGet_01()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static int P01 { get; set;}
+    abstract static int P01 { get; set;}
 
     static void M02()
     {
@@ -12065,7 +10654,7 @@ interface I1
 
     static int P04 { get; set; }
 
-    protected " + modifier + @" static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 
 class Test
@@ -12094,7 +10683,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = P01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 13),
                 // (14,13): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -12103,7 +10692,7 @@ class Test
                 // (15,13): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = this.P04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 13),
-                // (27,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = I1.P01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 13),
                 // (28,13): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -12124,23 +10713,20 @@ class Test
                 // (38,15): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = T.P05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 15),
-                // (40,71): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01.ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.P01").WithLocation(40, 71)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertySet_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertySet_01()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static int P01 { get; set;}
+    abstract static int P01 { get; set;}
 
     static void M02()
     {
@@ -12156,7 +10742,7 @@ interface I1
 
     static int P04 { get; set; }
 
-    protected " + modifier + @" static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 
 class Test
@@ -12185,7 +10771,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 = 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -12194,7 +10780,7 @@ class Test
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 = 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 = 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -12218,23 +10804,20 @@ class Test
                 // (40,71): error CS0832: An expression tree may not contain an assignment operator
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 = 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "T.P01 = 1").WithLocation(40, 71),
-                // (40,71): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 = 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.P01").WithLocation(40, 71)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyCompound_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyCompound_01()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static int P01 { get; set;}
+    abstract static int P01 { get; set;}
 
     static void M02()
     {
@@ -12250,7 +10833,7 @@ interface I1
 
     static int P04 { get; set; }
 
-    protected " + modifier + @" static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 
 class Test
@@ -12279,10 +10862,10 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 9),
-                // (8,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -12291,10 +10874,10 @@ class Test
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 += 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 9),
-                // (27,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -12318,23 +10901,20 @@ class Test
                 // (40,71): error CS0832: An expression tree may not contain an assignment operator
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 += 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "T.P01 += 1").WithLocation(40, 71),
-                // (40,71): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 += 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.P01").WithLocation(40, 71)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticProperty_02(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticProperty_02()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 
     static void M02()
     {
@@ -12350,7 +10930,7 @@ interface I1
 
     static int P04 { get; set; }
 
-    protected " + modifier + @" static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 
 class Test
@@ -12404,17 +10984,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyGet_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyGet_03()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 
 class Test
@@ -12492,17 +11069,14 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertySet_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertySet_03()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 
 class Test
@@ -12581,17 +11155,14 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyCompound_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyCompound_03()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 
 class Test
@@ -12706,17 +11277,14 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyGet_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyGet_04()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 ";
             var source2 =
@@ -12758,17 +11326,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertySet_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertySet_04()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 ";
             var source2 =
@@ -12810,17 +11375,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyCompound_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyCompound_04()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 ";
             var source2 =
@@ -12865,17 +11427,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyGet_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyGet_06()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 ";
             var source2 =
@@ -12893,7 +11452,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -12904,30 +11463,27 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = T.P01;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 13),
-                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 25)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 25)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertySet_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertySet_06()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 ";
             var source2 =
@@ -12945,7 +11501,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -12956,30 +11512,27 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         T.P01 = 1;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 25)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 25)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticPropertyCompound_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticPropertyCompound_06()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int P01 { get; set; }
+    abstract static int P01 { get; set; }
 }
 ";
             var source2 =
@@ -12997,7 +11550,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -13008,30 +11561,27 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         T.P01 += 1;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 25)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 25)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEventAdd_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEventAdd_01()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"#pragma warning disable CS0067 // The event is never used
 interface I1
 {
-    " + modifier + @" static event System.Action P01;
+    abstract static event System.Action P01;
 
     static void M02()
     {
@@ -13047,7 +11597,7 @@ interface I1
 
     static event System.Action P04;
 
-    protected " + modifier + @" static event System.Action P05;
+    protected abstract static event System.Action P05;
 }
 
 class Test
@@ -13076,25 +11626,25 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01 += null").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P01 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 9),
-                // (14,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (14,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         this.P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "this.P01 += null").WithLocation(14, 9),
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01 += null").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P01 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 9),
-                // (28,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (28,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x.P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x.P01 += null").WithLocation(28, 9),
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -13118,17 +11668,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEventRemove_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEventRemove_01()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"#pragma warning disable CS0067 // The event is never used
 interface I1
 {
-    " + modifier + @" static event System.Action P01;
+    abstract static event System.Action P01;
 
     static void M02()
     {
@@ -13144,7 +11691,7 @@ interface I1
 
     static event System.Action P04;
 
-    protected " + modifier + @" static event System.Action P05;
+    protected abstract static event System.Action P05;
 }
 
 class Test
@@ -13173,25 +11720,25 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01 -= null").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P01 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 9),
-                // (14,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (14,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         this.P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "this.P01 -= null").WithLocation(14, 9),
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01 -= null").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P01 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 9),
-                // (28,9): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (28,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x.P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x.P01 -= null").WithLocation(28, 9),
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -13215,17 +11762,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEvent_02(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEvent_02()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
-@"#pragma warning disable CS0067 // The event 'I1.P05' is never used
+@"
 interface I1
 {
-    " + modifier + @" static event System.Action P01;
+    abstract static event System.Action P01;
 
     static void M02()
     {
@@ -13241,7 +11785,7 @@ interface I1
 
     static event System.Action P04;
 
-    protected " + modifier + @" static event System.Action P05;
+    protected abstract static event System.Action P05;
 }
 
 class Test
@@ -13295,17 +11839,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEvent_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEvent_03()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static event System.Action E01;
+    abstract static event System.Action E01;
 }
 
 class Test
@@ -13422,17 +11963,14 @@ IEventReferenceOperation: event System.Action I1.E01 (Static) (OperationKind.Eve
             Assert.Contains("E01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEventAdd_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEventAdd_04()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
-@"#pragma warning disable CS0067 // The event 'I1.P01' is never used
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action P01;
+    abstract static event System.Action P01;
 }
 ";
             var source2 =
@@ -13471,17 +12009,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEventRemove_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEventRemove_04()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
-@"#pragma warning disable CS0067 // The event 'I1.P01' is never used
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action P01;
+    abstract static event System.Action P01;
 }
 ";
             var source2 =
@@ -13520,17 +12055,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEventAdd_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEventAdd_06()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
-@"#pragma warning disable CS0067 // The event 'I1.P01' is never used
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action P01;
+    abstract static event System.Action P01;
 }
 ";
             var source2 =
@@ -13548,7 +12080,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -13559,30 +12091,27 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         T.P01 += null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event System.Action P01;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 41)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 41)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticEventRemove_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticEventRemove_06()
         {
-            var (modifier, _) = GetModifierAndBody(isVirtual);
-
             var source1 =
-@"#pragma warning disable CS0067 // The event 'I1.P01' is never used
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action P01;
+    abstract static event System.Action P01;
 }
 ";
             var source2 =
@@ -13600,7 +12129,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -13611,47 +12140,22 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         T.P01 -= null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event System.Action P01;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 41)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 41)
                 );
         }
 
-        private (string modifier, string body) GetILModifierAndBody(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticIndexedProperty_03()
         {
-            if (isVirtual)
-            {
-                return ("",
-@"
-{
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}
-");
-            }
-            else
-            {
-                return ("abstract",
-@"{
-}
-");
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticIndexedProperty_03(bool isVirtual)
-        {
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
@@ -13660,18 +12164,20 @@ class Test
     )
 
     // Methods
-    .method public hidebysig specialname newslot " + modifier + @" virtual 
+    .method public hidebysig specialname newslot abstract virtual 
         static int32 get_Item (
             int32 x
         ) cil managed 
-    " + body + @"
+    {
+    } // end of method I1::get_Item
 
-    .method public hidebysig specialname newslot " + modifier + @" virtual 
+    .method public hidebysig specialname newslot abstract virtual 
         static void set_Item (
             int32 x,
             int32 'value'
         ) cil managed 
-    " + body + @"
+    {
+    } // end of method I1::set_Item
 
     // Properties
     .property int32 Item(
@@ -13745,28 +12251,27 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticIndexedProperty_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticIndexedProperty_04()
         {
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
     // Methods
-    .method public hidebysig specialname newslot " + modifier + @" virtual 
+    .method public hidebysig specialname newslot abstract virtual 
         static int32 get_Item (
             int32 x
         ) cil managed 
-    " + body + @"
+    {
+    } // end of method I1::get_Item
 
-    .method public hidebysig specialname newslot " + modifier + @" virtual 
+    .method public hidebysig specialname newslot abstract virtual 
         static void set_Item (
             int32 x,
             int32 'value'
         ) cil managed 
-    " + body + @"
+    {
+    } // end of method I1::set_Item
 
     // Properties
     .property int32 Item(
@@ -13844,17 +12349,14 @@ class Test
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionToDelegate_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 
     static void M02()
     {
@@ -13870,7 +12372,7 @@ interface I1
 
     static void M04() {}
 
-    protected " + modifier + @" static void M05()" + body + @"
+    protected abstract static void M05();
 }
 
 class Test
@@ -13899,7 +12401,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (System.Action)M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(System.Action)M01").WithLocation(8, 13),
                 // (14,28): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -13908,7 +12410,7 @@ class Test
                 // (15,28): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = (System.Action)this.M04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 28),
-                // (27,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (System.Action)I1.M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(System.Action)I1.M01").WithLocation(27, 13),
                 // (28,28): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -13929,23 +12431,20 @@ class Test
                 // (38,30): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = (System.Action)T.M05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 30),
-                // (40,87): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (40,87): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => ((System.Action)T.M01).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01").WithLocation(40, 87)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionToDelegate_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_03()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 class Test
@@ -14027,17 +12526,14 @@ IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.Met
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionToDelegate_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_04()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -14076,17 +12572,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionToDelegate_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_06()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -14104,7 +12597,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -14115,38 +12608,23 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,28): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = (System.Action)T.M01;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 28),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
                 );
         }
 
-        private static bool Execute(bool isVirtual)
-        {
-#if !NET7_0_OR_GREATER
-            if (isVirtual)
-            {
-                return false;
-            }
-#endif
-
-            return true;
-        }
-
-        [ConditionalTheory(typeof(CoreClrOnly))]
-        [CombinatorialData]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
-        public void DelegateCaching_01(bool isVirtual)
+        public void DelegateCaching_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 using System;
@@ -14183,7 +12661,7 @@ class TestStaticInterfaceMethods
 
 interface ISimple
 {
-    static " + modifier + @" string GetCookie()" + body + @"
+    static abstract string GetCookie();
 }
 
 class SimpleClass : ISimple
@@ -14200,19 +12678,16 @@ struct SimpleStruct : ISimple
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual) ? null : @"
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: @"
 SimpleClass
 SimpleStruct
 ").VerifyDiagnostics();
         }
 
-        [ConditionalTheory(typeof(CoreClrOnly))]
-        [CombinatorialData]
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
-        public void DelegateCaching_02(bool isVirtual)
+        public void DelegateCaching_02()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 using System;
@@ -14249,7 +12724,7 @@ class TestStaticInterfaceMethods
 
 interface ISimple
 {
-    static " + modifier + @" string GetCookie()" + body + @"
+    static abstract string GetCookie();
 }
 
 class SimpleClass : ISimple
@@ -14266,23 +12741,20 @@ struct SimpleStruct : ISimple
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual) ? null : @"
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: @"
 SimpleClass
 SimpleStruct
 ").VerifyDiagnostics();
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_DelegateCreation_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 
     static void M02()
     {
@@ -14298,7 +12770,7 @@ interface I1
 
     static void M04() {}
 
-    protected " + modifier + @" static void M05()" + body + @"
+    protected abstract static void M05();
 }
 
 class Test
@@ -14327,7 +12799,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,31): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,31): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = new System.Action(M01);
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "M01").WithLocation(8, 31),
                 // (14,31): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -14336,7 +12808,7 @@ class Test
                 // (15,31): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = new System.Action(this.M04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 31),
-                // (27,31): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,31): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = new System.Action(I1.M01);
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.M01").WithLocation(27, 31),
                 // (28,31): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -14357,23 +12829,20 @@ class Test
                 // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = new System.Action(T.M05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),
-                // (40,89): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (40,89): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => new System.Action(T.M01).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01").WithLocation(40, 89)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_DelegateCreation_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_03()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 class Test
@@ -14443,17 +12912,14 @@ IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.Met
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_DelegateCreation_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_04()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -14492,17 +12958,14 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_DelegateCreation_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_06()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -14520,7 +12983,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -14531,30 +12994,27 @@ class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = new System.Action(T.M01);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_01(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 unsafe interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 
     static void M02()
     {
@@ -14570,7 +13030,7 @@ unsafe interface I1
 
     static void M04() {}
 
-    protected " + modifier + @" static void M05()" + body + @"
+    protected abstract static void M05();
 }
 
 unsafe class Test
@@ -14599,7 +13059,7 @@ unsafe class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (delegate*<void>)&M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(delegate*<void>)&M01").WithLocation(8, 13),
                 // (14,13): error CS8757: No overload for 'M01' matches function pointer 'delegate*<void>'
@@ -14608,7 +13068,7 @@ unsafe class Test
                 // (15,13): error CS8757: No overload for 'M04' matches function pointer 'delegate*<void>'
                 //         _ = (delegate*<void>)&this.M04;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&this.M04").WithArguments("M04", "delegate*<void>").WithLocation(15, 13),
-                // (27,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
+                // (27,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (delegate*<void>)&I1.M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(delegate*<void>)&I1.M01").WithLocation(27, 13),
                 // (28,13): error CS8757: No overload for 'M01' matches function pointer 'delegate*<void>'
@@ -14638,17 +13098,14 @@ unsafe class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_03(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_03()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 unsafe class Test
@@ -14714,17 +13171,14 @@ IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.Met
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionFunctionPointer_04(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionFunctionPointer_04()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -14763,17 +13217,14 @@ unsafe class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_06(bool isVirtual)
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_06()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -14791,7 +13242,7 @@ unsafe class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll.WithAllowUnsafe(true),
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -14802,16 +13253,16 @@ unsafe class Test
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
                 // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = (delegate*<void>)&T.M01;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
                 );
         }
 
@@ -14889,68 +13340,6 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01()'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01()").WithLocation(36, 10),
-                // (38,19): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 19)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void ImplementVirtualStaticMethod_01(bool structure)
-        {
-            var typeKeyword = structure ? "struct" : "class";
-
-            var source1 =
-@"
-public interface I1
-{
-    virtual static void M01(){}
-}
-
-" + typeKeyword + @"
-    C1 : I1
-{}
-
-" + typeKeyword + @"
-    C2 : I1
-{
-    public void M01() {}
-}
-
-" + typeKeyword + @"
-    C3 : I1
-{
-    static void M01() {}
-}
-
-" + typeKeyword + @"
-    C4 : I1
-{
-    void I1.M01() {}
-}
-
-" + typeKeyword + @"
-    C5 : I1
-{
-    public static int M01() => throw null;
-}
-
-" + typeKeyword + @"
-    C6 : I1
-{
-    static int I1.M01() => throw null;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (26,13): error CS0539: 'C4.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01()").WithLocation(26, 13),
                 // (38,19): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1.M01() => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 19)
@@ -15095,9 +13484,21 @@ interface I8 : I1
                 // (22,13): error CS0539: 'I5.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M01() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01()").WithLocation(22, 13),
+                // (27,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static void I1.M01() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 20),
+                // (27,20): error CS0539: 'I6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static void I1.M01() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01()").WithLocation(27, 20),
                 // (32,26): warning CS0108: 'I7.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26)
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26),
+                // (37,29): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static void I1.M01();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 29),
+                // (37,29): error CS0539: 'I8.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static void I1.M01();
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01()").WithLocation(37, 29)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -15106,109 +13507,23 @@ interface I8 : I1
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
-
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
         }
 
-        [Fact]
-        public void ImplementVirtualStaticMethod_03()
-        {
-            var source1 =
-@"
-public interface I1
-{
-    virtual  static void M01(){}
-}
-
-interface I2 : I1
-{}
-
-interface I3 : I1
-{
-    public virtual void M01() {}
-}
-
-interface I4 : I1
-{
-    static void M01() {}
-}
-
-interface I5 : I1
-{
-    void I1.M01() {}
-}
-
-interface I6 : I1
-{
-    static void I1.M01() {}
-}
-
-interface I7 : I1
-{
-    virtual  static void M01(){}
-}
-
-interface I8 : I1
-{
-    virtual  static void I1.M01(){}
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (12,25): warning CS0108: 'I3.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
-                //     public virtual void M01() {}
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I3.M01()", "I1.M01()").WithLocation(12, 25),
-                // (17,17): warning CS0108: 'I4.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
-                //     static void M01() {}
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I4.M01()", "I1.M01()").WithLocation(17, 17),
-                // (22,13): error CS0539: 'I5.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01()").WithLocation(22, 13),
-                // (32,26): warning CS0108: 'I7.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
-                //     virtual  static void M01();
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26),
-                // (37,29): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual  static void I1.M01(){}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 29)
-                );
-
-            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
-
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
-
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-
-            var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
-            Assert.Same(i8.GetMembers().OfType<MethodSymbol>().Single(), i8.FindImplementationForInterfaceMember(m01));
-        }
-
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_04(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticMethod_04(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
-    " + modifier + @" static void M02()" + body + @"
+    abstract static void M01();
+    abstract static void M02();
 }
 ";
             var source2 =
@@ -15224,45 +13539,44 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 20)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 20),
-                // (10,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 20),
+                // (10,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(10, 26),
-                // (11,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(10, 26),
+                // (11,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M02();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(11, 26)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("abstract", "9.0", "preview").WithLocation(11, 26)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_05(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticMethod_05(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -15303,16 +13617,15 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_06(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticMethod_06(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 ";
             var source2 =
@@ -15353,18 +13666,17 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_07(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticMethod_07(bool structure)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 " + typeKeyword + @"
@@ -15415,18 +13727,17 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_08(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticMethod_08(bool structure)
         {
             // Basic explicit implementation scenario
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 " + typeKeyword + @"
@@ -15467,18 +13778,16 @@ public interface I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticMethod_09(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticMethod_09()
         {
             // Explicit implementation from base is treated as an implementation
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 public class C1
@@ -15507,7 +13816,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -15530,20 +13839,19 @@ public class C3 : C2, I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticMethod_10(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticMethod_10()
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig static " + modifier + @" virtual 
+    .method public hidebysig static abstract virtual 
         void M01 () cil managed 
-    " + body + @"
+    {
+    } // end of method I1::M01
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
@@ -15636,7 +13944,7 @@ public class C5 : C2, I1
             Assert.Equal("void C2.M01()", c5.FindImplementationForInterfaceMember(m01).ToTestDisplayString());
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
@@ -15645,7 +13953,7 @@ public class C5 : C2, I1
         [Fact]
         public void ImplementAbstractStaticMethod_11()
         {
-            // Non-abstract static virtual method. 
+            // Ignore invalid metadata (non-abstract static virtual method). 
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
@@ -15675,18 +13983,14 @@ public class C1 : I1
             var i1 = c1.Interfaces().Single();
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
 
-            Assert.Same(m01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1.M01()' cannot implement interface member 'I1.M01()' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01()", "I1.M01()", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
-                );
+            compilation1.VerifyEmitDiagnostics();
 
             var source2 =
 @"
@@ -15700,27 +14004,30 @@ public class C1 : I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation2.VerifyEmitDiagnostics();
+            compilation2.VerifyEmitDiagnostics(
+                // (4,19): error CS0539: 'C1.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //    static void I1.M01() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C1.M01()").WithLocation(4, 19)
+                );
 
             c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
             m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
-            Assert.Equal("void C1.I1.M01()", c1.FindImplementationForInterfaceMember(m01).ToTestDisplayString());
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticMethod_12(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticMethod_12()
         {
-            // Default interface implementation for a static method
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
+            // Ignore invalid metadata (default interface implementation for a static method)
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig " + modifier + @" virtual 
+    .method public hidebysig abstract virtual 
         static void M01 () cil managed 
-    " + body + @"
+    {
+    } // end of method I1::M01
 } // end of class I1
 .class interface public auto ansi abstract I2
     implements I1
@@ -15746,31 +14053,34 @@ public class C1 : I2
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics();
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01()'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.M01()").WithLocation(2, 19)
+                );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var i2 = c1.Interfaces().Single();
             var i1 = i2.Interfaces().Single();
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
-            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
 
-            Assert.Same(i2M01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(i2M01, i2.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+
+            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
             Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticMethod_13(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticMethod_13()
         {
             // A forwarding method is added for an implicit implementation declared in base class. 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 class C1
@@ -15839,19 +14149,18 @@ class C2 : C1, I1
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticMethod_14(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticMethod_14()
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig " + modifier + @" virtual 
+    .method public hidebysig abstract virtual 
         static void modopt(I1) M01 () cil managed 
-    " + body + @"
+    {
+    } // end of method I1::M01
 } // end of class I1
 ";
 
@@ -15943,19 +14252,17 @@ class C2 : I1
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticMethod_15(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticMethod_15()
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
-    " + modifier + @" static void M02()" + body + @"
+    abstract static void M01();
+    abstract static void M02();
 }
 
 public class C1
@@ -15984,7 +14291,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular10 })
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -16032,18 +14339,16 @@ public class C3 : C2, I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticMethod_16(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticMethod_16()
         {
             // A new implicit implementation is properly considered.
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static void M01()" + body + @"
+    abstract static void M01();
 }
 
 public class C1 : I1
@@ -16072,7 +14377,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -16124,10 +14429,9 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_17(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticMethod_17(bool genericFirst)
         {
             // An "ambiguity" in implicit implementation declared in generic base class 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -16141,7 +14445,7 @@ public class C3 : C2, I1
 @"
 public interface I1
 {
-    " + modifier + @" static void M01(int x)" + body + @"
+    abstract static void M01(int x);
 }
 
 public class C1<T> : I1
@@ -16167,7 +14471,7 @@ public class C2 : C1<int>, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -16206,10 +14510,9 @@ public class C2 : C1<int>, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_18(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticMethod_18(bool genericFirst)
         {
             // An "ambiguity" in implicit implementation declared in generic base class plus interface is generic too.
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -16223,7 +14526,7 @@ public class C2 : C1<int>, I1
 @"
 public interface I1<T>
 {
-    " + modifier + @" static void M01(T x)" + body + @"
+    abstract static void M01(T x);
 }
 
 public class C1<T> : I1<T>
@@ -16251,7 +14554,7 @@ public class C2 : C1<int>, I1<int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -16290,10 +14593,9 @@ public class C2 : C1<int>, I1<int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_19(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticMethod_19(bool genericFirst)
         {
             // Same as ImplementAbstractStaticMethod_17 only implementation is explicit in source.
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -16307,7 +14609,7 @@ public class C2 : C1<int>, I1<int>
 @"
 public interface I1
 {
-    " + modifier + @" static void M01(int x)" + body + @"
+    abstract static void M01(int x);
 }
 
 public class C1<T> : I1
@@ -16333,7 +14635,7 @@ public class C2 : C1<int>, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -16360,10 +14662,9 @@ public class C2 : C1<int>, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_20(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticMethod_20(bool genericFirst)
         {
             // Same as ImplementAbstractStaticMethod_18 only implementation is explicit in source.
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -16377,7 +14678,7 @@ public class C2 : C1<int>, I1
 @"
 public interface I1<T>
 {
-    " + modifier + @" static void M01(T x)" + body + @"
+    abstract static void M01(T x);
 }
 
 public class C1<T> : I1<T>
@@ -16404,7 +14705,7 @@ public class C2 : C1<int>, I1<int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -16431,10 +14732,9 @@ public class C2 : C1<int>, I1<int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_21(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticMethod_21(bool genericFirst)
         {
             // Same as ImplementAbstractStaticMethod_17 only implicit implementation is in an intermediate base.
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -16448,7 +14748,7 @@ public class C2 : C1<int>, I1<int>
 @"
 public interface I1
 {
-    " + modifier + @" static void M01(int x)" + body + @"
+    abstract static void M01(int x);
 }
 
 public class C1<T>
@@ -16478,7 +14778,7 @@ public class C2 : C11<int>, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -16518,10 +14818,9 @@ public class C2 : C11<int>, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticMethod_22(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticMethod_22(bool genericFirst)
         {
             // Same as ImplementAbstractStaticMethod_18 only implicit implementation is in an intermediate base.
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -16535,7 +14834,7 @@ public class C2 : C11<int>, I1
 @"
 public interface I1<T>
 {
-    " + modifier + @" static void M01(T x)" + body + @"
+    abstract static void M01(T x);
 }
 
 public class C1<T>
@@ -16565,7 +14864,7 @@ public class C2 : C11<int>, I1<int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -16607,7 +14906,7 @@ public class C2 : C11<int>, I1<int>
         private static string BinaryOperatorName(string op, bool isChecked = false) =>
             op switch { ">>" => WellKnownMemberNames.RightShiftOperatorName, ">>>" => WellKnownMemberNames.UnsignedRightShiftOperatorName, _ => OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked) };
 
-        internal static string GetUnaryOperatorName(string op, bool isChecked, out string checkedKeyword)
+        private static string GetUnaryOperatorName(string op, bool isChecked, out string checkedKeyword)
         {
             string opName = UnaryOperatorName(op, isChecked: false);
             checkedKeyword = "";
@@ -16773,120 +15072,7 @@ public interface I2<T> where T : I2<T>
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementVirtualStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
-        {
-            var typeKeyword = structure ? "struct" : "class";
-
-            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
-
-            if (opName is null)
-            {
-                return;
-            }
-
-            var source1 =
-@"
-public interface I1<T> where T : I1<T>
-{
-    virtual static T operator " + checkedKeyword + op + @"(T x) => x;
-}
-
-" + typeKeyword + @"
-    C1 : I1<C1>
-{}
-
-" + typeKeyword + @"
-    C2 : I1<C2>
-{
-    public C2 operator " + checkedKeyword + op + @"(C2 x) => throw null;
-}
-
-" + typeKeyword + @"
-    C3 : I1<C3>
-{
-    static C3 operator " + checkedKeyword + op + @"(C3 x) => throw null;
-}
-
-" + typeKeyword + @"
-    C4 : I1<C4>
-{
-    C4 I1<C4>.operator " + checkedKeyword + op + @"(C4 x) => throw null;
-}
-
-" + typeKeyword + @"
-    C5 : I1<C5>
-{
-    public static int operator " + checkedKeyword + op + @" (C5 x) => throw null;
-}
-
-" + typeKeyword + @"
-    C6 : I1<C6>
-{
-    static int I1<C6>.operator " + checkedKeyword + op + @" (C6 x) => throw null;
-}
-
-" + typeKeyword + @"
-    C7 : I1<C7>
-{
-    public static C7 " + opName + @"(C7 x) => throw null;
-}
-
-" + typeKeyword + @"
-    C8 : I1<C8>
-{
-    static C8 I1<C8>." + opName + @"(C8 x) => throw null;
-}
-
-public interface I2<T> where T : I2<T>
-{
-    virtual static T " + opName + @"(T x) => x;
-}
-
-" + typeKeyword + @"
-    C9 : I2<C9>
-{
-    public static C9 operator " + checkedKeyword + op + @"(C9 x) => throw null;
-}
-
-" + typeKeyword + @"
-    C10 : I2<C10>
-{
-    static C10 I2<C10>.operator " + checkedKeyword + op + @"(C10 x) => throw null;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (14,24): error CS0558: User-defined operator 'C2.operator +(C2)' must be declared static and public
-                //     public C2 operator +(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
-                // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
-                //     static C3 operator +(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
-                // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator +(C4)' must be declared static
-                //     C4 I1<C4>.operator +(C4 x) => throw null;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
-                // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     C4 I1<C4>.operator +(C4 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
-                // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
-                // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
-                // (67,33): error CS0539: 'C10.operator +(C10)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C10 I2<C10>.operator +(C10 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + checkedKeyword + op + "(C10)").WithLocation(67, 33 + checkedKeyword.Length)
-                );
-        }
-
-        internal static string GetBinaryOperatorName(string op, bool isChecked, out string checkedKeyword)
+        private static string GetBinaryOperatorName(string op, bool isChecked, out string checkedKeyword)
         {
             string opName = BinaryOperatorName(op, isChecked: false);
             checkedKeyword = "";
@@ -17054,119 +15240,6 @@ public interface I2<T> where T : I2<T>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementVirtualStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=")] string op, bool structure, bool isChecked)
-        {
-            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
-
-            if (opName is null)
-            {
-                return;
-            }
-
-            var typeKeyword = structure ? "struct" : "class";
-
-            var source1 =
-@"
-public interface I1<T> where T : I1<T>
-{
-    virtual static T operator " + checkedKeyword + op + @"(T x, int y) => x;
-}
-
-" + typeKeyword + @"
-    C1 : I1<C1>
-{}
-
-" + typeKeyword + @"
-    C2 : I1<C2>
-{
-    public C2 operator " + checkedKeyword + op + @"(C2 x, int y) => throw null;
-}
-
-" + typeKeyword + @"
-    C3 : I1<C3>
-{
-    static C3 operator " + checkedKeyword + op + @"(C3 x, int y) => throw null;
-}
-
-" + typeKeyword + @"
-    C4 : I1<C4>
-{
-    C4 I1<C4>.operator " + checkedKeyword + op + @"(C4 x, int y) => throw null;
-}
-
-" + typeKeyword + @"
-    C5 : I1<C5>
-{
-    public static int operator " + checkedKeyword + op + @" (C5 x, int y) => throw null;
-}
-
-" + typeKeyword + @"
-    C6 : I1<C6>
-{
-    static int I1<C6>.operator " + checkedKeyword + op + @" (C6 x, int y) => throw null;
-}
-
-" + typeKeyword + @"
-    C7 : I1<C7>
-{
-    public static C7 " + opName + @"(C7 x, int y) => throw null;
-}
-
-" + typeKeyword + @"
-    C8 : I1<C8>
-{
-    static C8 I1<C8>." + opName + @"(C8 x, int y) => throw null;
-}
-
-public interface I2<T> where T : I2<T>
-{
-    virtual static T " + opName + @"(T x, int y) => x;
-}
-
-" + typeKeyword + @"
-    C9 : I2<C9>
-{
-    public static C9 operator " + checkedKeyword + op + @"(C9 x, int y) => throw null;
-}
-
-" + typeKeyword + @"
-    C10 : I2<C10>
-{
-    static C10 I2<C10>.operator " + checkedKeyword + op + @"(C10 x, int y) => throw null;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (14,24): error CS0558: User-defined operator 'C2.operator >>(C2, int)' must be declared static and public
-                //     public C2 operator >>(C2 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(14, 24 + checkedKeyword.Length),
-                // (20,24): error CS0558: User-defined operator 'C3.operator >>(C3, int)' must be declared static and public
-                //     static C3 operator >>(C3 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(20, 24 + checkedKeyword.Length),
-                // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator >>(C4, int)' must be declared static
-                //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4, int)").WithLocation(26, 24 + checkedKeyword.Length),
-                // (26,24): error CS0539: 'C4.operator >>(C4, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4, int)").WithLocation(26, 24 + checkedKeyword.Length),
-                // (38,32): error CS0539: 'C6.operator >>(C6, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static int I1<C6>.operator >> (C6 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
-                // (50,22): error CS0539: 'C8.op_RightShift(C8, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C8 I1<C8>.op_RightShift(C8 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8, int)").WithLocation(50, 22),
-                // (67,33): error CS0539: 'C10.operator >>(C10, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C10 I2<C10>.operator >>(C10 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + checkedKeyword + op + "(C10, int)").WithLocation(67, 33 + checkedKeyword.Length)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
         public void ImplementAbstractStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
             if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
@@ -17268,6 +15341,9 @@ interface I14 : I1
                 // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
+                // (27,27): error CS0539: 'I6.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator +(I1 x);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
@@ -17279,7 +15355,28 @@ interface I14 : I1
                 Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0562: The parameter of a unary operator must be the containing type
                 //     static T operator +(T x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length)
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
+                // (57,30): error CS0539: 'I12<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static T I11<T>.operator +(T x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T)").WithLocation(57, 30 + checkedKeyword.Length),
+                // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static T I11<T>.operator +(T x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39 + checkedKeyword.Length),
+                // (62,39): error CS0501: 'I13<T>.operator +(T)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static T I11<T>.operator +(T x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T)").WithLocation(62, 39 + checkedKeyword.Length),
+                // (62,39): error CS0539: 'I13<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static T I11<T>.operator +(T x);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T)").WithLocation(62, 39 + checkedKeyword.Length),
+                // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I1 I1.operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36 + checkedKeyword.Length),
+                // (67,36): error CS0501: 'I14.operator +(I1)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static I1 I1.operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1)").WithLocation(67, 36 + checkedKeyword.Length),
+                // (67,36): error CS0539: 'I14.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static I1 I1.operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1)").WithLocation(67, 36 + checkedKeyword.Length)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -17288,10 +15385,7 @@ interface I14 : I1
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
-
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
             var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
@@ -17304,165 +15398,12 @@ interface I14 : I1
             Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
-            Assert.Same(i12.GetMembers().OfType<MethodSymbol>().Single(), i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
             Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void ImplementVirtualStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
-        {
-            if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
-            {
-                return;
-            }
-
-            var source1 =
-@"
-public interface I1
-{
-    virtual  static I1 operator " + checkedKeyword + op + @"(I1 x) => x;
-}
-
-interface I2 : I1
-{}
-
-interface I3 : I1
-{
-    I1 operator " + checkedKeyword + op + @"(I1 x) => default;
-}
-
-interface I4 : I1
-{
-    static I1 operator " + checkedKeyword + op + @"(I1 x) => default;
-}
-
-interface I5 : I1
-{
-    I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
-}
-
-interface I6 : I1
-{
-    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
-}
-
-interface I7 : I1
-{
-    virtual  static I1 operator " + checkedKeyword + op + @"(I1 x) => x;
-}
-
-public interface I11<T> where T : I11<T>
-{
-    virtual  static T operator " + checkedKeyword + op + @"(T x) => x;
-}
-
-interface I8<T> : I11<T> where T : I8<T>
-{
-    T operator " + checkedKeyword + op + @"(T x) => default;
-}
-
-interface I9<T> : I11<T> where T : I9<T>
-{
-    static T operator " + checkedKeyword + op + @"(T x) => default;
-}
-
-interface I10<T> : I11<T> where T : I10<T>
-{
-    virtual  static T operator " + checkedKeyword + op + @"(T x) => x;
-}
-
-interface I12<T> : I11<T> where T : I12<T>
-{
-    static T I11<T>.operator " + checkedKeyword + op + @"(T x) => default;
-}
-
-interface I13<T> : I11<T> where T : I13<T>
-{
-    virtual  static T I11<T>.operator " + checkedKeyword + op + @"(T x) => x;
-}
-
-interface I14 : I1
-{
-    virtual  static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => x;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            ErrorCode badSignatureError = op.Length != 2 ? ErrorCode.ERR_BadUnaryOperatorSignature : ErrorCode.ERR_BadIncDecSignature;
-            ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
-                // (12,17): error CS0558: User-defined operator 'I3.operator +(I1)' must be declared static and public
-                //     I1 operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
-                // (12,17): error CS0562: The parameter of a unary operator must be the containing type
-                //     I1 operator +(I1 x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(12, 17 + checkedKeyword.Length),
-                // (17,24): error CS0562: The parameter of a unary operator must be the containing type
-                //     static I1 operator +(I1 x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
-                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator +(I1)' must be declared static
-                //     I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
-                //     virtual  static I1 operator +(I1 x);
-                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
-                // (42,16): error CS0558: User-defined operator 'I8<T>.operator +(T)' must be declared static and public
-                //     T operator +(T x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
-                // (42,16): error CS0562: The parameter of a unary operator must be the containing type
-                //     T operator +(T x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
-                // (47,23): error CS0562: The parameter of a unary operator must be the containing type
-                //     static T operator +(T x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
-                // (62,39): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual  static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(62, 39 + checkedKeyword.Length),
-                // (67,36): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual  static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(67, 36 + checkedKeyword.Length)
-                );
-
-            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
-
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
-
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-
-            foreach (var name in new[] { "I8", "I9", "I10" })
-            {
-                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
-                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
-                Assert.Same(iXM, iX.FindImplementationForInterfaceMember(iXM));
-            }
-
-            foreach (var name in new[] { "I12", "I13" })
-            {
-                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
-                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
-                Assert.Same(iX.GetMembers().OfType<MethodSymbol>().Single(), iX.FindImplementationForInterfaceMember(iXM));
-            }
-
-            var i14 = compilation1.GlobalNamespace.GetTypeMember("I14");
-            Assert.Same(i14.GetMembers().OfType<MethodSymbol>().Single(), i14.FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
@@ -17560,9 +15501,15 @@ interface I14 : I1
                 // (17,24): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static I1 operator |(I1 x, int y) => default;
                 Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
+                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
+                //     I1 I1.operator |(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
                 // (22,20): error CS0539: 'I5.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator |(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
+                // (27,27): error CS0539: 'I6.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator |(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1, int)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator |(I1 x, int y);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
@@ -17571,7 +15518,28 @@ interface I14 : I1
                 Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static T operator |(T x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length)
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
+                // (57,30): error CS0539: 'I12<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static T I11<T>.operator |(T x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(57, 30 + checkedKeyword.Length),
+                // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static T I11<T>.operator |(T x, int y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39 + checkedKeyword.Length),
+                // (62,39): error CS0501: 'I13<T>.operator |(T, int)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static T I11<T>.operator |(T x, int y);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(62, 39 + checkedKeyword.Length),
+                // (62,39): error CS0539: 'I13<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static T I11<T>.operator |(T x, int y);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(62, 39 + checkedKeyword.Length),
+                // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I1 I1.operator |(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36 + checkedKeyword.Length),
+                // (67,36): error CS0501: 'I14.operator |(I1, int)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static I1 I1.operator |(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1, int)").WithLocation(67, 36 + checkedKeyword.Length),
+                // (67,36): error CS0539: 'I14.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static I1 I1.operator |(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1, int)").WithLocation(67, 36 + checkedKeyword.Length)
                 };
 
             if (op is "==" or "!=")
@@ -17584,21 +15552,12 @@ interface I14 : I1
                         // (17,24): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     static I1 operator ==(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(17, 24 + checkedKeyword.Length),
-                        // (22,20): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                        //     I1 I1.operator ==(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(22, 20),
-                        // (27,27): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                        //     static I1 I1.operator ==(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(27, 27),
                         // (42,16): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(42, 16 + checkedKeyword.Length),
                         // (47,23): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     static T operator ==(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(47, 23 + checkedKeyword.Length),
-                        // (57,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                        //     static T I11<T>.operator ==(T x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(57, 30),
                         }
                     ).ToArray();
             }
@@ -17609,9 +15568,6 @@ interface I14 : I1
                         // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                         //     I1 operator |(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
-                        // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
-                        //     I1 I1.operator |(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
                         // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
                         //     T operator |(T x, int y) => default;
                         Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
@@ -17627,10 +15583,7 @@ interface I14 : I1
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
-
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
             var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
@@ -17643,7 +15596,7 @@ interface I14 : I1
             Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
-            Assert.Same(i12.GetMembers().OfType<MethodSymbol>().Single(), i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
             Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
@@ -17653,163 +15606,7 @@ interface I14 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementVirtualStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=")] string op, bool isChecked)
-        {
-            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
-            {
-                return;
-            }
-
-            var source1 =
-@"
-public interface I1
-{
-    virtual  static I1 operator " + checkedKeyword + op + @"(I1 x, int y) => x;
-}
-
-interface I2 : I1
-{}
-
-interface I3 : I1
-{
-    I1 operator " + checkedKeyword + op + @"(I1 x, int y) => default;
-}
-
-interface I4 : I1
-{
-    static I1 operator " + checkedKeyword + op + @"(I1 x, int y) => default;
-}
-
-interface I5 : I1
-{
-    I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
-}
-
-interface I6 : I1
-{
-    static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
-}
-
-interface I7 : I1
-{
-    virtual  static I1 operator " + checkedKeyword + op + @"(I1 x, int y) => x;
-}
-
-public interface I11<T> where T : I11<T>
-{
-    virtual  static T operator " + checkedKeyword + op + @"(T x, int y) => x;
-}
-
-interface I8<T> : I11<T> where T : I8<T>
-{
-    T operator " + checkedKeyword + op + @"(T x, int y) => default;
-}
-
-interface I9<T> : I11<T> where T : I9<T>
-{
-    static T operator " + checkedKeyword + op + @"(T x, int y) => default;
-}
-
-interface I10<T> : I11<T> where T : I10<T>
-{
-    virtual  static T operator " + checkedKeyword + op + @"(T x, int y) => x;
-}
-
-interface I12<T> : I11<T> where T : I12<T>
-{
-    static T I11<T>.operator " + checkedKeyword + op + @"(T x, int y) => default;
-}
-
-interface I13<T> : I11<T> where T : I13<T>
-{
-    virtual  static T I11<T>.operator " + checkedKeyword + op + @"(T x, int y) => x;
-}
-
-interface I14 : I1
-{
-    virtual  static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => x;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            bool isShift = op == "<<" || op == ">>" || op == ">>>";
-            ErrorCode badSignatureError = isShift ? ErrorCode.ERR_BadShiftOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature;
-            ErrorCode badAbstractSignatureError = isShift ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadAbstractBinaryOperatorSignature;
-
-            var expected = new[] {
-                // (12,17): error CS0563: One of the parameters of a binary operator must be the containing type
-                //     I1 operator |(I1 x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(12, 17 + checkedKeyword.Length),
-                // (17,24): error CS0563: One of the parameters of a binary operator must be the containing type
-                //     static I1 operator |(I1 x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
-                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
-                //     I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (22,20): error CS0539: 'I5.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
-                // (32,33): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
-                //     virtual  static I1 operator |(I1 x, int y);
-                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
-                // (42,16): error CS0563: One of the parameters of a binary operator must be the containing type
-                //     T operator |(T x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
-                // (47,23): error CS0563: One of the parameters of a binary operator must be the containing type
-                //     static T operator |(T x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
-                // (62,39): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual  static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(62, 39 + checkedKeyword.Length),
-                // (67,36): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual  static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(67, 36 + checkedKeyword.Length),
-                // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
-                //     I1 operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
-                // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
-                //     T operator |(T x, int y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
-                };
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(expected);
-
-            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
-
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(m01));
-
-            Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-
-            foreach (var name in new[] { "I8", "I9", "I10" })
-            {
-                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
-                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
-                Assert.Same(iXM, iX.FindImplementationForInterfaceMember(iXM));
-            }
-
-            foreach (var name in new[] { "I12", "I13" })
-            {
-                var iX = compilation1.GlobalNamespace.GetTypeMember(name);
-                var iXM = iX.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
-                Assert.Same(iX.GetMembers().OfType<MethodSymbol>().Single(), iX.FindImplementationForInterfaceMember(iXM));
-            }
-
-            var i14 = compilation1.GlobalNamespace.GetTypeMember("I14");
-            Assert.Same(i14.GetMembers().OfType<MethodSymbol>().Single(), i14.FindImplementationForInterfaceMember(m01));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_04([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_04([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
         {
             if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -17817,18 +15614,17 @@ interface I14 : I1
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 public interface I2<T> where T : I2<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 ";
             var source2 =
@@ -17848,7 +15644,7 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -17880,7 +15676,7 @@ typeKeyword + @"
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected2);
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             DiagnosticDescription[] expected3;
@@ -17900,15 +15696,15 @@ typeKeyword + @"
                     // (14,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static I1 operator checked --(I1 x);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(14, 33),
-                    // (14,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (14,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator checked --(I1 x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 41),
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 41),
                     // (19,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static T operator checked --(T x);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(19, 32),
-                    // (19,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (19,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator checked --(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 40)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 40)
                     };
             }
             else
@@ -17917,12 +15713,12 @@ typeKeyword + @"
                     // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static I1 I1.operator +(I1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator +(I1 x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33),
-                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator +(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
                     };
             }
 
@@ -17931,31 +15727,25 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 public interface I2<T> where T : I2<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, int y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 ";
             var source2 =
@@ -17975,7 +15765,7 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -18020,7 +15810,7 @@ typeKeyword + @"
             }
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             if (!isChecked)
@@ -18031,12 +15821,12 @@ typeKeyword + @"
                         // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     static I1 I1.operator +(I1 x, int y) => default;
                         Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                         //     abstract static I1 operator +(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33),
-                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                         //     abstract static T operator +(T x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32)
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
                         );
                 }
                 else
@@ -18054,15 +15844,15 @@ typeKeyword + @"
                         // (14,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     abstract static I1 operator >>>(I1 x, int y);
                         Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(14, 33),
-                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                         //     abstract static I1 operator >>>(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33),
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
                         // (19,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     abstract static T operator >>>(T x, int y);
                         Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(19, 32),
-                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                         //     abstract static T operator >>>(T x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32)
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
                         );
                 }
             }
@@ -18072,12 +15862,12 @@ typeKeyword + @"
                     // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static I1 I1.operator +(I1 x, int y) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static I1 operator +(I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33 + checkedKeyword.Length),
-                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33 + checkedKeyword.Length),
+                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static T operator +(T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32 + checkedKeyword.Length),
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32 + checkedKeyword.Length),
                     // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static I1 I1.operator checked /(I1 x, int y) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
@@ -18096,7 +15886,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_05([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_05([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
         {
             if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -18104,13 +15894,12 @@ typeKeyword + @"
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1<T> where T : I1<T> 
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 ";
             var source2 =
@@ -18151,26 +15940,20 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1<T> where T : I1<T> 
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, int y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 ";
             var source2 =
@@ -18211,7 +15994,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_06([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_06([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
         {
             if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
@@ -18219,13 +16002,12 @@ typeKeyword + @"
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 ";
             var source2 =
@@ -18266,26 +16048,20 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
             if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
             {
                 return;
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 ";
             var source2 =
@@ -18326,7 +16102,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_07([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_07([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure, bool isChecked)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
@@ -18338,13 +16114,12 @@ typeKeyword + @"
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 
 partial " + typeKeyword + @"
@@ -18359,7 +16134,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + op + @"(T x)" + body + @"
+    abstract static T operator " + op + @"(T x);
 }
 
 partial " + typeKeyword + @"
@@ -18414,18 +16189,17 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryTrueFalseOperator_07([CombinatorialValues("true", "false")] string op, bool structure, bool isVirtual)
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_07([CombinatorialValues("true", "false")] string op, bool structure)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static bool operator " + op + @"(T x)" + body + @"
+    abstract static bool operator " + op + @"(T x);
 }
 
 partial " + typeKeyword + @"
@@ -18440,7 +16214,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static bool operator " + matchingOp + @"(T x)" + body + @"
+    abstract static bool operator " + matchingOp + @"(T x);
 }
 
 partial " + typeKeyword + @"
@@ -18495,17 +16269,11 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
-
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             if (opName is null)
             {
@@ -18518,7 +16286,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, int y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -18537,7 +16305,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + matchingOp + @"(T x, int y)" + body + @"
+    abstract static T operator " + matchingOp + @"(T x, int y);
 }
 
 partial " + typeKeyword + @"
@@ -18592,7 +16360,7 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_08([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_08([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure, bool isChecked)
         {
             // Basic explicit implementation scenario
 
@@ -18604,13 +16372,12 @@ partial " + typeKeyword + @"
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 partial " + typeKeyword + @"
@@ -18625,7 +16392,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + op + @"(I1 x);
 }
 
 partial " + typeKeyword + @"
@@ -18642,7 +16409,7 @@ partial " + typeKeyword + @"
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default").First();
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
 
             Assert.Equal("default", node.ToString());
             Assert.Equal("I1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
@@ -18682,18 +16449,17 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryTrueFalseOperator_08([CombinatorialValues("true", "false")] string op, bool structure, bool isVirtual)
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_08([CombinatorialValues("true", "false")] string op, bool structure)
         {
             // Basic explicit implementation scenario
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1
 {
-    " + modifier + @" static bool operator " + op + @"(I1 x)" + body + @"
+    abstract static bool operator " + op + @"(I1 x);
 }
 
 partial " + typeKeyword + @"
@@ -18708,7 +16474,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1
 {
-    " + modifier + @" static bool operator " + matchingOp + @"(I1 x)" + body + @"
+    abstract static bool operator " + matchingOp + @"(I1 x);
 }
 
 partial " + typeKeyword + @"
@@ -18725,7 +16491,7 @@ partial " + typeKeyword + @"
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default").First();
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
 
             Assert.Equal("default", node.ToString());
             Assert.Equal("System.Boolean", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
@@ -18765,14 +16531,9 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             // Basic explicit implementation scenario
-
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -18782,13 +16543,12 @@ partial " + typeKeyword + @"
             }
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 partial " + typeKeyword + @"
@@ -18805,7 +16565,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + matchingOp + @"(I1 x, int y)" + body + @"
+    abstract static I1 operator " + matchingOp + @"(I1 x, int y);
 }
 
 partial " + typeKeyword + @"
@@ -18823,7 +16583,7 @@ partial " + typeKeyword + @"
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default").First();
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
 
             Assert.Equal("default", node.ToString());
             Assert.Equal("I1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
@@ -18863,7 +16623,7 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_09([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_09([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
         {
             // Explicit implementation from base is treated as an implementation
 
@@ -18874,13 +16634,11 @@ partial " + typeKeyword + @"
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 public partial class C2 : I1
@@ -18894,7 +16652,7 @@ public partial class C2 : I1
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + op + @"(I1 x);
 }
 
 public partial class C2 : I1
@@ -18919,7 +16677,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -18944,16 +16702,15 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryTrueFalseOperator_09([CombinatorialValues("true", "false")] string op, bool isVirtual)
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_09([CombinatorialValues("true", "false")] string op)
         {
             // Explicit implementation from base is treated as an implementation
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public partial interface I1
 {
-    " + modifier + @" static bool operator " + op + @"(I1 x)" + body + @"
+    abstract static bool operator " + op + @"(I1 x);
 }
 
 public partial class C2 : I1
@@ -18967,7 +16724,7 @@ public partial class C2 : I1
 @"
 public partial interface I1
 {
-    " + modifier + @" static bool operator " + matchingOp + @"(I1 x)" + body + @"
+    abstract static bool operator " + matchingOp + @"(I1 x);
 }
 
 public partial class C2
@@ -18993,7 +16750,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -19018,14 +16775,9 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Explicit implementation from base is treated as an implementation
-
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -19034,13 +16786,11 @@ public class C3 : C2, I1
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x, int y)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 public partial class C2 : I1
@@ -19056,7 +16806,7 @@ public partial class C2 : I1
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + matchingOp + @"(I1 x, int y)" + body + @"
+    abstract static I1 operator " + matchingOp + @"(I1 x, int y);
 }
 
 public partial class C2
@@ -19081,7 +16831,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -19106,7 +16856,7 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_10([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_10([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -19118,16 +16868,15 @@ public class C3 : C2, I1
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         class I1 " + opName + @" (
             class I1 x
         ) cil managed 
-    " + body + @"
+    {
+    }
 }
 
 .class public auto ansi beforefieldinit C1
@@ -19228,7 +16977,7 @@ public class C5 : C2, I1
             Assert.Equal(MethodKind.UserDefinedOperator, c2M01.MethodKind);
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
@@ -19236,7 +16985,7 @@ public class C5 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -19248,17 +16997,16 @@ public class C5 : C2, I1
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         class I1 " + opName + @" (
             class I1 x,
             int32 y
         ) cil managed 
-    " + body + @"
+    {
+    }
 }
 
 .class public auto ansi beforefieldinit C1
@@ -19369,7 +17117,7 @@ public class C5 : C2, I1
         [CombinatorialData]
         public void ImplementAbstractStaticUnaryOperator_11([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
-            // Non-abstract static virtual method. 
+            // Ignore invalid metadata (non-abstract static virtual method). 
 
             string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -19410,18 +17158,14 @@ public class C1 : I1
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
-            Assert.Same(m01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1.operator ~(I1)' cannot implement interface member 'I1.operator ~(I1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1)", "I1.operator " + checkedKeyword + op + @"(I1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
-                );
+            compilation1.VerifyEmitDiagnostics();
 
             var source2 =
 @"
@@ -19435,20 +17179,24 @@ public class C1 : I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation2.VerifyEmitDiagnostics();
+            compilation2.VerifyEmitDiagnostics(
+                // (4,27): error CS0539: 'C1.operator ~(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator ~(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + checkedKeyword + op + "(I1)").WithLocation(4, 27 + checkedKeyword.Length)
+                );
 
             c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
             m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal("I1 I1." + opName + "(I1 x)", m01.ToTestDisplayString());
-            Assert.Equal("I1 C1.I1." + opName + "(I1 x)", c1.FindImplementationForInterfaceMember(m01).ToTestDisplayString());
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
         [CombinatorialData]
         public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
-            // Non-abstract static virtual method. 
+            // Ignore invalid metadata (non-abstract static virtual method). 
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -19490,18 +17238,14 @@ public class C1 : I1
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
-            Assert.Same(m01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1.operator |(I1, int)' cannot implement interface member 'I1.operator |(I1, int)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1, int)", "I1.operator " + checkedKeyword + op + @"(I1, int)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
-                );
+            compilation1.VerifyEmitDiagnostics();
 
             var source2 =
 @"
@@ -19515,20 +17259,24 @@ public class C1 : I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation2.VerifyEmitDiagnostics();
+            compilation2.VerifyEmitDiagnostics(
+                // (4,27): error CS0539: 'C1.operator <(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator <(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + checkedKeyword + op + "(I1, int)").WithLocation(4, 27 + checkedKeyword.Length)
+                );
 
             c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
             m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal("I1 I1." + opName + "(I1 x, System.Int32 y)", m01.ToTestDisplayString());
-            Assert.Equal("I1 C1.I1." + opName + "(I1 x, System.Int32 y)", c1.FindImplementationForInterfaceMember(m01).ToTestDisplayString());
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_12([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_12([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
-            // Default interface implementation for a static method
+            // Ignore invalid metadata (default interface implementation for a static method)
 
             string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -19537,16 +17285,15 @@ public class C1 : I1
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         class I1 " + opName + @" (
             class I1 x
         ) cil managed 
-    " + body + @"
+    {
+    }
 }
 .class interface public auto ansi abstract I2
     implements I1
@@ -19573,26 +17320,30 @@ public class C1 : I2
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics();
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator ~(I1)'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + checkedKeyword + op + "(I1)").WithLocation(2, 19)
+                );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var i2 = c1.Interfaces().Single();
             var i1 = i2.Interfaces().Single();
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
-            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
-            Assert.Same(i2M01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(i2M01, i2.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
 
+            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
             Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
-            // Default interface implementation for a static method
+            // Ignore invalid metadata (default interface implementation for a static method)
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -19601,17 +17352,16 @@ public class C1 : I2
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         class I1 " + opName + @" (
             class I1 x,
             int32 y
         ) cil managed 
-    " + body + @"
+    {
+    }
 }
 .class interface public auto ansi abstract I2
     implements I1
@@ -19638,31 +17388,30 @@ public class C1 : I2
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics();
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator /(I1, int)'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + checkedKeyword + op + "(I1, int)").WithLocation(2, 19)
+                );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var i2 = c1.Interfaces().Single();
             var i1 = i2.Interfaces().Single();
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
-            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
-            Assert.Same(i2M01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(i2M01, i2.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
 
+            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
             Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_13([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_13([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation declared in base class. 
-
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -19671,13 +17420,11 @@ public class C1 : I2
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, C1 y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, C1 y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -19699,7 +17446,7 @@ public class C2 : C1, I1<C2>
 @"
 public partial interface I1<T>
 {
-    " + modifier + @" static T operator " + matchingOp + @"(T x, C1 y)" + body + @"
+    abstract static T operator " + matchingOp + @"(T x, C1 y);
 }
 
 public partial class C1
@@ -19778,7 +17525,7 @@ public partial class C1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_14([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_14([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -19789,17 +17536,16 @@ public partial class C1
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         !T modopt(I1`1) " + opName + @" (
             !T x
         ) cil managed 
-    " + body + @"
+    {
+    }
 } 
 ";
 
@@ -19904,22 +17650,22 @@ partial class C1 : I1<C1>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryTrueFalseOperator_14([CombinatorialValues("true", "false")] string op, bool isVirtual)
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_14([CombinatorialValues("true", "false")] string op)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
             var opName = UnaryOperatorName(op);
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         bool modopt(I1`1) " + opName + @" (
             !T x
         ) cil managed 
-    " + body + @"
+    {
+    }
 } 
 ";
 
@@ -20013,14 +17759,14 @@ class C2 : I1<C2>
 ");
         }
 
-        internal static string MatchingBinaryOperator(string op)
+        private static string MatchingBinaryOperator(string op)
         {
             return op switch { "<" => ">", ">" => "<", "<=" => ">=", ">=" => "<=", "==" => "!=", "!=" => "==", _ => null };
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -20031,18 +17777,17 @@ class C2 : I1<C2>
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         !T modopt(I1`1) " + opName + @" (
             !T x,
             int32 y
         ) cil managed 
-    " + body + @"
+    {
+    }
 } 
 ";
             string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
@@ -20150,7 +17895,7 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_15([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticUnaryOperator_15([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
 
@@ -20161,13 +17906,11 @@ class C2 : I1<C2>
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + checkedKeyword + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 public partial class C2 : I1
@@ -20181,7 +17924,7 @@ public partial class C2 : I1
 @"
 public partial interface I1
 {
-    " + modifier + @" static I1 operator " + op + @"(I1 x)" + body + @"
+    abstract static I1 operator " + op + @"(I1 x);
 }
 
 public partial class C2 : I1
@@ -20206,7 +17949,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular10 })
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -20229,19 +17972,17 @@ public class C3 : C2, I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticUnaryTrueFalseOperator_15(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_15()
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static bool operator true(I1 x)" + body + @"
-    " + modifier + @" static bool operator false(I1 x)" + body + @"
+    abstract static bool operator true(I1 x);
+    abstract static bool operator false(I1 x);
 }
 
 public partial class C2 : I1
@@ -20267,7 +18008,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular10 })
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -20297,13 +18038,9 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -20312,14 +18049,12 @@ public class C3 : C2, I1
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, C1 y)" + body + @"
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, C2 y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, C1 y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, C2 y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -20343,8 +18078,8 @@ public partial class C2 : C1, I1<C2>
 @"
 public partial interface I1<T>
 {
-    " + modifier + @" static T operator " + matchingOp + @"(T x, C1 y)" + body + @"
-    " + modifier + @" static T operator " + matchingOp + @"(T x, C2 y)" + body + @"
+    abstract static T operator " + matchingOp + @"(T x, C1 y);
+    abstract static T operator " + matchingOp + @"(T x, C2 y);
 }
 
 public partial class C1
@@ -20374,7 +18109,7 @@ public class C3 : C2, I1<C2>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular10 })
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -20424,13 +18159,9 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_16([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_16([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A new implicit implementation is properly considered.
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -20439,13 +18170,11 @@ public class C3 : C2, I1<C2>
                 return;
             }
 
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, C1 y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, C1 y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -20468,7 +18197,7 @@ public partial class C2 : C1
 @"
 public partial interface I1<T>
 {
-    " + modifier + @" static T operator " + matchingOp + @"(T x, C1 y)" + body + @"
+    abstract static T operator " + matchingOp + @"(T x, C1 y);
 }
 
 public partial class C1 : I1<C2>
@@ -20498,7 +18227,7 @@ public class C3 : C2, I1<C2>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -20552,13 +18281,9 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_18([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_18([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked)
         {
             // An "ambiguity" in implicit implementation declared in generic base class plus interface is generic too.
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -20566,8 +18291,6 @@ public class C3 : C2, I1<C2>
             {
                 return;
             }
-
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -20581,7 +18304,7 @@ public class C3 : C2, I1<C2>
 @"
 public partial interface I1<T, U> where T : I1<T, U>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, U y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, U y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -20600,7 +18323,7 @@ public partial class C1<T, U> : I1<C1<T, U>, U>
 @"
 public partial interface I1<T, U>
 {
-    " + modifier + @" static T operator " + matchingOp + @"(T x, U y)" + body + @"
+    abstract static T operator " + matchingOp + @"(T x, U y);
 }
 
 public partial class C1<T, U>
@@ -20628,7 +18351,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -20667,13 +18390,9 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_20([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_20([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked)
         {
             // Same as ImplementAbstractStaticBinaryOperator_18 only implementation is explicit in source.
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -20681,8 +18400,6 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
             {
                 return;
             }
-
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -20696,7 +18413,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 @"
 public partial interface I1<T, U> where T : I1<T, U>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, U y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, U y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -20714,7 +18431,7 @@ public partial class C1<T, U> : I1<C1<T, U>, U>
 @"
 public partial interface I1<T, U> where T : I1<T, U>
 {
-    " + modifier + @" static T operator " + matchingOp + @"(T x, U y)" + body + @"
+    abstract static T operator " + matchingOp + @"(T x, U y);
 }
 
 public partial class C1<T, U> : I1<C1<T, U>, U>
@@ -20742,7 +18459,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -20770,13 +18487,9 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_22([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticBinaryOperator_22([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked)
         {
             // Same as ImplementAbstractStaticMethod_18 only implicit implementation is in an intermediate base.
-            if (isVirtual && op is "==" or "!=")
-            {
-                return;
-            }
 
             string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -20784,8 +18497,6 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
             {
                 return;
             }
-
-            var (modifier, body) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -20799,7 +18510,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 @"
 public partial interface I1<T, U> where T : I1<T, U>
 {
-    " + modifier + @" static T operator " + checkedKeyword + op + @"(T x, U y)" + body + @"
+    abstract static T operator " + checkedKeyword + op + @"(T x, U y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -20821,7 +18532,7 @@ public class C11<T, U> : C1<T, U>, I1<C11<T, U>, C1<T, U>>
 @"
 public partial interface I1<T, U>
 {
-    " + modifier + @" static T operator " + matchingOp + @"(T x, U y)" + body + @"
+    abstract static T operator " + matchingOp + @"(T x, U y);
 }
 
 public partial class C1<T, U>
@@ -20849,7 +18560,7 @@ public class C2 : C11<int, int>, I1<C11<int, int>, C1<int, int>>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -21359,68 +19070,6 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementVirtualStaticProperty_01(bool structure)
-        {
-            var typeKeyword = structure ? "struct" : "class";
-
-            var source1 =
-@"
-public interface I1
-{
-    virtual static int M01 { get; set; }
-}
-
-" + typeKeyword + @"
-    C1 : I1
-{}
-
-" + typeKeyword + @"
-    C2 : I1
-{
-    public int M01 { get; set; }
-}
-
-" + typeKeyword + @"
-    C3 : I1
-{
-    static int M01 { get; set; }
-}
-
-" + typeKeyword + @"
-    C4 : I1
-{
-    int I1.M01 { get; set; }
-}
-
-" + typeKeyword + @"
-    C5 : I1
-{
-    public static long M01 { get; set; }
-}
-
-" + typeKeyword + @"
-    C6 : I1
-{
-    static long I1.M01 { get; set; }
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (26,12): error CS0539: 'C4.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 12),
-                // (38,20): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static long I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 20)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
         public void ImplementAbstractStaticProperty_02(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
@@ -21557,9 +19206,21 @@ interface I8 : I1
                 // (22,12): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.M01 { get => 0; set{} }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 12),
+                // (27,19): error CS0106: The modifier 'static' is not valid for this item
+                //     static int I1.M01 { get => 0; set{} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 19),
+                // (27,19): error CS0539: 'I6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static int I1.M01 { get => 0; set{} }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01").WithLocation(27, 19),
                 // (32,25): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
                 //     abstract static int M01 { get; set; }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 25)
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 25),
+                // (37,28): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 28),
+                // (37,28): error CS0539: 'I8.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01").WithLocation(37, 28)
                 );
 
             foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
@@ -21568,123 +19229,24 @@ interface I8 : I1
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
-            }
-
-            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            var i6m = i6.GetMembers().OfType<PropertySymbol>().Single();
-            Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
-            Assert.Same(i6m.GetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).GetMethod);
-            Assert.Same(i6m.SetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).SetMethod);
-        }
-
-        [Fact]
-        public void ImplementVirtualStaticProperty_03()
-        {
-            var source1 =
-@"
-public interface I1
-{
-    virtual  static int M01 { get; set; }
-}
-
-interface I2 : I1
-{}
-
-interface I3 : I1
-{
-    public virtual int M01 { get => 0; set{} }
-}
-
-interface I4 : I1
-{
-    static int M01 { get; set; }
-}
-
-interface I5 : I1
-{
-    int I1.M01 { get => 0; set{} }
-}
-
-interface I6 : I1
-{
-    static int I1.M01 { get => 0; set{} }
-}
-
-interface I7 : I1
-{
-    virtual  static int M01 { get; set; }
-}
-
-interface I8 : I1
-{
-    virtual  static int I1.M01 { get; set; }
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (12,24): warning CS0108: 'I3.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
-                //     public virtual int M01 { get => 0; set{} }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I3.M01", "I1.M01").WithLocation(12, 24),
-                // (17,16): warning CS0108: 'I4.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
-                //     static int M01 { get; set; }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I4.M01", "I1.M01").WithLocation(17, 16),
-                // (22,12): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     int I1.M01 { get => 0; set{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 12),
-                // (32,25): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
-                //     virtual  static int M01 { get; set; }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 25),
-                // (37,28): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual  static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 28)
-                );
-
-            foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
-            {
-                if (m01.Kind == SymbolKind.Field)
-                {
-                    continue;
-                }
-
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-            }
-
-            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
-
-            foreach (var name in new[] { "I6", "I8" })
-            {
-                var i6 = compilation1.GlobalNamespace.GetTypeMember(name);
-                var i6m = i6.GetMembers().OfType<PropertySymbol>().Single();
-                Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
-                Assert.Same(i6m.GetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).GetMethod);
-                Assert.Same(i6m.SetMethod, ((PropertySymbol)i6.FindImplementationForInterfaceMember(m)).SetMethod);
             }
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticProperty_04(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticProperty_04(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
-    " + modifier + @" static int M02 { get; set; }
+    abstract static int M01 { get; set; }
+    abstract static int M02 { get; set; }
 }
 ";
             var source2 =
@@ -21700,45 +19262,44 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 19)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 19),
-                // (10,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 19),
+                // (10,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static int M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(10, 25),
-                // (11,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(10, 25),
+                // (11,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static int M02 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(11, 25)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("abstract", "9.0", "preview").WithLocation(11, 25)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticProperty_05(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticProperty_05(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 ";
             var source2 =
@@ -21794,16 +19355,15 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticProperty_06(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticProperty_06(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 ";
             var source2 =
@@ -21847,18 +19407,17 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticProperty_07(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticProperty_07(bool structure)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 
 " + typeKeyword + @"
@@ -21942,18 +19501,17 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticReadonlyProperty_07(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticReadonlyProperty_07(bool structure)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; }
+    abstract static int M01 { get; }
 }
 
 " + typeKeyword + @"
@@ -22033,18 +19591,17 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticProperty_08(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticProperty_08(bool structure)
         {
             // Basic explicit implementation scenario
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 
 " + typeKeyword + @"
@@ -22117,18 +19674,16 @@ public interface I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticProperty_09(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticProperty_09()
         {
             // Explicit implementation from base is treated as an implementation
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 
 public class C1
@@ -22157,7 +19712,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -22187,26 +19742,26 @@ public class C3 : C2, I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticProperty_10(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticProperty_10()
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 get_M01 () cil managed 
-    " + body + @"
+    {
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void set_M01 (
             int32 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
     .property int32 M01()
     {
@@ -22372,7 +19927,7 @@ public class C5 : C2, I1
         [Fact]
         public void ImplementAbstractStaticProperty_11()
         {
-            // Non-abstract static virtual method. 
+            // Ignore invalid metadata (non-abstract static virtual method). 
             scenario1();
             scenario2();
             scenario3();
@@ -22422,25 +19977,18 @@ public class C1 : I1
                 var i1 = c1.Interfaces().Single();
                 var m01 = i1.GetMembers().OfType<PropertySymbol>().Single();
 
-                Assert.Same(m01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(m01.GetMethod, i1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(m01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
-                Assert.Same(m01.SetMethod, i1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.SetMethod));
 
                 compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular10,
+                                                     parseOptions: TestOptions.Regular9,
                                                      targetFramework: _supportingFramework);
 
-                compilation1.VerifyEmitDiagnostics(
-                    // (2,19): error CS8706: 'I1.M01.get' cannot implement interface member 'I1.M01.get' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.get", "I1.M01.get", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
-                    // (2,19): error CS8706: 'I1.M01.set' cannot implement interface member 'I1.M01.set' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.set", "I1.M01.set", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
-                    );
+                compilation1.VerifyEmitDiagnostics();
 
                 var source2 =
 @"
@@ -22455,22 +20003,20 @@ public class C1 : I1
                                                      targetFramework: _supportingFramework);
 
                 compilation2.VerifyEmitDiagnostics(
-                    // (4,18): error CS0122: 'I1.M01' is inaccessible due to its protection level
+                    // (4,18): error CS0539: 'C1.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                     //    static int I1.M01 { get; set; }
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M01").WithArguments("I1.M01").WithLocation(4, 18)
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C1.M01").WithLocation(4, 18)
                     );
 
                 c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
-                i1 = c1.Interfaces().Single();
-                m01 = i1.GetMembers().OfType<PropertySymbol>().Single();
-                var c1m01 = c1.GetMembers().OfType<PropertySymbol>().Single();
+                m01 = c1.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
 
-                Assert.Same(c1m01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(c1m01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(m01.GetMethod, i1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(c1m01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
-                Assert.Same(m01.SetMethod, i1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.SetMethod));
 
                 var source3 =
 @"
@@ -22493,10 +20039,9 @@ public class C1 : I1
                     Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
 
                     var m01 = c.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
-                    var c1m01 = c.GetMembers().OfType<PropertySymbol>().Single();
-                    Assert.Same(c1m01, c.FindImplementationForInterfaceMember(m01));
-                    Assert.Same(c1m01.GetMethod, c.FindImplementationForInterfaceMember(m01.GetMethod));
-                    Assert.Same(c1m01.SetMethod, c.FindImplementationForInterfaceMember(m01.SetMethod));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.GetMethod));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.SetMethod));
                 }
             }
 
@@ -22551,8 +20096,8 @@ public class C1 : I1
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(m01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
-                Assert.Same(m01.SetMethod, i1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.SetMethod));
 
                 var source2 =
 @"
@@ -22566,16 +20111,7 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                compilation2.VerifyEmitDiagnostics(
-                    // (4,18): error CS0122: 'I1.M01.set' is inaccessible due to its protection level
-                    //    static int I1.M01 { get; }
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M01").WithArguments("I1.M01.set").WithLocation(4, 18),
-                    // (4,18): error CS0551: Explicit interface implementation 'C1.I1.M01' is missing accessor 'I1.M01.set'
-                    //    static int I1.M01 { get; }
-                    Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M01").WithArguments("C1.I1.M01", "I1.M01.set").WithLocation(4, 18)
-                    );
-
-                validate2(compilation2.SourceModule);
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate2, symbolValidator: validate2, verify: Verification.Skipped).VerifyDiagnostics();
 
                 void validate2(ModuleSymbol module)
                 {
@@ -22609,7 +20145,7 @@ public class C1 : I1
                     Assert.Equal("System.Int32 C1.I1.M01.get", cM01Get.ToTestDisplayString());
 
                     Assert.Null(cM01.SetMethod);
-                    Assert.Same(m01Set, c.FindImplementationForInterfaceMember(m01Set));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01Set));
 
                     Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
                     Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
@@ -22672,21 +20208,20 @@ public class C1 : I1
 
                     Assert.Equal("void C1.M01.set", cM01Set.ToTestDisplayString());
 
-                    var m01Set = m01.SetMethod;
-                    Assert.Same(cM01Set, c.FindImplementationForInterfaceMember(m01Set));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.SetMethod));
 
                     if (module is PEModuleSymbol)
                     {
                         Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
                         Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
-                        Assert.Same(m01Set, cM01Set.ExplicitInterfaceImplementations.Single());
                     }
                     else
                     {
                         Assert.Empty(cM01.ExplicitInterfaceImplementations);
                         Assert.Empty(cM01Get.ExplicitInterfaceImplementations);
-                        Assert.Empty(cM01Set.ExplicitInterfaceImplementations);
                     }
+
+                    Assert.Empty(cM01Set.ExplicitInterfaceImplementations);
                 }
 
                 var source4 =
@@ -22702,9 +20237,9 @@ public class C1 : I1
                                                      targetFramework: _supportingFramework);
 
                 compilation4.VerifyDiagnostics(
-                    // (4,18): error CS0122: 'I1.M01.set' is inaccessible due to its protection level
+                    // (4,29): error CS0550: 'C1.I1.M01.set' adds an accessor not found in interface member 'I1.M01'
                     //    static int I1.M01 { get; set; }
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M01").WithArguments("I1.M01.set").WithLocation(4, 18)
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("C1.I1.M01.set", "I1.M01").WithLocation(4, 29)
                     );
 
                 c1 = compilation4.GlobalNamespace.GetTypeMember("C1");
@@ -22714,7 +20249,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(c1M01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.GetMethod, c1M01.GetMethod.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.SetMethod, c1M01.SetMethod.ExplicitInterfaceImplementations.Single());
@@ -22764,19 +20299,18 @@ public class C1 : I1
 
                     Assert.Equal("System.Int32 C1.M01.get", cM01Get.ToTestDisplayString());
 
-                    var m01Set = m01.SetMethod;
-                    Assert.Same(m01Set, c.FindImplementationForInterfaceMember(m01Set));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.SetMethod));
 
                     if (module is PEModuleSymbol)
                     {
+                        Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
                         Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
                     }
                     else
                     {
+                        Assert.Empty(cM01.ExplicitInterfaceImplementations);
                         Assert.Empty(cM01Get.ExplicitInterfaceImplementations);
                     }
-
-                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
                 }
 
                 var source6 =
@@ -22804,7 +20338,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(c1M01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
 
                 var source7 =
 @"
@@ -22822,12 +20356,12 @@ public class C1 : I1
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.get'
                     // public class C1 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.get").WithLocation(2, 19),
-                    // (4,18): error CS0122: 'I1.M01.set' is inaccessible due to its protection level
-                    //    static int I1.M01 { set{} }
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M01").WithArguments("I1.M01.set").WithLocation(4, 18),
                     // (4,18): error CS0551: Explicit interface implementation 'C1.I1.M01' is missing accessor 'I1.M01.get'
                     //    static int I1.M01 { set{} }
-                    Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M01").WithArguments("C1.I1.M01", "I1.M01.get").WithLocation(4, 18)
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M01").WithArguments("C1.I1.M01", "I1.M01.get").WithLocation(4, 18),
+                    // (4,24): error CS0550: 'C1.I1.M01.set' adds an accessor not found in interface member 'I1.M01'
+                    //    static int I1.M01 { set{} }
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("C1.I1.M01.set", "I1.M01").WithLocation(4, 24)
                     );
 
                 c1 = compilation7.GlobalNamespace.GetTypeMember("C1");
@@ -22837,7 +20371,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(c1M01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.SetMethod, c1M01.SetMethod.ExplicitInterfaceImplementations.Single());
             }
@@ -22892,8 +20426,8 @@ public class C1 : I1
 
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
-                Assert.Same(m01.GetMethod, i1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.GetMethod));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01.SetMethod));
 
@@ -22909,16 +20443,7 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                compilation2.VerifyEmitDiagnostics(
-                    // (4,18): error CS0122: 'I1.M01.get' is inaccessible due to its protection level
-                    //    static int I1.M01 { set{} }
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M01").WithArguments("I1.M01.get").WithLocation(4, 18),
-                    // (4,18): error CS0551: Explicit interface implementation 'C1.I1.M01' is missing accessor 'I1.M01.get'
-                    //    static int I1.M01 { set{} }
-                    Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M01").WithArguments("C1.I1.M01", "I1.M01.get").WithLocation(4, 18)
-                    );
-
-                validate2(compilation2.SourceModule);
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate2, symbolValidator: validate2, verify: Verification.Skipped).VerifyDiagnostics();
 
                 void validate2(ModuleSymbol module)
                 {
@@ -22952,7 +20477,7 @@ public class C1 : I1
                     Assert.Equal("void C1.I1.M01.set", cM01Set.ToTestDisplayString());
 
                     Assert.Null(cM01.GetMethod);
-                    Assert.Same(m01Get, c.FindImplementationForInterfaceMember(m01Get));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01Get));
 
                     Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
                     Assert.Same(m01Set, cM01Set.ExplicitInterfaceImplementations.Single());
@@ -23015,21 +20540,20 @@ public class C1 : I1
 
                     Assert.Equal("System.Int32 C1.M01.get", cM01Get.ToTestDisplayString());
 
-                    var m01Get = m01.GetMethod;
-                    Assert.Same(cM01Get, c.FindImplementationForInterfaceMember(m01Get));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.GetMethod));
 
                     if (module is PEModuleSymbol)
                     {
                         Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
                         Assert.Same(m01Set, cM01Set.ExplicitInterfaceImplementations.Single());
-                        Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
                     }
                     else
                     {
                         Assert.Empty(cM01.ExplicitInterfaceImplementations);
                         Assert.Empty(cM01Set.ExplicitInterfaceImplementations);
-                        Assert.Empty(cM01Get.ExplicitInterfaceImplementations);
                     }
+
+                    Assert.Empty(cM01Get.ExplicitInterfaceImplementations);
                 }
 
                 var source4 =
@@ -23045,9 +20569,9 @@ public class C1 : I1
                                                      targetFramework: _supportingFramework);
 
                 compilation4.VerifyDiagnostics(
-                    // (4,18): error CS0122: 'I1.M01.get' is inaccessible due to its protection level
+                    // (4,24): error CS0550: 'C1.I1.M01.get' adds an accessor not found in interface member 'I1.M01'
                     //    static int I1.M01 { get; set; }
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M01").WithArguments("I1.M01.get").WithLocation(4, 18)
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("C1.I1.M01.get", "I1.M01").WithLocation(4, 24)
                    );
 
                 c1 = compilation4.GlobalNamespace.GetTypeMember("C1");
@@ -23057,7 +20581,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
-                Assert.Same(c1M01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.GetMethod, c1M01.GetMethod.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.SetMethod, c1M01.SetMethod.ExplicitInterfaceImplementations.Single());
@@ -23107,19 +20631,18 @@ public class C1 : I1
 
                     Assert.Equal("void C1.M01.set", cM01Set.ToTestDisplayString());
 
-                    var m01Get = m01.GetMethod;
-                    Assert.Same(m01Get, c.FindImplementationForInterfaceMember(m01Get));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.GetMethod));
 
                     if (module is PEModuleSymbol)
                     {
+                        Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
                         Assert.Same(m01Set, cM01Set.ExplicitInterfaceImplementations.Single());
                     }
                     else
                     {
+                        Assert.Empty(cM01.ExplicitInterfaceImplementations);
                         Assert.Empty(cM01Set.ExplicitInterfaceImplementations);
                     }
-
-                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
                 }
 
                 var source6 =
@@ -23146,7 +20669,7 @@ public class C1 : I1
                 c1M01 = c1.GetMembers().OfType<PropertySymbol>().Single();
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(c1M01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
 
                 var source7 =
@@ -23165,12 +20688,12 @@ public class C1 : I1
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.set'
                     // public class C1 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.set").WithLocation(2, 19),
-                    // (4,18): error CS0122: 'I1.M01.get' is inaccessible due to its protection level
-                    //    static int I1.M01 { get; }
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M01").WithArguments("I1.M01.get").WithLocation(4, 18),
                     // (4,18): error CS0551: Explicit interface implementation 'C1.I1.M01' is missing accessor 'I1.M01.set'
                     //    static int I1.M01 { get; }
-                    Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M01").WithArguments("C1.I1.M01", "I1.M01.set").WithLocation(4, 18)
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M01").WithArguments("C1.I1.M01", "I1.M01.set").WithLocation(4, 18),
+                    // (4,24): error CS0550: 'C1.I1.M01.get' adds an accessor not found in interface member 'I1.M01'
+                    //    static int I1.M01 { get; }
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("C1.I1.M01.get", "I1.M01").WithLocation(4, 24)
                     );
 
                 c1 = compilation7.GlobalNamespace.GetTypeMember("C1");
@@ -23179,32 +20702,32 @@ public class C1 : I1
                 c1M01 = c1.GetMembers().OfType<PropertySymbol>().Single();
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(c1M01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.GetMethod, c1M01.GetMethod.ExplicitInterfaceImplementations.Single());
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticProperty_12(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticProperty_12()
         {
-            // Default interface implementation for a static method
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
+            // Ignore invalid metadata (default interface implementation for a static method)
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 get_M01 () cil managed 
-    " + body + @"
+    {
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void set_M01 (
             int32 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
     .property int32 M01()
     {
@@ -23252,38 +20775,40 @@ public class C1 : I2
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics();
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.M01").WithLocation(2, 19)
+                );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var i2 = c1.Interfaces().Single();
             var i1 = i2.Interfaces().Single();
             var m01 = i1.GetMembers().OfType<PropertySymbol>().Single();
+
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01.SetMethod));
+
             var i2M01 = i2.GetMembers().OfType<PropertySymbol>().Single();
-
-            Assert.Same(i2M01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(i2M01, i2.FindImplementationForInterfaceMember(m01));
-            Assert.Same(i2M01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
-            Assert.Same(i2M01.GetMethod, i2.FindImplementationForInterfaceMember(m01.GetMethod));
-            Assert.Same(i2M01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
-            Assert.Same(i2M01.SetMethod, i2.FindImplementationForInterfaceMember(m01.SetMethod));
-
             Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
             Assert.Same(m01.GetMethod, i2M01.GetMethod.ExplicitInterfaceImplementations.Single());
             Assert.Same(m01.SetMethod, i2M01.SetMethod.ExplicitInterfaceImplementations.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticProperty_13(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticProperty_13()
         {
             // A forwarding method is added for an implicit implementation declared in base class. 
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 
 class C1
@@ -23418,25 +20943,25 @@ class C2 : C1, I1
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticProperty_14(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticProperty_14()
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 get_M01 () cil managed 
-    " + body + @"
+    {
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void modopt(I1) set_M01 (
             int32 modopt(I1) 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
     .property int32 M01()
     {
@@ -23641,19 +21166,17 @@ class C3 : I2
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStatiProperty_15(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStatiProperty_15()
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
-    " + modifier + @" static int M02 { get; set; }
+    abstract static int M01 { get; set; }
+    abstract static int M02 { get; set; }
 }
 
 public class C1
@@ -23682,7 +21205,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular10 })
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -23757,18 +21280,16 @@ public class C3 : C2, I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticProperty_16(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticProperty_16()
         {
             // A new implicit implementation is properly considered.
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 
 public class C1 : I1
@@ -23797,7 +21318,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -23884,10 +21405,9 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticProperty_19(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticProperty_19(bool genericFirst)
         {
             // An "ambiguity" in implicit/explicit implementation declared in generic base class.
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -23901,7 +21421,7 @@ public class C3 : C2, I1
 @"
 public interface I1
 {
-    " + modifier + @" static int M01 { get; set; }
+    abstract static int M01 { get; set; }
 }
 
 public class C1<T> : I1
@@ -23927,7 +21447,7 @@ public class C2 : C1<int>, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -23954,10 +21474,9 @@ public class C2 : C1<int>, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticProperty_20(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticProperty_20(bool genericFirst)
         {
             // Same as ImplementAbstractStaticProperty_19 only interface is generic too.
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -23971,7 +21490,7 @@ public class C2 : C1<int>, I1
 @"
 public interface I1<T>
 {
-    " + modifier + @" static T M01 { get; set; }
+    abstract static T M01 { get; set; }
 }
 
 public class C1<T> : I1<T>
@@ -23998,7 +21517,7 @@ public class C2 : C1<int>, I1<int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -24097,68 +21616,6 @@ public interface I1
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01'
                 //     C6 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
-                // (38,40): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static event System.Action<int> I1.M01 { add{} remove{}}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 40)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void ImplementVirtualStaticEvent_01(bool structure)
-        {
-            var typeKeyword = structure ? "struct" : "class";
-
-            var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
-public interface I1
-{
-    virtual static event System.Action M01;
-}
-
-" + typeKeyword + @"
-    C1 : I1
-{}
-
-" + typeKeyword + @"
-    C2 : I1
-{
-    public event System.Action M01;
-}
-
-" + typeKeyword + @"
-    C3 : I1
-{
-    static event System.Action M01;
-}
-
-" + typeKeyword + @"
-    C4 : I1
-{
-    event System.Action I1.M01 { add{} remove{}}
-}
-
-" + typeKeyword + @"
-    C5 : I1
-{
-    public static event System.Action<int> M01;
-}
-
-" + typeKeyword + @"
-    C6 : I1
-{
-    static event System.Action<int> I1.M01 { add{} remove{}}
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (26,28): error CS0539: 'C4.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     event System.Action I1.M01 { add{} remove{}}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 28),
                 // (38,40): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static event System.Action<int> I1.M01 { add{} remove{}}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 40)
@@ -24303,9 +21760,21 @@ interface I8 : I1
                 // (22,28): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I1.M01 { add{} remove{} }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 28),
+                // (27,35): error CS0106: The modifier 'static' is not valid for this item
+                //     static event System.Action I1.M01 { add{} remove{} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 35),
+                // (27,35): error CS0539: 'I6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static event System.Action I1.M01 { add{} remove{} }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01").WithLocation(27, 35),
                 // (32,41): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
                 //     abstract static event System.Action M01;
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 41)
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 41),
+                // (37,44): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static event System.Action I1.M01 { add{} remove{} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 44),
+                // (37,44): error CS0539: 'I8.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static event System.Action I1.M01;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01").WithLocation(37, 44)
                 );
 
             foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
@@ -24314,122 +21783,24 @@ interface I8 : I1
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
                 Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
-            }
-
-            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            var i6m = i6.GetMembers().OfType<EventSymbol>().Single();
-            Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
-            Assert.Same(i6m.AddMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).AddMethod);
-            Assert.Same(i6m.RemoveMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).RemoveMethod);
-        }
-
-        [Fact]
-        public void ImplementVirtualStaticEvent_03()
-        {
-            var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
-public interface I1
-{
-    virtual  static event System.Action M01;
-}
-
-interface I2 : I1
-{}
-
-interface I3 : I1
-{
-    public virtual event System.Action M01 { add{} remove{} }
-}
-
-interface I4 : I1
-{
-    static event System.Action M01;
-}
-
-interface I5 : I1
-{
-    event System.Action I1.M01 { add{} remove{} }
-}
-
-interface I6 : I1
-{
-    static event System.Action I1.M01 { add{} remove{} }
-}
-
-interface I7 : I1
-{
-    virtual  static event System.Action M01;
-}
-
-interface I8 : I1
-{
-    virtual  static event System.Action I1.M01;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics(
-                // (12,40): warning CS0108: 'I3.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
-                //     public virtual event System.Action M01 { add{} remove{} }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I3.M01", "I1.M01").WithLocation(12, 40),
-                // (17,32): warning CS0108: 'I4.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
-                //     static event System.Action M01;
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I4.M01", "I1.M01").WithLocation(17, 32),
-                // (22,28): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     event System.Action I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 28),
-                // (32,41): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
-                //     virtual  static event System.Action M01;
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 41),
-                // (37,44): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual  static event System.Action I1.M01;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("virtual").WithLocation(37, 44),
-                // (37,44): error CS0071: An explicit interface implementation of an event must use event accessor syntax
-                //     virtual  static event System.Action I1.M01;
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "M01").WithLocation(37, 44)
-                );
-
-            foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
-            {
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
-            }
-
-            var m = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
-
-            foreach (var name in new[] { "I6", "I8" })
-            {
-                var i6 = compilation1.GlobalNamespace.GetTypeMember(name);
-                var i6m = i6.GetMembers().OfType<EventSymbol>().Single();
-                Assert.Same(i6m, i6.FindImplementationForInterfaceMember(m));
-                Assert.Same(i6m.AddMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).AddMethod);
-                Assert.Same(i6m.RemoveMethod, ((EventSymbol)i6.FindImplementationForInterfaceMember(m)).RemoveMethod);
             }
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticEvent_04(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticEvent_04(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
-    " + modifier + @" static event System.Action M02;
+    abstract static event System.Action M01;
+    abstract static event System.Action M02;
 }
 ";
             var source2 =
@@ -24445,51 +21816,50 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static event System.Action I1.M01 { add{} remove => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 35),
                 // (5,39): warning CS0067: The event 'Test.M02' is never used
                 //     public static event System.Action M02;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "M02").WithArguments("Test.M02").WithLocation(5, 39)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static event System.Action I1.M01 { add{} remove => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 35),
                 // (5,39): warning CS0067: The event 'Test.M02' is never used
                 //     public static event System.Action M02;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "M02").WithArguments("Test.M02").WithLocation(5, 39),
-                // (10,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (10,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event System.Action M01;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(10, 41),
-                // (11,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(10, 41),
+                // (11,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event System.Action M02;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(11, 41)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("abstract", "9.0", "preview").WithLocation(11, 41)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticEvent_05(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticEvent_05(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
+    abstract static event System.Action M01;
 }
 ";
             var source2 =
@@ -24542,16 +21912,15 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticEvent_06(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticEvent_06(bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
+    abstract static event System.Action M01;
 }
 ";
             var source2 =
@@ -24592,18 +21961,17 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticEvent_07(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticEvent_07(bool structure)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
+    abstract static event System.Action M01;
 }
 
 " + typeKeyword + @"
@@ -24687,18 +22055,17 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticEvent_08(bool structure, bool isVirtual)
+        public void ImplementAbstractStaticEvent_08(bool structure)
         {
             // Basic explicit implementation scenario
 
             var typeKeyword = structure ? "struct" : "class";
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
+    abstract static event System.Action M01;
 }
 
 " + typeKeyword + @"
@@ -24771,18 +22138,16 @@ public interface I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticEvent_09(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticEvent_09()
         {
             // Explicit implementation from base is treated as an implementation
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
+    abstract static event System.Action M01;
 }
 
 public class C1
@@ -24811,7 +22176,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -24841,28 +22206,28 @@ public class C3 : C2, I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticEvent_10(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticEvent_10()
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void add_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void remove_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
     .event [mscorlib]System.Action M01
     {
@@ -25031,7 +22396,7 @@ public class C5 : C2, I1
         [Fact]
         public void ImplementAbstractStaticEvent_11()
         {
-            // Non-abstract static virtual method. 
+            // Ignore invalid metadata (non-abstract static virtual method). 
             scenario1();
             scenario2();
             scenario3();
@@ -25082,25 +22447,18 @@ public class C1 : I1
                 var i1 = c1.Interfaces().Single();
                 var m01 = i1.GetMembers().OfType<EventSymbol>().Single();
 
-                Assert.Same(m01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(m01.AddMethod, i1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(m01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-                Assert.Same(m01.RemoveMethod, i1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
                 compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular10,
+                                                     parseOptions: TestOptions.Regular9,
                                                      targetFramework: _supportingFramework);
 
-                compilation1.VerifyEmitDiagnostics(
-                    // (2,19): error CS8706: 'I1.M01.add' cannot implement interface member 'I1.M01.add' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.add", "I1.M01.add", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
-                    // (2,19): error CS8706: 'I1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.remove", "I1.M01.remove", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
-                    );
+                compilation1.VerifyEmitDiagnostics();
 
                 var source2 =
 @"
@@ -25114,19 +22472,21 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                compilation2.VerifyEmitDiagnostics();
+                compilation2.VerifyEmitDiagnostics(
+                    // (4,34): error CS0539: 'C1.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //    static event System.Action I1.M01 { add{} remove{} }
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C1.M01").WithLocation(4, 34)
+                    );
 
                 c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
-                i1 = c1.Interfaces().Single();
-                m01 = i1.GetMembers().OfType<EventSymbol>().Single();
-                var c1m01 = c1.GetMembers().OfType<EventSymbol>().Single();
+                m01 = c1.Interfaces().Single().GetMembers().OfType<EventSymbol>().Single();
 
-                Assert.Same(c1m01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(c1m01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(m01.AddMethod, i1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(c1m01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-                Assert.Same(m01.RemoveMethod, i1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
                 var source3 =
 @"
@@ -25149,10 +22509,9 @@ public class C1 : I1
                     Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
 
                     var m01 = c.Interfaces().Single().GetMembers().OfType<EventSymbol>().Single();
-                    var c1m01 = c.GetMembers().OfType<EventSymbol>().Single();
-                    Assert.Same(c1m01, c.FindImplementationForInterfaceMember(m01));
-                    Assert.Same(c1m01.AddMethod, c.FindImplementationForInterfaceMember(m01.AddMethod));
-                    Assert.Same(c1m01.RemoveMethod, c.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.AddMethod));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.RemoveMethod));
                 }
             }
 
@@ -25209,8 +22568,8 @@ public class C1 : I1
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(m01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-                Assert.Same(m01.RemoveMethod, i1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
                 var source2 =
 @"
@@ -25237,7 +22596,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(m01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.AddMethod, c1M01.AddMethod.ExplicitInterfaceImplementations.Single());
 
@@ -25298,20 +22657,19 @@ public class C1 : I1
 
                     Assert.Equal("void C1.M01.remove", cM01Remove.ToTestDisplayString());
 
-                    Assert.Same(cM01Remove, c.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
                     if (module is PEModuleSymbol)
                     {
                         Assert.Same(m01Add, cM01Add.ExplicitInterfaceImplementations.Single());
-                        Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
-                        Assert.Same(m01.RemoveMethod, cM01Remove.ExplicitInterfaceImplementations.Single());
                     }
                     else
                     {
                         Assert.Empty(cM01Add.ExplicitInterfaceImplementations);
-                        Assert.Empty(cM01.ExplicitInterfaceImplementations);
-                        Assert.Empty(cM01Remove.ExplicitInterfaceImplementations);
                     }
+
+                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                    Assert.Empty(cM01Remove.ExplicitInterfaceImplementations);
                 }
 
                 var source4 =
@@ -25326,7 +22684,11 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                compilation4.VerifyDiagnostics();
+                compilation4.VerifyDiagnostics(
+                    // (4,46): error CS0550: 'C1.I1.M01.remove' adds an accessor not found in interface member 'I1.M01'
+                    //    static event System.Action I1.M01 { add{} remove{} }
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "remove").WithArguments("C1.I1.M01.remove", "I1.M01").WithLocation(4, 46)
+                    );
 
                 c1 = compilation4.GlobalNamespace.GetTypeMember("C1");
                 i1 = c1.Interfaces().Single();
@@ -25335,7 +22697,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(c1M01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.AddMethod, c1M01.AddMethod.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.RemoveMethod, c1M01.RemoveMethod.ExplicitInterfaceImplementations.Single());
@@ -25365,7 +22727,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(m01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
                 var source6 =
 @"
@@ -25395,7 +22757,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(c1M01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
                 var source7 =
 @"
@@ -25415,7 +22777,10 @@ public class C1 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.add").WithLocation(2, 19),
                     // (4,34): error CS0065: 'C1.I1.M01': event property must have both add and remove accessors
                     //    static event System.Action I1.M01 { remove{} }
-                    Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M01").WithArguments("C1.I1.M01").WithLocation(4, 34)
+                    Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M01").WithArguments("C1.I1.M01").WithLocation(4, 34),
+                    // (4,40): error CS0550: 'C1.I1.M01.remove' adds an accessor not found in interface member 'I1.M01'
+                    //    static event System.Action I1.M01 { remove{} }
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "remove").WithArguments("C1.I1.M01.remove", "I1.M01").WithLocation(4, 40)
                     );
 
                 c1 = compilation7.GlobalNamespace.GetTypeMember("C1");
@@ -25425,7 +22790,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(c1M01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.RemoveMethod, c1M01.RemoveMethod.ExplicitInterfaceImplementations.Single());
             }
@@ -25483,8 +22848,8 @@ public class C1 : I1
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
                 Assert.Null(i1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-                Assert.Same(m01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
-                Assert.Same(m01.AddMethod, i1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.AddMethod));
 
                 var source2 =
 @"
@@ -25511,7 +22876,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-                Assert.Same(m01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.RemoveMethod, c1M01.RemoveMethod.ExplicitInterfaceImplementations.Single());
 
@@ -25572,20 +22937,19 @@ public class C1 : I1
 
                     Assert.Equal("void C1.M01.add", cM01Add.ToTestDisplayString());
 
-                    Assert.Same(cM01Add, c.FindImplementationForInterfaceMember(m01.AddMethod));
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.AddMethod));
 
                     if (module is PEModuleSymbol)
                     {
                         Assert.Same(m01Remove, cM01Remove.ExplicitInterfaceImplementations.Single());
-                        Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
-                        Assert.Same(m01.AddMethod, cM01Add.ExplicitInterfaceImplementations.Single());
                     }
                     else
                     {
                         Assert.Empty(cM01Remove.ExplicitInterfaceImplementations);
-                        Assert.Empty(cM01.ExplicitInterfaceImplementations);
-                        Assert.Empty(cM01Add.ExplicitInterfaceImplementations);
                     }
+
+                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                    Assert.Empty(cM01Add.ExplicitInterfaceImplementations);
                 }
 
                 var source4 =
@@ -25600,7 +22964,11 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                compilation4.VerifyDiagnostics();
+                compilation4.VerifyDiagnostics(
+                    // (4,40): error CS0550: 'C1.I1.M01.add' adds an accessor not found in interface member 'I1.M01'
+                    //    static event System.Action I1.M01 { add{} remove{} }
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "add").WithArguments("C1.I1.M01.add", "I1.M01").WithLocation(4, 40)
+                    );
 
                 c1 = compilation4.GlobalNamespace.GetTypeMember("C1");
                 i1 = c1.Interfaces().Single();
@@ -25609,7 +22977,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-                Assert.Same(c1M01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.RemoveMethod, c1M01.RemoveMethod.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.AddMethod, c1M01.AddMethod.ExplicitInterfaceImplementations.Single());
@@ -25639,7 +23007,7 @@ public class C1 : I1
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
                 Assert.Same(c1M01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-                Assert.Same(m01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
 
                 var source6 =
 @"
@@ -25668,7 +23036,7 @@ public class C1 : I1
                 c1M01 = c1.GetMembers().OfType<EventSymbol>().Single();
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(c1M01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
                 var source7 =
@@ -25689,7 +23057,10 @@ public class C1 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.remove").WithLocation(2, 19),
                     // (4,34): error CS0065: 'C1.I1.M01': event property must have both add and remove accessors
                     //    static event System.Action I1.M01 { add{} }
-                    Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M01").WithArguments("C1.I1.M01").WithLocation(4, 34)
+                    Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M01").WithArguments("C1.I1.M01").WithLocation(4, 34),
+                    // (4,40): error CS0550: 'C1.I1.M01.add' adds an accessor not found in interface member 'I1.M01'
+                    //    static event System.Action I1.M01 { add{} }
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "add").WithArguments("C1.I1.M01.add", "I1.M01").WithLocation(4, 40)
                     );
 
                 c1 = compilation7.GlobalNamespace.GetTypeMember("C1");
@@ -25698,34 +23069,34 @@ public class C1 : I1
                 c1M01 = c1.GetMembers().OfType<EventSymbol>().Single();
 
                 Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
-                Assert.Same(c1M01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
                 Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
                 Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
                 Assert.Same(m01.AddMethod, c1M01.AddMethod.ExplicitInterfaceImplementations.Single());
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticEvent_12(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticEvent_12()
         {
-            // Default interface implementation for a static method
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
+            // Ignore invalid metadata (default interface implementation for a static method)
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void add_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void remove_M01 (
             class [mscorlib]System.Action 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
     .event [mscorlib]System.Action M01
     {
@@ -25774,38 +23145,40 @@ public class C1 : I2
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics();
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.M01").WithLocation(2, 19)
+                );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var i2 = c1.Interfaces().Single();
             var i1 = i2.Interfaces().Single();
             var m01 = i1.GetMembers().OfType<EventSymbol>().Single();
+
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01.AddMethod));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01.AddMethod));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01.RemoveMethod));
+
             var i2M01 = i2.GetMembers().OfType<EventSymbol>().Single();
-
-            Assert.Same(i2M01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(i2M01, i2.FindImplementationForInterfaceMember(m01));
-            Assert.Same(i2M01.AddMethod, c1.FindImplementationForInterfaceMember(m01.AddMethod));
-            Assert.Same(i2M01.AddMethod, i2.FindImplementationForInterfaceMember(m01.AddMethod));
-            Assert.Same(i2M01.RemoveMethod, c1.FindImplementationForInterfaceMember(m01.RemoveMethod));
-            Assert.Same(i2M01.RemoveMethod, i2.FindImplementationForInterfaceMember(m01.RemoveMethod));
-
             Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
             Assert.Same(m01.AddMethod, i2M01.AddMethod.ExplicitInterfaceImplementations.Single());
             Assert.Same(m01.RemoveMethod, i2M01.RemoveMethod.ExplicitInterfaceImplementations.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticEvent_13(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticEvent_13()
         {
             // A forwarding method is added for an implicit implementation declared in base class. 
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
+    abstract static event System.Action M01;
 }
 
 class C1
@@ -25941,27 +23314,27 @@ class C2 : C1, I1
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticEvent_14(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticEvent_14()
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void add_M01 (
             class [mscorlib]System.Action`1<int32 modopt(I1)> 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         void remove_M01 (
             class [mscorlib]System.Action`1<int32 modopt(I1)> 'value'
         ) cil managed 
-    " + body + @"
+    {
+    }
 
     .event class [mscorlib]System.Action`1<int32 modopt(I1)> M01
     {
@@ -26299,19 +23672,17 @@ class C4 : I2
 ");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticEvent_15(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticEvent_15()
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
-    " + modifier + @" static event System.Action M02;
+    abstract static event System.Action M01;
+    abstract static event System.Action M02;
 }
 
 public class C1
@@ -26340,7 +23711,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular10 })
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -26415,18 +23786,16 @@ public class C3 : C2, I1
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ImplementAbstractStaticEvent_16(bool isVirtual)
+        [Fact]
+        public void ImplementAbstractStaticEvent_16()
         {
             // A new implicit implementation is properly considered.
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action M01;
+    abstract static event System.Action M01;
 }
 
 public class C1 : I1
@@ -26455,7 +23824,7 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -26543,10 +23912,9 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticEvent_19(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticEvent_19(bool genericFirst)
         {
             // An "ambiguity" in implicit/explicit implementation declared in generic base class.
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -26557,10 +23925,10 @@ public class C3 : C2, I1
     static event System.Action<int> I1.M01 { add{} remove{} }
 ";
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1
 {
-    " + modifier + @" static event System.Action<int> M01;
+    abstract static event System.Action<int> M01;
 }
 
 public class C1<T> : I1
@@ -26586,7 +23954,7 @@ public class C2 : C1<int>, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -26613,10 +23981,9 @@ public class C2 : C1<int>, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticEvent_20(bool genericFirst, bool isVirtual)
+        public void ImplementAbstractStaticEvent_20(bool genericFirst)
         {
             // Same as ImplementAbstractStaticEvent_19 only interface is generic too.
-            var (modifier, _) = GetModifierAndBody(isVirtual);
 
             var generic =
 @"
@@ -26627,10 +23994,10 @@ public class C2 : C1<int>, I1
     public static event System.Action<int> M01 { add{} remove{} }
 ";
             var source1 =
-@"#pragma warning disable CS0067 // WRN_UnreferencedEvent
+@"
 public interface I1<T>
 {
-    " + modifier + @" static event System.Action<T> M01;
+    abstract static event System.Action<T> M01;
 }
 
 public class C1<T> : I1<T>
@@ -26657,7 +24024,7 @@ public class C2 : C1<int>, I1<int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -26954,15 +24321,15 @@ interface I14<T> : I1<T> where T : I1<T>
                 // (17,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(17, 30 + checkedKeyword.Length),
-                // (22,29): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (22,29): error CS8930: Explicit implementation of a user-defined operator 'I5<T>.implicit operator int(T)' must be declared static
                 //     implicit I1<T>.operator int(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(22, 29 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("I5<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(22, 29 + checkedKeyword.Length),
                 // (22,29): error CS0539: 'I5<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     implicit I1<T>.operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I5<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(22, 29 + checkedKeyword.Length),
-                // (27,36): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (27,36): error CS0539: 'I6<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static implicit I1<T>.operator int(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(27, 36 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I6<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(27, 36 + checkedKeyword.Length),
                 // (32,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     abstract static implicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "int").WithLocation(32, 39 + checkedKeyword.Length),
@@ -26978,28 +24345,37 @@ interface I14<T> : I1<T> where T : I1<T>
                 // (47,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(47, 30 + checkedKeyword.Length),
-                // (57,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (57,37): error CS0539: 'I12<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static implicit I11<T>.operator int(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(57, 37 + checkedKeyword.Length)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I12<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(57, 37 + checkedKeyword.Length),
+                // (62,46): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static implicit I11<T>.operator int(T x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("abstract").WithLocation(62, 46 + checkedKeyword.Length),
+                // (62,46): error CS0501: 'I13<T>.implicit operator int(T)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static implicit I11<T>.operator int(T x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I13<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(62, 46 + checkedKeyword.Length),
+                // (62,46): error CS0539: 'I13<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static implicit I11<T>.operator int(T x);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I13<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(62, 46 + checkedKeyword.Length),
+                // (67,45): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static implicit I1<T>.operator int(T x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("abstract").WithLocation(67, 45 + checkedKeyword.Length),
+                // (67,45): error CS0501: 'I14<T>.implicit operator int(T)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static implicit I1<T>.operator int(T x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I14<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(67, 45 + checkedKeyword.Length),
+                // (67,45): error CS0539: 'I14<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static implicit I1<T>.operator int(T x);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I14<T>." + op + " operator " + checkedKeyword + "int(T)").WithLocation(67, 45 + checkedKeyword.Length)
                 );
 
-            var i2 = compilation1.GlobalNamespace.GetTypeMember("I2");
-            Assert.Null(i2.FindImplementationForInterfaceMember(i2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
 
-            var i3 = compilation1.GlobalNamespace.GetTypeMember("I3");
-            Assert.Null(i3.FindImplementationForInterfaceMember(i3.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
-
-            var i4 = compilation1.GlobalNamespace.GetTypeMember("I4");
-            Assert.Null(i4.FindImplementationForInterfaceMember(i4.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
-
-            var i5 = compilation1.GlobalNamespace.GetTypeMember("I5");
-            Assert.Null(i5.FindImplementationForInterfaceMember(i5.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
-
-            var i6 = compilation1.GlobalNamespace.GetTypeMember("I6");
-            Assert.Same(i6.GetMembers().OfType<MethodSymbol>().Single(), i6.FindImplementationForInterfaceMember(i6.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
-
-            var i7 = compilation1.GlobalNamespace.GetTypeMember("I7");
-            Assert.Null(i7.FindImplementationForInterfaceMember(i7.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
 
             var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
             Assert.Null(i8.FindImplementationForInterfaceMember(i8.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
@@ -27011,13 +24387,12 @@ interface I14<T> : I1<T> where T : I1<T>
             Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
-            Assert.Same(i12.GetMembers().OfType<MethodSymbol>().Single(), i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
             var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
             Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
 
-            var i14 = compilation1.GlobalNamespace.GetTypeMember("I14");
-            Assert.Null(i14.FindImplementationForInterfaceMember(i14.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
@@ -27055,7 +24430,7 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -27083,7 +24458,7 @@ typeKeyword + @"
             }
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             if (!isChecked)
@@ -27092,9 +24467,9 @@ typeKeyword + @"
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
-                    // (14,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (14,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static explicit operator int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(14, 39)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(14, 39)
                     );
             }
             else
@@ -27112,9 +24487,9 @@ typeKeyword + @"
                     // (14,39): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static explicit operator checked int(T x);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(14, 39),
-                    // (14,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (14,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static explicit operator checked int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(14, 47)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(14, 47)
                     );
             }
         }
@@ -27507,7 +24882,7 @@ public class C3 : C2, I1<C2>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: parseOptions,
@@ -27532,7 +24907,7 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticConversionOperator_10([CombinatorialValues("implicit", "explicit")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticConversionOperator_10([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -27544,17 +24919,16 @@ public class C3 : C2, I1<C2>
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 " + opName + @" (
             !T x
         ) cil managed 
-    " + body + @"
+    {
+    }
 }
 
 .class public auto ansi beforefieldinit C1
@@ -27666,7 +25040,7 @@ public class C5 : C2, I1<C1>
             Assert.Equal(MethodKind.Conversion, c2M01.MethodKind);
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics();
@@ -27676,7 +25050,7 @@ public class C5 : C2, I1<C1>
         [CombinatorialData]
         public void ImplementAbstractStaticConversionOperator_11([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
         {
-            // Non-abstract static virtual method. 
+            // Ignore invalid metadata (non-abstract static virtual method). 
 
             string opName = GetConversionOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -27718,18 +25092,14 @@ public class C1 : I1<C1>
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal(MethodKind.Conversion, m01.MethodKind);
-            Assert.Equal(m01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Same(m01, i1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1<C1>.explicit operator int(C1)' cannot implement interface member 'I1<C1>.explicit operator int(C1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                // public class C1 : I1<C1>
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1<C1>").WithArguments("I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
-                );
+            compilation1.VerifyEmitDiagnostics();
 
             var source2 =
 @"
@@ -27743,20 +25113,24 @@ public class C1 : I1<C1>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation2.VerifyEmitDiagnostics();
+            compilation2.VerifyEmitDiagnostics(
+                // (4,37): error CS0539: 'C1.implicit operator int(C1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static implicit I1<C1>.operator int(C1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("C1." + op + " operator " + checkedKeyword + "int(C1)").WithLocation(4, 37 + checkedKeyword.Length)
+                );
 
             c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
             m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal("System.Int32 I1<C1>." + opName + "(C1 x)", m01.ToTestDisplayString());
-            Assert.Equal("System.Int32 C1.I1<C1>." + opName + "(C1 x)", c1.FindImplementationForInterfaceMember(m01).ToTestDisplayString());
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticConversionOperator_12([CombinatorialValues("implicit", "explicit")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticConversionOperator_12([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
         {
-            // Default interface implementation for a static method
+            // Ignore invalid metadata (default interface implementation for a static method)
 
             string opName = GetConversionOperatorName(op, isChecked, out string checkedKeyword);
 
@@ -27765,17 +25139,16 @@ public class C1 : I1<C1>
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 " + opName + @" (
             !T x
         ) cil managed 
-    " + body + @"
+    {
+    }
 }
 
 .class interface public auto ansi abstract I2`1<(class I1`1<!T>) T>
@@ -27805,18 +25178,22 @@ public class C1 : I2<C1>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyEmitDiagnostics();
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
+                // public class C1 : I2<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C1>").WithArguments("C1", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)").WithLocation(2, 19)
+                );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var i2 = c1.Interfaces().Single();
             var i1 = i2.Interfaces().Single();
             var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
-            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.Equal(MethodKind.Conversion, m01.MethodKind);
-            Assert.Equal(i2M01, c1.FindImplementationForInterfaceMember(m01));
-            Assert.Equal(i2M01, i2.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
 
+            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
             Assert.Equal(m01, i2M01.ExplicitInterfaceImplementations.Single());
         }
 
@@ -27932,7 +25309,7 @@ public partial class C1<T>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticConversionOperator_14([CombinatorialValues("implicit", "explicit")] string op, bool isChecked, bool isVirtual)
+        public void ImplementAbstractStaticConversionOperator_14([CombinatorialValues("implicit", "explicit")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -27943,17 +25320,16 @@ public partial class C1<T>
                 return;
             }
 
-            var (modifier, body) = GetILModifierAndBody(isVirtual);
-
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
 {
     // Methods
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 modopt(I1`1) " + opName + @" (
             !T x
         ) cil managed 
-    " + body + @"
+    {
+    }
 } 
 ";
 
@@ -28124,7 +25500,7 @@ public class C3 : C2, I1<C2>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular10 })
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                          parseOptions: parseOptions,
@@ -28239,7 +25615,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -28343,7 +25719,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
                 {
                     var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: parseOptions,
@@ -28612,7 +25988,7 @@ class Test<T> where T : I1<T>
                 // (21,16): error CS0030: Cannot convert type 'I1<T>' to 'int'
                 //         return (int)a;
                 Diagnostic(error, cast + "a").WithArguments("I1<T>", "int").WithLocation(21, 16),
-                // (26,80): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                // (26,80): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Func<T, int>>)((T b) => (int)b);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, cast + "b").WithLocation(26, 80)
                 );
@@ -29241,7 +26617,7 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -29266,7 +26642,7 @@ class Test
             }
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             if (isChecked)
@@ -29275,17 +26651,17 @@ class Test
                     // (12,40): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static explicit operator  checked int(T x);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 40),
-                    // (12,48): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,48): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static explicit operator  checked int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(12, 48)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(12, 48)
                     );
             }
             else
             {
                 compilation3.VerifyDiagnostics(
-                    // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static implicit operator int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(12, 39)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(12, 39)
                     );
             }
         }
@@ -29325,7 +26701,7 @@ class C<T>
                                                  targetFramework: _supportingFramework);
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
@@ -29336,13 +26712,13 @@ class C<T>
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular10,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (21,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (21,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static implicit operator bool(T x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "bool").WithArguments("abstract", "10.0", "preview").WithLocation(21, 39)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "bool").WithArguments("abstract", "9.0", "preview").WithLocation(21, 39)
                 );
         }
 
@@ -30084,19 +27460,16 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
-        public void TestAmbiguousImplementationMethod_01(bool isVirtual)
+        public void TestAmbiguousImplementationMethod_01()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 = @"
 public interface Interface<T, U>
 {
-    " + modifier + @" static void Method(int i)" + body + @"
-    " + modifier + @" static void Method(T i)" + body + @"
-    " + modifier + @" static void Method(U i)" + body + @"
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
 }
 
 public class Base<T> : Interface<T, T>
@@ -30177,19 +27550,16 @@ class YetAnother : Interface<int, int>
             }
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
-        public void TestAmbiguousImplementationMethod_02(bool isVirtual)
+        public void TestAmbiguousImplementationMethod_02()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source0 = @"
 public interface Interface<T, U>
 {
-    " + modifier + @" static void Method(int i)" + body + @"
-    " + modifier + @" static void Method(T i)" + body + @"
-    " + modifier + @" static void Method(U i)" + body + @"
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
 }
 
 public class Base<T> : Interface<T, T>
@@ -30249,19 +27619,16 @@ public class Derived : Base<int>, Interface<int, int>
             }
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
-        public void TestAmbiguousImplementationMethod_03(bool isVirtual)
+        public void TestAmbiguousImplementationMethod_03()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source0 = @"
 public interface Interface<T, U>
 {
-    " + modifier + @" static void Method(int i)" + body + @"
-    " + modifier + @" static void Method(T i)" + body + @"
-    " + modifier + @" static void Method(U i)" + body + @"
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
 }
 
 public class Base<T> : Interface<T, T>
@@ -30352,48 +27719,16 @@ class Other : Interface<int, int>
         }
 
         [Fact]
-        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
-        public void TestAmbiguousImplementationMethod_05()
+        public void UnmanagedCallersOnly_01()
         {
-            var source2 = @"
-public interface Interface<T, U>
-{
-    virtual static void Method(int i){}
-    virtual static void Method(T i){}
-    virtual static void Method(U i){}
-}
-
-class Other : Interface<int, int>
-{
-    static void Interface<int, int>.Method(int i) { }
-}
-";
-
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation2.VerifyDiagnostics(
-                // (11,37): warning CS0473: Explicit interface implementation 'Other.Interface<int, int>.Method(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     static void Interface<int, int>.Method(int i) { }
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Other.Interface<int, int>.Method(int)").WithLocation(11, 37)
-                );
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void UnmanagedCallersOnly_01(bool isVirtual)
-        {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source2 = @"
 using System.Runtime.InteropServices;
 
 public interface I1
 {
-    [UnmanagedCallersOnly] " + modifier + @" static void M1()" + body + @"
-    [UnmanagedCallersOnly] " + modifier + @" static int operator +(I1 x)" + body + @"
-    [UnmanagedCallersOnly] " + modifier + @" static int operator +(I1 x, I1 y)" + body + @"
+    [UnmanagedCallersOnly] abstract static void M1();
+    [UnmanagedCallersOnly] abstract static int operator +(I1 x);
+    [UnmanagedCallersOnly] abstract static int operator +(I1 x, I1 y);
 }
 
 public interface I2<T> where T : I2<T>
@@ -30408,61 +27743,28 @@ public interface I2<T> where T : I2<T>
                                                  targetFramework: _supportingFramework);
 
             compilation2.VerifyDiagnostics(
-                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] abstract static void M1();
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
-                // (7,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (7,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] abstract static int operator +(I1 x);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 6),
-                // (8,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (8,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] abstract static int operator +(I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 6),
-                // (13,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (13,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] abstract static implicit operator int(T i);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(13, 6),
-                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] abstract static explicit operator T(int i);
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Fact]
         [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
-        public void UnmanagedCallersOnly_02(bool isVirtual)
+        public void UnmanagedCallersOnly_02()
         {
-            string modifier, body;
-
-            if (isVirtual)
-            {
-                modifier = "";
-                body =
-@"
-{
-  // [System.Runtime.InteropServices.UnmanagedCallersOnly]
-  .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
-      01 00 00 00
-  )
-
-  .maxstack  8
-  IL_0000:  ldnull
-  IL_0001:  throw
-}
-";
-            }
-            else
-            {
-                modifier = "abstract";
-                body =
-@"{
-  // [System.Runtime.InteropServices.UnmanagedCallersOnly]
-  .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
-      01 00 00 00
-  )
-}
-";
-            }
-
             var ilSource = @"
 .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute
     extends [mscorlib]System.Attribute
@@ -30485,37 +27787,62 @@ public interface I2<T> where T : I2<T>
 
 .class interface public auto ansi abstract I1
 {
-    .method public hidebysig " + modifier + @" virtual static 
+    .method public hidebysig abstract virtual static 
         void M1 () cil managed 
-    " + body + @"
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 op_UnaryPlus (
             class I1 x
         ) cil managed 
-    " + body + @"
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 op_Addition (
             class I1 x,
             class I1 y
         ) cil managed 
-    " + body + @"
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
 }
 
 .class interface public auto ansi abstract I2`1<(class I2`1<!T>) T>
 {
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         int32 op_Implicit (
             !T i
         ) cil managed 
-    " + body + @"
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
 
-    .method public hidebysig specialname " + modifier + @" virtual static 
+    .method public hidebysig specialname abstract virtual static 
         !T op_Explicit (
             int32 i
         ) cil managed 
-    " + body + @"
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
 }
 ";
 
@@ -30557,20 +27884,17 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void UnmanagedCallersOnly_03(bool isVirtual)
+        [Fact]
+        public void UnmanagedCallersOnly_03()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source2 = @"
 using System.Runtime.InteropServices;
 
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static void M1()" + body + @"
-    " + modifier + @" static int operator +(T x)" + body + @"
-    " + modifier + @" static int operator +(T x, T y)" + body + @"
+    abstract static void M1();
+    abstract static int operator +(T x);
+    abstract static int operator +(T x, T y);
     abstract static implicit operator int(T i);
     abstract static explicit operator T(int i);
 }
@@ -30593,35 +27917,32 @@ class C : I1<C>
                 // (15,47): error CS8932: 'UnmanagedCallersOnly' method 'C.M1()' cannot implement interface member 'I1<C>.M1()' in type 'C'
                 //     [UnmanagedCallersOnly] public static void M1() {}
                 Diagnostic(ErrorCode.ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod, "M1").WithArguments("C.M1()", "I1<C>.M1()", "C").WithLocation(15, 47),
-                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] public static int operator +(C x) => 0;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(16, 6),
-                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] public static int operator +(C x, C y) => 0;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 6),
-                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] public static implicit operator int(C i) => 0;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(18, 6),
-                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] public static explicit operator C(int i) => null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(19, 6)
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void UnmanagedCallersOnly_04(bool isVirtual)
+        [Fact]
+        public void UnmanagedCallersOnly_04()
         {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source2 = @"
 using System.Runtime.InteropServices;
 
 public interface I1<T> where T : I1<T>
 {
-    " + modifier + @" static void M1()" + body + @"
-    " + modifier + @" static int operator +(T x)" + body + @"
-    " + modifier + @" static int operator +(T x, T y)" + body + @"
+    abstract static void M1();
+    abstract static int operator +(T x);
+    abstract static int operator +(T x, T y);
     abstract static implicit operator int(T i);
     abstract static explicit operator T(int i);
 }
@@ -30641,19 +27962,19 @@ class C : I1<C>
                                                  targetFramework: _supportingFramework);
 
             compilation2.VerifyDiagnostics(
-                // (15,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (15,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] static void I1<C>.M1() {}
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(15, 6),
-                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] static int I1<C>.operator +(C x) => 0;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(16, 6),
-                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] static int I1<C>.operator +(C x, C y) => 0;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 6),
-                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] static implicit I1<C>.operator int(C i) => 0;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(18, 6),
-                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] static explicit I1<C>.operator C(int i) => null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(19, 6)
                 );
@@ -30665,53 +27986,42 @@ class C : I1<C>
         [InlineData("~", "op_OnesComplement")]
         public void UnaryOperators_Checked_Unsupported_01(string op, string name)
         {
-            unaryOperators_Checked_Unsupported_01(op, name, isVirtual: false);
-            unaryOperators_Checked_Unsupported_01(op, name, isVirtual: true);
-
-            void unaryOperators_Checked_Unsupported_01(string op, string name, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-
-                var source1 =
-@"
-interface C 
-{
-    public static " + modifier + @" C operator checked " + op + @"(C x)" + body + @"
-}
-";
-
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
-
-                compilation1.VerifyDiagnostics(
-                    // (4,39): error CS9150: User-defined operator '+' cannot be declared checked
-                    //     public static abstract C operator checked +(C x);
-                    Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
-                    );
-
-                var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
-                var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
-
-                Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
-                Assert.Equal(name, opSymbol.Name);
-                Assert.Equal("C C." + name + "(C x)", opSymbol.ToTestDisplayString());
-                Assert.Equal("C.operator " + op + "(C)", opSymbol.ToDisplayString());
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void UnaryOperators_Checked_Unsupported_02(bool isVirtual)
-        {
-            var (modifier, body) = GetModifierAndBody(isVirtual);
-
             var source1 =
 @"
 interface C 
 {
-    public static " + modifier + @" bool operator checked true(C x)" + body + @"
-    public static " + modifier + @" bool operator checked false(C x)" + body + @"
+    public static abstract C operator checked " + op + @"(C x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS9150: User-defined operator '+' cannot be declared checked
+                //     public static abstract C operator checked +(C x);
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
+                );
+
+            var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
+            var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
+            Assert.Equal(name, opSymbol.Name);
+            Assert.Equal("C C." + name + "(C x)", opSymbol.ToTestDisplayString());
+            Assert.Equal("C.operator " + op + "(C)", opSymbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void UnaryOperators_Checked_Unsupported_02()
+        {
+            var source1 =
+@"
+interface C 
+{
+    public static abstract bool operator checked true(C x);
+    public static abstract bool operator checked false(C x);
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -30789,41 +28099,6 @@ public class C2 : I1<C2>
         [InlineData("-")]
         [InlineData("++")]
         [InlineData("--")]
-        public void ImplementVirtualStaticUnaryOperator_16(string op)
-        {
-            var source1 =
-@"
-public interface I1<T> where T : I1<T>
-{
-    virtual static T operator checked " + op + @"(T x) => throw null;
-}
-
-public class C1 : I1<C1>
-{
-    public static C1 operator " + op + @"(C1 x) => default;
-}
-
-public class C2 : I1<C2>
-{
-    static C2 I1<C2>.operator " + op + @"(C2 x) => default;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (14,31): error CS0539: 'C2.operator --(C2)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C2 I1<C2>.operator --(C2 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C2)").WithLocation(14, 31)
-                );
-        }
-
-        [Theory]
-        [InlineData("-")]
-        [InlineData("++")]
-        [InlineData("--")]
         public void ImplementAbstractStaticUnaryOperator_17(string op)
         {
             var source1 =
@@ -30862,41 +28137,6 @@ public class C2 : I1<C2>
         }
 
         [Theory]
-        [InlineData("-")]
-        [InlineData("++")]
-        [InlineData("--")]
-        public void ImplementVirtualStaticUnaryOperator_17(string op)
-        {
-            var source1 =
-@"
-public interface I1<T> where T : I1<T>
-{
-    virtual static T operator " + op + @"(T x) => throw null;
-}
-
-public class C1 : I1<C1>
-{
-    public static C1 operator checked " + op + @"(C1 x) => default;
-}
-
-public class C2 : I1<C2>
-{
-    static C2 I1<C2>.operator checked" + op + @"(C2 x) => default;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (14,38): error CS0539: 'C2.operator checked --(C2)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C2 I1<C2>.operator checked--(C2 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2)").WithLocation(14, 38)
-                );
-        }
-
-        [Theory]
         [InlineData("%", "op_Modulus")]
         [InlineData("&", "op_BitwiseAnd")]
         [InlineData("|", "op_BitwiseOr")]
@@ -30912,43 +28152,31 @@ public class C2 : I1<C2>
         [InlineData("<=", "op_LessThanOrEqual")]
         public void BinaryOperators_Checked_Unsupported_01(string op, string name)
         {
-            binaryOperators_Checked_Unsupported_01(op, name, isVirtual: false);
-
-            if (op is not ("==" or "!="))
-            {
-                binaryOperators_Checked_Unsupported_01(op, name, isVirtual: true);
-            }
-
-            void binaryOperators_Checked_Unsupported_01(string op, string name, bool isVirtual)
-            {
-                var (modifier, body) = GetModifierAndBody(isVirtual);
-
-                var source1 =
+            var source1 =
 @"
 interface C 
 {
-    public static " + modifier + @" C operator checked " + op + @"(C x, int y)" + body + @"
+    public static abstract C operator checked " + op + @"(C x, int y);
 }
 ";
 
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: _supportingFramework);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
 
-                compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,39): error CS9150: User-defined operator '%' cannot be declared checked
-                    //     public static abstract C operator checked %(C x, int y);
-                    Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
-                    );
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                // (4,39): error CS9150: User-defined operator '%' cannot be declared checked
+                //     public static abstract C operator checked %(C x, int y);
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
+                );
 
-                var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
-                var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
+            var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
+            var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
 
-                Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
-                Assert.Equal(name, opSymbol.Name);
-                Assert.Equal("C C." + name + "(C x, System.Int32 y)", opSymbol.ToTestDisplayString());
-                Assert.Equal("C.operator " + op + "(C, int)", opSymbol.ToDisplayString());
-            }
+            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
+            Assert.Equal(name, opSymbol.Name);
+            Assert.Equal("C C." + name + "(C x, System.Int32 y)", opSymbol.ToTestDisplayString());
+            Assert.Equal("C.operator " + op + "(C, int)", opSymbol.ToDisplayString());
         }
 
         [Theory]
@@ -30998,42 +28226,6 @@ public class C2 : I1<C2>
         [InlineData("-")]
         [InlineData("*")]
         [InlineData("/")]
-        public void ImplementVirtualStaticBinaryOperator_23(string op)
-        {
-            var source1 =
-@"
-public interface I1<T> where T : I1<T>
-{
-    virtual static T operator checked " + op + @"(T x, int y) => throw null;
-}
-
-public class C1 : I1<C1>
-{
-    public static C1 operator " + op + @"(C1 x, int y) => default;
-}
-
-public class C2 : I1<C2>
-{
-    static C2 I1<C2>.operator " + op + @"(C2 x, int y) => default;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (14,31): error CS0539: 'C2.operator -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C2 I1<C2>.operator -(C2 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C2, int)").WithLocation(14, 31)
-                );
-        }
-
-        [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
         public void ImplementAbstractStaticBinaryOperator_24(string op)
         {
             var source1 =
@@ -31065,42 +28257,6 @@ public class C2 : I1<C2>
                 // (12,19): error CS0535: 'C2' does not implement interface member 'I1<C2>.operator -(C2, int)'
                 // public class C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2, int)").WithLocation(12, 19),
-                // (14,38): error CS0539: 'C2.operator checked -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     static C2 I1<C2>.operator checked-(C2 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2, int)").WithLocation(14, 38)
-                );
-        }
-
-        [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        public void ImplementVirtualStaticBinaryOperator_24(string op)
-        {
-            var source1 =
-@"
-public interface I1<T> where T : I1<T>
-{
-    virtual static T operator " + op + @"(T x, int y) => throw null;
-}
-
-public class C1 : I1<C1>
-{
-    public static C1 operator checked " + op + @"(C1 x, int y) => default;
-}
-
-public class C2 : I1<C2>
-{
-    static C2 I1<C2>.operator checked" + op + @"(C2 x, int y) => default;
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (14,38): error CS0539: 'C2.operator checked -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C2 I1<C2>.operator checked-(C2 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2, int)").WithLocation(14, 38)
@@ -31363,277 +28519,6 @@ public class C2 : I1<C2>
                 //     static explicit I1<C2>.operator int(C2 x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("C2.explicit operator int(C2)").WithLocation(14, 37)
                 );
-        }
-
-        [Fact]
-        public void OperatorVsMethod_01()
-        {
-            var source1 =
-@"
-public interface I1<T1> where T1 : I1<T1>
-{
-    abstract static T1 operator +(T1 x, T1 y);
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics();
-
-            var source2 =
-@"
-public interface I2<T2> : I1<T2> where T2 : I2<T2>
-{
-    abstract static T2 I1<T2>.op_Addition(T2 x, T2 y);
-}
-
-public interface I3<T3> : I1<T3> where T3 : I3<T3>
-{
-    static T3 I1<T3>.op_Addition(T3 x, T3 y) => throw null;
-}
-
-public class C4 : I1<C4>
-{
-    static C4 I1<C4>.op_Addition(C4 x, C4 y) => throw null;
-}
-
-public class C5 : I1<C5>
-{
-    public static C5 op_Addition(C5 x, C5 y) => throw null;
-}
-";
-
-            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
-            {
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.RegularPreview,
-                                                    targetFramework: _supportingFramework,
-                                                    references: new[] { reference });
-
-                compilation2.VerifyDiagnostics(
-                    // (4,31): error CS0539: 'I2<T2>.op_Addition(T2, T2)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     abstract static T2 I1<T2>.op_Addition(T2 x, T2 y);
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Addition").WithArguments("I2<T2>.op_Addition(T2, T2)").WithLocation(4, 31),
-                    // (9,22): error CS0539: 'I3<T3>.op_Addition(T3, T3)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static T3 I1<T3>.op_Addition(T3 x, T3 y) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Addition").WithArguments("I3<T3>.op_Addition(T3, T3)").WithLocation(9, 22),
-                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4, C4)'
-                    // public class C4 : I1<C4>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator +(C4, C4)").WithLocation(12, 19),
-                    // (14,22): error CS0539: 'C4.op_Addition(C4, C4)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static C4 I1<C4>.op_Addition(C4 x, C4 y) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Addition").WithArguments("C4.op_Addition(C4, C4)").WithLocation(14, 22),
-                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.operator +(C5, C5)'
-                    // public class C5 : I1<C5>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.operator +(C5, C5)").WithLocation(17, 19)
-                    );
-            }
-        }
-
-        [Fact]
-        public void OperatorVsMethod_02()
-        {
-            var source1 =
-@"
-public interface I1<T1> where T1 : I1<T1>
-{
-    abstract static T1 op_Addition(T1 x, T1 y);
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics();
-
-            var source2 =
-@"
-public interface I2<T2> : I1<T2> where T2 : I2<T2>
-{
-    abstract static T2 I1<T2>.operator +(T2 x, T2 y);
-}
-
-public interface I3<T3> : I1<T3> where T3 : I3<T3>
-{
-    static T3 I1<T3>.operator +(T3 x, T3 y) => throw null;
-}
-
-public class C4 : I1<C4>
-{
-    static C4 I1<C4>.operator +(C4 x, C4 y) => throw null;
-}
-
-public class C5 : I1<C5>
-{
-    public static C5 operator +(C5 x, C5 y) => throw null;
-}
-";
-
-            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
-            {
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.RegularPreview,
-                                                    targetFramework: _supportingFramework,
-                                                    references: new[] { reference });
-
-                compilation2.VerifyDiagnostics(
-                    // (4,40): error CS0539: 'I2<T2>.operator +(T2, T2)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     abstract static T2 I1<T2>.operator +(T2 x, T2 y);
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "+").WithArguments("I2<T2>.operator +(T2, T2)").WithLocation(4, 40),
-                    // (9,31): error CS0539: 'I3<T3>.operator +(T3, T3)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static T3 I1<T3>.operator +(T3 x, T3 y) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "+").WithArguments("I3<T3>.operator +(T3, T3)").WithLocation(9, 31),
-                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.op_Addition(C4, C4)'
-                    // public class C4 : I1<C4>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.op_Addition(C4, C4)").WithLocation(12, 19),
-                    // (14,31): error CS0539: 'C4.operator +(C4, C4)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static C4 I1<C4>.operator +(C4 x, C4 y) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "+").WithArguments("C4.operator +(C4, C4)").WithLocation(14, 31),
-                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.op_Addition(C5, C5)'
-                    // public class C5 : I1<C5>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.op_Addition(C5, C5)").WithLocation(17, 19)
-                    );
-            }
-        }
-
-        [Fact]
-        public void OperatorVsMethod_03()
-        {
-            var source1 =
-@"
-public interface I1<T1> where T1 : I1<T1>
-{
-    abstract static implicit operator int(T1 x);
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics();
-
-            var source2 =
-@"
-public interface I2<T2> : I1<T2> where T2 : I2<T2>
-{
-    abstract static int I1<T2>.op_Implicit(T2 x);
-}
-
-public interface I3<T3> : I1<T3> where T3 : I3<T3>
-{
-    static int I1<T3>.op_Implicit(T3 x) => throw null;
-}
-
-public class C4 : I1<C4>
-{
-    static int I1<C4>.op_Implicit(C4 x) => throw null;
-}
-
-public class C5 : I1<C5>
-{
-    public static int op_Implicit(C5 x) => throw null;
-}
-";
-
-            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
-            {
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.RegularPreview,
-                                                    targetFramework: _supportingFramework,
-                                                    references: new[] { reference });
-
-                compilation2.VerifyDiagnostics(
-                    // (4,32): error CS0539: 'I2<T2>.op_Implicit(T2)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     abstract static int I1<T2>.op_Implicit(T2 x);
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Implicit").WithArguments("I2<T2>.op_Implicit(T2)").WithLocation(4, 32),
-                    // (9,23): error CS0539: 'I3<T3>.op_Implicit(T3)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static int I1<T3>.op_Implicit(T3 x) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Implicit").WithArguments("I3<T3>.op_Implicit(T3)").WithLocation(9, 23),
-                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.implicit operator int(C4)'
-                    // public class C4 : I1<C4>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.implicit operator int(C4)").WithLocation(12, 19),
-                    // (14,23): error CS0539: 'C4.op_Implicit(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static int I1<C4>.op_Implicit(C4 x) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Implicit").WithArguments("C4.op_Implicit(C4)").WithLocation(14, 23),
-                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.implicit operator int(C5)'
-                    // public class C5 : I1<C5>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.implicit operator int(C5)").WithLocation(17, 19)
-                    );
-            }
-        }
-
-        [Fact]
-        public void OperatorVsMethod_04()
-        {
-            var source1 =
-@"
-public interface I1<T1> where T1 : I1<T1>
-{
-    abstract static int op_Implicit(T1 x);
-}
-";
-
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: _supportingFramework);
-
-            compilation1.VerifyDiagnostics();
-
-            var source2 =
-@"
-public interface I2<T2> : I1<T2> where T2 : I2<T2>
-{
-    abstract static implicit I1<T2>.operator int(T2 x);
-}
-
-public interface I3<T3> : I1<T3> where T3 : I3<T3>
-{
-    static implicit I1<T3>.operator int(T3 x) => throw null;
-}
-
-public class C4 : I1<C4>
-{
-    static implicit I1<C4>.operator int(C4 x) => throw null;
-}
-
-public class C5 : I1<C5>
-{
-    public static implicit operator int(C5 x) => throw null;
-}
-";
-
-            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
-            {
-                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.RegularPreview,
-                                                    targetFramework: _supportingFramework,
-                                                    references: new[] { reference });
-
-                compilation2.VerifyDiagnostics(
-                    // (4,46): error CS0539: 'I2<T2>.implicit operator int(T2)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     abstract static implicit I1<T2>.operator int(T2 x);
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I2<T2>.implicit operator int(T2)").WithLocation(4, 46),
-                    // (9,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                    //     static implicit I1<T3>.operator int(T3 x) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(9, 37),
-                    // (9,37): error CS0539: 'I3<T3>.implicit operator int(T3)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static implicit I1<T3>.operator int(T3 x) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I3<T3>.implicit operator int(T3)").WithLocation(9, 37),
-                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.op_Implicit(C4)'
-                    // public class C4 : I1<C4>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.op_Implicit(C4)").WithLocation(12, 19),
-                    // (14,37): error CS0539: 'C4.implicit operator int(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
-                    //     static implicit I1<C4>.operator int(C4 x) => throw null;
-                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("C4.implicit operator int(C4)").WithLocation(14, 37),
-                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.op_Implicit(C5)'
-                    // public class C5 : I1<C5>
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.op_Implicit(C5)").WithLocation(17, 19)
-                    );
-            }
         }
     }
 }

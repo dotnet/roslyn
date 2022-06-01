@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 return;
 
             context.RegisterRefactoring(
-                CodeAction.Create(
+                new MyCodeAction(
                     CSharpFeaturesResources.Use_recursive_patterns,
                     _ => Task.FromResult(document.WithSyntaxRoot(replacementFunc(root))),
                     nameof(CSharpFeaturesResources.Use_recursive_patterns)));
@@ -501,6 +500,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     default:
                         return node;
                 }
+            }
+        }
+
+        private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
+            {
             }
         }
     }

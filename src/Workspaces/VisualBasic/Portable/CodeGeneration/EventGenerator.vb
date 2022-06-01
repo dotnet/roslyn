@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddEventTo(destination As TypeBlockSyntax,
                                     [event] As IEventSymbol,
-                                    options As CodeGenerationContextInfo,
+                                    options As CodeGenerationOptions,
                                     availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim eventDeclaration = GenerateEventDeclaration([event], GetDestination(destination), options)
 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GenerateEventDeclaration([event] As IEventSymbol,
                                                  destination As CodeGenerationDestination,
-                                                 options As CodeGenerationContextInfo) As DeclarationStatementSyntax
+                                                 options As CodeGenerationOptions) As DeclarationStatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([event], options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,
                                                         destination As CodeGenerationDestination,
-                                                        options As CodeGenerationContextInfo) As DeclarationStatementSyntax
+                                                        options As CodeGenerationOptions) As DeclarationStatementSyntax
 
             If options.Context.GenerateMethodBodies AndAlso
                 ([event].AddMethod IsNot Nothing OrElse [event].RemoveMethod IsNot Nothing OrElse [event].RaiseMethod IsNot Nothing) Then
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateCustomEventDeclarationWorker(
                 [event] As IEventSymbol,
                 destination As CodeGenerationDestination,
-                options As CodeGenerationContextInfo) As DeclarationStatementSyntax
+                options As CodeGenerationOptions) As DeclarationStatementSyntax
             Dim addStatements = If(
                 [event].AddMethod Is Nothing,
                 New SyntaxList(Of StatementSyntax),
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateNotCustomEventDeclarationWorker(
                 [event] As IEventSymbol,
                 destination As CodeGenerationDestination,
-                options As CodeGenerationContextInfo) As EventStatementSyntax
+                options As CodeGenerationOptions) As EventStatementSyntax
             Dim eventType = TryCast([event].Type, INamedTypeSymbol)
             If eventType.IsDelegateType() AndAlso eventType.AssociatedSymbol IsNot Nothing Then
                 ' This is a declaration style event like "Event E(x As String)".  This event will
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GenerateModifiers([event] As IEventSymbol,
                                                   destination As CodeGenerationDestination,
-                                                  options As CodeGenerationContextInfo) As SyntaxTokenList
+                                                  options As CodeGenerationOptions) As SyntaxTokenList
             Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 

@@ -453,6 +453,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsInterfaceType())
             {
+                if (interfaceMember.IsStatic)
+                {
+                    return null;
+                }
+
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this, ref discardedUseSiteInfo);
             }
@@ -512,18 +517,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #region Use-Site Diagnostics
 
         /// <summary>
-        /// Returns true if the error code is highest priority while calculating use site error for this symbol. 
+        /// Return error code that has highest priority while calculating use site error for this symbol. 
         /// </summary>
-        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code)
-            => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
+        protected override int HighestPriorityUseSiteError
+        {
+            get
+            {
+                return (int)ErrorCode.ERR_BogusType;
+            }
+        }
 
 
-        public override bool HasUnsupportedMetadata
+        public sealed override bool HasUnsupportedMetadata
         {
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && info.Code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
+                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 
@@ -549,13 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// True if the type represents a native integer. In C#, the types represented
-        /// by language keywords 'nint' and 'nuint' on platforms where they are not unified
-        /// with 'System.IntPtr' and 'System.UIntPtr'.
+        /// by language keywords 'nint' and 'nuint'.
         /// </summary>
-        internal virtual bool IsNativeIntegerWrapperType => false;
-
-        internal bool IsNativeIntegerType => IsNativeIntegerWrapperType
-            || (SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && this.ContainingAssembly.RuntimeSupportsNumericIntPtr);
+        internal virtual bool IsNativeIntegerType => false;
 
         /// <summary>
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
@@ -937,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(!canBeImplementedImplicitlyInCSharp9 || (object)implementingBaseOpt == null);
 
-            bool tryDefaultInterfaceImplementation = true;
+            bool tryDefaultInterfaceImplementation = !interfaceMember.IsStatic;
 
             // Dev10 has some extra restrictions and extra wiggle room when finding implicit
             // implementations for interface accessors.  Perform some extra checks and possibly
@@ -1028,6 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                          BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!implementingType.IsInterfaceType());
+            Debug.Assert(!interfaceMember.IsStatic);
 
             // If we are dealing with a property or event and an implementation of at least one accessor is not from an interface, it 
             // wouldn't be right to say that the event/property is implemented in an interface because its accessor isn't.
@@ -1351,6 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static MultiDictionary<Symbol, Symbol>.ValueSet FindImplementationInInterface(Symbol interfaceMember, NamedTypeSymbol interfaceType)
         {
             Debug.Assert(interfaceType.IsInterface);
+            Debug.Assert(!interfaceMember.IsStatic);
 
             NamedTypeSymbol containingType = interfaceMember.ContainingType;
             if (containingType.Equals(interfaceType, TypeCompareKind.CLRSignatureCompareOptions))
@@ -1602,28 +1610,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // The default implementation is coming from a different module, which means that we probably didn't check
                 // for the required runtime capability or language version
-                bool isStatic = implicitImpl.IsStatic;
-                var feature = isStatic ? MessageID.IDS_FeatureStaticAbstractMembersInInterfaces : MessageID.IDS_DefaultInterfaceImplementation;
 
-                LanguageVersion requiredVersion = feature.RequiredVersion();
+                LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
                 LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
                 if (requiredVersion > availableVersion)
                 {
                     diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember,
                                     GetInterfaceLocation(interfaceMember, implementingType),
                                     implicitImpl, interfaceMember, implementingType,
-                                    feature.Localize(),
+                                    MessageID.IDS_DefaultInterfaceImplementation.Localize(),
                                     availableVersion.GetValueOrDefault().ToDisplayString(),
                                     new CSharpRequiredLanguageVersion(requiredVersion));
                 }
 
-                if (!(isStatic ?
-                          implementingType.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces :
-                          implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation))
+                if (!implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
-                    diagnostics.Add(isStatic ?
-                                        ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember :
-                                        ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
                                     GetInterfaceLocation(interfaceMember, implementingType),
                                     implicitImpl, interfaceMember, implementingType);
                 }

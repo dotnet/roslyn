@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CodeCleanup;
-
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
@@ -15,13 +13,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             internal IntroduceVariableCodeAction(
                 TService service,
                 SemanticDocument document,
-                CodeCleanupOptions options,
                 TExpressionSyntax expression,
                 bool allOccurrences,
                 bool isConstant,
                 bool isLocal,
                 bool isQueryLocal)
-                : base(service, document, options, expression, allOccurrences, isConstant, isLocal, isQueryLocal)
+                : base(service, document, expression, allOccurrences, isConstant, isLocal, isQueryLocal)
             {
             }
         }

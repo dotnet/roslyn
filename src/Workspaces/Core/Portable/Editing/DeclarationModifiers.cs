@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Editing
             bool isWriteOnly = false,
             bool isRef = false,
             bool isVolatile = false,
-            bool isExtern = false,
-            bool isRequired = false)
+            bool isExtern = false)
             : this(
                   (isStatic ? Modifiers.Static : Modifiers.None) |
                   (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -55,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isWriteOnly ? Modifiers.WriteOnly : Modifiers.None) |
                   (isRef ? Modifiers.Ref : Modifiers.None) |
                   (isVolatile ? Modifiers.Volatile : Modifiers.None) |
-                  (isExtern ? Modifiers.Extern : Modifiers.None) |
-                  (isRequired ? Modifiers.Required : Modifiers.None))
+                  (isExtern ? Modifiers.Extern : Modifiers.None))
         {
         }
 
@@ -83,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     isUnsafe: symbol.RequiresUnsafeModifier(),
                     isVolatile: field?.IsVolatile == true,
                     isExtern: symbol.IsExtern,
-                    isAsync: method?.IsAsync == true,
-                    isRequired: symbol.IsRequired());
+                    isAsync: method?.IsAsync == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.
@@ -123,8 +120,6 @@ namespace Microsoft.CodeAnalysis.Editing
         public bool IsVolatile => (_modifiers & Modifiers.Volatile) != 0;
 
         public bool IsExtern => (_modifiers & Modifiers.Extern) != 0;
-
-        public bool IsRequired => (_modifiers & Modifiers.Required) != 0;
 
         public DeclarationModifiers WithIsStatic(bool isStatic)
             => new(SetFlag(_modifiers, Modifiers.Static, isStatic));
@@ -175,9 +170,6 @@ namespace Microsoft.CodeAnalysis.Editing
         public DeclarationModifiers WithIsExtern(bool isExtern)
             => new(SetFlag(_modifiers, Modifiers.Extern, isExtern));
 
-        public DeclarationModifiers WithIsRequired(bool isRequired)
-            => new(SetFlag(_modifiers, Modifiers.Required, isRequired));
-
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
             => isSet ? (existing | modifier) : (existing & ~modifier);
 
@@ -202,7 +194,6 @@ namespace Microsoft.CodeAnalysis.Editing
             Ref         = 1 << 13,
             Volatile    = 1 << 14,
             Extern      = 1 << 15,
-            Required    = 1 << 16,
 #pragma warning restore format
         }
 
@@ -224,7 +215,6 @@ namespace Microsoft.CodeAnalysis.Editing
         public static DeclarationModifiers Ref => new(Modifiers.Ref);
         public static DeclarationModifiers Volatile => new(Modifiers.Volatile);
         public static DeclarationModifiers Extern => new(Modifiers.Extern);
-        public static DeclarationModifiers Required => new(Modifiers.Required);
 
         public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
             => new(left._modifiers | right._modifiers);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         protected abstract TSimpleNameSyntax? GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 

@@ -394,10 +394,10 @@ using G=   H.I;
                     workspace.GetService(Of IGlobalOptionService))
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-                Dim addImportOptions = New AddImportPlacementOptions() With
-                {
-                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
-                }
+                Dim addImportOptions = New AddImportPlacementOptions(
+                    PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
+                    PlaceImportsInsideNamespaces:=False,
+                    AllowInHiddenRegions:=False)
 
                 Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
 

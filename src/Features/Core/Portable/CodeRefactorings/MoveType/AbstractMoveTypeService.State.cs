@@ -7,8 +7,6 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -16,27 +14,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
-        private sealed class State
+        private class State
         {
             public SemanticDocument SemanticDocument { get; }
-            public CodeCleanupOptionsProvider FallbackOptions { get; }
 
             public TTypeDeclarationSyntax TypeNode { get; set; }
             public string TypeName { get; set; }
             public string DocumentNameWithoutExtension { get; set; }
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
-            private State(SemanticDocument document, CodeCleanupOptionsProvider fallbackOptions)
-            {
-                SemanticDocument = document;
-                FallbackOptions = fallbackOptions;
-            }
+            private State(SemanticDocument document)
+                => SemanticDocument = document;
 
             internal static State Generate(
-                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration, CodeCleanupOptionsProvider fallbackOptions,
+                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,
                 CancellationToken cancellationToken)
             {
-                var state = new State(document, fallbackOptions);
+                var state = new State(document);
                 if (!state.TryInitialize(typeDeclaration, cancellationToken))
                 {
                     return null;

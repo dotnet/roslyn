@@ -23,9 +23,10 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Apply file header preferences
-            var fileHeaderTemplate = options.DocumentFormattingOptions.FileHeaderTemplate;
+            var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
             if (!string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(options.FormattingOptions.NewLine);

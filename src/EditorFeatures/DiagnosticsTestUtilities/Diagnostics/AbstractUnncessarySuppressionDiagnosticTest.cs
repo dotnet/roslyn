@@ -48,10 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             AddAnalyzersToWorkspace(workspace);
 
-            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+            string annotation = null;
+            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
+            {
+                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
+            }
 
             // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics: true);
             var diagnostics = await testDriver.GetAllDiagnosticsAsync(document, span);
 
             // Filter out suppressed diagnostics before invoking code fix.
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             return await GetDiagnosticAndFixesAsync(
                 diagnostics, CodeFixProvider, testDriver, document,
-                span, annotation, parameters.index);
+                span, CodeActionOptions.Default, annotation, parameters.index);
         }
     }
 }

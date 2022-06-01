@@ -34,8 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
                 document As Document,
                 diagnostics As ImmutableArray(Of Diagnostic),
                 editor As SyntaxEditor,
-                fallbackOptions As CodeActionOptionsProvider,
-                cancellationToken As CancellationToken) As Task
+options As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
 
             For Each diagnostic In diagnostics
                 cancellationToken.ThrowIfCancellationRequested()

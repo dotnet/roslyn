@@ -18,11 +18,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineParameterNameHintsService : IInlineParameterNameHintsService
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         protected enum HintKind
         {
             Literal,
             ObjectCreation,
             Other
+        }
+
+        public AbstractInlineParameterNameHintsService(IGlobalOptionService globalOptions)
+        {
+            _globalOptions = globalOptions;
         }
 
         protected abstract void AddAllParameterNameHintLocations(
@@ -37,9 +44,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/57283
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
+            var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
 
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)

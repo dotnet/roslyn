@@ -1836,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (candidate.IsAsync)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First());
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
                             }
                             else
                             {
@@ -3996,11 +3996,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return _lazyEmitNullablePublicOnly.Value();
             }
-        }
-
-        internal bool ShouldEmitNativeIntegerAttributes()
-        {
-            return !Assembly.RuntimeSupportsNumericIntPtr;
         }
 
         internal bool ShouldEmitNullableAttributes(Symbol symbol)

@@ -22,12 +22,13 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Workspace kind this event listener is initialized for
         /// </summary>
-        private readonly HashSet<string> _eventListenerInitialized = new();
+        private readonly HashSet<string> _eventListenerInitialized;
         private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners;
 
         public EventListenerTracker(
             IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
         {
+            _eventListenerInitialized = new HashSet<string>();
             _eventListeners = eventListeners.Where(el => el.Metadata.Service == kind).ToImmutableArray();
         }
 

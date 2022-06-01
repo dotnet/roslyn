@@ -1376,7 +1376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Const |
             DeclarationModifiers.New |
             DeclarationModifiers.ReadOnly |
-            DeclarationModifiers.Required |
             DeclarationModifiers.Static |
             DeclarationModifiers.Unsafe |
             DeclarationModifiers.Volatile;
@@ -1406,7 +1405,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.New |
             DeclarationModifiers.Override |
             DeclarationModifiers.ReadOnly |
-            DeclarationModifiers.Required |
             DeclarationModifiers.Sealed |
             DeclarationModifiers.Static |
             DeclarationModifiers.Virtual |
@@ -1659,9 +1657,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (modifiers.IsExtern)
                 list.Add(SyntaxFactory.Token(SyntaxKind.ExternKeyword));
-
-            if (modifiers.IsRequired)
-                list.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
 
             // partial and ref must be last
             if (modifiers.IsRef)

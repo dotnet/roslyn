@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         protected override SyntaxNode ConvertForNode(
             ForStatementSyntax forStatement, TypeSyntax typeNode,
             SyntaxToken foreachIdentifier, ExpressionSyntax collectionExpression,
-            ITypeSymbol iterationVariableType)
+            ITypeSymbol iterationVariableType, OptionSet optionSet)
         {
             typeNode ??= iterationVariableType.GenerateTypeSyntax();
 

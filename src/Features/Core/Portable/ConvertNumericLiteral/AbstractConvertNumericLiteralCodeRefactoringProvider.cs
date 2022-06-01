@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             void RegisterRefactoringWithResult(string text, string title)
             {
                 context.RegisterRefactoring(
-                    CodeAction.Create(title, c => ReplaceTokenAsync(document, root, numericToken, value, text, suffix), title),
+                    new MyCodeAction(title, c => ReplaceTokenAsync(document, root, numericToken, value, text, suffix)),
                     numericToken.Span);
             }
         }
@@ -168,5 +168,12 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
         }
 
         private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
+
+        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument, title)
+            {
+            }
+        }
     }
 }

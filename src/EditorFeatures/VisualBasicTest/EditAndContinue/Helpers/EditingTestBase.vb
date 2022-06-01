@@ -40,8 +40,6 @@ End Namespace
 
         Public Shared Function GetResource(keyword As String) As String
             Select Case keyword
-                Case "Enum"
-                    Return FeaturesResources.enum_
                 Case "Class"
                     Return FeaturesResources.class_
                 Case "Structure"
@@ -50,8 +48,6 @@ End Namespace
                     Return VBFeaturesResources.module_
                 Case "Interface"
                     Return FeaturesResources.interface_
-                Case "Delegate"
-                    Return FeaturesResources.delegate_
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(keyword)
             End Select

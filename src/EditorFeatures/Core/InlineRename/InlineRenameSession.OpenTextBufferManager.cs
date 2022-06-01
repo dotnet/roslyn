@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            internal void DisconnectAndRollbackEdits(bool documentIsClosed)
+            internal void Disconnect(bool documentIsClosed, bool rollbackTemporaryEdits)
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Remove any old read only regions we had
                 UpdateReadOnlyRegions(removeOnly: true);
 
-                if (!documentIsClosed)
+                if (rollbackTemporaryEdits && !documentIsClosed)
                 {
                     _session.UndoManager.UndoTemporaryEdits(_subjectBuffer, disconnect: true);
                 }

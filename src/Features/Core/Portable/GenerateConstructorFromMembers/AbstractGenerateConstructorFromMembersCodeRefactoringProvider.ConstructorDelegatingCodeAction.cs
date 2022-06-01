@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -18,26 +17,23 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
-        private sealed class ConstructorDelegatingCodeAction : CodeAction
+        private class ConstructorDelegatingCodeAction : CodeAction
         {
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public ConstructorDelegatingCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
-                bool addNullChecks,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
+                bool addNullChecks)
             {
                 _service = service;
                 _document = document;
                 _state = state;
                 _addNullChecks = addNullChecks;
-                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -62,7 +58,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
                 using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
-                var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var useThrowExpressions = _service.PrefersThrowExpression(options);
 
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {
@@ -91,12 +88,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var statements = nullCheckStatements.ToImmutable().Concat(assignStatements.ToImmutable());
                 var result = await codeGenerationService.AddMethodAsync(
-                    new CodeGenerationSolutionContext(
-                        _document.Project.Solution,
-                        new CodeGenerationContext(
-                            contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                            afterThisLocation: afterThisLocation),
-                        _fallbackOptions),
+                    _document.Project.Solution,
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
                         attributes: default,
@@ -106,6 +98,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         parameters: _state.Parameters,
                         statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
+                    new CodeGenerationContext(
+                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                        afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);

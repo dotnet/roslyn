@@ -22,18 +22,20 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
     internal abstract class AbstractOrderModifiersCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private readonly ISyntaxFacts _syntaxFacts;
+        private readonly Option2<CodeStyleOption2<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersCodeFixProvider(
             ISyntaxFacts syntaxFacts,
+            Option2<CodeStyleOption2<string>> option,
             AbstractOrderModifiersHelpers helpers)
         {
             _syntaxFacts = syntaxFacts;
+            _option = option;
             _helpers = helpers;
         }
 
         protected abstract ImmutableArray<string> FixableCompilerErrorIds { get; }
-        protected abstract CodeStyleOption2<string> GetCodeStyleOption(AnalyzerOptionsProvider options);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => FixableCompilerErrorIds.Add(IDEDiagnosticIds.OrderModifiersDiagnosticId);
@@ -50,10 +52,10 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
-            var options = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
-            var option = GetCodeStyleOption(options);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var option = document.Project.AnalyzerOptions.GetOption(_option, tree, cancellationToken);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;

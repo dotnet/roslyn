@@ -40,35 +40,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     {
         public const string ClientName = ProtocolConstants.RazorCSharp;
 
-        private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider;
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
-            CSharpVisualBasicLspServiceProvider lspServiceProvider,
+            RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             ILspLoggerFactory lspLoggerFactory,
             [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer)
-            : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext, middleLayer)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, middleLayer)
         {
-            _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override void Activate_OffUIThread()
         {
             // Ensure we let the default capabilities provider initialize off the UI thread to avoid
             // unnecessary MEF part loading during the GetCapabilities call, which is done on the UI thread
-            _experimentalCapabilitiesProvider.Initialize();
+            _defaultCapabilitiesProvider.Initialize();
         }
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = _experimentalCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            var capabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
 
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;

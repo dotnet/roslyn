@@ -148,11 +148,6 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string SignatureHelpAfterCompletion = "Signature Help After Completion Command Handler";
 
         /// <summary>
-        /// Command handler name for String Copy Paste.
-        /// </summary>
-        public const string StringCopyPaste = "String Copy Paste";
-
-        /// <summary>
         /// Command handler name for Toggle Block Comments.
         /// </summary>
         /// <remarks></remarks>

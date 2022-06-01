@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -38,12 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferConditionalDelegateCall;
+            var options = syntaxContext.Options;
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var cancellationToken = syntaxContext.CancellationToken;
+
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
-                // Bail if the user has disabled this feature.
+                // Bail immediately if the user has disabled this feature.
                 return;
             }
+
+            var severity = styleOption.Notification.Severity;
 
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
@@ -88,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return;
             }
 
-            var severity = styleOption.Notification.Severity;
             var condition = (BinaryExpressionSyntax)ifStatement.Condition;
             if (TryCheckVariableAndIfStatementForm(
                     syntaxContext, ifStatement, condition,

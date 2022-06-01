@@ -53,10 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
                 }
 
                 context.RegisterCodeFix(
-                    CodeAction.Create(
-                        CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
-                        c => FixAsync(context.Document, context.Span, type, c),
-                        nameof(CSharpAnalyzersResources.Use_explicit_type_instead_of_var)),
+                    new MyCodeAction(c => FixAsync(context.Document, context.Span, type, c)),
                     context.Diagnostics);
             }
         }
@@ -69,6 +66,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
 
             var newRoot = root.ReplaceNode(variableDeclaration.Type, type.GenerateTypeSyntax(allowVar: false));
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
+                       createChangedDocument,
+                       nameof(CSharpAnalyzersResources.Use_explicit_type_instead_of_var))
+            {
+            }
         }
     }
 }

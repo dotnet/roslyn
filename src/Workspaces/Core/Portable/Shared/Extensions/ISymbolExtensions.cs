@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 isUnsafe: symbol.RequiresUnsafeModifier(),
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed,
-                isRequired: symbol.IsRequired());
+                isSealed: symbol.IsSealed);
         }
 
         /// <summary>

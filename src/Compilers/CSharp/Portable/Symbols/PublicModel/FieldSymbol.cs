@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IFieldSymbol.IsVolatile => _underlying.IsVolatile;
 
-        bool IFieldSymbol.IsRequired => _underlying.IsRequired;
-
         bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
 
         int IFieldSymbol.FixedSize => _underlying.FixedSize;

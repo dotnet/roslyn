@@ -49,16 +49,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         {
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-                var codeAction = new TestCodeAction(context.Document);
+                var codeAction = new MyCodeAction(context.Document);
                 context.RegisterRefactoring(codeAction, context.Span);
                 return Task.CompletedTask;
             }
 
-            private class TestCodeAction : CodeAction
+            private class MyCodeAction : CodeAction
             {
                 private readonly Document _oldDocument;
 
-                public TestCodeAction(Document document)
+                public MyCodeAction(Document document)
                     => _oldDocument = document;
 
                 public override string Title

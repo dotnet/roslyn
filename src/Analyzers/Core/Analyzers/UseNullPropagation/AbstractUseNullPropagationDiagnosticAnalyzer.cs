@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var option = context.GetAnalyzerOptions().PreferNullPropagation;
+            var option = context.GetOption(CodeStyleOptions2.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;

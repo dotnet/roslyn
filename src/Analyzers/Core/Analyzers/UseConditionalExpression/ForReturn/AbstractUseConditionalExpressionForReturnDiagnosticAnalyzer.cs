@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         {
         }
 
-        protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
-            => context.GetAnalyzerOptions().PreferConditionalExpressionOverReturn;
-
         protected override bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
             => UseConditionalExpressionForReturnHelpers.TryMatchPattern(
                     GetSyntaxFacts(), ifOperation, containingSymbol, out _, out _, out _, out _);

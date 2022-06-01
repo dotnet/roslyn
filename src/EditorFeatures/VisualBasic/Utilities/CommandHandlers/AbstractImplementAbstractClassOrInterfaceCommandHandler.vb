@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.ImplementType
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
         Protected MustOverride Overloads Function TryGetNewDocument(
             document As Document,
-            options As ImplementTypeGenerationOptions,
+            options As ImplementTypeOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
@@ -164,16 +163,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim newDocument = TryGetNewDocument(document, _globalOptions.GetImplementTypeGenerationOptions(document.Project.LanguageServices), identifier, cancellationToken)
+            Dim options = _globalOptions.GetImplementTypeOptions(document.Project.Language)
+            Dim newDocument = TryGetNewDocument(document, options, identifier, cancellationToken)
 
             If newDocument Is Nothing Then
                 Return False
             End If
 
-            Dim cleanupOptions = newDocument.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
+            Dim formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim simplifierOptions = newDocument.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken)
 
-            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
-            newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
+            newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
 
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 

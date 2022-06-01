@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -36,11 +35,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 INamedTypeSymbol containingType,
                 Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
-                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, desiredAccessibility, selectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, desiredAccessibility, selectedMembers, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -55,7 +53,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 INamedTypeSymbol containingType,
                 Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> selectedMembers,
-                NamingStylePreferencesProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty))
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(containingType);
 
-                var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
                 Parameters = DetermineParameters(selectedMembers, rules);
                 MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,

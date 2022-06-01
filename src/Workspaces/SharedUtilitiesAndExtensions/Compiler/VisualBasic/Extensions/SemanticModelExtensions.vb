@@ -173,13 +173,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Accessibility.Private
         End Function
 
-        <Extension>
+        <Extension()>
         Public Iterator Function GetAliasSymbols(semanticModel As SemanticModel) As IEnumerable(Of IAliasSymbol)
-            semanticModel = semanticModel.GetOriginalSemanticModel()
+            semanticModel = DirectCast(semanticModel.GetOriginalSemanticModel(), SemanticModel)
 
             Dim root = semanticModel.SyntaxTree.GetCompilationUnitRoot()
             For Each importsClause In root.GetAliasImportsClauses()
-                Dim [alias] = semanticModel.GetDeclaredSymbol(importsClause)
+                Dim [alias] = DirectCast(semanticModel.GetDeclaredSymbol(importsClause), IAliasSymbol)
                 If [alias] IsNot Nothing Then
                     Yield [alias]
                 End If

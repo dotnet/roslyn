@@ -5033,28 +5033,27 @@ int (foo, bar) = (1, 2);",
 
         [Theory]
         [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestListPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
-switch (new int[0])
+_ = new int[0] switch
 {
     case [1, 2]:
         break;
     case [1, .. var end]:
         break;
 }",
-            testHost,
-            ControlKeyword("switch"),
-            Punctuation.OpenParen,
+testHost,
+            Identifier("_"),
+            Operators.Equals,
             Keyword("new"),
             Keyword("int"),
             Punctuation.OpenBracket,
             Number("0"),
             Punctuation.CloseBracket,
-            Punctuation.CloseParen,
+            ControlKeyword("switch"),
             Punctuation.OpenCurly,
-            ControlKeyword("case"),
+            Keyword("case"),
             Punctuation.OpenBracket,
             Number("1"),
             Punctuation.Comma,
@@ -5063,65 +5062,18 @@ switch (new int[0])
             Punctuation.Colon,
             ControlKeyword("break"),
             Punctuation.Semicolon,
-            ControlKeyword("case"),
+            Keyword("case"),
             Punctuation.OpenBracket,
             Number("1"),
             Punctuation.Comma,
             Punctuation.DotDot,
-            Keyword("var"),
+            Identifier("var"),
             Identifier("end"),
             Punctuation.CloseBracket,
             Punctuation.Colon,
             ControlKeyword("break"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestListPattern2(TestHost testHost)
-        {
-            await TestInMethodAsync(@"
-_ = x switch
-{
-    [var start, .. var end] => 1
-}",
-            testHost,
-            Identifier("_"),
-            Operators.Equals,
-            Identifier("x"),
-            ControlKeyword("switch"),
-            Punctuation.OpenCurly,
-            Punctuation.OpenBracket,
-            Keyword("var"),
-            Identifier("start"),
-            Punctuation.Comma,
-            Punctuation.DotDot,
-            Keyword("var"),
-            Identifier("end"),
-            Punctuation.CloseBracket,
-            Operators.EqualsGreaterThan,
-            Number("1"),
-            Punctuation.CloseCurly);
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarPattern(TestHost testHost)
-        {
-            await TestInMethodAsync(@"
-_ = 1 is var x;
-",
-            testHost,
-            Identifier("_"),
-            Operators.Equals,
-            Number("1"),
-            Keyword("is"),
-            Keyword("var"),
-            Identifier("x"),
-            Punctuation.Semicolon);
         }
 
         [Theory]
@@ -6480,8 +6432,7 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.OpenParen,
                 Keyword("string"),
                 Parameter("v"),
-                Operators.Exclamation,
-                Operators.Exclamation,
+                Punctuation.ExclamationExclamation,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,

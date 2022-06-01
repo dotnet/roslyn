@@ -11,8 +11,18 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
-    internal sealed class StackTraceExplorerOptionsMetadata
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class StackTraceExplorerOptionsMetadata : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public StackTraceExplorerOptionsMetadata()
+        {
+        }
+
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            OpenOnFocus);
+
         private const string FeatureName = "StackTraceExplorerOptions";
 
         /// <summary>

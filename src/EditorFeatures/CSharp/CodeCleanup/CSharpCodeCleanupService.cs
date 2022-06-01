@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 //   dotnet_style_qualification_for_method
                 //   dotnet_style_qualification_for_property
                 new DiagnosticSet(AnalyzersResources.Add_this_or_Me_qualification,
-                    IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId,
-                    IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
+                    IDEDiagnosticIds.AddQualificationDiagnosticId,
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId),
 
                 // Language keywords vs BCL types preferences
                 //   dotnet_style_predefined_type_for_locals_parameters_members
@@ -178,6 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 //   csharp_style_conditional_delegate_call
                 new DiagnosticSet(CSharpFeaturesResources.Apply_conditional_delegate_call_preferences,
                     IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId),
+                //   csharp_style_prefer_parameter_null_checking
+                new DiagnosticSet(CSharpFeaturesResources.Apply_parameter_null_preferences,
+                    IDEDiagnosticIds.UseParameterNullCheckingId),
 
                 // Modifier preferences
                 //   csharp_prefer_static_local_function
@@ -237,10 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 //   csharp_style_throw_expression
                 new DiagnosticSet(CSharpFeaturesResources.Apply_throw_expression_preferences,
                     IDEDiagnosticIds.UseThrowExpressionDiagnosticId),
-
-                //   csharp_style_prefer_utf8_string_literals
-                new DiagnosticSet(CSharpFeaturesResources.Apply_utf8_string_literal_preferences,
-                    IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId),
 
                 //   csharp_style_unused_value_assignment_preference
                 //   csharp_style_unused_value_expression_statement_preference

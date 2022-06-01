@@ -20,13 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal sealed class HACK_TextUndoTransactionThatRollsBackProperly : ITextUndoTransaction
     {
         private readonly ITextUndoTransaction _innerTransaction;
-        private readonly RollbackDetectingUndoPrimitive _undoPrimitive = new();
+        private readonly RollbackDetectingUndoPrimitive _undoPrimitive;
 
         private bool _transactionOpen = true;
 
         public HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTransaction innerTransaction)
         {
             _innerTransaction = innerTransaction;
+            _undoPrimitive = new RollbackDetectingUndoPrimitive();
         }
 
         public bool CanRedo => _innerTransaction.CanRedo;

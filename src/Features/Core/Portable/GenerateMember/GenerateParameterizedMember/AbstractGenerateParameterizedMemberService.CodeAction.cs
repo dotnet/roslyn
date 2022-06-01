@@ -23,20 +23,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private readonly bool _isAbstract;
             private readonly bool _generateProperty;
             private readonly string _equivalenceKey;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public GenerateParameterizedMemberCodeAction(
                 TService service,
                 Document document,
                 State state,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
                 bool isAbstract,
                 bool generateProperty)
             {
                 _service = service;
                 _document = document;
                 _state = state;
-                _fallbackOptions = fallbackOptions;
                 _isAbstract = isAbstract;
                 _generateProperty = generateProperty;
                 _equivalenceKey = Title;
@@ -74,15 +71,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     var property = await _state.SignatureInfo.GeneratePropertyAsync(syntaxFactory, _isAbstract, _state.IsWrittenTo, cancellationToken).ConfigureAwait(false);
 
                     var result = await CodeGenerator.AddPropertyDeclarationAsync(
-                        new CodeGenerationSolutionContext(
-                            _document.Project.Solution,
-                            new CodeGenerationContext(
-                                afterThisLocation: _state.IdentifierToken.GetLocation(),
-                                generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
-                            _fallbackOptions),
+                        _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         property,
-                        cancellationToken).ConfigureAwait(false);
+                        new CodeGenerationContext(
+                            afterThisLocation: _state.IdentifierToken.GetLocation(),
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
+                        cancellationToken)
+                        .ConfigureAwait(false);
 
                     return result;
                 }
@@ -91,14 +87,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     var method = await _state.SignatureInfo.GenerateMethodAsync(syntaxFactory, _isAbstract, cancellationToken).ConfigureAwait(false);
 
                     var result = await CodeGenerator.AddMethodDeclarationAsync(
-                       new CodeGenerationSolutionContext(
-                           _document.Project.Solution,
-                           new CodeGenerationContext(
-                               afterThisLocation: _state.Location,
-                               generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
-                           _fallbackOptions),
+                        _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         method,
+                        new CodeGenerationContext(
+                            afterThisLocation: _state.Location,
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
                         cancellationToken)
                         .ConfigureAwait(false);
 

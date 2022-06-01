@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
             End If
 
-            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TypeKind.Delegate Then
+            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TYPEKIND.Delegate Then
                 Return MethodKind.DelegateInvoke
             End If
 
@@ -814,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                      MethodAttributes.Abstract Or
                                      MethodAttributes.NewSlot))
 
-                Return flagsToCheck = (MethodAttributes.Virtual Or If(IsShared, 0, MethodAttributes.NewSlot)) OrElse
+                Return flagsToCheck = (MethodAttributes.Virtual Or MethodAttributes.NewSlot) OrElse
                        (Not _containingType.IsInterface AndAlso
                         flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
             End Get
@@ -949,7 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedProperty(propertySymbol As PEPropertySymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.PropertyGet) OrElse (methodKind = MethodKind.PropertySet))
+            Debug.Assert((methodKind = methodKind.PropertyGet) OrElse (methodKind = methodKind.PropertySet))
             Return Me.SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
         End Function
 
@@ -958,7 +958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedEvent(eventSymbol As PEEventSymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.EventAdd) OrElse (methodKind = MethodKind.EventRemove) OrElse (methodKind = MethodKind.EventRaise))
+            Debug.Assert((methodKind = methodKind.EventAdd) OrElse (methodKind = methodKind.EventRemove) OrElse (methodKind = methodKind.EventRaise))
             Return Me.SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
         End Function
 
@@ -1143,7 +1143,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
                 Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
-                DeriveCompilerFeatureRequiredUseSiteInfo(errorInfo)
                 EnsureTypeParametersAreLoaded(errorInfo)
                 CheckUnmanagedCallersOnly(errorInfo)
                 Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
@@ -1165,41 +1164,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
                 End If
             End If
-        End Sub
-
-        Private Sub DeriveCompilerFeatureRequiredUseSiteInfo(ByRef errorInfo As DiagnosticInfo)
-            If errorInfo IsNot Nothing Then
-                Return
-            End If
-
-            Dim containingModule = _containingType.ContainingPEModule
-            Dim decoder As New MetadataDecoder(containingModule, Me)
-
-            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(containingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
-            If errorInfo IsNot Nothing Then
-                Return
-            End If
-
-            errorInfo = Signature.ReturnParam.DeriveCompilerFeatureRequiredDiagnostic(decoder)
-            If errorInfo IsNot Nothing Then
-                Return
-            End If
-
-            For Each parameter In Parameters
-                errorInfo = DirectCast(parameter, PEParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
-                If errorInfo IsNot Nothing Then
-                    Return
-                End If
-            Next
-
-            For Each typeParameter In TypeParameters
-                errorInfo = DirectCast(typeParameter, PETypeParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
-                If errorInfo IsNot Nothing Then
-                    Return
-                End If
-            Next
-
-            errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
         End Sub
 
         Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)

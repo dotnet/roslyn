@@ -4,7 +4,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -64,9 +63,6 @@ namespace Microsoft.CodeAnalysis
         public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable;
 
-        public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable;
-
         private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, Optional<T?> defaultValue, out T? value)
         {
             var hasEditorConfigStorage = false;
@@ -88,8 +84,7 @@ namespace Microsoft.CodeAnalysis
                 // This option has .editorconfig storage defined, even if the current configuration does not provide a
                 // value for it.
                 hasEditorConfigStorage = true;
-                if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions) &&
-                    configStorageLocation.TryGetOption(structuredOptions, option.Type, out var objectValue))
+                if (configStorageLocation.TryGetOption(analyzerConfigOptions, option.Type, out var objectValue))
                 {
                     value = (T?)objectValue;
                     return true;

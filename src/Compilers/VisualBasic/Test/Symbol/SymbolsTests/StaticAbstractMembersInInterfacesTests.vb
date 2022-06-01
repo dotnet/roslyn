@@ -52,55 +52,13 @@ BC30270: 'Shared' is not valid on an interface method declaration.
         End Sub
 
         <Fact>
-        Public Sub DefineVirtualStaticMethod_01()
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Interface I1
-    Overridable Shared Sub M1()
-    End Sub
-End Interface
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework)
-            comp1.AssertTheseDiagnostics(
-<errors>
-BC30270: 'Overridable' is not valid on an interface method declaration.
-    Overridable Shared Sub M1()
-    ~~~~~~~~~~~
-BC30501: 'Shared' cannot be combined with 'Overridable' on a method declaration.
-    Overridable Shared Sub M1()
-    ~~~~~~~~~~~
-BC30603: Statement cannot appear within an interface body.
-    End Sub
-    ~~~~~~~
-</errors>
-            )
-
-            Dim i1M1 = comp1.GetMember(Of MethodSymbol)("I1.M1")
-            Assert.False(i1M1.IsShared)
-        End Sub
-
-        Private Function GetModifierAndBody(isVirtual As Boolean) As (modifier As String, body As String)
-            If isVirtual Then
-                Return ("virtual", " => throw null;")
-            Else
-                Return ("abstract", ";")
-            End If
-        End Function
-
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticMethod_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        Public Sub ImplementAbstractStaticMethod_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " void M1()" + md.body + "
+    static abstract void M1();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -117,7 +75,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Sub M1()'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Sub M1()'.
     Implements I1
                ~~
 </errors>
@@ -131,16 +89,14 @@ BC37315: Class 'C' cannot implement interface 'I1' because it contains shared ab
             Assert.Null(c.FindImplementationForInterfaceMember(i1M1))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticMethod_02(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ImplementAbstractStaticMethod_02()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " void M1()" + md.body + " 
+    static abstract void M1(); 
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -160,7 +116,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Sub M1()'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Sub M1()'.
     Implements I1
                ~~
 BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interface 'I1'.
@@ -177,16 +133,14 @@ BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interfac
             Assert.Null(c.FindImplementationForInterfaceMember(i1M1))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticMethod_03(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ImplementAbstractStaticMethod_03()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " void M1()" + md.body + " 
+    static abstract void M1(); 
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -206,7 +160,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Sub M1()'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Sub M1()'.
     Implements I1
                ~~
 BC30505: Methods or events that implement interface members cannot be declared 'Shared'.
@@ -223,16 +177,14 @@ BC30505: Methods or events that implement interface members cannot be declared '
             Assert.Null(c.FindImplementationForInterfaceMember(i1M1))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticMethod_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticMethod_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static void M01()" + md.body + "
+    abstract static void M01();
 
     void M03()
     {
@@ -240,7 +192,7 @@ public interface I1
 
     static void M04() {}
 
-    protected " + md.modifier + " static void M05()" + md.body + "
+    protected abstract static void M05();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -272,13 +224,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.M01()
         ~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.M01()
         ~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.M01()
         ~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -306,16 +258,14 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticMethod_02(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticMethod_02()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static void M01()" + md.body + "
+    abstract static void M01();
 
     void M03()
     {
@@ -323,7 +273,7 @@ public interface I1
 
     static void M04() {}
 
-    protected " + md.modifier + " static void M05()" + md.body + "
+    protected abstract static void M05();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -375,16 +325,14 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticMethod_AddressOf_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticMethod_AddressOf_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static void M01()" + md.body + "
+    abstract static void M01();
 
     void M03()
     {
@@ -392,7 +340,7 @@ public interface I1
 
     static void M04() {}
 
-    protected " + md.modifier + " static void M05()" + md.body + "
+    protected abstract static void M05();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -426,13 +374,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = AddressOf I1.M01
                        ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = AddressOf x.M01
              ~~~~~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = AddressOf x.M01
                        ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -460,16 +408,14 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticMethod_AddressOf_DirectCastToDelegate_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticMethod_AddressOf_DirectCastToDelegate_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static void M01()" + md.body + "
+    abstract static void M01();
 
     void M03()
     {
@@ -477,7 +423,7 @@ public interface I1
 
     static void M04() {}
 
-    protected " + md.modifier + " static void M05()" + md.body + "
+    protected abstract static void M05();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -511,13 +457,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = DirectCast(AddressOf I1.M01, System.Action)
                                   ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = DirectCast(AddressOf x.M01, System.Action)
                         ~~~~~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = DirectCast(AddressOf x.M01, System.Action)
                                   ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -545,16 +491,14 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticMethod_AddressOf_TryCastToDelegate_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticMethod_AddressOf_TryCastToDelegate_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static void M01()" + md.body + "
+    abstract static void M01();
 
     void M03()
     {
@@ -562,7 +506,7 @@ public interface I1
 
     static void M04() {}
 
-    protected " + md.modifier + " static void M05()" + md.body + "
+    protected abstract static void M05();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -596,13 +540,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = TryCast(AddressOf I1.M01, System.Action)
                                ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = TryCast(AddressOf x.M01, System.Action)
                      ~~~~~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = TryCast(AddressOf x.M01, System.Action)
                                ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -630,16 +574,14 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticMethod_AddressOf_CTypeToDelegate_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticMethod_AddressOf_CTypeToDelegate_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static void M01()" + md.body + "
+    abstract static void M01();
 
     void M03()
     {
@@ -647,7 +589,7 @@ public interface I1
 
     static void M04() {}
 
-    protected " + md.modifier + " static void M05()" + md.body + "
+    protected abstract static void M05();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -681,13 +623,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = CType(AddressOf I1.M01, System.Action)
                              ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = CType(AddressOf x.M01, System.Action)
                    ~~~~~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = CType(AddressOf x.M01, System.Action)
                              ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -715,16 +657,14 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticMethod_AddressOf_DelegateCreation_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticMethod_AddressOf_DelegateCreation_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static void M01()" + md.body + "
+    abstract static void M01();
 
     void M03()
     {
@@ -732,7 +672,7 @@ public interface I1
 
     static void M04() {}
 
-    protected " + md.modifier + " static void M05()" + md.body + "
+    protected abstract static void M05();
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -766,13 +706,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = New System.Action(AddressOf I1.M01)
                                          ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = New System.Action(AddressOf x.M01)
                                ~~~~~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = New System.Action(AddressOf x.M01)
                                          ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -828,45 +768,13 @@ BC30273: 'Shared' is not valid on an interface property declaration.
         End Sub
 
         <Fact>
-        Public Sub DefineVirtualStaticProperty_01()
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Interface I1
-    Overridable Shared Property P1 As Integer
-End Interface
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework)
-            comp1.AssertTheseDiagnostics(
-<errors>
-BC30273: 'Overridable' is not valid on an interface property declaration.
-    Overridable Shared Property P1 As Integer
-    ~~~~~~~~~~~
-BC30502: 'Shared' cannot be combined with 'Overridable' on a property declaration.
-    Overridable Shared Property P1 As Integer
-    ~~~~~~~~~~~
-</errors>
-            )
-
-            Dim i1P1 = comp1.GetMember(Of PropertySymbol)("I1.P1")
-            Assert.False(i1P1.IsShared)
-            Assert.False(i1P1.GetMethod.IsShared)
-            Assert.False(i1P1.SetMethod.IsShared)
-        End Sub
-
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticProperty_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        Public Sub ImplementAbstractStaticProperty_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " int P1 { get; set; }
+    static abstract int P1 { get; set; }
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -883,7 +791,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Property P1 As Integer'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Property P1 As Integer'.
     Implements I1
                ~~
 </errors>
@@ -901,16 +809,14 @@ BC37315: Class 'C' cannot implement interface 'I1' because it contains shared ab
             Assert.Null(c.FindImplementationForInterfaceMember(i1P1.SetMethod))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticProperty_02(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ImplementAbstractStaticProperty_02()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " int P1 { get; set; }
+    static abstract int P1 { get; set; }
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -929,7 +835,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Property P1 As Integer'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Property P1 As Integer'.
     Implements I1
                ~~
 BC30401: 'P1' cannot implement 'P1' because there is no matching property on interface 'I1'.
@@ -950,16 +856,14 @@ BC30401: 'P1' cannot implement 'P1' because there is no matching property on int
             Assert.Null(c.FindImplementationForInterfaceMember(i1P1.SetMethod))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticProperty_03(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ImplementAbstractStaticProperty_03()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " int P1 { get; set; }
+    static abstract int P1 { get; set; }
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -978,7 +882,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Property P1 As Integer'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Property P1 As Integer'.
     Implements I1
                ~~
 BC30505: Methods or events that implement interface members cannot be declared 'Shared'.
@@ -999,20 +903,18 @@ BC30505: Methods or events that implement interface members cannot be declared '
             Assert.Null(c.FindImplementationForInterfaceMember(i1P1.SetMethod))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticPropertyGet_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticPropertyGet_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static int P01 { get; set;}
+    abstract static int P01 { get; set;}
 
     static int P04 { get; set; }
 
-    protected " + md.modifier + " static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1046,10 +948,10 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = I1.P01
              ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x.P01
              ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1080,20 +982,18 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticPropertySet_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticPropertySet_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static int P01 { get; set;}
+    abstract static int P01 { get; set;}
 
     static int P04 { get; set; }
 
-    protected " + md.modifier + " static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1125,13 +1025,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.P01 = 1
         ~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.P01 = 1
         ~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.P01 = 1
         ~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1162,20 +1062,18 @@ BC36534: Expression cannot be converted into an expression tree.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticPropertyCompound_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticPropertyCompound_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static int P01 { get; set;}
+    abstract static int P01 { get; set;}
 
     static int P04 { get; set; }
 
-    protected " + md.modifier + " static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1207,19 +1105,19 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.P01 += 1
         ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.P01 += 1
         ~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.P01 += 1
         ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.P01 += 1
         ~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.P01 += 1
         ~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1250,20 +1148,18 @@ BC36534: Expression cannot be converted into an expression tree.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticProperty_02(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticProperty_02()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static int P01 { get; set;}
+    abstract static int P01 { get; set;}
 
     static int P04 { get; set; }
 
-    protected " + md.modifier + " static int P05 { get; set; }
+    protected abstract static int P05 { get; set; }
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1384,37 +1280,37 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={CreateReferenceFromIlCode(ilSource)})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = I1.Item(0)
              ~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) = 1
         ~~~~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x.Item(0)
              ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x.Item(0)
              ~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) = 1
         ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) = 1
         ~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) += 1
         ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~~~~~~
 BC32098: Type parameters cannot be used as qualifiers.
@@ -1471,22 +1367,22 @@ BC30111: 'I1' is an interface type and cannot be used as an expression.
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x(0)
              ~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x(0)
              ~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x(0) = 1
         ~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x(0) = 1
         ~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x(0) += 1
         ~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x(0) += 1
         ~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x(0) += 1
         ~~~~~~~~~
 BC30108: 'T' is a type and cannot be used as an expression.
@@ -1540,22 +1436,22 @@ BC30111: 'I1' is an interface type and cannot be used as an expression.
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x!a
              ~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x!a
              ~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x!a = 1
         ~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x!a = 1
         ~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x!a += 1
         ~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x!a += 1
         ~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x!a += 1
         ~~~~~~~~
 BC30108: 'T' is a type and cannot be used as an expression.
@@ -1637,37 +1533,37 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={CreateReferenceFromIlCode(ilSource)})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = I1.Item(0)
              ~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) = 1
         ~~~~~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x.Item(0)
              ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x.Item(0)
              ~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) = 1
         ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) = 1
         ~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) += 1
         ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~~~~~~
 BC32098: Type parameters cannot be used as qualifiers.
@@ -1715,46 +1611,13 @@ BC30275: 'Shared' is not valid on an interface event declaration.
         End Sub
 
         <Fact>
-        Public Sub DefineVirtualStaticEvent_01()
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Interface I1
-    Overridable Shared Event E1 As System.Action
-End Interface
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework)
-            comp1.AssertTheseDiagnostics(
-<errors>
-BC30243: 'Overridable' is not valid on an event declaration.
-    Overridable Shared Event E1 As System.Action
-    ~~~~~~~~~~~
-BC30275: 'Overridable' is not valid on an interface event declaration.
-    Overridable Shared Event E1 As System.Action
-    ~~~~~~~~~~~
-</errors>
-            )
-
-            Dim i1E1 = comp1.GetMember(Of EventSymbol)("I1.E1")
-            Assert.False(i1E1.IsShared)
-            Assert.False(i1E1.AddMethod.IsShared)
-            Assert.False(i1E1.RemoveMethod.IsShared)
-            Assert.Null(i1E1.RaiseMethod)
-        End Sub
-
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticEvent_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        Public Sub ImplementAbstractStaticEvent_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " event System.Action E1;
+    static abstract event System.Action E1;
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1771,7 +1634,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Event E1 As Action'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Event E1 As Action'.
     Implements I1
                ~~
 </errors>
@@ -1789,16 +1652,14 @@ BC37315: Class 'C' cannot implement interface 'I1' because it contains shared ab
             Assert.Null(c.FindImplementationForInterfaceMember(i1E1.RemoveMethod))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticEvent_02(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ImplementAbstractStaticEvent_02()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " event System.Action E1;
+    static abstract event System.Action E1;
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1817,7 +1678,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Event E1 As Action'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Event E1 As Action'.
     Implements I1
                ~~
 BC30401: 'E1' cannot implement 'E1' because there is no matching event on interface 'I1'.
@@ -1838,16 +1699,14 @@ BC30401: 'E1' cannot implement 'E1' because there is no matching event on interf
             Assert.Null(c.FindImplementationForInterfaceMember(i1E1.RemoveMethod))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractStaticEvent_03(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ImplementAbstractStaticEvent_03()
 
             Dim csSource =
 "
 public interface I1
 {
-    static " + md.modifier + " event System.Action E1;
+    static abstract event System.Action E1;
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1866,7 +1725,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract or virtual 'Event E1 As Action'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Event E1 As Action'.
     Implements I1
                ~~
 BC30505: Methods or events that implement interface members cannot be declared 'Shared'.
@@ -1887,20 +1746,18 @@ BC30505: Methods or events that implement interface members cannot be declared '
             Assert.Null(c.FindImplementationForInterfaceMember(i1E1.RemoveMethod))
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticEventAdd_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticEventAdd_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static event System.Action P01;
+    abstract static event System.Action P01;
 
     static event System.Action P04;
 
-    protected " + md.modifier + " static event System.Action P05;
+    protected abstract static event System.Action P05;
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -1934,10 +1791,10 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         AddHandler I1.P01, Nothing
                    ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         AddHandler x.P01, Nothing
                    ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1968,20 +1825,18 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticEventRemove_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticEventRemove_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static event System.Action P01;
+    abstract static event System.Action P01;
 
     static event System.Action P04;
 
-    protected " + md.modifier + " static event System.Action P05;
+    protected abstract static event System.Action P05;
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -2015,10 +1870,10 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         RemoveHandler I1.P01, Nothing
                       ~~~~~~
-BC37314: A shared abstract or virtual interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         RemoveHandler x.P01, Nothing
                       ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -2049,20 +1904,18 @@ BC32098: Type parameters cannot be used as qualifiers.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractStaticEvent_02(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractStaticEvent_02()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static event System.Action P01;
+    abstract static event System.Action P01;
 
     static event System.Action P04;
 
-    protected " + md.modifier + " static event System.Action P05;
+    protected abstract static event System.Action P05;
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -2141,39 +1994,6 @@ BC30603: Statement cannot appear within an interface body.
         End Sub
 
         <Fact>
-        Public Sub DefineVirtualStaticOperator_01()
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Interface I1
-    Overridable Shared Operator + (x as I1) as I1
-
-    Overridable Shared Operator - (x as I1, y as I1) as I1
-End Interface
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework)
-            comp1.AssertTheseDiagnostics(
-<errors>
-BC33013: Operators cannot be declared 'Overridable'.
-    Overridable Shared Operator + (x as I1) as I1
-    ~~~~~~~~~~~
-BC30603: Statement cannot appear within an interface body.
-    Overridable Shared Operator + (x as I1) as I1
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33013: Operators cannot be declared 'Overridable'.
-    Overridable Shared Operator - (x as I1, y as I1) as I1
-    ~~~~~~~~~~~
-BC30603: Statement cannot appear within an interface body.
-    Overridable Shared Operator - (x as I1, y as I1) as I1
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</errors>
-            )
-        End Sub
-
-        <Fact>
         Public Sub DefineAbstractStaticOperator_02()
 
             Dim source1 =
@@ -2201,48 +2021,13 @@ BC30603: Statement cannot appear within an interface body.
         End Sub
 
         <Fact>
-        Public Sub DefineVirtualStaticOperator_02()
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Interface I1
-    Overridable Shared Operator IsTrue (x as I1) as Boolean
-
-    Overridable Shared Operator IsFalse (x as I1) as Boolean
-End Interface
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework)
-            comp1.AssertTheseDiagnostics(
-<errors>
-BC33013: Operators cannot be declared 'Overridable'.
-    Overridable Shared Operator IsTrue (x as I1) as Boolean
-    ~~~~~~~~~~~
-BC30603: Statement cannot appear within an interface body.
-    Overridable Shared Operator IsTrue (x as I1) as Boolean
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33013: Operators cannot be declared 'Overridable'.
-    Overridable Shared Operator IsFalse (x as I1) as Boolean
-    ~~~~~~~~~~~
-BC30603: Statement cannot appear within an interface body.
-    Overridable Shared Operator IsFalse (x as I1) as Boolean
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</errors>
-            )
-        End Sub
-
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractUnaryOperator_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        Public Sub ImplementAbstractUnaryOperator_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static I1 operator - (I1 x)" + md.body + "
+    abstract static I1 operator - (I1 x);
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -2259,23 +2044,21 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'Test' cannot implement interface 'I1' because it contains shared abstract or virtual 'Operator -(x As I1) As I1'.
+BC37315: Class 'Test' cannot implement interface 'I1' because it contains shared abstract 'Operator -(x As I1) As I1'.
     Implements I1
                ~~
 </errors>
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ImplementAbstractBinaryOperator_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ImplementAbstractBinaryOperator_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static I1 operator - (I1 x, I1 y)" + md.body + "
+    abstract static I1 operator - (I1 x, I1 y);
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -2292,28 +2075,26 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'Test' cannot implement interface 'I1' because it contains shared abstract or virtual 'Operator -(x As I1, y As I1) As I1'.
+BC37315: Class 'Test' cannot implement interface 'I1' because it contains shared abstract 'Operator -(x As I1, y As I1) As I1'.
     Implements I1
                ~~
 </errors>
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractUnaryOperator_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractUnaryOperator_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static I1 operator - (I1 x)" + md.body + "
+    abstract static I1 operator - (I1 x);
 }
 
 public interface I2<T> where T : I2<T>
 {
-    " + md.modifier + " static T operator - (T x)" + md.body + "
+    abstract static T operator - (T x);
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -2360,21 +2141,19 @@ BC30487: Operator '-' is not defined for type 'T'.
             )
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConsumeAbstractBinaryOperator_01(isVirtual As Boolean)
-            Dim md = GetModifierAndBody(isVirtual)
+        <Fact>
+        Public Sub ConsumeAbstractBinaryOperator_01()
 
             Dim csSource =
 "
 public interface I1
 {
-    " + md.modifier + " static I1 operator - (I1 x, I1 y)" + md.body + "
+    abstract static I1 operator - (I1 x, I1 y);
 }
 
 public interface I2<T> where T : I2<T>
 {
-    " + md.modifier + " static T operator - (T x, T y)" + md.body + "
+    abstract static T operator - (T x, T y);
 }
 "
             Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
@@ -2449,39 +2228,6 @@ BC30603: Statement cannot appear within an interface body.
         End Sub
 
         <Fact>
-        Public Sub DefineVirtualStaticConversion_01()
-
-            Dim source1 =
-<compilation>
-    <file name="c.vb"><![CDATA[
-Interface I1
-    Overridable Shared Widening Operator CType (x as Integer) as I1
-
-    Overridable Shared Narrowing Operator CType (x as I1) as Integer
-End Interface
-]]></file>
-</compilation>
-
-            Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework)
-            comp1.AssertTheseDiagnostics(
-<errors>
-BC33013: Operators cannot be declared 'Overridable'.
-    Overridable Shared Widening Operator CType (x as Integer) as I1
-    ~~~~~~~~~~~
-BC30603: Statement cannot appear within an interface body.
-    Overridable Shared Widening Operator CType (x as Integer) as I1
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33013: Operators cannot be declared 'Overridable'.
-    Overridable Shared Narrowing Operator CType (x as I1) as Integer
-    ~~~~~~~~~~~
-BC30603: Statement cannot appear within an interface body.
-    Overridable Shared Narrowing Operator CType (x as I1) as Integer
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</errors>
-            )
-        End Sub
-
-        <Fact>
         Public Sub ImplementAbstractConversionOperator_01()
 
             Dim csSource =
@@ -2504,7 +2250,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'Test' cannot implement interface 'I1(Of T)' because it contains shared abstract or virtual 'Function op_Implicit(x As T) As Integer'.
+BC37315: Class 'Test' cannot implement interface 'I1(Of T)' because it contains shared abstract 'Function op_Implicit(x As T) As Integer'.
     Implements I1(Of T)
                ~~~~~~~~
 </errors>

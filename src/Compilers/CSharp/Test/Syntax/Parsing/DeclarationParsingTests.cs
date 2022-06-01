@@ -7300,10 +7300,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestMethodDeclarationNullValidation()
         {
-            UsingStatement(@"void M(string name!!) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!!) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+            UsingStatement(@"void M(string name!!) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7321,6 +7318,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7336,9 +7334,9 @@ class C<T> where T : struct? {}
         public void TestMethodDeclarationNullValidation_SingleExclamation()
         {
             UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
 
             N(SyntaxKind.LocalFunctionStatement);
             {
@@ -7357,6 +7355,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7374,9 +7373,9 @@ class C<T> where T : struct? {}
         {
             UsingStatement(@"void M(string name
                 /*comment1*/!/*comment2*/) { }", options: TestOptions.RegularPreview,
-                // (2,29): error CS8989: The 'parameter null-checking' feature is not supported.
+                // (2,1): error CS1003: Syntax error, '!!' expected
                 //                 /*comment1*/!/*comment2*/) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(2, 29));
+                Diagnostic(ErrorCode.ERR_SyntaxError, " ").WithArguments("!!", "!").WithLocation(2, 1));
 
             N(SyntaxKind.LocalFunctionStatement);
             {
@@ -7395,6 +7394,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7410,10 +7410,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestOptParamMethodDeclarationWithNullValidation()
         {
-            UsingStatement(@"void M(string name!! = null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!! = null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+            UsingStatement(@"void M(string name!! = null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7431,6 +7428,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7453,10 +7451,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!!=null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7474,6 +7469,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7499,7 +7495,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7531,7 +7527,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!!) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!!) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7563,7 +7559,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!! = null) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!! = null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7595,7 +7591,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!!= null) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!!= null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7627,7 +7623,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist[]!!= null) { }", options: TestOptions.RegularPreview,
                 // (1,17): error CS1003: Syntax error, ',' expected
                 // void M(__arglist[]!!= null) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
                 // (1,18): error CS1001: Identifier expected
                 // void M(__arglist[]!!= null) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
@@ -7636,10 +7632,7 @@ class C<T> where T : struct? {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "!").WithLocation(1, 19),
                 // (1,19): error CS1001: Identifier expected
                 // void M(__arglist[]!!= null) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 19),
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(__arglist[]!!= null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7674,6 +7667,7 @@ class C<T> where T : struct? {}
                             M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7700,7 +7694,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist[]) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist[]) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 17),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
                     // (1,18): error CS1001: Identifier expected
                     // void M(__arglist[]) { }
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
@@ -7762,7 +7756,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist = null) { }", options: TestOptions.RegularPreview,
                     // (1,18): error CS1003: Syntax error, ',' expected
                     // void M(__arglist = null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(1, 18));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 18));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7791,10 +7785,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithLeadingSpace()
         {
-            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview,
-                // (1,20): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name !!=null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 20));
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7812,6 +7803,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7834,10 +7826,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithLeadingNewLine()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!!=null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7855,6 +7844,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7877,10 +7867,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithTrailingSpace()
         {
-            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!!= null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7898,6 +7885,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7920,10 +7908,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithTrailingNewLine()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!!=null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7941,6 +7926,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -7964,9 +7950,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceInbetween()
         {
             UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name! !=null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name! !=null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7984,6 +7970,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -8007,10 +7994,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceAfterParam()
         {
-            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview,
-                // (1,20): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name !!=null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 20));
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8028,6 +8012,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -8051,9 +8036,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceAfterBangs()
         {
             UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name! ! =null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+                    // (1,19): error CS1003: Syntax error, '!!' expected
+                    // void M(string name! ! =null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8071,6 +8056,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -8095,9 +8081,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceBeforeBangs()
         {
             UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
-                // (1,20): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name ! !=null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 20));
+                    // (1,20): error CS1003: Syntax error, '!!' expected
+                    // void M(string name ! !=null) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 20));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8115,6 +8101,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -8138,10 +8125,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceAfterEquals()
         {
-            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!!= null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19));
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8159,6 +8143,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -8182,9 +8167,6 @@ class C<T> where T : struct? {}
         public void TestMethodDeclarationNullValidation_ExtraEquals()
         {
             UsingStatement(@"void M(string name!!= = null) { }", options: TestOptions.RegularPreview,
-                // (1,19): error CS8989: The 'parameter null-checking' feature is not supported.
-                // void M(string name!!= = null) { }
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 19),
                 // (1,23): error CS1525: Invalid expression term '='
                 // void M(string name!!= = null) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 23));
@@ -8206,6 +8188,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
@@ -8267,6 +8250,7 @@ class C
                                     N(SyntaxKind.StringKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -8311,6 +8295,7 @@ class C
                                     N(SyntaxKind.StringKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -8366,6 +8351,7 @@ class Box
                                     N(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ExclamationExclamationToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -8425,6 +8411,7 @@ Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);
                                 N(SyntaxKind.IntKeyword);
                             }
                             N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.ExclamationExclamationToken);
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
@@ -8459,6 +8446,7 @@ Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);
                                                     N(SyntaxKind.IntKeyword);
                                                 }
                                                 N(SyntaxKind.IdentifierToken, "k");
+                                                N(SyntaxKind.ExclamationExclamationToken);
                                             }
                                             N(SyntaxKind.CloseParenToken);
                                         }
@@ -8488,7 +8476,7 @@ class B : A<int
 ", TestOptions.Regular7_3,
                 // (2,16): error CS1003: Syntax error, '>' expected
                 // class B : A<int
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(2, 16));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "{").WithLocation(2, 16));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8581,7 +8569,7 @@ class B<X, Y> : A<int
 ", TestOptions.Regular7_3,
                 // (2,22): error CS1003: Syntax error, '>' expected
                 // class B<X, Y> : A<int
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(2, 22));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "").WithLocation(2, 22));
 
             N(SyntaxKind.CompilationUnit);
             {

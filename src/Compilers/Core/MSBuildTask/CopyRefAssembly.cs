@@ -66,8 +66,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_SkippingCopy1", DestinationPath);
                             return true;
                         }
-
-                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, File.GetLastWriteTimeUtc(SourcePath).ToString("O"), source, DestinationPath, File.GetLastWriteTimeUtc(DestinationPath).ToString("O"), destination);
                     }
                     catch (Exception)
                     {
@@ -83,7 +81,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             try
             {
-                Log.LogMessageFromResources(MessageImportance.Normal, "CopyRefAssembly_Copying", SourcePath, DestinationPath);
                 File.Copy(SourcePath, DestinationPath, overwrite: true);
             }
             catch (Exception e)

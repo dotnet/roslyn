@@ -1383,8 +1383,6 @@ public sealed class C : IDisposable
             var options = Option(CodeStyleOptions2.UnusedParameters,
                 new CodeStyleOption2<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption2.Suggestion));
 
-            var parameters = new TestParameters(globalOptions: options, retainNonFixableDiagnostics: true);
-
             await TestDiagnosticMissingAsync(
 @"using System;
 using System.Threading.Tasks;
@@ -1404,7 +1402,7 @@ public sealed class C : IDisposable
     private void myAction() { }
 
     public void Dispose() => task.Result.MyAction -= myAction;
-}", parameters);
+}", options);
         }
 #endif
 

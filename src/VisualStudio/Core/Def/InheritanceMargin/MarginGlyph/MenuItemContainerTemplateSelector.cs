@@ -21,15 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return (DataTemplate)parentItemsControl.FindResource("HeaderMenuItemTemplate");
             }
 
-            if (item is DisambiguousTargetMenuItemViewModel)
-            {
-                // Template for DisambiguatingTargetMenuItemTemplate, which contains one more icon than the common TargetMenuItemTemplate.
-                return (DataTemplate)parentItemsControl.FindResource("DisambiguatingTargetMenuItemTemplate");
-            }
-
             if (item is TargetMenuItemViewModel)
             {
-                // Template for a common target
+                // Template for Target
                 return (DataTemplate)parentItemsControl.FindResource("TargetMenuItemTemplate");
             }
 

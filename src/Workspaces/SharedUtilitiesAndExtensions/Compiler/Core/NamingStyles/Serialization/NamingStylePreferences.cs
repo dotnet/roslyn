@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// 2. Name Style
     /// 3. Naming Rule (points to Symbol Specification IDs)
     /// </summary>
-    [DataContract]
     internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>, IObjectWritable
     {
         static NamingStylePreferences()
@@ -32,18 +30,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private const int s_serializationVersion = 5;
 
-        [DataMember(Order = 0)]
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
-
-        [DataMember(Order = 1)]
         public readonly ImmutableArray<NamingStyle> NamingStyles;
-
-        [DataMember(Order = 2)]
         public readonly ImmutableArray<SerializableNamingRule> NamingRules;
 
         private readonly Lazy<NamingStyleRules> _lazyRules;
 
-        public NamingStylePreferences(
+        internal NamingStylePreferences(
             ImmutableArray<SymbolSpecification> symbolSpecifications,
             ImmutableArray<NamingStyle> namingStyles,
             ImmutableArray<SerializableNamingRule> namingRules)
@@ -56,12 +49,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
-        public static NamingStylePreferences Empty => new(ImmutableArray<SymbolSpecification>.Empty, ImmutableArray<NamingStyle>.Empty, ImmutableArray<SerializableNamingRule>.Empty);
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
-
-        public bool IsEmpty
-            => SymbolSpecifications.IsEmpty && NamingStyles.IsEmpty && NamingRules.IsEmpty;
 
         internal NamingStyle GetNamingStyle(Guid namingStyleID)
             => NamingStyles.Single(s => s.ID == namingStyleID);

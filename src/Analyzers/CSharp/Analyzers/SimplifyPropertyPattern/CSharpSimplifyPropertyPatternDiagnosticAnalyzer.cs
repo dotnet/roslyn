@@ -52,8 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
 
         private void AnalyzeSubpattern(SyntaxNodeAnalysisContext syntaxContext)
         {
+            var options = syntaxContext.Options;
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var cancellationToken = syntaxContext.CancellationToken;
+
             // Bail immediately if the user has disabled this feature.
-            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferExtendedPropertyPattern;
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferExtendedPropertyPattern, syntaxTree, cancellationToken);
             if (!styleOption.Value)
                 return;
 

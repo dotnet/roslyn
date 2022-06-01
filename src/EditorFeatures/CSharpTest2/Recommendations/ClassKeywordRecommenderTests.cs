@@ -358,7 +358,6 @@ $$
 global using Bar;");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint()
         {
@@ -366,15 +365,6 @@ global using Bar;");
 @"class C<T> where T : $$");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
-        {
-            await VerifyAbsenceAsync(
-@"class C<T> where T : IList<$$");
-        }
-
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint2()
         {
@@ -384,17 +374,6 @@ global using Bar;");
     where U : U");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
-        {
-            await VerifyAbsenceAsync(
-@"class C<T>
-    where T : IList<$$
-    where U : U");
-        }
-
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
@@ -404,17 +383,6 @@ global using Bar;");
       where T : $$");
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo<T>()
-      where T : IList<$$");
-        }
-
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
@@ -422,17 +390,6 @@ global using Bar;");
 @"class C {
     void Goo<T>()
       where T : $$
-      where U : T");
-        }
-
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
-        {
-            await VerifyAbsenceAsync(
-@"class C {
-    void Goo<T>()
-      where T : IList<$$
       where U : T");
         }
 

@@ -218,7 +218,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             throw ExceptionUtilities.Unreachable;
         }
-
-        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

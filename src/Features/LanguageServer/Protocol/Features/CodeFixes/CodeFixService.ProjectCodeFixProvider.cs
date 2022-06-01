@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,10 +14,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal partial class CodeFixService
     {
         private class ProjectCodeFixProvider
-            : AbstractProjectExtensionProvider<ProjectCodeFixProvider, CodeFixProvider, ExportCodeFixProviderAttribute>
+            : AbstractProjectExtensionProvider<CodeFixProvider, ExportCodeFixProviderAttribute>
         {
-            protected override ImmutableArray<string> GetLanguages(ExportCodeFixProviderAttribute exportAttribute)
-                => exportAttribute.Languages.ToImmutableArray();
+            public ProjectCodeFixProvider(AnalyzerReference reference)
+                : base(reference)
+            {
+            }
+
+            protected override bool SupportsLanguage(ExportCodeFixProviderAttribute exportAttribute, string language)
+            {
+                return exportAttribute.Languages == null
+                    || exportAttribute.Languages.Length == 0
+                    || exportAttribute.Languages.Contains(language);
+            }
 
             protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeFixProvider> extensions)
             {

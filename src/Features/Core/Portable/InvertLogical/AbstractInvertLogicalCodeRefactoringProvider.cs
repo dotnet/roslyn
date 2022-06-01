@@ -71,12 +71,10 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 }
             }
 
-            var title = GetTitle(syntaxKinds, expression.RawKind);
             context.RegisterRefactoring(
-                CodeAction.Create(
-                    title,
-                    c => InvertLogicalAsync(document, expression, c),
-                    title),
+                new MyCodeAction(
+                    GetTitle(syntaxKinds, expression.RawKind),
+                    c => InvertLogicalAsync(document, expression, c)),
                 expression.Span);
         }
 
@@ -146,5 +144,13 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             => binaryExprKind == syntaxKinds.LogicalAndExpression
                 ? syntaxKinds.LogicalOrExpression
                 : syntaxKinds.LogicalAndExpression;
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
+            }
+        }
     }
 }

@@ -4,8 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -13,17 +11,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
 {
     internal readonly record struct OmniSharpSyntaxFormattingOptionsWrapper
     {
-        internal readonly CodeCleanupOptions CleanupOptions;
+        internal readonly SyntaxFormattingOptions FormattingOptions;
+        internal readonly SimplifierOptions SimplifierOptions;
 
-        internal OmniSharpSyntaxFormattingOptionsWrapper(CodeCleanupOptions cleanupOptions)
+        internal OmniSharpSyntaxFormattingOptionsWrapper(SyntaxFormattingOptions formattingOptions, SimplifierOptions simplifierOptions)
         {
-            CleanupOptions = cleanupOptions;
+            FormattingOptions = formattingOptions;
+            SimplifierOptions = simplifierOptions;
         }
 
         public static async ValueTask<OmniSharpSyntaxFormattingOptionsWrapper> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
-            return new OmniSharpSyntaxFormattingOptionsWrapper(cleanupOptions);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+
+            return new OmniSharpSyntaxFormattingOptionsWrapper(formattingOptions, simplifierOptions);
         }
     }
 }

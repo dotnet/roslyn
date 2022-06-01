@@ -194,14 +194,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project, IGlobalOptionService globalOptions)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
             {
                 return true;
-            }
-
-            if (analyzer.IsCompilerAnalyzer())
-            {
-                return globalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, project.Language) != CompilerDiagnosticsScope.None;
             }
 
             // Check if user has disabled analyzer execution for this project or via options.

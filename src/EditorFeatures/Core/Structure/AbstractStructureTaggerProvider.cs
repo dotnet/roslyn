@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -42,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     internal abstract partial class AbstractStructureTaggerProvider :
         AsynchronousTaggerProvider<IStructureTag>
     {
-        private const string RegionDirective = "#region";
-        private const string UsingDirective = "using";
-        private const string ExternDeclaration = "extern";
-        private const string ImportsStatement = "Imports";
-
         protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
@@ -73,82 +67,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (openDocument == null)
                 return false;
 
-            // If the main Outlining option is turned off, we can just skip computing tags synchronously
-            // so when the document first opens, there won't be any tags yet. When the tags do come in
-            // the IsDefaultCollapsed property, which controls the initial collapsing, won't have any effect
-            // because the document will already be open.
             if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
                 return false;
 
-            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(GlobalOptions, openDocument.Project);
-
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            if (openDocument.Project.Solution.Workspace is MetadataAsSourceWorkspace masWorkspace &&
-                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options))
-            {
+            var isMetadataAsSource = openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
+            if (isMetadataAsSource)
                 return true;
-            }
 
-            // If the user wants to collapse imports or #regions then we need to compute
-            // synchronously, but only if there are imports or #regions in the file. To
-            // save some work, we'll look for both in a single pass.
-            var collapseRegions = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, openDocument.Project.Language);
-            var collapseImports = GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, openDocument.Project.Language);
+            // If we contain any #region sections, we want to collapse those automatically on open the first
+            // time a doc is ever opened.  So we need to compute the initial tags synchronously in order to
+            // do that.
+            if (ContainsRegionTag(subjectBuffer.CurrentSnapshot))
+                return true;
 
-            if (!collapseRegions && !collapseImports)
+            return false;
+
+            static bool ContainsRegionTag(ITextSnapshot textSnapshot)
             {
+                foreach (var line in textSnapshot.Lines)
+                {
+                    if (StartsWithRegionTag(line))
+                        return true;
+                }
+
                 return false;
-            }
 
-            if (ContainsRegionOrImport(subjectBuffer.CurrentSnapshot, collapseRegions, collapseImports, openDocument.Project.Language))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        // Internal for testing
-        internal static bool ContainsRegionOrImport(ITextSnapshot textSnapshot, bool collapseRegions, bool collapseImports, string language)
-        {
-            foreach (var line in textSnapshot.Lines)
-            {
-                if (collapseRegions && StartsWithRegionTag(line))
+                static bool StartsWithRegionTag(ITextSnapshotLine line)
                 {
-                    return true;
+                    var start = line.GetFirstNonWhitespacePosition();
+                    return start != null && line.StartsWith(start.Value, "#region", ignoreCase: true);
                 }
-                else if (collapseImports && IsImport(line, language))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-
-            static bool StartsWithRegionTag(ITextSnapshotLine line)
-            {
-                var start = line.GetFirstNonWhitespacePosition();
-                return start != null && line.StartsWith(start.Value, RegionDirective, ignoreCase: true);
-            }
-
-            static bool IsImport(ITextSnapshotLine line, string language)
-            {
-                var start = line.GetFirstNonWhitespacePosition();
-                if (start is null)
-                    return false;
-
-                // For VB we only need to find "Imports" at the start of a line
-                if (language == LanguageNames.VisualBasic)
-                {
-                    return line.StartsWith(start.Value, ImportsStatement, ignoreCase: true);
-                }
-
-                // For the purposes of collapsing, extern aliases are grouped with usings
-                if (line.StartsWith(start.Value, ExternDeclaration, ignoreCase: false))
-                    return true;
-
-                return line.StartsWith(start.Value, UsingDirective, ignoreCase: false);
             }
         }
 

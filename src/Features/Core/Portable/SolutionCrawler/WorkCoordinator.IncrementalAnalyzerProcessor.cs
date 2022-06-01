@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // NOTE: IDiagnosticAnalyzerService can be null in test environment.
                 private readonly Lazy<IDiagnosticAnalyzerService?> _lazyDiagnosticAnalyzerService;
 
-                private LogAggregator _logAggregator = new();
+                private LogAggregator _logAggregator;
 
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     TimeSpan lowBackOffTimeSpan,
                     CancellationToken shutdownToken)
                 {
+                    _logAggregator = new LogAggregator();
+
                     _listener = listener;
                     _registration = registration;
                     _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
@@ -394,10 +396,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private class AnalyzersGetter
                 {
                     private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
-                    private readonly Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
+                    private readonly Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap;
 
                     public AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                     {
+                        _analyzerMap = new Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>>();
                         _analyzerProviders = analyzerProviders.ToList();
                     }
 

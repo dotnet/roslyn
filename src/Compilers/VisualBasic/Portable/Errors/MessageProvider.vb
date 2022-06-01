@@ -142,12 +142,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    hasSourceSuppression)
         End Function
 
-#If DEBUG Then
-        Friend Overrides Function ShouldAssertExpectedMessageArgumentsLength(errorCode As Integer) As Boolean
-            ' Consider enabling.
-            Return False
-        End Function
-#End If
 
         Public Overrides ReadOnly Property ERR_FailedToCreateTempFile As Integer
             Get

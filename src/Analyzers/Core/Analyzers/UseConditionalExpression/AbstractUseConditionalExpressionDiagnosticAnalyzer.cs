@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TIfStatementSyntax : SyntaxNode
     {
+        private readonly PerLanguageOption2<CodeStyleOption2<bool>> _option;
+
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -30,11 +32,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                    new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    message)
         {
+            _option = option;
         }
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol);
-        protected abstract CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Conditional);
@@ -47,7 +49,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
-            var option = GetStylePreference(context);
+            var language = ifStatement.Language;
+
+            var option = context.GetOption(_option, language);
             if (!option.Value)
             {
                 return;

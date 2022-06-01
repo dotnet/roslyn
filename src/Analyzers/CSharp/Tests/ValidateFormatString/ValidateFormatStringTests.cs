@@ -575,15 +575,15 @@ class C
         string.Format(""This [|{1}|] is my test"", ""teststring1"");
     }     
 }";
-            var options = Option(IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, true);
+            var options = new IdeAnalyzerOptions(ReportInvalidPlaceholdersInStringDotFormatCalls: true);
 
             await TestDiagnosticInfoAsync(
                 source,
                 options: null,
-                globalOptions: options,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
                 diagnosticSeverity: DiagnosticSeverity.Info,
-                diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
+                diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder,
+                ideAnalyzerOptions: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
@@ -596,9 +596,9 @@ class C
         string.Format(""This [|{1}|] is my test"", ""teststring1"");
     }     
 }";
-            var options = Option(IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
+            var options = new IdeAnalyzerOptions(ReportInvalidPlaceholdersInStringDotFormatCalls: false);
 
-            await TestDiagnosticMissingAsync(source, new TestParameters(globalOptions: options));
+            await TestDiagnosticMissingAsync(source, new TestParameters(ideAnalyzerOptions: options));
         }
 #endif
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]

@@ -91,8 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             get { return false; }
         }
 
-        bool IPropertySymbol.IsRequired => _underlying.IsRequired;
-
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
             get { return _underlying.TypeWithAnnotations.CustomModifiers; }

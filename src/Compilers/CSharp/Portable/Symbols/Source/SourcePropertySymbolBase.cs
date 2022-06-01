@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!isExpressionBodied || !isAutoProperty);
             Debug.Assert(!isExpressionBodied || !hasInitializer);
-            Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
 
             _syntaxRef = syntax.GetReference();
             Location = location;
@@ -271,11 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (isInterface && !isStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location);
+                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location, this);
             }
             else if (!isAutoProperty)
             {
-                diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location);
+                diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location, this);
             }
         }
 
@@ -519,8 +518,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
 
-        internal sealed override bool IsRequired => (_modifiers & DeclarationModifiers.Required) != 0;
-
         internal bool IsNew
         {
             get { return (_modifiers & DeclarationModifiers.New) != 0; }
@@ -677,12 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
-            if (RefKind != RefKind.None && IsRequired)
-            {
-                // Ref returning properties cannot be required.
-                diagnostics.Add(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, Location);
-            }
-
             if (IsAutoPropertyWithGetAccessor)
             {
                 Debug.Assert(GetMethod is object);
@@ -705,13 +696,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, Location);
+                    diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, Location, this);
                 }
 
                 // get-only auto property should not override settable properties
-                if (this.IsOverride && SetMethod is null && !this.IsReadOnly)
+                if (SetMethod is null && !this.IsReadOnly)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location, this);
                 }
             }
 
@@ -727,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (_refKind != RefKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0], _setMethod);
                     }
                     else if ((_getMethod.LocalAccessibility != Accessibility.NotApplicable) &&
                         (_setMethod.LocalAccessibility != Accessibility.NotApplicable))
@@ -756,12 +747,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (!hasGetAccessor)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location);
+                            diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location, this);
                         }
                     }
                     else if (!hasGetAccessor && IsAutoProperty)
                     {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0], _setMethod);
                     }
 
                     if (!this.IsOverride)
@@ -828,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-            if (compilation.ShouldEmitNativeIntegerAttributes(Type))
+            if (Type.ContainsNativeInteger())
             {
                 compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -855,14 +846,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(bool isExplicitInterfaceImplementation, Location location, bool isIndexer, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
-            Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
+            Debug.Assert(!IsStatic || (!IsVirtual && !IsOverride)); // Otherwise 'virtual' and 'override' should have been reported and cleared earlier.
 
             bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
 
             if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
             {
                 diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
+            }
+            else if (IsStatic && IsAbstract && !ContainingType.IsInterface)
+            {
+                // A static member '{0}' cannot be marked as 'abstract'
+                diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.Abstract));
             }
             else if (IsStatic && HasReadOnlyModifier)
             {
@@ -1139,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + RefCustomModifiers.Length, _refKind));
             }
 
-            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
+            if (type.Type.ContainsNativeInteger())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
@@ -1158,13 +1153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ReturnsByRefReadonly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
-            }
-
-            if (IsRequired)
-            {
-                AddSynthesizedAttribute(
-                    ref attributes,
-                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
         }
 
@@ -1245,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
 
@@ -1279,14 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute
-                | ReservedAttributes.IsReadOnlyAttribute
-                | ReservedAttributes.IsUnmanagedAttribute
-                | ReservedAttributes.IsByRefLikeAttribute
-                | ReservedAttributes.TupleElementNamesAttribute
-                | ReservedAttributes.NullableAttribute
-                | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))

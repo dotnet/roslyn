@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -28,7 +27,6 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
         public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,
             TextSpan textSpan,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
             bool forRefactoring,
             CancellationToken cancellationToken)
         {
@@ -43,10 +41,10 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                     if (state != null)
                     {
                         foreach (var constructor in state.UnimplementedConstructors)
-                            result.Add(new GenerateDefaultConstructorCodeAction(document, state, constructor, fallbackOptions));
+                            result.Add(new GenerateDefaultConstructorCodeAction(document, state, constructor));
 
                         if (state.UnimplementedConstructors.Length > 1)
-                            result.Add(new CodeActionAll(document, state, state.UnimplementedConstructors, fallbackOptions));
+                            result.Add(new CodeActionAll(document, state, state.UnimplementedConstructors));
                     }
                 }
 

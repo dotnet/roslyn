@@ -20,51 +20,46 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Implented interfaces for class or struct. Shown as I↑
         /// </summary>
-        ImplementedInterface = 1 << 0,
+        ImplementedInterface = 1,
 
         /// <summary>
         /// Base type for class or struct. Shown as O↑
         /// </summary>
-        BaseType = 1 << 1,
+        BaseType = 2,
 
         /// <summary>
         /// Derived type for class or struct. Shown as O↓
         /// </summary>
-        DerivedType = 1 << 2,
+        DerivedType = 4,
 
         /// <summary>
         /// Inherited interface for interface. Shown as I↑
         /// </summary>
-        InheritedInterface = 1 << 3,
+        InheritedInterface = 8,
 
         /// <summary>
         /// Implementing class, struct and interface for interface. Shown as I↓
         /// </summary>
-        ImplementingType = 1 << 4,
+        ImplementingType = 16,
 
         /// <summary>
         /// Implemented member for member in class or structure. Shown as I↑
         /// </summary>
-        ImplementedMember = 1 << 5,
+        ImplementedMember = 32,
 
         /// <summary>
         /// Overridden member for member in class or structure. Shown as O↑
         /// </summary>
-        OverriddenMember = 1 << 6,
+        OverriddenMember = 64,
 
         /// <summary>
         /// Overrrding member for member in class or structure. Shown as O↓
         /// </summary>
-        OverridingMember = 1 << 7,
+        OverridingMember = 128,
 
         /// <summary>
         /// Implmenting member for member in interface. Shown as I↓
         /// </summary>
-        ImplementingMember = 1 << 8,
-
-        /// <summary>
-        /// An import directive inherited from the global scope.
-        /// </summary>
-        InheritedImport = 1 << 9,
+        ImplementingMember = 256
     }
 }

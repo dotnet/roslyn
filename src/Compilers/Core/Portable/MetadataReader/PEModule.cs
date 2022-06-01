@@ -1107,13 +1107,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
-        internal const string RequiredMembersMarker = "Constructors of types with required members are not supported in this version of your compiler.";
 
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder decoder,
-            bool ignoreByRefLikeMarker,
-            bool ignoreRequiredMemberMarker)
+            bool ignoreByRefLikeMarker)
         {
             AttributeInfo info;
 
@@ -1131,8 +1129,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
                         return null;
-                    case RequiredMembersMarker when ignoreRequiredMemberMarker:
-                        return null;
                 }
                 return obsoleteData;
             }
@@ -1149,60 +1145,6 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
-        {
-            List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
-
-            if (infos == null)
-            {
-                return null;
-            }
-
-            foreach (var info in infos)
-            {
-                if (!info.HasValue || !TryGetAttributeReader(info.Handle, out BlobReader sigReader) || !CrackStringInAttributeValue(out string? featureName, ref sigReader))
-                {
-                    continue;
-                }
-
-                bool isOptional = false;
-                if (sigReader.RemainingBytes >= 2)
-                {
-                    try
-                    {
-                        var numNamedArgs = sigReader.ReadUInt16();
-                        for (uint i = 0; i < numNamedArgs; i++)
-                        {
-                            (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) namedArgValues =
-                                attributeNamedArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
-
-                            if (namedArgValues is ({ Key: "IsOptional" }, isProperty: true, typeCode: SerializationTypeCode.Boolean, _))
-                            {
-                                isOptional = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
-                                break;
-                            }
-                        }
-                    }
-                    catch (Exception e) when (e is UnsupportedSignatureContent or BadImageFormatException) { }
-                }
-
-                if (!isOptional && (allowedFeatures & getFeatureKind(featureName)) == 0)
-                {
-                    return featureName;
-                }
-            }
-
-            return null;
-
-            static CompilerFeatureRequiredFeatures getFeatureKind(string? feature)
-                => feature switch
-                {
-                    nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
-                    nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
-                    _ => CompilerFeatureRequiredFeatures.None,
-                };
-        }
-
         internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder attributeArgumentDecoder,
@@ -1780,11 +1722,6 @@ namespace Microsoft.CodeAnalysis
         }
 #nullable disable
 
-        internal bool HasStateMachineAttribute(MethodDefinitionHandle handle, out string stateMachineTypeName)
-            => HasStringValuedAttribute(handle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
-               HasStringValuedAttribute(handle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName) ||
-               HasStringValuedAttribute(handle, AttributeDescription.AsyncIteratorStateMachineAttribute, out stateMachineTypeName);
-
         internal bool HasStringValuedAttribute(EntityHandle token, AttributeDescription description, out string value)
         {
             AttributeInfo info = FindTargetAttribute(token, description);
@@ -2192,10 +2129,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-#nullable enable
-        internal List<AttributeInfo>? FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
+        internal List<AttributeInfo> FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
         {
-            List<AttributeInfo>? result = null;
+            List<AttributeInfo> result = null;
 
             try
             {
@@ -2219,7 +2155,6 @@ namespace Microsoft.CodeAnalysis
 
             return result;
         }
-#nullable disable
 
         internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {

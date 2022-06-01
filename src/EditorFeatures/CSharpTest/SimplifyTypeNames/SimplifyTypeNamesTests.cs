@@ -124,63 +124,6 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task UseGlobalAlias00()
-        {
-            await TestInRegularAndScriptAsync(
-@"
-global using MyType = System.IO.File;
-
-namespace Root
-{
-    class A
-    {
-        [|System.IO.File|] c;
-    }
-}",
-@"
-global using MyType = System.IO.File;
-
-namespace Root
-{
-    class A
-    {
-        MyType c;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task UseGlobalAlias01()
-        {
-            await TestInRegularAndScriptAsync(
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
-global using MyType = System.IO.File;
-        </Document>
-        <Document>
-namespace Root
-{
-    class A
-    {
-        [|System.IO.File|] c;
-    }
-}
-</Document>
-    </Project>
-</Workspace>",
-@"
-namespace Root
-{
-    class A
-    {
-        MyType c;
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias00_FileScopedNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -3522,7 +3465,7 @@ class M
 
         [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoNotSimplifyNamesWhenThereAreParseErrors()
+        public async Task DontSimplifyNamesWhenThereAreParseErrors()
         {
             var markup =
 @"
@@ -3658,7 +3601,7 @@ namespace C
 
         [WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoNotUseAlias1()
+        public async Task DontUseAlias1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -4007,7 +3950,7 @@ class Program
 
         [WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoNotSimplifyTypeNameBrokenCode()
+        public async Task DontSimplifyTypeNameBrokenCode()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -4027,7 +3970,7 @@ class Program
 
         [WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoNotSimplifyAliases()
+        public async Task DontSimplifyAliases()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using Goo = System.Int32;
@@ -4065,7 +4008,7 @@ namespace A
 
         [WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoNotSimplifyAttributeNameWithJustAttribute()
+        public async Task DontSimplifyAttributeNameWithJustAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
 @"[[|Attribute|]]

@@ -21,9 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_IsByRefLike : CSharpTestBase
     {
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeIsWrittenToMetadata_SameAssembly(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeIsWrittenToMetadata_SameAssembly()
         {
             var text = @"
 namespace System.Runtime.CompilerServices
@@ -39,34 +38,32 @@ class Test
             void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
                 AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
             }
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: validate);
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: validate);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGenerated(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGenerated()
         {
             var text = @"
 ref struct S1{}
 ";
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGeneratedNested(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGeneratedNested()
         {
             var text = @"
 class Test
@@ -75,16 +72,15 @@ class Test
 }
 ";
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGeneratedGeneric(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGeneratedGeneric()
         {
             var text = @"
 class Test
@@ -96,19 +92,18 @@ class Test
             void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
                 AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Internal);
             }
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, symbolValidator: validate);
+            CompileAndVerify(text, symbolValidator: validate);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGeneratedNestedInGeneric(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeIsWrittenToMetadata_NeedsToBeGeneratedNestedInGeneric()
         {
             var text = @"
 class Test<T>
@@ -117,16 +112,15 @@ class Test<T>
 }
 ";
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeIsWrittenToMetadata_DifferentAssembly(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeIsWrittenToMetadata_DifferentAssembly()
         {
             var codeA = @"
 namespace System.Runtime.CompilerServices
@@ -134,7 +128,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(new[] { codeA, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -147,8 +141,8 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
-                AssertNoIsByRefLikeAttributeOrCompilerFeatureRequiredAttributeExists(module.ContainingAssembly, includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
+                AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
             });
         }
 
@@ -442,7 +436,7 @@ public class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
                 AssertReferencedIsByRefLike(type);
-                AssertNoIsByRefLikeAttributeOrCompilerFeatureRequiredAttributeExists(module.ContainingAssembly, hasCompilerFeatureRequired: false);
+                AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
             });
         }
 
@@ -615,7 +609,7 @@ class User
             void symbolValidator(ModuleSymbol module)
             {
                 // No attribute is copied
-                AssertNoIsByRefLikeAttributeOrCompilerFeatureRequiredAttributeExists(module.ContainingAssembly, hasCompilerFeatureRequired: false);
+                AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
 
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
@@ -648,9 +642,8 @@ public class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeObsolete(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeObsolete()
         {
             var text = @"
 namespace System.Runtime.CompilerServices
@@ -679,14 +672,12 @@ class Test
 
                 if (module is PEModuleSymbol peModule)
                 {
-                    var peType = (PENamedTypeSymbol)type;
-                    Assert.True(peModule.Module.HasIsByRefLikeAttribute(peType.Handle));
+                    Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
                     AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
-                    AssertHasCompilerFeatureRequired(includeCompilerFeatureRequired, peType, peModule, new MetadataDecoder(peModule));
                 }
             };
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: validate, sourceSymbolValidator: validate);
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: validate, sourceSymbolValidator: validate);
         }
 
         [Fact]
@@ -716,9 +707,8 @@ namespace System
             });
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeDeprecated(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeDeprecated()
         {
             var text = @"
 using System;
@@ -752,7 +742,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsRefLikeType);
@@ -760,15 +750,11 @@ class Test
                 var attribute = type.GetAttributes().Single();
                 Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal(42u, attribute.ConstructorArguments.ElementAt(2).Value);
-
-                var peModule = (PEModuleSymbol)module;
-                AssertHasCompilerFeatureRequired(includeCompilerFeatureRequired, (PENamedTypeSymbol)type, peModule, new MetadataDecoder(peModule));
             });
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void IsByRefLikeDeprecatedAndObsolete(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void IsByRefLikeDeprecatedAndObsolete()
         {
             var text = @"
 using System;
@@ -803,7 +789,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsRefLikeType);
@@ -816,9 +802,6 @@ class Test
                 var attribute = attributes[0];
                 Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal(0, attribute.ConstructorArguments.Count());
-
-                var peModule = (PEModuleSymbol)module;
-                AssertHasCompilerFeatureRequired(includeCompilerFeatureRequired, (PENamedTypeSymbol)type, peModule, new MetadataDecoder(peModule));
             });
         }
 
@@ -862,16 +845,15 @@ class Test
                 );
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void ObsoleteHasErrorEqualsTrue(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void ObsoleteHasErrorEqualsTrue()
         {
             var text = @"public ref struct S {}";
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S");
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
@@ -947,9 +929,8 @@ class C1
         }
 
         [WorkItem(22198, "https://github.com/dotnet/roslyn/issues/22198")]
-        [Theory]
-        [CombinatorialData]
-        public void SpecialTypes_CorLib(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void SpecialTypes_CorLib()
         {
             var source1 =
 @"
@@ -974,44 +955,28 @@ namespace System
 
     public ref struct NotTypedReference { }
 }";
-
-            var compilerFeatureRequiredAttribute = includeCompilerFeatureRequired ?
-                """
-                namespace System.Runtime.CompilerServices
-                {
-                    public class CompilerFeatureRequiredAttribute : Attribute
-                    {
-                        public CompilerFeatureRequiredAttribute(string featureName)
-                        {
-                            FeatureName = featureName;
-                        }
-                        public string FeatureName { get; }
-                    }
-                }
-                """ : "";
-            var compilation1 = CreateEmptyCompilation(new[] { source1, compilerFeatureRequiredAttribute }, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
 
             // PEVerify: Type load failed.
             CompileAndVerify(compilation1, verify: Verification.FailsPEVerify, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
-                AssertReferencedIsByRefLike(type, hasObsolete: false, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type, hasObsolete: false);
 
                 type = module.ContainingAssembly.GetTypeByMetadataName("System.ArgIterator");
-                AssertReferencedIsByRefLike(type, hasObsolete: false, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type, hasObsolete: false);
 
                 type = module.ContainingAssembly.GetTypeByMetadataName("System.RuntimeArgumentHandle");
-                AssertReferencedIsByRefLike(type, hasObsolete: false, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type, hasObsolete: false);
 
                 // control case. Not a special type.
                 type = module.ContainingAssembly.GetTypeByMetadataName("System.NotTypedReference");
-                AssertReferencedIsByRefLike(type, hasObsolete: true, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type, hasObsolete: true);
             });
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void SpecialTypes_NotCorLib(bool includeCompilerFeatureRequired)
+        [Fact]
+        public void SpecialTypes_NotCorLib()
         {
             var text = @"
 namespace System
@@ -1020,25 +985,24 @@ namespace System
 }
 ";
 
-            CompileAndVerify(new[] { text, GetCompilerFeatureRequiredAttributeText(includeCompilerFeatureRequired) }, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
 
-                AssertReferencedIsByRefLike(type, hasCompilerFeatureRequired: includeCompilerFeatureRequired);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
-        private static void AssertReferencedIsByRefLike(TypeSymbol type, bool hasObsolete = true, bool hasCompilerFeatureRequired = false)
+        private static void AssertReferencedIsByRefLike(TypeSymbol type, bool hasObsolete = true)
         {
             var peType = (PENamedTypeSymbol)type;
             Assert.True(peType.IsRefLikeType);
 
-            // there is no [Obsolete], [IsByRef], or [CompilerFeatureRequired] attribute returned
+            // there is no [Obsolete] or [IsByRef] attribute returned
             Assert.Empty(peType.GetAttributes());
 
             var peModule = (PEModuleSymbol)peType.ContainingModule;
-            var decoder = new MetadataDecoder(peModule);
-            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, decoder, ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
+            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, new MetadataDecoder(peModule), ignoreByRefLikeMarker: false);
 
             if (hasObsolete)
             {
@@ -1050,18 +1014,6 @@ namespace System
             {
                 Assert.Null(obsoleteAttribute);
             }
-
-            AssertHasCompilerFeatureRequired(hasCompilerFeatureRequired, peType, peModule, decoder);
-        }
-
-        private static void AssertHasCompilerFeatureRequired(bool hasCompilerFeatureRequired, PENamedTypeSymbol peType, PEModuleSymbol peModule, MetadataDecoder decoder)
-        {
-            var compilerFeatureRequiredToken = peModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(peType.Handle, decoder, CompilerFeatureRequiredFeatures.RefStructs);
-            Assert.Null(compilerFeatureRequiredToken);
-
-            compilerFeatureRequiredToken = peModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(peType.Handle, decoder, CompilerFeatureRequiredFeatures.None);
-            var shouldHaveMarker = hasCompilerFeatureRequired && !peType.IsRestrictedType(ignoreSpanLikeTypes: true);
-            Assert.Equal(shouldHaveMarker ? nameof(CompilerFeatureRequiredFeatures.RefStructs) : null, compilerFeatureRequiredToken);
         }
 
         private static void AssertNotReferencedIsByRefLikeAttribute(ImmutableArray<CSharpAttributeData> attributes)
@@ -1072,12 +1024,10 @@ namespace System
             }
         }
 
-        private static void AssertNoIsByRefLikeAttributeOrCompilerFeatureRequiredAttributeExists(AssemblySymbol assembly, bool hasCompilerFeatureRequired)
+        private static void AssertNoIsByRefLikeAttributeExists(AssemblySymbol assembly)
         {
             var isByRefLikeAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute);
             Assert.Null(assembly.GetTypeByMetadataName(isByRefLikeAttributeTypeName));
-            var compilerFeatureRequiredAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute);
-            Assert.Null(assembly.GetTypeByMetadataName(compilerFeatureRequiredAttributeTypeName));
         }
 
         private static void AssertGeneratedEmbeddedAttribute(AssemblySymbol assembly, string expectedTypeName)
@@ -1092,7 +1042,5 @@ namespace System
             Assert.Equal(WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute), attributes[0].AttributeClass.ToDisplayString());
             Assert.Equal(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName, attributes[1].AttributeClass.ToDisplayString());
         }
-
-        private static string GetCompilerFeatureRequiredAttributeText(bool hasAttribute) => hasAttribute ? CompilerFeatureRequiredAttribute : "";
     }
 }

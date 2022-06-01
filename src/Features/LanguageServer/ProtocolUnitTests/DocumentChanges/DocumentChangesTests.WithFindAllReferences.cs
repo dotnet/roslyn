@@ -32,7 +32,7 @@ class B
 
             using (testLspServer)
             {
-                Assert.Empty(testLspServer.GetTrackedTexts());
+                Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
 
                 await DidOpen(testLspServer, locationTyped.Uri);
 
