@@ -189,11 +189,25 @@ namespace Microsoft.CodeAnalysis.Host
             private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream, ISupportDirectMemoryAccess
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
+                private byte* _start;
 
                 public SharedReadableStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
                     : base((byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset, length)
                 {
                     _accessor = accessor;
+                    _start = this.PositionPointer;
+                }
+
+                protected override void Dispose(bool disposing)
+                {
+                    base.Dispose(disposing);
+
+                    if (disposing)
+                    {
+                        _accessor.Dispose();
+                    }
+
+                    _start = null;
                 }
 
                 /// <summary>
