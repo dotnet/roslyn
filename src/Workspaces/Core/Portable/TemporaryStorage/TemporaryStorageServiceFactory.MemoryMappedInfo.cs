@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.Host
             /// <remarks>
             /// <para>This holds a weak counted reference to current <see cref="MemoryMappedViewAccessor"/>, which
             /// allows additional accessors for the same address space to be obtained up until the point when no
-            /// external code is using it. When the memory is no longer being used by any
-            /// <see cref="SharedReadableStream"/> objects, the view of the memory mapped file is unmapped, making the
-            /// process address space it previously claimed available for other purposes. If/when it is needed again, a
-            /// new view is created.</para>
+            /// external code is using it. When the memory is no longer being used by any <see
+            /// cref="MemoryMappedViewUnmanagedMemoryStream"/> objects, the view of the memory mapped file is unmapped,
+            /// making the process address space it previously claimed available for other purposes. If/when it is
+            /// needed again, a new view is created.</para>
             ///
             /// <para>This view is read-only, so it is only used by <see cref="CreateReadableStream"/>.</para>
             /// </remarks>
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
 
                 Debug.Assert(streamAccessor.Target.CanRead);
-                return new SharedReadableStream(streamAccessor, Size);
+                return new MemoryMappedViewUnmanagedMemoryStream(streamAccessor, Size);
             }
 
             /// <summary>
@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.Host
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
                 private byte* _start;
 
-                public SharedReadableStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
-                    : base((byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset, length)
+                public MemoryMappedViewUnmanagedMemoryStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
+                    : base((byte*)accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + accessor.Target.PointerOffset, length)
                 {
                     _accessor = accessor;
                     _start = this.PositionPointer;

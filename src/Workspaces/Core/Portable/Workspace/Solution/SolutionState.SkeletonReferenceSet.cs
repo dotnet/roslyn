@@ -55,26 +55,9 @@ internal partial class SolutionState
 
         private static AssemblyMetadata ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
         {
-            // first see whether we can use native memory directly.
-            var stream = storage.ReadStream(cancellationToken);
-
-            if (stream is ISupportDirectMemoryAccess supportNativeMemory)
-            {
-                // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
-                // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
-                // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                return AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length, owner: supportNativeMemory));
-            }
-            else
-            {
-                // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
-                // internally copy it to native memory again. since compiler owns lifetime of stream,
-                // it would be great if compiler can be little bit smarter on how it deals with stream.
-
-                // We don't deterministically release the resulting metadata since we don't know 
-                // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                return AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
-            }
+            // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
+            // the stream as well.
+            return AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false);
         }
 
         public PortableExecutableReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
