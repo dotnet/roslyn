@@ -63,6 +63,14 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
                 </StackPanel>
             </GroupBox>
+
+            <GroupBox x:Uid="RenameGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Rename}">
+                <StackPanel>
+                    <CheckBox x:Name="Rename_asynchronously_exerimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Rename_asynchronously_experimental}" />
+                </StackPanel>
+            </GroupBox>
             
             <GroupBox x:Uid="ImportDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Import_Directives}">

@@ -200,9 +200,12 @@ internal partial class SolutionState
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
                     using var stream = SerializableBytes.CreateWritableStream();
-                    // note: cloning compilation so we don't retain all the generated symbols after its emitted.
-                    // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
+
+                    var optionsService = workspace.Services.GetService<IWorkspaceConfigurationService>();
+                    var doNotClone = optionsService != null && optionsService.Options.DisableCloneWhenProducingSkeletonReferences;
+
+                    var compilationToEmit = doNotClone ? compilation : compilation.Clone();
+                    var emitResult = compilationToEmit.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
 
                     if (emitResult.Success)
                     {

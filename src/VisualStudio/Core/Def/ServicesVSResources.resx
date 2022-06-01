@@ -1965,4 +1965,10 @@ Additional information: {1}</value>
   <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
     <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
   </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Rename_asynchronously_experimental" xml:space="preserve">
+    <value>Rename asynchronously experimental</value>
+  </data>
 </root>
