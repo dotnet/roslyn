@@ -41,12 +41,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 [ClassificationTypeNames.StringLiteral] = LSP.SemanticTokenTypes.String,
             };
 
-        public static readonly ImmutableArray<string> RoslynCustomTokenTypes = typeof(ClassificationTypeNames).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+        public static readonly ImmutableArray<string> RoslynCustomTokenTypes = ClassificationTypeNames.AllTypeNames
             .Where(
-                field => field.GetValue(null) is string value &&
-                !ClassificationTypeToSemanticTokenTypeMap.ContainsKey(value) &&
-                !ClassificationTypeNames.AdditiveTypeNames.Contains(value) &&
-                value is not ClassificationTypeNames.ReassignedVariable).Select(field => (string)field.GetValue(null)!).Order().ToImmutableArray();
+                type => !ClassificationTypeToSemanticTokenTypeMap.ContainsKey(type) &&
+                !ClassificationTypeNames.AdditiveTypeNames.Contains(type)).Order().ToImmutableArray();
 
         public static readonly ImmutableArray<string> AllTokenTypes = SemanticTokenTypes.AllTypes.Concat(RoslynCustomTokenTypes).ToImmutableArray();
 
