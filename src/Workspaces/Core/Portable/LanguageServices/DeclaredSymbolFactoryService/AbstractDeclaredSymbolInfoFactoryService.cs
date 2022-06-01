@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 // Add the item for the type itself:
                 declaredSymbolInfos.Add(GetEnumDeclarationInfo(
                     container,
-                    memberDeclaration,
+                    enumDeclaration,
                     stringTable,
                     containerDisplayName,
                     fullyQualifiedContainerName));
