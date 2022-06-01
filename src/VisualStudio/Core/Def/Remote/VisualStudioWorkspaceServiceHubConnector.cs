@@ -27,13 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly CancellationTokenSource _disposalCancellationSource = new();
 
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
         private Task<RemoteHostClient?>? _remoteClientInitializationTask;
         private SolutionChecksumUpdater? _checksumUpdater;
-#pragma warning disable IDE0044 // Add readonly modifier
-        private CancellationTokenSource _disposalCancellationSource = new();
-#pragma warning restore IDE0044 // Add readonly modifier
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
