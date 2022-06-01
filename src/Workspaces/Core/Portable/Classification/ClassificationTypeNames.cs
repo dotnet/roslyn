@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    public static partial class ClassificationTypeNames
+    public static class ClassificationTypeNames
     {
         /// <summary>
         /// Additive classifications types supply additional context to other classifications.
