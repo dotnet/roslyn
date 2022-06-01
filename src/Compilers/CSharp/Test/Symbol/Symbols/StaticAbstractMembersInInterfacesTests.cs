@@ -16669,7 +16669,7 @@ public class C2 : C1<int>, I1
                                              targetFramework: _supportingFramework,
                                              references: new[] { reference });
 
-                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !Execute(isVirtual) ? null : (genericFirst ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics(
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !(Execute(isVirtual) && ExecutionConditionUtil.IsMonoOrCoreClr) ? null : (genericFirst ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics(
                     // (2,28): warning CS1956: Member 'C1<int>.M01(int)' implements interface member 'I1.M01(int)' in type 'C2'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
                     // public class C2 : C1<int>, I1
                     Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "I1").WithArguments("C1<int>.M01(int)", "I1.M01(int)", "C2").WithLocation(2, 28)
@@ -16775,7 +16775,7 @@ public class C2 : C1<int>, I1
                                              targetFramework: _supportingFramework,
                                              references: new[] { reference });
 
-                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !Execute(isVirtual) ? null : (genericIsStatic ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics();
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !(Execute(isVirtual) && ExecutionConditionUtil.IsMonoOrCoreClr) ? null : (genericIsStatic ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics();
             }
 
             void validate(ModuleSymbol module)
