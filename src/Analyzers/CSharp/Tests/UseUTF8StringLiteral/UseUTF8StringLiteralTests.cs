@@ -40,6 +40,7 @@ public class C
     {
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -95,6 +96,7 @@ public class C
         var x = new byte[10];
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -120,6 +122,7 @@ public class C
     {
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -138,6 +141,7 @@ public class C
         var x = new int[] { 65, 66, 67 };
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -160,6 +164,7 @@ public class C
 [*.cs]
 csharp_style_prefer_utf8_string_literals = false
 ",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -180,6 +185,7 @@ public class C
 
     public byte GetB() => 66;
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -198,6 +204,7 @@ public class C
         var x = new byte[,] { { 65, 66 }, { 67, 68 }, { 69, 70 } };
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -226,6 +233,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -256,6 +264,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -284,6 +293,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -312,6 +322,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -340,6 +351,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -368,6 +380,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -395,6 +408,7 @@ public class C
         var x = """"u8;
     }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -423,6 +437,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -451,6 +466,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -483,6 +499,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -511,6 +528,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -539,6 +557,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -558,6 +577,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -577,6 +597,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -596,6 +617,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -627,6 +649,7 @@ public class C
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -705,6 +728,7 @@ class C : IEnumerable<int>
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -731,6 +755,7 @@ ref struct S
 {
     public void Dispose(int a = 1, bool b = true, params byte[] others) { }
 }",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -758,6 +783,7 @@ public class C
 }}
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
 
@@ -791,6 +817,7 @@ public class C
 }}
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
 
@@ -827,6 +854,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -857,6 +885,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -887,6 +916,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -917,6 +947,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -947,6 +978,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -977,6 +1009,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -996,6 +1029,7 @@ public class C
     }
 }
 ",
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1026,6 +1060,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1056,6 +1091,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1086,6 +1122,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1116,6 +1153,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1146,6 +1184,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1186,6 +1225,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1240,6 +1280,7 @@ namespace System.Runtime.CompilerServices
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1328,6 +1369,7 @@ public class B
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1358,6 +1400,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1388,6 +1431,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
@@ -1418,6 +1462,7 @@ public class C
 }
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
         }
