@@ -138,6 +138,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             ' Nothing to do in VB.
         End Sub
 
+        Protected Overrides Function GetTypeDeclarationInfo(
+                container As SyntaxNode,
+                typeDeclaration As TypeBlockSyntax,
+                stringTable As StringTable,
+                containerDisplayName As String,
+                fullyQualifiedContainerName As String) As DeclaredSymbolInfo?
+
+            ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
+            ' That's because we effectively think of this as just being a virtual container just to hold the nested
+            ' types, And Not something someone would want to explicitly navigate to itself.  Similar to how we think of
+            ' namespaces.
+            If typeDeclaration.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
+               typeDeclaration.Members.Any() AndAlso
+               typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
+
+                Return Nothing
+            End If
+
+            Return DeclaredSymbolInfo.Create(
+                stringTable,
+                typeDeclaration.BlockStatement.Identifier.ValueText,
+                GetTypeParameterSuffix(typeDeclaration.BlockStatement.TypeParameterList),
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                typeDeclaration.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                If(typeDeclaration.Kind() = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
+                   If(typeDeclaration.Kind() = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
+                      If(typeDeclaration.Kind() = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module, DeclaredSymbolInfoKind.Struct))),
+                GetAccessibility(container, typeDeclaration, typeDeclaration.BlockStatement.Modifiers),
+                typeDeclaration.BlockStatement.Identifier.Span,
+                GetInheritanceNames(stringTable, typeDeclaration),
+                IsNestedType(typeDeclaration))
+        End Function
+
         Protected Overrides Sub AddSingleDeclaredSymbolInfos(
                 container As SyntaxNode,
                 node As StatementSyntax,
@@ -146,19 +180,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 containerDisplayName As String,
                 fullyQualifiedContainerName As String,
                 cancellationToken As CancellationToken)
-
-            ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
-            ' That's because we effectively think of this as just being a virtual container just to hold the nested
-            ' types, And Not something someone would want to explicitly navigate to itself.  Similar to how we think of
-            ' namespaces.
-            Dim typeDecl = TryCast(node, TypeBlockSyntax)
-            If typeDecl IsNot Nothing AndAlso
-               typeDecl.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
-               typeDecl.Members.Any() AndAlso
-               typeDecl.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
-
-                Return
-            End If
 
             If node.Kind() = SyntaxKind.PropertyBlock Then
                 node = DirectCast(node, PropertyBlockSyntax).PropertyStatement
@@ -170,24 +191,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
             Dim kind = node.Kind()
             Select Case kind
-                Case SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock
-                    Dim typeBlock = CType(node, TypeBlockSyntax)
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        typeDecl.BlockStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(typeBlock.BlockStatement.TypeParameterList),
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        typeBlock.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        If(kind = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
-                        If(kind = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
-                        If(kind = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module,
-                        DeclaredSymbolInfoKind.Struct))),
-                        GetAccessibility(container, typeBlock, typeBlock.BlockStatement.Modifiers),
-                        typeBlock.BlockStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, typeBlock),
-                        IsNestedType(typeBlock)))
-                    Return
                 Case SyntaxKind.EnumBlock
                     Dim enumDecl = DirectCast(node, EnumBlockSyntax)
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(

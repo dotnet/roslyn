@@ -220,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             TypeDeclarationSyntax typeDeclaration,
             StringTable stringTable,
             string containerDisplayName,
-            string fullyQualifiedContainerName,
-            CancellationToken cancellationToken)
+            string fullyQualifiedContainerName)
         {
             // If this is a part of partial type that only contains nested types, then we don't make an info type for
             // it. That's because we effectively think of this as just being a virtual container just to hold the nested
