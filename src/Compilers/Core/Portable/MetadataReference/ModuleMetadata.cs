@@ -22,13 +22,16 @@ namespace Microsoft.CodeAnalysis
         private bool _isDisposed;
 
         private readonly PEModule _module;
-        private readonly object? _owner;
+        
+        private readonly UnmanagedMemoryStream? _memoryStream;
+        private readonly PEStreamOptions _streamOptions;
 
-        private ModuleMetadata(PEReader peReader, object? owner = null)
+        private ModuleMetadata(PEReader peReader, UnmanagedMemoryStream? memoryStream = null, PEStreamOptions streamOptions = default)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
-            _owner = owner;
+            _memoryStream = memoryStream;
+            _streamOptions = streamOptions;
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
@@ -42,7 +45,8 @@ namespace Microsoft.CodeAnalysis
             : base(isImageOwner: false, id: metadata.Id)
         {
             _module = metadata.Module;
-            _owner = metadata._owner;
+            _memoryStream = metadata._memoryStream;
+            _streamOptions = metadata._streamOptions;
         }
 
         /// <summary>
@@ -83,20 +87,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
-            => CreateFromImage(peImage, size, owner: null);
+            => CreateFromImage(peImage, size, memoryStream: null, options: default);
 
-
-        /// <summary>
-        /// Create metadata module from a raw memory pointer to a PE image or an object file.
-        /// </summary>
-        /// <param name="peImage">Pointer to the DOS header ("MZ") of a portable executable image.</param>
-        /// <param name="size">The size of the image pointed to by <paramref name="peImage"/>.</param>
-        /// <param name="owner">Object that will be kept alive as long as this <see cref="ModuleMetadata"/> is alive.
-        /// Useful if this reference depends on data that should not be garbage collected as long as it is alive (for
-        /// example objects that hold onto the backing memory this reference needs).</param>
-        /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
-        public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size, object? owner)
+        private static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size, UnmanagedMemoryStream? memoryStream, PEStreamOptions options)
         {
             if (peImage == IntPtr.Zero)
             {
@@ -108,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader((byte*)peImage, size), owner);
+            return new ModuleMetadata(new PEReader((byte*)peImage, size), memoryStream, options);
         }
 
         /// <summary>
@@ -181,6 +174,16 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peStream));
             }
 
+            // If this stream is an UnmanagedMemoryStream, we can heavily optimize creating the metadata by directly
+            // accessing the underlying memory.
+            if (peStream is UnmanagedMemoryStream unmanagedMemoryStream)
+            {
+                unsafe
+                {
+                    return CreateFromImage((IntPtr)unmanagedMemoryStream.PositionPointer, (int)unmanagedMemoryStream.Length, unmanagedMemoryStream, options);
+                }
+            }
+
             if (!peStream.CanRead || !peStream.CanSeek)
             {
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
@@ -245,6 +248,9 @@ namespace Microsoft.CodeAnalysis
             if (IsImageOwner)
             {
                 _module.Dispose();
+
+                if (!_streamOptions.HasFlag(PEStreamOptions.LeaveOpen))
+                    _memoryStream?.Dispose();
             }
         }
 

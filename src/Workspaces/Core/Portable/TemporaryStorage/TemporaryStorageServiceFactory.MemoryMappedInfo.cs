@@ -186,111 +186,14 @@ namespace Microsoft.CodeAnalysis.Host
                 _memoryMappedFile.Dispose();
             }
 
-            private sealed unsafe class SharedReadableStream : Stream, ISupportDirectMemoryAccess
+            private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream, ISupportDirectMemoryAccess
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
 
-                private byte* _start;
-                private byte* _current;
-                private readonly byte* _end;
-
                 public SharedReadableStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
+                    : base((byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset, length)
                 {
                     _accessor = accessor;
-                    _current = _start = (byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset;
-                    _end = checked(_start + length);
-                }
-
-                public override bool CanRead => true;
-                public override bool CanSeek => true;
-                public override bool CanWrite => false;
-                public override long Length => _end - _start;
-
-                public override long Position
-                {
-                    get
-                    {
-                        return _current - _start;
-                    }
-
-                    set
-                    {
-                        var target = _start + value;
-                        if (target < _start || target >= _end)
-                        {
-                            throw new ArgumentOutOfRangeException(nameof(value));
-                        }
-
-                        _current = target;
-                    }
-                }
-
-                public override int ReadByte()
-                {
-                    // PERF: Keeping this as simple as possible since it's on the hot path
-                    if (_current >= _end)
-                    {
-                        return -1;
-                    }
-
-                    return *_current++;
-                }
-
-                public override int Read(byte[] buffer, int offset, int count)
-                {
-                    if (_current >= _end)
-                    {
-                        return 0;
-                    }
-
-                    var adjustedCount = Math.Min(count, (int)(_end - _current));
-                    Marshal.Copy((IntPtr)_current, buffer, offset, adjustedCount);
-
-                    _current += adjustedCount;
-                    return adjustedCount;
-                }
-
-                public override long Seek(long offset, SeekOrigin origin)
-                {
-                    byte* target;
-                    try
-                    {
-                        target = origin switch
-                        {
-                            SeekOrigin.Begin => checked(_start + offset),
-                            SeekOrigin.Current => checked(_current + offset),
-                            SeekOrigin.End => checked(_end + offset),
-                            _ => throw new ArgumentOutOfRangeException(nameof(origin)),
-                        };
-                    }
-                    catch (OverflowException)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(offset));
-                    }
-
-                    if (target < _start || target >= _end)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(offset));
-                    }
-
-                    _current = target;
-                    return _current - _start;
-                }
-
-                public override void Flush() => throw new NotSupportedException();
-                public override void SetLength(long value) => throw new NotSupportedException();
-                public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-
-                protected override void Dispose(bool disposing)
-                {
-                    base.Dispose(disposing);
-
-                    if (disposing)
-                    {
-                        _accessor.Dispose();
-                    }
-
-                    _start = null;
                 }
 
                 /// <summary>
