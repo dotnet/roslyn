@@ -25,11 +25,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IGlobalOperationNotificationService _globalOperationService;
 
         /// <summary>
-        /// Lock around mutable state
-        /// </summary>
-        private readonly object _gate = new();
-
-        /// <summary>
         /// Queue to push out text changes in a batched fashion when we hear about them.  Because these should be short
         /// operations (only syncing text changes) we don't cancel this when we enter the paused state.  We simply don't
         /// start queuing more requests into this until we become unpaused.
@@ -48,14 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly CancellationSeries _pauseCancellationSeries;
 
         /// <summary>
-        /// Cancellation token we trigger when we enter the paused state. Lock <see cref="_gate"/> to read/write this.
+        /// Cancellation token we trigger when we enter the paused state.
         /// </summary>
-        private CancellationToken _currentUnpausedWorkToken;
-
-        /// <summary>
-        /// Whether or not we are currently paused. Lock <see cref="_gate"/> to read/write this.
-        /// </summary>
-        private bool _isPaused;
+        private CancellationToken _currentWorkToken;
 
         public SolutionChecksumUpdater(
             Workspace workspace,
@@ -68,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _pauseCancellationSeries = new CancellationSeries(shutdownToken);
             _workspace = workspace;
 
-            _textChangeQueue = new AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)>(
+            _textChangeQueue = new AsyncBatchingWorkQueue<(Document? oldDocument, Document? newDocument)>(
                 DelayTimeSpan.NearImmediate,
                 SynchronizeTextChangesAsync,
                 listener,
@@ -110,40 +100,28 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // An expensive global operation started (like a build).  Pause ourselves and cancel any outstanding work in
             // progress to synchronize the solution.
-            lock (_gate)
-            {
-                _isPaused = true;
-                _pauseCancellationSeries.CreateNext();
-            }
+            //
+            // Note: We purposefully ignore the cancellation token produced by CreateNext.  The purpose here is to
+            // cancel the token controlling the current work, but not have any uncanceled token for new work to use when
+            // it comes in.
+            _pauseCancellationSeries.CreateNext();
         }
 
         private void ResumeWork()
         {
-            lock (_gate)
-            {
-                _isPaused = false;
-
-                // create a new token to control all the work we need to do while we're current unpaused.
-                _currentUnpausedWorkToken = _pauseCancellationSeries.CreateNext();
-                // Start synchronizing again.
-                _synchronizeWorkspaceQueue.AddWork(_currentUnpausedWorkToken);
-            }
+            // create a new token to control all the work we need to do while we're current unpaused.
+            var nextToken = _pauseCancellationSeries.CreateNext();
+            _currentWorkToken = nextToken;
+            // Start synchronizing again.
+            _synchronizeWorkspaceQueue.AddWork(nextToken);
         }
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
         {
-            bool isPaused;
-            CancellationToken workToken;
-
-            lock (_gate)
-            {
-                isPaused = _isPaused;
-                workToken = _currentUnpausedWorkToken;
-            }
-
-            // If we're paused, ignore this notification.  We don't want to any work in response to whatever the
-            // workspace is doing.
-            if (isPaused)
+            // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
+            // to whatever the workspace is doing.
+            var workToken = _currentWorkToken;
+            if (workToken.IsCancellationRequested)
                 return;
 
             if (e.Kind == WorkspaceChangeKind.DocumentChanged)
@@ -191,11 +169,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private async ValueTask SynchronizeTextChangesAsync(
-            ImmutableSegmentedList<(Document oldDocument, Document newDocument)> values,
+            ImmutableSegmentedList<(Document? oldDocument, Document? newDocument)> values,
             CancellationToken cancellationToken)
         {
             foreach (var (oldDocument, newDocument) in values)
             {
+                if (oldDocument is null || newDocument is null)
+                    continue;
+
                 cancellationToken.ThrowIfCancellationRequested();
                 await SynchronizeTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
             }
