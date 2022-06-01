@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                         foreach (var (tree, state, syntaxTreeIndex, stepInfo) in syntaxTreeState)
                         {
                             var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
-                            var model = state != EntryState.Removed ? _compilation.GetSemanticModel(tree) : null;
+                            var model = state != EntryState.Removed ? new Lazy<SemanticModel>(() => _compilation.GetSemanticModel(tree)) : null;
                             for (int i = 0; i < syntaxInputBuilders.Count; i++)
                             {
                                 var currentNode = syntaxInputBuilders[i].node;

@@ -253,11 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
-                if (conversion.IsUTF8StringLiteral)
-                {
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
-                }
-
                 reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
 
                 return new BoundConversion(
@@ -320,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic)
             {
-                if (method.IsAbstract)
+                if (method.IsAbstract || method.IsVirtual)
                 {
                     Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
 

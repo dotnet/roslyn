@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -93,6 +94,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             var document = spanToTag.Document;
             if (document == null)
+                return;
+
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
                 return;
 
             var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
