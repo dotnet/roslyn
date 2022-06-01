@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
             => CreateFromImage(peImage, size, owner: null);
 
-
         /// <summary>
         /// Create metadata module from a raw memory pointer to a PE image or an object file.
         /// </summary>
