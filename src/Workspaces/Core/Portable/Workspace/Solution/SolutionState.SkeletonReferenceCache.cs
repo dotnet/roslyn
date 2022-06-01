@@ -250,12 +250,6 @@ internal partial class SolutionState
 
         private sealed class SkeletonReferenceSet
         {
-            /// <summary>
-            /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
-            /// as the metadata is alive.
-            /// </summary>
-            private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime = new();
-
             private readonly ITemporaryStreamStorage _storage;
             private readonly string? _assemblyName;
 
@@ -269,7 +263,7 @@ internal partial class SolutionState
             /// <summary>
             /// The actual assembly metadata produced from the data pointed to in <see cref="_storage"/>.
             /// </summary>
-            private readonly AsyncLazy<AssemblyMetadata?> _metadata;
+            private readonly AsyncLazy<(AssemblyMetadata metadata, ISupportDirectMemoryAccess? directMemoryAccess)> _metadataAndDirectMemoryAccess;
 
             public SkeletonReferenceSet(
                 ITemporaryStreamStorage storage,
@@ -283,10 +277,11 @@ internal partial class SolutionState
                 // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
                 // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any
                 // concurrent requests asynchronously wait for that work to be done.
-                _metadata = new AsyncLazy<AssemblyMetadata?>(c => Task.FromResult(ComputeMetadata(_storage, c)), cacheResult: true);
+                _metadataAndDirectMemoryAccess = new AsyncLazy<(AssemblyMetadata, ISupportDirectMemoryAccess?)>(
+                    c => Task.FromResult(ComputeMetadata(_storage, c)), cacheResult: true);
             }
 
-            private static AssemblyMetadata? ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
+            private static (AssemblyMetadata, ISupportDirectMemoryAccess?) ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
             {
                 // first see whether we can use native memory directly.
                 var stream = storage.ReadStream(cancellationToken);
@@ -298,12 +293,7 @@ internal partial class SolutionState
                     // give them pointer to the native memory. also we need to handle lifetime ourselves.
                     var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
 
-                    // Tie lifetime of stream to metadata we created. It is important to tie this to the Metadata and not the
-                    // metadata reference, as PE symbols hold onto just the Metadata. We can use Add here since we created
-                    // a brand new object in AssemblyMetadata.Create above.
-                    s_lifetime.Add(metadata, supportNativeMemory);
-
-                    return metadata;
+                    return (metadata, supportNativeMemory);
                 }
                 else
                 {
@@ -313,28 +303,35 @@ internal partial class SolutionState
 
                     // We don't deterministically release the resulting metadata since we don't know 
                     // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                    return AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
+                    return (AssemblyMetadata.CreateFromStream(stream, leaveOpen: false), null);
                 }
             }
 
             public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
             {
-                _metadata.TryGetValue(out var assemblyMetadata);
-                return CreateMetadataReference(properties, assemblyMetadata);
+                _metadataAndDirectMemoryAccess.TryGetValue(out var tuple);
+                return CreateMetadataReference(properties, tuple.metadata, tuple.directMemoryAccess);
             }
 
             public async Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
             {
-                var metadata = await _metadata.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return CreateMetadataReference(properties, metadata);
+                var (metadata, directMemberAccess) = await _metadataAndDirectMemoryAccess.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return CreateMetadataReference(properties, metadata, directMemberAccess);
             }
 
-            private MetadataReference? CreateMetadataReference(MetadataReferenceProperties properties, AssemblyMetadata? metadata)
-                => metadata?.GetReference(
-                    documentation: _documentationProvider,
-                    aliases: properties.Aliases,
-                    embedInteropTypes: properties.EmbedInteropTypes,
-                    display: _assemblyName);
+            private SkeletonPortableExecutableReference? CreateMetadataReference(
+                MetadataReferenceProperties properties, AssemblyMetadata? metadata, ISupportDirectMemoryAccess? directMemoryAccess)
+            {
+                if (metadata == null)
+                    return null;
+
+                return new SkeletonPortableExecutableReference(
+                    metadata,
+                    properties,
+                    _documentationProvider,
+                    _assemblyName,
+                    directMemoryAccess);
+            }
         }
     }
 }
