@@ -18,13 +18,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
     {
-        private readonly IRoslynLSPSnippetExpander _roslynLSPSnippetExpander;
-
-        public AbstractSnippetCompletionProvider(IRoslynLSPSnippetExpander roslynLSPSnippetExpander)
-        {
-            _roslynLSPSnippetExpander = roslynLSPSnippetExpander;
-        }
-
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // This retrieves the document without the text used to invoke completion
@@ -58,32 +51,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (_roslynLSPSnippetExpander.CanExpandSnippet())
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+            var position = context.Position;
+            var service = document.GetLanguageService<ISnippetService>();
+
+            if (service == null)
             {
-                var document = context.Document;
-                var cancellationToken = context.CancellationToken;
-                var position = context.Position;
-                var service = document.GetLanguageService<ISnippetService>();
+                return;
+            }
 
-                if (service == null)
-                {
-                    return;
-                }
+            var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-                var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
 
-                var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
-
-                foreach (var snippetData in snippets)
-                {
-                    var completionItem = SnippetCompletionItem.Create(
-                        displayText: snippetData.DisplayName,
-                        displayTextSuffix: "",
-                        position: position,
-                        snippetIdentifier: snippetData.SnippetIdentifier,
-                        glyph: Glyph.Snippet);
-                    context.AddItem(completionItem);
-                }
+            foreach (var snippetData in snippets)
+            {
+                var completionItem = SnippetCompletionItem.Create(
+                    displayText: snippetData.DisplayName,
+                    displayTextSuffix: "",
+                    position: position,
+                    snippetIdentifier: snippetData.SnippetIdentifier,
+                    glyph: Glyph.Snippet);
+                context.AddItem(completionItem);
             }
         }
 
