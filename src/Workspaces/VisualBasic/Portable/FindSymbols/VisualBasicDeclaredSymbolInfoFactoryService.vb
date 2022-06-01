@@ -134,6 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         Protected Overrides Sub AddLocalFunctionInfos(node As StatementSyntax, stringTable As StringTable, declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo), containerDisplayName As String, fullyQualifiedContainerName As String, cancellationToken As CancellationToken)
             ' VB doesn't have local functions.
         End Sub
+
         Protected Overrides Sub AddSynthesizedDeclaredSymbolInfos(container As SyntaxNode, memberDeclaration As StatementSyntax, stringTable As StringTable, declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo), containerDisplayName As String, fullyQualifiedContainerName As String, cancellationToken As CancellationToken)
             ' Nothing to do in VB.
         End Sub
