@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peStream));
             }
 
+            if (!peStream.CanRead || !peStream.CanSeek)
+            {
+                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
+            }
+
             // If this stream is an UnmanagedMemoryStream, we can heavily optimize creating the metadata by directly
             // accessing the underlying memory.
             if (peStream is UnmanagedMemoryStream unmanagedMemoryStream)
@@ -188,11 +193,6 @@ namespace Microsoft.CodeAnalysis
                         owner: unmanagedMemoryStream,
                         disposeOwner: !options.HasFlag(PEStreamOptions.LeaveOpen));
                 }
-            }
-
-            if (!peStream.CanRead || !peStream.CanSeek)
-            {
-                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
             }
 
             // Workaround of issue https://github.com/dotnet/corefx/issues/1815: 
