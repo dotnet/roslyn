@@ -143,5 +143,68 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata));
             Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata | PEStreamOptions.PrefetchEntireImage));
         }
+
+        [Fact]
+        public unsafe void CreateFromUnmanagedMemoryStream_LeaveOpenFalse()
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                var disposed = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, assembly.LongLength)
+                {
+                    OnDispose = _ => disposed = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should dispose the stream.
+                metadata.Dispose();
+
+                Assert.True(disposed);
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromUnmanagedMemoryStream_LeaveOpenTrue()
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                var disposed = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, assembly.LongLength)
+                {
+                    OnDispose = _ => disposed = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: true);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should not dispose the stream.
+                metadata.Dispose();
+
+                Assert.False(disposed);
+                stream.Dispose();
+                Assert.True(disposed);
+            }
+        }
+
+        private class MockUnmanagedMemoryStream : UnmanagedMemoryStream
+        {
+            public unsafe MockUnmanagedMemoryStream(byte* pointer, long length) : base(pointer, length)
+            {
+            }
+
+            public Action<bool> OnDispose;
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                OnDispose?.Invoke(disposing);
+            }
+        }
     }
 }
