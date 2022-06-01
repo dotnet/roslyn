@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// operations (only syncing text changes) we don't cancel this when we enter the paused state.  We simply don't
         /// start queuing more requests into this until we become unpaused.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)> _textChangeQueue;
+        private readonly AsyncBatchingWorkQueue<(Document? oldDocument, Document? newDocument)> _textChangeQueue;
 
         /// <summary>
         /// Queue for kicking off the work to synchronize the primary workspace's solution.  The cancellation token is
@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 SynchronizeTextChangesAsync,
                 listener,
                 shutdownToken);
+
+            // Use an equality comparer here as we will commonly get lots of change notifications that will all be
+            // associated with the same cancellation token controlling that batch of work.  No need to enqueue the same
+            // token a huge number of times when we only need the single value of it when doing the work.
             _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue<CancellationToken>(
                 DelayTimeSpan.NearImmediate,
                 SynchronizePrimaryWorkspaceAsync,
