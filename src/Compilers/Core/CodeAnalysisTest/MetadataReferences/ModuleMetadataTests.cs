@@ -192,6 +192,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        [Fact]
+        public unsafe void CreateFromUnmanagedMemoryStream_LargeIntSize()
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                // ensure that having an extremely large stream is not a problem (e.g. that we don't wrap the int around
+                // to be a negative size).
+                var disposed = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, (long)int.MaxValue + 1)
+                {
+                    OnDispose = _ => disposed = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should dispose the stream.
+                metadata.Dispose();
+
+                Assert.True(disposed);
+            }
+        }
+
         private class MockUnmanagedMemoryStream : UnmanagedMemoryStream
         {
             public unsafe MockUnmanagedMemoryStream(byte* pointer, long length) : base(pointer, length)
