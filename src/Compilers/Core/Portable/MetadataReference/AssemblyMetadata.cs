@@ -12,7 +12,6 @@ using System.Threading;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Symbols;
-using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -445,39 +444,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="filePath">Path describing the location of the metadata, or null if the metadata have no location.</param>
         /// <param name="display">Display string used in error messages to identity the reference.</param>
         /// <returns>A reference to the assembly metadata.</returns>
-        // BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public PortableExecutableReference GetReference(
-            DocumentationProvider? documentation,
-            ImmutableArray<string> aliases,
-            bool embedInteropTypes,
-            string? filePath,
-            string? display)
-        {
-            return GetReference(documentation, aliases, embedInteropTypes, filePath, display, owner: null);
-        }
-
-        /// <summary>
-        /// Creates a reference to the assembly metadata.
-        /// </summary>
-        /// <param name="documentation">Provider of XML documentation comments for the metadata symbols contained in the module.</param>
-        /// <param name="aliases">Aliases that can be used to refer to the assembly from source code (see "extern alias" directive in C#).</param>
-        /// <param name="embedInteropTypes">True to embed interop types from the referenced assembly to the referencing compilation. Must be false for a module.</param>
-        /// <param name="filePath">Path describing the location of the metadata, or null if the metadata have no location.</param>
-        /// <param name="display">Display string used in error messages to identity the reference.</param>
-        /// <param name="owner">Object that will be kept alive as long as this <see cref="PortableExecutableReference"/>
-        /// is alive.  Useful if this reference depends on data that should not be garbage collected as long as it is
-        /// alive (for example objects that hold onto the backing memory this reference needs).</param>
-        /// <returns>A reference to the assembly metadata.</returns>
         public PortableExecutableReference GetReference(
             DocumentationProvider? documentation = null,
             ImmutableArray<string> aliases = default,
             bool embedInteropTypes = false,
             string? filePath = null,
-            string? display = null,
-            object? owner = null)
+            string? display = null)
         {
-            return new MetadataImageReference(this, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes), documentation, filePath, display, owner);
+            return new MetadataImageReference(this, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes), documentation, filePath, display);
         }
     }
 }

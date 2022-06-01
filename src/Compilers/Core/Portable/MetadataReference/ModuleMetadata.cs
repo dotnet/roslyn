@@ -22,11 +22,13 @@ namespace Microsoft.CodeAnalysis
         private bool _isDisposed;
 
         private readonly PEModule _module;
+        private readonly object? _owner;
 
-        private ModuleMetadata(PEReader peReader)
+        private ModuleMetadata(PEReader peReader, object? owner = null)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            _owner = owner;
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis
             : base(isImageOwner: false, id: metadata.Id)
         {
             _module = metadata.Module;
+            _owner = metadata._owner;
         }
 
         /// <summary>
@@ -80,6 +83,20 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
+            => CreateFromImage(peImage, size, owner: null);
+
+
+        /// <summary>
+        /// Create metadata module from a raw memory pointer to a PE image or an object file.
+        /// </summary>
+        /// <param name="peImage">Pointer to the DOS header ("MZ") of a portable executable image.</param>
+        /// <param name="size">The size of the image pointed to by <paramref name="peImage"/>.</param>
+        /// <param name="owner">Object that will be kept alive as long as this <see cref="ModuleMetadata"/> is alive.
+        /// Useful if this reference depends on data that should not be garbage collected as long as it is alive (for
+        /// example objects that hold onto the backing memory this reference needs).</param>
+        /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
+        public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size, object? owner)
         {
             if (peImage == IntPtr.Zero)
             {
@@ -91,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader((byte*)peImage, size));
+            return new ModuleMetadata(new PEReader((byte*)peImage, size), owner);
         }
 
         /// <summary>

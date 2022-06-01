@@ -27,7 +27,7 @@ internal partial class SolutionState
         /// <summary>
         /// The actual assembly metadata produced from the data pointed to in <see cref="_storage"/>.
         /// </summary>
-        private readonly AsyncLazy<(AssemblyMetadata metadata, ISupportDirectMemoryAccess? directMemoryAccess)> _metadataAndDirectMemoryAccess;
+        private readonly AsyncLazy<AssemblyMetadata> _lazyMetadata;
 
         /// <summary>
         /// Lock this object while reading/writing from it.  Used so we can return the same reference for the same
@@ -49,11 +49,11 @@ internal partial class SolutionState
             // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
             // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any
             // concurrent requests asynchronously wait for that work to be done.
-            _metadataAndDirectMemoryAccess = new AsyncLazy<(AssemblyMetadata, ISupportDirectMemoryAccess?)>(
+            _lazyMetadata = new AsyncLazy<AssemblyMetadata>(
                 c => Task.FromResult(ComputeMetadata(_storage, c)), cacheResult: true);
         }
 
-        private static (AssemblyMetadata, ISupportDirectMemoryAccess?) ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
+        private static AssemblyMetadata ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
         {
             // first see whether we can use native memory directly.
             var stream = storage.ReadStream(cancellationToken);
@@ -63,9 +63,7 @@ internal partial class SolutionState
                 // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
                 // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
                 // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
-
-                return (metadata, supportNativeMemory);
+                return AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length, owner: supportNativeMemory));
             }
             else
             {
@@ -75,24 +73,24 @@ internal partial class SolutionState
 
                 // We don't deterministically release the resulting metadata since we don't know 
                 // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                return (AssemblyMetadata.CreateFromStream(stream, leaveOpen: false), null);
+                return AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
             }
         }
 
         public PortableExecutableReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
         {
-            _metadataAndDirectMemoryAccess.TryGetValue(out var tuple);
-            return CreateMetadataReference(properties, tuple.metadata, tuple.directMemoryAccess);
+            _lazyMetadata.TryGetValue(out var metadata);
+            return CreateMetadataReference(properties, metadata);
         }
 
         public async Task<PortableExecutableReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
         {
-            var (metadata, directMemberAccess) = await _metadataAndDirectMemoryAccess.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return CreateMetadataReference(properties, metadata, directMemberAccess);
+            var metadata = await _lazyMetadata.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return CreateMetadataReference(properties, metadata);
         }
 
         private PortableExecutableReference? CreateMetadataReference(
-            MetadataReferenceProperties properties, AssemblyMetadata? metadata, ISupportDirectMemoryAccess? directMemoryAccess)
+            MetadataReferenceProperties properties, AssemblyMetadata? metadata)
         {
             if (metadata == null)
                 return null;
@@ -105,8 +103,7 @@ internal partial class SolutionState
                         _documentationProvider,
                         aliases: properties.Aliases,
                         embedInteropTypes: properties.EmbedInteropTypes,
-                        display: _assemblyName,
-                        owner: directMemoryAccess);
+                        display: _assemblyName);
                     _referenceMap.Add(properties, value);
                 }
 
