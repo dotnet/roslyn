@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected abstract DeclaredSymbolInfo? GetTypeDeclarationInfo(
             SyntaxNode container, TTypeDeclarationSyntax typeDeclaration, StringTable stringTable, string containerDisplayName, string fullyQualifiedContainerName);
+        protected abstract DeclaredSymbolInfo GetEnumDeclarationInfo(
+            SyntaxNode container, TEnumDeclarationSyntax enumDeclaration, StringTable stringTable, string containerDisplayName, string fullyQualifiedContainerName);
         protected abstract void AddSingleDeclaredSymbolInfos(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         protected abstract void AddLocalFunctionInfos(
@@ -223,8 +225,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     typeDeclaration,
                     stringTable,
                     containerDisplayName,
-                    fullyQualifiedContainerName,
-                    cancellationToken));
+                    fullyQualifiedContainerName));
 
                 // Then any synthesized members in that type (for example, synthesized properties in a record):
                 var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
@@ -250,14 +251,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
 
                 // Add the item for the type itself:
-                AddSingleDeclaredSymbolInfos(
+                declaredSymbolInfos.Add(GetEnumDeclarationInfo(
                     container,
                     memberDeclaration,
                     stringTable,
-                    declaredSymbolInfos,
                     containerDisplayName,
-                    fullyQualifiedContainerName,
-                    cancellationToken);
+                    fullyQualifiedContainerName));
 
                 // Then recurse into the children and add those.
                 var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);

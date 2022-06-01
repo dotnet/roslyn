@@ -172,6 +172,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 IsNestedType(typeDeclaration))
         End Function
 
+        Protected Overrides Function GetEnumDeclarationInfo(
+                container As SyntaxNode,
+                enumDeclaration As EnumBlockSyntax,
+                stringTable As StringTable,
+                containerDisplayName As String,
+                fullyQualifiedContainerName As String) As DeclaredSymbolInfo
+
+            Return DeclaredSymbolInfo.Create(
+                stringTable,
+                enumDeclaration.EnumStatement.Identifier.ValueText, Nothing,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                enumDeclaration.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                DeclaredSymbolInfoKind.Enum,
+                GetAccessibility(container, enumDeclaration, enumDeclaration.EnumStatement.Modifiers),
+                enumDeclaration.EnumStatement.Identifier.Span,
+                ImmutableArray(Of String).Empty,
+                IsNestedType(enumDeclaration))
+        End Function
+
         Protected Overrides Sub AddSingleDeclaredSymbolInfos(
                 container As SyntaxNode,
                 node As StatementSyntax,
@@ -191,20 +211,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
             Dim kind = node.Kind()
             Select Case kind
-                Case SyntaxKind.EnumBlock
-                    Dim enumDecl = DirectCast(node, EnumBlockSyntax)
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        enumDecl.EnumStatement.Identifier.ValueText, Nothing,
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        enumDecl.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(container, enumDecl, enumDecl.EnumStatement.Modifiers),
-                        enumDecl.EnumStatement.Identifier.Span,
-                        ImmutableArray(Of String).Empty,
-                        IsNestedType(enumDecl)))
-                    Return
                 Case SyntaxKind.SubNewStatement
                     Dim constructor = DirectCast(node, SubNewStatementSyntax)
                     Dim typeBlock = TryCast(container, TypeBlockSyntax)

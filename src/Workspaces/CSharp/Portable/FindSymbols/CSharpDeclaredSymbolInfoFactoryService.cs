@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -255,6 +256,26 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 IsNestedType(typeDeclaration));
         }
 
+        protected override DeclaredSymbolInfo GetEnumDeclarationInfo(
+            SyntaxNode container,
+            EnumDeclarationSyntax enumDeclaration,
+            StringTable stringTable,
+            string containerDisplayName,
+            string fullyQualifiedContainerName)
+        {
+            return DeclaredSymbolInfo.Create(
+                stringTable,
+                enumDeclaration.Identifier.ValueText, null,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                enumDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+                DeclaredSymbolInfoKind.Enum,
+                GetAccessibility(container, enumDeclaration.Modifiers),
+                enumDeclaration.Identifier.Span,
+                inheritanceNames: ImmutableArray<string>.Empty,
+                isNestedType: IsNestedType(enumDeclaration));
+        }
+
         protected override void AddSingleDeclaredSymbolInfos(
             SyntaxNode container,
             MemberDeclarationSyntax node,
@@ -267,20 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             Contract.ThrowIfTrue(node is TypeDeclarationSyntax);
             switch (node.Kind())
             {
-                case SyntaxKind.EnumDeclaration:
-                    var enumDecl = (EnumDeclarationSyntax)node;
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        enumDecl.Identifier.ValueText, null,
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        enumDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(container, enumDecl.Modifiers),
-                        enumDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty,
-                        isNestedType: IsNestedType(enumDecl)));
-                    return;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
