@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -10,10 +11,31 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
+    Friend Module IncrementalGeneratorInitializationContextExtensions
+        <Extension>
+        Public Function ForAttributeWithSimpleName(Of T As SyntaxNode)(
+        context As IncrementalGeneratorInitializationContext, simpleName As String) As IncrementalValuesProvider(Of T)
+
+            Return context.ForAttributeWithSimpleName(
+            simpleName,
+            Function(node, c) TypeOf node Is T).Select(Function(node, c) DirectCast(node, T))
+        End Function
+
+        <Extension>
+        Public Function ForAttributeWithMetadataName(Of t As SyntaxNode)(
+           context As IncrementalGeneratorInitializationContext, fullyQualifiedMetadataName As String) As IncrementalValuesProvider(Of t)
+
+            Return context.ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName,
+                Function(node, c) TypeOf node Is t,
+                Function(ctx, c) DirectCast(ctx.AttributeTarget, t))
+        End Function
+    End Module
+
     Public Class GeneratorDriverTests_Attributes_FullyQualifiedName
         Inherits BasicTestBase
 
-        Private Function IsClassStatementWithName(value As Object, name As String) As Boolean
+        Private Shared Function IsClassStatementWithName(value As Object, name As String) As Boolean
             If TypeOf value IsNot ClassStatementSyntax Then
                 Return False
             End If
@@ -108,6 +130,265 @@ end namespace
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute1()
+            Dim source = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+            Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute2()
+            Dim source1 = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim source2 = ""
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute3()
+            Dim source2 = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim source1 = ""
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.Last))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute4()
+            Dim source1 = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim source2 = "
+Imports System
+<Assembly: CLSCompliant(false)>"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.Last))
+        End Sub
+
+        <Fact>
+        Public Sub FindMethodStatementAttribute1()
+            Dim source = "
+Imports System
+
+Class C
+    <CLSCompliant(true)>
+    Public Sub M()
+    End Sub
+End Class
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of MethodStatementSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, MethodStatementSyntax).Identifier.ValueText = "M"))
+        End Sub
+
+        <Fact>
+        Public Sub FindMethodStatementAttribute2()
+            Dim source = "
+Imports System
+
+MustInherit Class C
+    <CLSCompliant(true)>
+    Public MustOverride Sub M()
+End Class
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of MethodStatementSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, MethodStatementSyntax).Identifier.ValueText = "M"))
+        End Sub
+
+        <Fact>
+        Public Sub FindFieldAttribute1()
+            Dim source = "
+Imports System
+
+Class C
+    <CLSCompliant(true)>
+    dim a as integer
+End Class
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of ModifiedIdentifierSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, ModifiedIdentifierSyntax).Identifier.ValueText = "a"))
+        End Sub
+
+        <Fact>
+        Public Sub FindFieldAttribute3()
+            Dim source = "
+Imports System
+
+Class C
+    <CLSCompliant(true)>
+    dim a, b as integer
+End Class
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of ModifiedIdentifierSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.Collection(_step.Outputs,
+                    Sub(v) Assert.True(DirectCast(v.Value, ModifiedIdentifierSyntax).Identifier.ValueText = "a"),
+                    Sub(v) Assert.True(DirectCast(v.Value, ModifiedIdentifierSyntax).Identifier.ValueText = "b")))
+        End Sub
+
+        <Fact>
+        Public Sub FindFieldAttribute2()
+            Dim source = "
+Imports System
+
+Class C
+    <CLSCompliant(true)>
+    dim a as string, b as integer
+End Class
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of ModifiedIdentifierSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.Collection(_step.Outputs,
+                    Sub(v) Assert.True(DirectCast(v.Value, ModifiedIdentifierSyntax).Identifier.ValueText = "a"),
+                    Sub(v) Assert.True(DirectCast(v.Value, ModifiedIdentifierSyntax).Identifier.ValueText = "b")))
         End Sub
 
         <Fact>

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SourceGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -22,10 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFacts.IsValidIdentifier(name)
         End Function
 
-        Public Overrides Function IsCompilationUnit(node As SyntaxNode) As Boolean
-            Return TypeOf node Is CompilationUnitSyntax
-        End Function
-
         Public Overrides Function IsAnyNamespaceBlock(node As SyntaxNode) As Boolean
             Return TypeOf node Is NamespaceBlockSyntax
         End Function
@@ -42,8 +39,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is AttributeListSyntax
         End Function
 
+        Public Overrides Sub AddAttributeTargets(node As SyntaxNode, targets As ArrayBuilder(Of SyntaxNode))
+            Dim attributeList = DirectCast(node, AttributeListSyntax)
+
+            Dim container = attributeList.Parent
+            If TypeOf container Is AttributesStatementSyntax Then
+                ' for attribute statements (like `<Assembly: ...>`) we want to get the parent compilation unit as that's
+                ' what symbol will actually own the attribute.
+                targets.Add(container.Parent)
+            ElseIf TypeOf container Is FieldDeclarationSyntax Then
+                Dim field = DirectCast(container, FieldDeclarationSyntax)
+                For Each varDecl In field.Declarators
+                    For Each id In varDecl.Names
+                        targets.Add(id)
+                    Next
+                Next
+            Else
+                targets.Add(container)
+            End If
+        End Sub
+
         Public Overrides Function GetAttributesOfAttributeList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
             Return DirectCast(node, AttributeListSyntax).Attributes
+        End Function
+
+        Public Overrides Function IsLambdaExpression(node As SyntaxNode) As Boolean
+            Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
         Public Overrides Function GetUnqualifiedIdentifierOfName(node As SyntaxNode) As SyntaxToken

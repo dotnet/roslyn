@@ -23,28 +23,27 @@ public partial struct IncrementalGeneratorInitializationContext
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
     /// <summary>
-    /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
-    /// possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
+    /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
+    /// could possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
     /// simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
     /// generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
-    /// <para/> This provider understands <see langword="using"/> aliases and will find matches even when the attribute
-    /// references an alias name.  For example, given:
+    /// <para/> This provider understands <see langword="using"/> (<c>Import</c> in Visual Basic) aliases and will find
+    /// matches even when the attribute references an alias name.  For example, given:
     /// <code>
     /// using XAttribute = System.CLSCompliantAttribute;
     /// [X]
     /// class C { }
     /// </code>
     /// Then
-    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(nameof(CLSCompliantAttribute))</c>
+    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute(nameof(CLSCompliantAttribute), (node, c) => node is ClassDeclarationSyntax)</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    internal IncrementalValuesProvider<T> ForAttributeWithSimpleName<T>(string simpleName)
-        where T : SyntaxNode
+    internal IncrementalValuesProvider<SyntaxNode> ForAttributeWithSimpleName(
+        string simpleName,
+        Func<SyntaxNode, CancellationToken, bool> predicate)
     {
         var syntaxHelper = this.SyntaxHelper;
-        if (!syntaxHelper.IsValidIdentifier(simpleName))
-            throw new ArgumentException("<todo: add error message>", nameof(simpleName));
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = this.SyntaxProvider.CreateSyntaxProvider(
@@ -62,8 +61,8 @@ public partial struct IncrementalGeneratorInitializationContext
             .Select(static (arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
             .WithTrackingName("allUpGlobalAliases_ForAttribute");
 
-        // TODO: it would be nice if we had a compilation-options provider, that was we didn't need to regenerate this
-        // if the compilation options stayed the same, but the compilation changed.
+        // Regenerate our data if the compilation options changed.  VB can supply global aliases with compilation options,
+        // so we have to reanalyze everything if those changed.
         var compilationGlobalAliases = this.CompilationOptionsProvider.Select(
             (o, _) =>
             {
@@ -90,8 +89,8 @@ public partial struct IncrementalGeneratorInitializationContext
 
         // For each pair of compilation unit + global aliases, walk the compilation unit 
         var result = compilationUnitAndGlobalAliasesProvider
-            .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes<T>(
-                syntaxHelper, globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, cancellationToken))
+            .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes(
+                syntaxHelper, globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, predicate, cancellationToken))
             .WithTrackingName("result_ForAttribute");
 
         return result;
@@ -100,7 +99,7 @@ public partial struct IncrementalGeneratorInitializationContext
             ISyntaxHelper syntaxHelper,
             SyntaxNode compilationUnit)
         {
-            Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
+            Debug.Assert(compilationUnit is ICompilationUnitSyntax);
             var globalAliases = Aliases.GetInstance();
 
             syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
@@ -109,14 +108,15 @@ public partial struct IncrementalGeneratorInitializationContext
         }
     }
 
-    private static ImmutableArray<T> GetMatchingNodes<T>(
+    private static ImmutableArray<SyntaxNode> GetMatchingNodes(
         ISyntaxHelper syntaxHelper,
         GlobalAliases globalAliases,
         SyntaxNode compilationUnit,
         string name,
-        CancellationToken cancellationToken) where T : SyntaxNode
+        Func<SyntaxNode, CancellationToken, bool> predicate,
+        CancellationToken cancellationToken)
     {
-        Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
+        Debug.Assert(compilationUnit is ICompilationUnitSyntax);
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -130,7 +130,8 @@ public partial struct IncrementalGeneratorInitializationContext
         // Used to ensure that as we recurse through alias names to see if they could bind to attributeName that we
         // don't get into cycles.
         var seenNames = s_stackPool.Allocate();
-        var results = ArrayBuilder<T>.GetInstance();
+        var results = ArrayBuilder<SyntaxNode>.GetInstance();
+        var attributeTargets = ArrayBuilder<SyntaxNode>.GetInstance();
 
         try
         {
@@ -141,15 +142,17 @@ public partial struct IncrementalGeneratorInitializationContext
             localAliases.Free();
             seenNames.Clear();
             s_stackPool.Free(seenNames);
+            attributeTargets.Free();
         }
 
+        results.RemoveDuplicates();
         return results.ToImmutableAndFree();
 
         void recurse(SyntaxNode node)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (syntaxHelper.IsCompilationUnit(node))
+            if (node is ICompilationUnitSyntax)
             {
                 syntaxHelper.AddAliases(node, localAliases, global: false);
 
@@ -165,10 +168,7 @@ public partial struct IncrementalGeneratorInitializationContext
                 // after recursing into this namespace, dump any local aliases we added from this namespace decl itself.
                 localAliases.Count = localAliasCount;
             }
-            else if (syntaxHelper.IsAttributeList(node) &&
-                     node.Parent is T parent &&
-                     // no need to examine another attribute on a node if we already added it due to a prior attribute
-                     results.LastOrDefault() != parent)
+            else if (syntaxHelper.IsAttributeList(node))
             {
                 foreach (var attribute in syntaxHelper.GetAttributesOfAttributeList(node))
                 {
@@ -179,7 +179,15 @@ public partial struct IncrementalGeneratorInitializationContext
                     if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
                         matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
-                        results.Add(parent);
+                        attributeTargets.Clear();
+                        syntaxHelper.AddAttributeTargets(node, attributeTargets);
+
+                        foreach (var target in attributeTargets)
+                        {
+                            if (predicate(target, cancellationToken))
+                                results.Add(target);
+                        }
+
                         return;
                     }
                 }

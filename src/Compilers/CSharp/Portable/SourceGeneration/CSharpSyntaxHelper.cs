@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,9 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsValidIdentifier(string name)
             => SyntaxFacts.IsValidIdentifier(name);
 
-        public override bool IsCompilationUnit(SyntaxNode node)
-            => node is CompilationUnitSyntax;
-
         public override bool IsAnyNamespaceBlock(SyntaxNode node)
             => node is BaseNamespaceDeclarationSyntax;
 
@@ -38,8 +36,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsAttributeList(SyntaxNode node)
             => node is AttributeListSyntax;
 
+        public override void AddAttributeTargets(SyntaxNode node, ArrayBuilder<SyntaxNode> targets)
+        {
+            var attributeList = (AttributeListSyntax)node;
+            var container = attributeList.Parent;
+            RoslynDebug.AssertNotNull(container);
+
+            // For fields/events, the attribute applies to all the variables declared.
+            if (container is FieldDeclarationSyntax field)
+                targets.AddRange(field.Declaration.Variables);
+            else if (container is EventFieldDeclarationSyntax ev)
+                targets.AddRange(ev.Declaration.Variables);
+            else
+                targets.Add(container);
+        }
+
         public override SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node)
             => ((AttributeListSyntax)node).Attributes;
+
+        public override bool IsLambdaExpression(SyntaxNode node)
+            => node is LambdaExpressionSyntax;
 
         public override SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node)
             => ((NameSyntax)node).GetUnqualifiedName().Identifier;

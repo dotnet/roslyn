@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Classification
         private readonly Dictionary<string, ArrayBuilder<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
+        /// Information about the embedded language.
+        /// </summary>
+        private readonly EmbeddedLanguageInfo _info;
+
+        /// <summary>
         /// Helper to look at string literals and determine what language they are annotated to take.
         /// </summary>
         private readonly EmbeddedLanguageDetector _detector;
@@ -71,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Classification
             foreach (var (_, classifiers) in _identifierToClassifiers)
                 classifiers.RemoveDuplicates();
 
+            _info = info;
             _detector = new EmbeddedLanguageDetector(info, _identifierToClassifiers.Keys.ToImmutableArray());
 
             _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
@@ -165,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _classifierBuffer.Clear();
 
                     var context = new EmbeddedLanguageClassificationContext(
-                        _project, _semanticModel, token, _options, _result, _cancellationToken);
+                        _project, _semanticModel, token, _options, _service._info.VirtualCharService, _result, _cancellationToken);
 
                     // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
                     // so, delegate to the first classifier we have registered for whatever language ID we find.

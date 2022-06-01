@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -15,14 +16,17 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         bool IsValidIdentifier(string name);
 
-        bool IsCompilationUnit(SyntaxNode node);
         bool IsAnyNamespaceBlock(SyntaxNode node);
 
         bool IsAttributeList(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
 
+        void AddAttributeTargets(SyntaxNode node, ArrayBuilder<SyntaxNode> targets);
+
         bool IsAttribute(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        bool IsLambdaExpression(SyntaxNode node);
 
         SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node);
 
@@ -41,7 +45,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode name);
 
-        public abstract bool IsCompilationUnit(SyntaxNode node);
         public abstract bool IsAnyNamespaceBlock(SyntaxNode node);
 
         public abstract bool IsAttribute(SyntaxNode node);
@@ -49,6 +52,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract bool IsAttributeList(SyntaxNode node);
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
+        public abstract void AddAttributeTargets(SyntaxNode node, ArrayBuilder<SyntaxNode> targets);
+
+        public abstract bool IsLambdaExpression(SyntaxNode node);
 
         public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
