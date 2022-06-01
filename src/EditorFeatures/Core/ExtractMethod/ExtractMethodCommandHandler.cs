@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             // wait indicator for Extract Method
             if (_renameService.ActiveSession != null)
             {
-                _renameService.ActiveSession.Commit();
+                _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false, CancellationToken.None));
             }
 
             if (!args.SubjectBuffer.SupportsRefactorings())
