@@ -63,6 +63,25 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
+        public async Task TestNotWhenNoReadOnlySpan()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+public class C
+{
+    public void M()
+    {
+        var x = new byte[] { 65, 66, 67 };
+    }
+}",
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net20.Default,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUTF8StringLiteral)]
         public async Task TestNotWithoutInitializer()
         {
             await new VerifyCS.Test

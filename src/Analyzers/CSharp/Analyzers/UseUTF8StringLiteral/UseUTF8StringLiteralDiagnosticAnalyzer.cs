@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 if (!context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                     return;
 
+                if (context.Compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!) is null)
+                    return;
+
                 var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
 
                 context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
