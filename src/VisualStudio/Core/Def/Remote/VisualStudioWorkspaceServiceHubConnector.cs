@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly IThreadingContext _threadingContext;
-        private readonly IGlobalOptionService _globalOptions;
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
@@ -36,13 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceServiceHubConnector(
-            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
         {
             _listenerProvider = listenerProvider;
             _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
