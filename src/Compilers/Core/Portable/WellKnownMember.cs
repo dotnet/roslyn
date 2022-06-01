@@ -500,6 +500,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ITuple__get_Length,
 
         System_InvalidOperationException__ctor,
+        System_InvalidOperationException__ctorString,
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
