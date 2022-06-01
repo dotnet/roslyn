@@ -265,7 +265,7 @@ class C
             comp.VerifyDiagnostics(
                 // (11,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         ref readonly int x = ref s[^2];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("S.this[int]").WithLocation(11, 34));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithLocation(11, 34));
         }
 
         [Fact]

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         protected virtual string GetExplicitConversionDisplayText(State state)
             => string.Empty;
 
-        protected async ValueTask<ImmutableArray<CodeAction>> GetActionsAsync(Document document, State state, CancellationToken cancellationToken)
+        protected async ValueTask<ImmutableArray<CodeAction>> GetActionsAsync(Document document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
-            result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: false, generateProperty: false));
+            result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, fallbackOptions, isAbstract: false, generateProperty: false));
 
             // If we're trying to generate an instance method into an abstract class (but not a
             // static class or an interface), then offer to generate it abstractly.
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 !state.IsStatic;
 
             if (canGenerateAbstractly)
-                result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: true, generateProperty: false));
+                result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, fallbackOptions, isAbstract: true, generateProperty: false));
 
             var semanticFacts = document.Project.Solution.Workspace.Services.GetLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
 
@@ -63,10 +64,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 if (typeParameters.Length == 0 && returnType.SpecialType != SpecialType.System_Void)
                 {
-                    result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: false, generateProperty: true));
+                    result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, fallbackOptions, isAbstract: false, generateProperty: true));
 
                     if (canGenerateAbstractly)
-                        result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: true, generateProperty: true));
+                        result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, fallbackOptions, isAbstract: true, generateProperty: true));
                 }
             }
 

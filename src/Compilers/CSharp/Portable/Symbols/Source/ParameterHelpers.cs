@@ -138,10 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-                if (refKind == RefKind.Out && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnOutParameter, exExToken.GetLocation(), identifier.ValueText);
-                }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
@@ -187,14 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // error CS0631: ref and out are not valid in this context
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
-                }
-
-                if (parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken1, Identifier: var identifier1 } && exExToken1.Kind() == SyntaxKind.ExclamationExclamationToken)
-                {
-                    if (owner.IsAbstract || owner.IsPartialDefinition() || owner.IsExtern)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, identifier1.GetLocation(), identifier1.ValueText);
-                    }
                 }
 
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
@@ -271,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void EnsureNativeIntegerAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
+            Debug.Assert(moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes());
             EnsureNativeIntegerAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
         }
 
@@ -283,14 +272,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            if (!compilation.ShouldEmitNativeIntegerAttributes())
+            {
+                return;
+            }
+
             EnsureNativeIntegerAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
         }
 
         private static void EnsureNativeIntegerAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
         {
+            Debug.Assert(compilation.ShouldEmitNativeIntegerAttributes());
             foreach (var parameter in parameters)
             {
-                if (parameter.TypeWithAnnotations.ContainsNativeInteger())
+                if (parameter.TypeWithAnnotations.ContainsNativeIntegerWrapperType())
                 {
                     if (moduleBuilder is { })
                     {
@@ -603,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (!defaultExpression.HasAnyErrors &&
-                !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() || convertedExpression is BoundConversion { Conversion.IsUTF8StringLiteral: true } ?
+                !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() ?
                     convertedExpression : defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
@@ -791,62 +786,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return refKind;
-        }
-
-        // https://github.com/dotnet/roslyn/issues/58335: consider whether we should adjust the set of locations where we call this
-        internal static void ReportParameterNullCheckingErrors(DiagnosticBag diagnostics, ParameterSymbol parameter)
-        {
-            if (!parameter.IsNullChecked)
-            {
-                return;
-            }
-            Location location = parameter.Locations.FirstOrNone();
-            // https://github.com/dotnet/roslyn/issues/58335: can we simplify with the other overload?
-            if (Binder.GetWellKnownTypeMember(parameter.DeclaringCompilation, WellKnownMember.System_ArgumentNullException__ctorString, out UseSiteInfo<AssemblySymbol> useSiteInfo) is null)
-            {
-                diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
-            }
-            if (parameter.IsDiscard)
-            {
-                diagnostics.Add(ErrorCode.ERR_DiscardCannotBeNullChecked, location);
-            }
-
-            var annotations = parameter.FlowAnalysisAnnotations;
-            if ((annotations & FlowAnalysisAnnotations.NotNull) == 0
-                && NullableWalker.GetParameterState(parameter.TypeWithAnnotations, annotations, applyParameterNullCheck: false).State.MayBeNull()
-                && !isTypeParameterWithPossiblyNonNullableType(parameter.TypeWithAnnotations, annotations))
-            {
-                diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
-            }
-
-            if (parameter.Type.IsNonNullableValueType() && !parameter.Type.IsPointerOrFunctionPointer())
-            {
-                diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
-            }
-
-            // For type parameters, we only want to give the warning if no type argument would result in a non-nullable type.
-            static bool isTypeParameterWithPossiblyNonNullableType(TypeWithAnnotations typeWithAnnotations, FlowAnalysisAnnotations annotations)
-            {
-                if (!typeWithAnnotations.Type.IsTypeParameter())
-                {
-                    return false;
-                }
-
-                // We avoid checking the nullable annotations, etc. of constraints due to implementation complexity,
-                // and consider it acceptable to miss "!! on nullable type" warnings in scenarios like `void M<T, U>(U u!!) where U : T?`.
-                if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
-                {
-                    return false;
-                }
-
-                // `void M<T>([AllowNull] T t!!)`
-                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
-                {
-                    return false;
-                }
-
-                return true;
-            }
         }
 
         internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)

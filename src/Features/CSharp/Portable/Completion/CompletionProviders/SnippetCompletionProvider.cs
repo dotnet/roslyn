@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                         UnionCompletionItemComparer.Instance,
-                        d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
+                        d => GetSnippetsForDocumentAsync(d, context, cancellationToken)).ConfigureAwait(false));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
@@ -75,8 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static async Task<ImmutableArray<CompletionItem>> GetSnippetsForDocumentAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, CompletionContext completionContext, CancellationToken cancellationToken)
         {
+            var position = completionContext.Position;
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
@@ -93,10 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return ImmutableArray<CompletionItem>.Empty;
             }
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+            var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+            var semanticModel = context.SemanticModel;
+
             if (context.IsInTaskLikeTypeContext)
+            {
                 return ImmutableArray<CompletionItem>.Empty;
+            }
 
             if (syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
             {

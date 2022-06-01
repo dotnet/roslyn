@@ -287,10 +287,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     moduleBuilder.EnsureIsUnmanagedAttributeExists();
                 }
 
-                if (hasReturnTypeOrParameter(localFunction, t => t.ContainsNativeInteger()) ||
-                    typeParameters.Any(t => t.ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger())))
+                if (_compilation.ShouldEmitNativeIntegerAttributes())
                 {
-                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                    if (hasReturnTypeOrParameter(localFunction, t => t.ContainsNativeIntegerWrapperType()) ||
+                        typeParameters.Any(t => t.ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeIntegerWrapperType())))
+                    {
+                        moduleBuilder.EnsureNativeIntegerAttributeExists();
+                    }
                 }
 
                 if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))

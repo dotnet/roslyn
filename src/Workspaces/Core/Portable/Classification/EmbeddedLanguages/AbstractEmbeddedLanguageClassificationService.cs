@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Classification
         private readonly Dictionary<string, ArrayBuilder<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
+        /// Information about the embedded language.
+        /// </summary>
+        private readonly EmbeddedLanguageInfo _info;
+
+        /// <summary>
         /// Helper to look at string literals and determine what language they are annotated to take.
         /// </summary>
         private readonly EmbeddedLanguageDetector _detector;
@@ -71,38 +76,40 @@ namespace Microsoft.CodeAnalysis.Classification
             foreach (var (_, classifiers) in _identifierToClassifiers)
                 classifiers.RemoveDuplicates();
 
+            _info = info;
             _detector = new EmbeddedLanguageDetector(info, _identifierToClassifiers.Keys.ToImmutableArray());
 
             _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
             _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
             _syntaxTokenKinds.Add(syntaxKinds.InterpolatedStringTextToken);
 
-            if (syntaxKinds.SingleLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.SingleLineRawStringLiteralToken.Value);
-
-            if (syntaxKinds.MultiLineRawStringLiteralToken != null)
-                _syntaxTokenKinds.Add(syntaxKinds.MultiLineRawStringLiteralToken.Value);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.SingleLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.MultiLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8StringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8SingleLineRawStringLiteralToken);
+            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8MultiLineRawStringLiteralToken);
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
             Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            AddEmbeddedLanguageClassifications(semanticModel, textSpan, options, result, cancellationToken);
+            AddEmbeddedLanguageClassifications(document.Project, semanticModel, textSpan, options, result, cancellationToken);
         }
 
         public void AddEmbeddedLanguageClassifications(
-            SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<IEmbeddedLanguageClassifier>.GetInstance(out var classifierBuffer);
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(this, semanticModel, textSpan, options, result, classifierBuffer, cancellationToken);
+            var worker = new Worker(this, project, semanticModel, textSpan, options, result, classifierBuffer, cancellationToken);
             worker.Recurse(root);
         }
 
         private ref struct Worker
         {
             private readonly AbstractEmbeddedLanguageClassificationService _service;
+            private readonly Project? _project;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
             private readonly ClassificationOptions _options;
@@ -112,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public Worker(
                 AbstractEmbeddedLanguageClassificationService service,
+                Project? project,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
                 ClassificationOptions options,
@@ -120,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 CancellationToken cancellationToken)
             {
                 _service = service;
+                _project = project;
                 _semanticModel = semanticModel;
                 _textSpan = textSpan;
                 _options = options;
@@ -162,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _classifierBuffer.Clear();
 
                     var context = new EmbeddedLanguageClassificationContext(
-                        _semanticModel, token, _options, _result, _cancellationToken);
+                        _project, _semanticModel, token, _options, _service._info.VirtualCharService, _result, _cancellationToken);
 
                     // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
                     // so, delegate to the first classifier we have registered for whatever language ID we find.

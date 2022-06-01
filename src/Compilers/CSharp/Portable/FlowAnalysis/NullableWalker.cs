@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -235,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly bool _hasInitialState;
 
+        private readonly MethodSymbol? _baseOrThisInitializer;
+
 #if DEBUG
         /// <summary>
         /// Contains the expressions that should not be inserted into <see cref="_analyzedNullabilityMapOpt"/>.
@@ -418,6 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             Conversions conversions,
             Variables? variables,
+            MethodSymbol? baseOrThisInitializer,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
             SnapshotManager.Builder? snapshotBuilderOpt,
@@ -425,6 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true)
         {
             Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethodOpt is object);
+            Debug.Assert(baseOrThisInitializer is null or { MethodKind: MethodKind.Constructor });
 
             _variables = variables ?? Variables.Create(symbol);
             _binder = binder;
@@ -438,6 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _snapshotBuilderOpt = snapshotBuilderOpt;
             _isSpeculative = isSpeculative;
             _hasInitialState = variables is { };
+            _baseOrThisInitializer = baseOrThisInitializer;
         }
 
         public string GetDebuggerDisplay()
@@ -669,6 +675,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
+
+                if (symbol.IsRequired() && constructor.ShouldCheckRequiredMembers())
+                {
+                    return;
+                }
+
                 var annotations = symbol.GetFlowAnalysisAnnotations();
                 if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
@@ -811,46 +823,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (method.IsConstructor())
                     {
-                        if (needsDefaultInitialStateForMembers())
+                        foreach (var member in getMembersNeedingDefaultInitialState())
                         {
-                            foreach (var member in method.ContainingType.GetMembersUnordered())
+                            if (member.IsStatic != method.IsStatic)
                             {
-                                if (member.IsStatic != method.IsStatic)
-                                {
+                                continue;
+                            }
+
+                            var memberToInitialize = member;
+                            switch (member)
+                            {
+                                case PropertySymbol:
+                                    // skip any manually implemented properties.
                                     continue;
-                                }
-
-                                var memberToInitialize = member;
-                                switch (member)
-                                {
-                                    case PropertySymbol:
-                                        // skip any manually implemented properties.
-                                        continue;
-                                    case FieldSymbol { IsConst: true }:
-                                        continue;
-                                    case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
-                                        // this is a property where assigning 'default' causes us to simply update
-                                        // the state to the output state of the property
-                                        // thus we skip setting an initial state for it here
-                                        if (IsPropertyOutputMoreStrictThanInput(prop))
-                                        {
-                                            continue;
-                                        }
-
-                                        // We want to initialize auto-property state to the default state, but not computed properties.
-                                        memberToInitialize = prop;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
-                                if (memberSlot > 0)
-                                {
-                                    var type = memberToInitialize.GetTypeOrReturnType();
-                                    if (!type.NullableAnnotation.IsOblivious())
+                                case FieldSymbol { IsConst: true }:
+                                    continue;
+                                case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
+                                    // this is a property where assigning 'default' causes us to simply update
+                                    // the state to the output state of the property
+                                    // thus we skip setting an initial state for it here
+                                    if (IsPropertyOutputMoreStrictThanInput(prop))
                                     {
-                                        this.State[memberSlot] = type.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                                        continue;
                                     }
+
+                                    // We want to initialize auto-property state to the default state, but not computed properties.
+                                    memberToInitialize = prop;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
+                            if (memberSlot > 0)
+                            {
+                                var type = memberToInitialize.GetTypeOrReturnType();
+                                if (!type.NullableAnnotation.IsOblivious())
+                                {
+                                    this.State[memberSlot] = type.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
                                 }
                             }
                         }
@@ -868,24 +877,101 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                bool needsDefaultInitialStateForMembers()
+                return;
+
+                ImmutableArray<Symbol> getMembersNeedingDefaultInitialState()
                 {
                     if (_hasInitialState)
                     {
-                        return false;
+                        return ImmutableArray<Symbol>.Empty;
+                    }
+
+                    bool includeCurrentTypeRequiredMembers = true;
+                    bool includeBaseRequiredMembers = true;
+                    bool hasThisConstructorInitializer = false;
+
+                    if (method is SourceMemberMethodSymbol { SyntaxNode: ConstructorDeclarationSyntax { Initializer: { RawKind: var initializerKind } } })
+                    {
+                        // We have multiple ways of entering the nullable walker: we could be just analyzing the initializers, with a BoundStatementList body and _baseOrThisInitializer
+                        // having been provided, or we could be analyzing the body of a constructor, with a BoundConstructorBody body and _baseOrThisInitializer being null.
+                        var baseOrThisInitializer = (_baseOrThisInitializer ?? GetConstructorThisOrBaseSymbol(this.methodMainNode));
+                        // If there's an error in the base or this initializer, presume that we should set all required members to default.
+                        includeBaseRequiredMembers = baseOrThisInitializer?.ShouldCheckRequiredMembers() ?? true;
+                        if (initializerKind == (int)SyntaxKind.ThisConstructorInitializer)
+                        {
+                            hasThisConstructorInitializer = true;
+                            // If we chained to a `this` constructor, a SetsRequiredMembers attribute applies to both the current type's required members and the base type's required members.
+                            includeCurrentTypeRequiredMembers = includeBaseRequiredMembers;
+                        }
+                        else if (initializerKind == (int)SyntaxKind.BaseConstructorInitializer)
+                        {
+                            // If we chained to a `base` constructor, a SetsRequiredMembers attribute applies to the base type's required members only, and the current type's required members
+                            // are not assumed to be initialized.
+                            includeCurrentTypeRequiredMembers = true;
+                        }
                     }
 
                     // Pre-C# 11, we don't use a default initial state for value type instance constructors without `: this()`
                     // because any usages of uninitialized fields will get definite assignment errors anyway.
-                    if (!method.HasThisConstructorInitializer(out _)
+                    if (!hasThisConstructorInitializer
                         && (!method.ContainingType.IsValueType
                             || method.IsStatic
                             || compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs)))
                     {
-                        return true;
+                        return membersToBeInitialized(method.ContainingType, includeAllMembers: true, includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
                     }
 
-                    return method.IncludeFieldInitializersInBody();
+                    // We want to presume all required members of the type are uninitialized, and in addition we want to set all fields to
+                    // default if we can get to this constructor by doing so (ie, : this() in a value type).
+                    return membersToBeInitialized(method.ContainingType, includeAllMembers: method.IncludeFieldInitializersInBody(), includeCurrentTypeRequiredMembers, includeBaseRequiredMembers);
+
+                    static ImmutableArray<Symbol> membersToBeInitialized(NamedTypeSymbol containingType, bool includeAllMembers, bool includeCurrentTypeRequiredMembers, bool includeBaseRequiredMembers)
+                    {
+                        return (includeAllMembers, includeCurrentTypeRequiredMembers, includeBaseRequiredMembers) switch
+                        {
+                            (includeAllMembers: false, includeCurrentTypeRequiredMembers: false, includeBaseRequiredMembers: false)
+                                => ImmutableArray<Symbol>.Empty,
+
+                            (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: false)
+                                => containingType.GetMembersUnordered().SelectAsArray(predicate: SymbolExtensions.IsRequired, selector: getFieldSymbolToBeInitialized),
+
+                            (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
+                                => containingType.AllRequiredMembers.SelectAsArray(static kvp => getFieldSymbolToBeInitialized(kvp.Value)),
+
+                            (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
+                                => containingType.GetMembersUnordered().SelectAsArray(getFieldSymbolToBeInitialized),
+
+                            (includeAllMembers: true, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
+                                => getAllTypeAndRequiredMembers(containingType),
+
+                            (includeAllMembers: _, includeCurrentTypeRequiredMembers: false, includeBaseRequiredMembers: true)
+                                => throw ExceptionUtilities.Unreachable,
+                        };
+
+                        static ImmutableArray<Symbol> getAllTypeAndRequiredMembers(TypeSymbol containingType)
+                        {
+                            var members = containingType.GetMembersUnordered();
+                            var requiredMembers = containingType.BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
+
+                            if (requiredMembers.IsEmpty)
+                            {
+                                return members;
+                            }
+
+                            var builder = ArrayBuilder<Symbol>.GetInstance(members.Length + requiredMembers.Count);
+                            builder.AddRange(members);
+                            foreach (var (_, requiredMember) in requiredMembers)
+                            {
+                                // We want to assume that all required members were _not_ set by the chained constructor
+                                builder.Add(getFieldSymbolToBeInitialized(requiredMember));
+                            }
+
+                            return builder.ToImmutableAndFree();
+                        }
+
+                        static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
+                            => requiredMember is SourcePropertySymbol { IsAutoPropertyWithGetAccessor: true } prop ? prop.BackingField : requiredMember;
+                    }
                 }
             }
 
@@ -1128,6 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useConstructorExitWarnings,
             VariableState? initialNullableState,
             bool getFinalNullableState,
+            MethodSymbol? baseOrThisInitializer,
             out VariableState? finalNullableState)
         {
             if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(method))
@@ -1137,13 +1224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
                     // we don't want to introduce behavior differences between debug and release builds
-                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _, requiresAnalysis: false);
+                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, baseOrThisInitializer, out _, requiresAnalysis: false);
                 }
                 finalNullableState = null;
                 return;
             }
 
-            Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, out finalNullableState);
+            Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, baseOrThisInitializer, out finalNullableState);
         }
 
         private static void Analyze(
@@ -1154,6 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useConstructorExitWarnings,
             VariableState? initialNullableState,
             bool getFinalNullableState,
+            MethodSymbol? baseOrThisInitializer,
             out VariableState? finalNullableState,
             bool requiresAnalysis = true)
         {
@@ -1178,6 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 initialState: initialNullableState,
+                baseOrThisInitializer,
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
@@ -1186,36 +1275,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                 requiresAnalysis);
         }
 
-        /// <summary>
-        /// Gets the "after initializers state" which should be used at the beginning of nullable analysis
-        /// of certain constructors. Only used for semantic model and debug verification.
-        /// </summary>
-        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol? symbol)
+        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol? symbol, BoundNode constructorBody)
         {
             if (symbol is MethodSymbol method
                 && method.IncludeFieldInitializersInBody()
                 && method.ContainingType is SourceMemberContainerTypeSymbol containingType)
             {
-                var unusedDiagnostics = DiagnosticBag.GetInstance();
-
-                Binder.ProcessedFieldInitializers initializers = default;
-                Binder.BindFieldInitializers(compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, BindingDiagnosticBag.Discarded, ref initializers);
-                NullableWalker.AnalyzeIfNeeded(
-                    compilation,
-                    method,
-                    InitializerRewriter.RewriteConstructor(initializers.BoundInitializers, method),
-                    unusedDiagnostics,
-                    useConstructorExitWarnings: false,
-                    initialNullableState: null,
-                    getFinalNullableState: true,
-                    out var afterInitializersState);
-
-                unusedDiagnostics.Free();
-
-                return afterInitializersState;
+                Binder.ProcessedFieldInitializers discardedInitializers = default;
+                Binder.BindFieldInitializers(compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, BindingDiagnosticBag.Discarded, ref discardedInitializers);
+                return GetAfterInitializersState(compilation, method, InitializerRewriter.RewriteConstructor(discardedInitializers.BoundInitializers, method), constructorBody, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets the "after initializers state" which should be used at the beginning of nullable analysis
+        /// of certain constructors.
+        /// </summary>
+        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, MethodSymbol method, BoundNode nodeToAnalyze, BoundNode? constructorBody, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(method.IsConstructor());
+            bool ownsDiagnostics;
+            DiagnosticBag diagnosticsBag;
+            if (diagnostics.DiagnosticBag == null)
+            {
+                diagnostics = BindingDiagnosticBag.Discarded;
+                diagnosticsBag = DiagnosticBag.GetInstance();
+                ownsDiagnostics = true;
+            }
+            else
+            {
+                diagnosticsBag = diagnostics.DiagnosticBag;
+                ownsDiagnostics = false;
+            }
+
+            MethodSymbol? baseOrThisInitializer = GetConstructorThisOrBaseSymbol(constructorBody);
+
+            NullableWalker.AnalyzeIfNeeded(
+                compilation,
+                method,
+                nodeToAnalyze,
+                diagnosticsBag,
+                useConstructorExitWarnings: false,
+                initialNullableState: null,
+                getFinalNullableState: true,
+                baseOrThisInitializer,
+                out var afterInitializersState);
+
+            if (ownsDiagnostics)
+            {
+                diagnosticsBag.Free();
+            }
+
+            return afterInitializersState;
+        }
+
+        private static MethodSymbol? GetConstructorThisOrBaseSymbol(BoundNode? constructorBody)
+        {
+            return constructorBody is BoundConstructorMethodBody { Initializer: BoundExpressionStatement { Expression: BoundCall { Method: { MethodKind: MethodKind.Constructor } initializerMethod } } }
+                ? initializerMethod
+                : null;
         }
 
         /// <summary>
@@ -1231,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
-            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots, requiresAnalysis: false);
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol, node), diagnostics, createSnapshots, requiresAnalysis: false);
         }
 
         /// <summary>
@@ -1282,6 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 initialState,
+                baseOrThisInitializer: null,
                 analyzedNullabilities,
                 snapshotBuilder,
                 returnTypesOpt: null,
@@ -1335,6 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder,
                 binder.Conversions,
                 Variables.Create(variables),
+                baseOrThisInitializer: null,
                 returnTypesOpt: null,
                 analyzedNullabilities,
                 newSnapshotBuilder,
@@ -1420,6 +1542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 initialState: null,
+                baseOrThisInitializer: null,
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
@@ -1451,6 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambda.Binder,
                 conversions,
                 variables,
+                baseOrThisInitializer: null,
                 returnTypesOpt,
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null);
@@ -1477,6 +1601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
             VariableState? initialState,
+            MethodSymbol? baseOrThisInitializer,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
             SnapshotManager.Builder? snapshotBuilderOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
@@ -1495,6 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             binder,
                                             conversions,
                                             initialState is null ? null : Variables.Create(initialState.Variables),
+                                            baseOrThisInitializer,
                                             returnTypesOpt,
                                             analyzedNullabilityMapOpt,
                                             snapshotBuilderOpt);
@@ -1643,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             parameterType = parameter.TypeWithAnnotations;
                         }
-                        return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked).State;
+                        return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     }
                 case SymbolKind.Field:
                 case SymbolKind.Property:
@@ -2068,9 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check whether we can assign a value from overridden parameter to overriding
                 var valueState = GetParameterState(
                     overriddenType,
-                    overriddenAnnotations,
-                    // We don't consider '!!' when deciding whether 'overridden' is compatible with 'override'
-                    applyParameterNullCheck: false);
+                    overriddenAnnotations);
                 if (isBadAssignment(valueState, overridingType, overridingAnnotations))
                 {
                     return false;
@@ -2496,7 +2620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!IsConditionalState);
                 if (slot > 0)
                 {
-                    var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked).State;
+                    var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     this.State[slot] = state;
                     if (EmptyStructTypeCache.IsTrackableStructType(parameterType.Type))
                     {
@@ -2530,13 +2654,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool applyParameterNullCheck)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
         {
-            if (applyParameterNullCheck)
-            {
-                return TypeWithState.Create(parameterType.Type, NullableFlowState.NotNull);
-            }
-
             if ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
             {
                 return TypeWithState.Create(parameterType.Type, NullableFlowState.MaybeDefault);
@@ -4047,6 +4166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             binder,
                                             conversions: conversions,
                                             variables: null,
+                                            baseOrThisInitializer: null,
                                             returnTypesOpt: null,
                                             analyzedNullabilityMapOpt: null,
                                             snapshotBuilderOpt: null);
@@ -4463,10 +4583,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
+            if (binary.OperatorKind.IsLifted()
+                && binary.OperatorKind.Operator() is BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual or BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual)
+            {
+                Debug.Assert(binary.Type.SpecialType == SpecialType.System_Boolean);
+                SplitAndLearnFromNonNullTest(binary.Left, whenTrue: true);
+                SplitAndLearnFromNonNullTest(binary.Right, whenTrue: true);
+            }
+
             // For nested binary operators, this can be the only time they're visited due to explicit stack used in AbstractFlowPass.VisitBinaryOperator,
             // so we need to set the flow-analyzed type here.
             var inferredResult = InferResultNullability(binary.OperatorKind, method, binary.Type, leftType, rightType);
             SetResult(binary, inferredResult, inferredResult.ToTypeWithAnnotations(compilation));
+
+            return;
 
             TypeSymbol? getTypeIfContainingType(TypeSymbol baseType, TypeSymbol? derivedType, BoundExpression operand)
             {
@@ -4518,7 +4648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
                     bool nonNullCase = op != BinaryOperatorKind.Equal; // true represents WhenTrue
-                    splitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
+                    SplitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
 
                     // `x == null` and `x != null` are pure null tests so update the null-state in the alternative branch too
                     LearnFromNullTest(operandComparedToNull, ref nonNullCase ? ref StateWhenFalse : ref StateWhenTrue);
@@ -4547,27 +4677,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.GreaterThanOrEqual:
                     case BinaryOperatorKind.LessThanOrEqual:
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
+                        SplitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
                         return;
                     case BinaryOperatorKind.NotEqual:
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
+                        SplitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
                         return;
                 };
             }
+        }
 
-            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNonNull, bool whenTrue)
+        private void SplitAndLearnFromNonNullTest(BoundExpression operandComparedToNonNull, bool whenTrue)
+        {
+            var slotBuilder = ArrayBuilder<int>.GetInstance();
+            GetSlotsToMarkAsNotNullable(operandComparedToNonNull, slotBuilder);
+            if (slotBuilder.Count != 0)
             {
-                var slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(operandComparedToNonNull, slotBuilder);
-                if (slotBuilder.Count != 0)
-                {
-                    Split();
-                    ref LocalState stateToUpdate = ref whenTrue ? ref this.StateWhenTrue : ref this.StateWhenFalse;
-                    MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
-                }
-                slotBuilder.Free();
+                Split();
+                ref LocalState stateToUpdate = ref whenTrue ? ref this.StateWhenTrue : ref this.StateWhenFalse;
+                MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
             }
+            slotBuilder.Free();
         }
 
         protected override bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref LocalState shortCircuitState)
@@ -7772,17 +7902,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
-                case ConversionKind.ImplicitUtf8StringLiteral:
-                    if (targetType.IsReferenceType)
-                    {
-                        resultState = getConversionResultState(operandType);
-                    }
-                    else
-                    {
-                        resultState = NullableFlowState.NotNull;
-                    }
-                    break;
-
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
@@ -8773,7 +8892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameter = node.ParameterSymbol;
             int slot = GetOrCreateSlot(parameter);
             var parameterType = GetDeclaredParameterResult(parameter);
-            var typeWithState = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked);
+            var typeWithState = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations);
             SetResult(node, GetAdjustedResult(typeWithState, slot), parameterType);
             return null;
         }

@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             // to replace one at a time, and only actually replace if it's still safe to do so.
 
             var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var preferSimpleDefaultExpression = document.Project.AnalyzerOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, tree, cancellationToken).Value;
 
-            var workspace = document.Project.Solution.Workspace;
+            var options = (CSharpAnalyzerOptionsProvider)await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+            var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
+
             var originalRoot = editor.OriginalRoot;
 
             var originalNodes = diagnostics.SelectAsArray(

@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly ImmutableHashSet<ISymbol>? _nonConflictSymbols;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation;
+            private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation = new();
 
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
-            private readonly List<string> _possibleNameConflicts;
-            private readonly HashSet<DocumentId> _documentsIdsToBeCheckedForConflict;
+            private readonly List<string> _possibleNameConflicts = new();
+            private readonly HashSet<DocumentId> _documentsIdsToBeCheckedForConflict = new();
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
             private ISet<ConflictLocationInfo> _conflictLocations;
@@ -66,14 +66,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _nonConflictSymbols = nonConflictSymbols;
                 _cancellationToken = cancellationToken;
 
-                _renamedSymbolDeclarationAnnotation = new RenameAnnotation();
-
                 _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
                 _replacementTextValid = true;
-                _possibleNameConflicts = new List<string>();
 
                 // only process documents which possibly contain the identifiers.
-                _documentsIdsToBeCheckedForConflict = new HashSet<DocumentId>();
                 _documentIdOfRenameSymbolDeclaration = renameLocationSet.Solution.GetRequiredDocument(renameSymbolDeclarationLocation.SourceTree!).Id;
 
                 _renameAnnotations = new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind);

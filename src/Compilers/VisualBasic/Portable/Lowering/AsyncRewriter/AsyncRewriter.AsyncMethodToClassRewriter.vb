@@ -66,13 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            builder As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            nonReusableLocalProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
-                           synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
-                           nextFreeHoistedLocalSlot As Integer,
                            owner As AsyncRewriter,
                            diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, diagnostics)
 
                 Me._method = method
                 Me._builder = builder

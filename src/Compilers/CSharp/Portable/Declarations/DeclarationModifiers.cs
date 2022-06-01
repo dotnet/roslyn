@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Async = 1 << 20,
         Ref = 1 << 21, // used only for structs
 
-
-        // PROTOTYPE(ft): leaving 22 free since required is using it
+        Required = 1 << 22, // Used only for properties and fields
         File = 1 << 23, // used only for types
 
         All = (1 << 24) - 1, // all modifiers

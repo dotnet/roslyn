@@ -450,7 +450,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(").WithLocation(4, 38),
                 // (4,39): error CS1003: Syntax error, '(' expected
                 //     public static C operator checked (C x) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 39)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 39)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -477,7 +477,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(").WithLocation(4, 30),
                 // (4,31): error CS1003: Syntax error, '(' expected
                 //     public static C operator (C x) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 31)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -1629,7 +1629,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "(").WithLocation(4, 38),
                 // (4,39): error CS1003: Syntax error, '(' expected
                 //     public static C operator checked (C x, C y) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 39)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 39)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -1656,7 +1656,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "(").WithLocation(4, 30),
                 // (4,31): error CS1003: Syntax error, '(' expected
                 //     public static C operator (C x, C y) => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(", "").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments("(").WithLocation(4, 31)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -2434,7 +2434,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(4, 38),
                 // (4,39): error CS1003: Syntax error, '(' expected
                 //     public static C operator checked () => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(4, 39)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(4, 39)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -2461,7 +2461,7 @@ class C
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(4, 30),
                 // (4,31): error CS1003: Syntax error, '(' expected
                 //     public static C operator () => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(4, 31)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");

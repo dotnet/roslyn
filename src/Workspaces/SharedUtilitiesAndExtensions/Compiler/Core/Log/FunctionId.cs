@@ -541,5 +541,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         StackTraceToolWindow_ShowOnActivated = 540,
 
         CodeModel_FileCodeModel_Create = 550,
+
+        Refactoring_FixAllOccurrencesSession = 560,
+        Refactoring_FixAllOccurrencesContext = 561,
+        Refactoring_FixAllOccurrencesComputation = 562,
+        Refactoring_FixAllOccurrencesPreviewChanges = 563,
+
+        LSP_UsedForkedSolution = 571,
     }
 }

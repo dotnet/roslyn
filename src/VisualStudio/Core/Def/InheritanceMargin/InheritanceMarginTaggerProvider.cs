@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -93,37 +94,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             var document = spanToTag.Document;
             if (document == null)
-            {
                 return;
-            }
+
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+                return;
+
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
+            if (inheritanceMarginInfoService == null)
+                return;
 
             if (GlobalOptions.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, document.Project.Language) == false)
-            {
                 return;
-            }
+
+            var includeGlobalImports = GlobalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, document.Project.Language);
 
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
             // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
             document = document.WithFrozenPartialSemantics(cancellationToken);
-            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
-            if (inheritanceMarginInfoService == null)
-            {
-                return;
-            }
 
             var spanToSearch = spanToTag.SnapshotSpan.Span.ToTextSpan();
             var stopwatch = SharedStopwatch.StartNew();
             var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
                 document,
                 spanToSearch,
+                includeGlobalImports,
                 cancellationToken).ConfigureAwait(false);
             var elapsed = stopwatch.Elapsed;
 
             if (inheritanceMemberItems.IsEmpty)
-            {
                 return;
-            }
 
             InheritanceMarginLogger.LogGenerateBackgroundInheritanceInfo(elapsed);
 
@@ -131,8 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // For example:
             // interface IBar { void Foo1(); void Foo2(); }
             // class Bar : IBar { void Foo1() { } void Foo2() { } }
-            var lineToMembers = inheritanceMemberItems
-                .GroupBy(item => item.LineNumber);
+            var lineToMembers = inheritanceMemberItems.GroupBy(item => item.LineNumber);
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
 

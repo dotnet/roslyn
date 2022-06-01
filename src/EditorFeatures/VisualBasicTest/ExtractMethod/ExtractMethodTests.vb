@@ -5,10 +5,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeCleanup
+Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -97,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
             Assert.NotNull(document)
 
-            Dim extractOptions = New ExtractMethodOptions(DontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
+            Dim extractOptions = New ExtractMethodOptions() With {.DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct}
             Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
@@ -111,7 +115,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.True(selectedCode.ContainsValidContext)
 
             ' extract method
-            Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult))
+            Dim extractGenerationOptions = New ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.LanguageServices)) With
+            {
+                .ExtractOptions = extractOptions
+            }
+
+            Dim extractor = New VisualBasicMethodExtractor(CType(selectedCode, VisualBasicSelectionResult), extractGenerationOptions)
             Dim result = Await extractor.ExtractMethodAsync(CancellationToken.None)
             Assert.NotNull(result)
             Assert.Equal(succeeded, result.Succeeded OrElse result.SucceededWithSuggestion)

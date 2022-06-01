@@ -952,7 +952,7 @@ class Hello
                             result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             // Instrumenting to assist investigation of flakiness. Tracked by https://github.com/dotnet/roslyn/issues/19763
                             RoslynDebug.AssertOrFailFast("" == result.Output);
-                            Assert.Equal(0, result.ExitCode);
+                            RoslynDebug.AssertOrFailFast(0 == result.ExitCode);
 
                             // Run hello3.exe. Should work.
                             RunCompilerOutput(hello3_file, "Hello3 from library3");

@@ -116,11 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], parameterSymbol.Type, delegateType);
                 }
-                var parameterSyntax = syntax.ParameterList.Parameters[i];
-                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
-                {
-                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
-                }
             }
 
             diagnostics.Add(delegateType.Locations[0], useSiteInfo);
@@ -254,6 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
@@ -339,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (ReturnType.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }

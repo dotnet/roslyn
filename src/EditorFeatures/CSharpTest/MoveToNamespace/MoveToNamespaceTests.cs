@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -1176,7 +1177,7 @@ class MyClass
             var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                 testState.InvocationDocument,
                 testState.TestInvocationDocument.SelectedSpans.Single(),
-                CodeCleanupOptions.GetDefaultAsync,
+                CodeActionOptions.DefaultProvider,
                 CancellationToken.None);
 
             Assert.Empty(actions);

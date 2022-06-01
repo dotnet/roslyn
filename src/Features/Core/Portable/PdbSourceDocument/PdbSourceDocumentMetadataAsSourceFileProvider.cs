@@ -15,9 +15,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -175,8 +177,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 "{0} [{1}]",
                 navigateDocument!.Name,
                 firstSourceFileInfo.SourceDescription);
+            var documentTooltip = sourceDocuments[0].FilePath + Environment.NewLine + dllPath;
 
-            return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, sourceDocuments[0].FilePath);
+            return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, documentTooltip);
         }
 
         private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion)
@@ -241,6 +244,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return documents.ToImmutable();
+        }
+
+        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions)
+        {
+            if (_fileToDocumentInfoMap.TryGetValue(filePath, out _))
+            {
+                return blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
+            }
+
+            return false;
         }
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)

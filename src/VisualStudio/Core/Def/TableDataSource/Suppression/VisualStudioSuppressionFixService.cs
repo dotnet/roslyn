@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -310,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     var language = languageService.Language;
                     var options = _globalOptions.GetCodeActionOptions(languageService);
-                    var optionsProvider = new CodeActionOptionsProvider(_ => options);
+                    var optionsProvider = options.CreateProvider();
 
                     var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
                     if (!documentDiagnosticsPerLanguage.IsEmpty)
@@ -374,6 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                             newSolution,
                             fixAllPreviewChangesTitle: title,
                             fixAllTopLevelHeader: title,
+                            fixAllKind: FixAllKind.CodeFix,
                             languageOpt: languageServices?.Count == 1 ? languageServices.Single().Language : null,
                             workspace: _workspace);
                         if (newSolution == null)
