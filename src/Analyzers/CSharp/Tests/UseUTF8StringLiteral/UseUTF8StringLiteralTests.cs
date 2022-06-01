@@ -229,7 +229,7 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -260,7 +260,7 @@ public class C
     private const byte B = 66;
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -289,7 +289,7 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -318,7 +318,7 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -347,7 +347,7 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -376,7 +376,7 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
+        var x = ""ABC""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -405,7 +405,7 @@ public class C
 {
     public void M()
     {
-        var x = """"u8;
+        var x = """"u8.ToArray();
     }
 }",
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
@@ -433,7 +433,7 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8; // I wish this byte array was easier to read
+        var x = ""ABC""u8.ToArray(); // I wish this byte array was easier to read
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -462,7 +462,7 @@ public class C
 {
     public void M(byte[] b)
     {
-        M(/* arrays are */ ""ABC""u8 /* cool */);
+        M(/* arrays are */ ""ABC""u8.ToArray() /* cool */);
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -493,9 +493,9 @@ public class C
 {
     public void M()
     {
-        var x = ""ABC""u8;
-        var y = ""DEF""u8;
-        var z = ""GHI""u8;
+        var x = ""ABC""u8.ToArray();
+        var y = ""DEF""u8.ToArray();
+        var z = ""GHI""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -524,7 +524,7 @@ public class C
 {
     public void M()
     {
-        var x = ""\""\\\0\a\b\f\n\r\t\v""u8;
+        var x = ""\""\\\0\a\b\f\n\r\t\v""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -553,7 +553,7 @@ public class C
 {
     public void M()
     {
-        var x = ""😀""u8;
+        var x = ""😀""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -645,7 +645,7 @@ public class C
 {
     public void M()
     {
-        var x = ""�""u8;
+        var x = ""�""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -710,7 +710,7 @@ class C : IEnumerable<int>
             c.Add(new byte[] { 66 });
             c.Add(new byte[] { 67 });
         */
-        c = new() { ""A""u8, ""B""u8, ""C""u8 };
+        c = new() { ""A""u8.ToArray(), ""B""u8.ToArray(), ""C""u8.ToArray() };
     }
 
     public void Add(params byte[] bytes)
@@ -779,7 +779,7 @@ public class C
 $@"
 public class C
 {{
-    private static readonly byte[] _bytes = ""{stringValue}""u8;
+    private static readonly byte[] _bytes = ""{stringValue}""u8.ToArray();
 }}
 ",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -849,7 +849,7 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(""ABC""u8);
+        M(""ABC""u8.ToArray());
     }
 }
 ",
@@ -880,7 +880,7 @@ public class C
 {
     public void M(int i, params byte[] b)
     {
-        M(1, ""ABC""u8);
+        M(1, ""ABC""u8.ToArray());
     }
 }
 ",
@@ -911,7 +911,7 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(""A""u8);
+        M(""A""u8.ToArray());
     }
 }
 ",
@@ -942,7 +942,7 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(/* hi */ ""A""u8 /* there */);
+        M(/* hi */ ""A""u8.ToArray() /* there */);
     }
 }
 ",
@@ -973,7 +973,7 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(""ABC""u8);
+        M(""ABC""u8.ToArray());
     }
 }
 ",
@@ -1004,7 +1004,7 @@ public class C
 {
     public void M(params byte[] b)
     {
-        M(/* hi */ ""ABC""u8 /* there */);
+        M(/* hi */ ""ABC""u8.ToArray() /* there */);
     }
 }
 ",
@@ -1055,7 +1055,7 @@ public class C
 {
     public void M(int x, params byte[] b)
     {
-        M(1, ""ABC""u8);
+        M(1, ""ABC""u8.ToArray());
     }
 }
 ",
@@ -1086,7 +1086,7 @@ public class C
 {
     public void M(int x, params byte[] b)
     {
-        M(1, /* hi */ ""A""u8 /* there */);
+        M(1, /* hi */ ""A""u8.ToArray() /* there */);
     }
 }
 ",
@@ -1117,7 +1117,7 @@ public class C
 {
     public void M(int x, params byte[] b)
     {
-        M(1, /* hi */ ""ABC""u8 /* there */);
+        M(1, /* hi */ ""ABC""u8.ToArray() /* there */);
     }
 }
 ",
@@ -1148,7 +1148,7 @@ public class C
 {
     public void M(int x, int y, int z, params byte[] b)
     {
-        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ ""ABC""u8 /* a4 */);
+        M( /* b1 */ 1 /* a1 */, /* b2 */ 2 /* a2 */, /* b3 */ 3 /* a3 */, /* b4 */ ""ABC""u8.ToArray() /* a4 */);
     }
 }
 ",
@@ -1179,7 +1179,7 @@ public class C
 {
     public C(params byte[] b)
     {
-        new C(""ABC""u8);
+        new C(""ABC""u8.ToArray());
     }
 }
 ",
@@ -1220,7 +1220,7 @@ public class C
 
     public void M()
     {
-        _ = this[""ABC""u8];
+        _ = this[""ABC""u8.ToArray()];
     }
 }
 ",
@@ -1259,7 +1259,7 @@ namespace System.Runtime.CompilerServices
 ",
                 FixedCode =
 @"
-public record C1(int x) : B(""ABC""u8);
+public record C1(int x) : B(""ABC""u8.ToArray());
 
 public record C2(params byte[] Bytes) : B(Bytes);
 
@@ -1268,8 +1268,8 @@ public record B(params byte[] Bytes)
     public void M()
     {
         new C1(1);
-        new C2(""ABC""u8);
-        new B(""ABC""u8);
+        new C2(""ABC""u8.ToArray());
+        new B(""ABC""u8.ToArray());
     }
 }
 namespace System.Runtime.CompilerServices
@@ -1334,7 +1334,7 @@ public class B
 public class C1 : B
 {
     public C1(int x)
-        : base(""ABC""u8)
+        : base(""ABC""u8.ToArray())
     {
     }
 }
@@ -1355,16 +1355,16 @@ public class B
     }
 
     public B(int x)
-        : this(""ABC""u8)
+        : this(""ABC""u8.ToArray())
     {
     }
 
     public B(params byte[] bytes)
     {
         new C1(1);
-        new C2(""ABC""u8);
-        new B(""ABC""u8);
-        new B(""a"", ""ABC""u8);
+        new C2(""ABC""u8.ToArray());
+        new B(""ABC""u8.ToArray());
+        new B(""a"", ""ABC""u8.ToArray());
     }
 }
 ",
@@ -1395,7 +1395,7 @@ public class C
 {
     public void M(int[] i, byte[] b)
     {
-        M(new int[] { 1 }, ""ABC""u8);
+        M(new int[] { 1 }, ""ABC""u8.ToArray());
     }
 }
 ",
@@ -1426,7 +1426,7 @@ public class C
 {
     public void M(int[] i, params byte[] b)
     {
-        M(new int[] { 1 }, ""ABC""u8);
+        M(new int[] { 1 }, ""ABC""u8.ToArray());
     }
 }
 ",
@@ -1457,7 +1457,7 @@ public class C
 {
     public void M(byte[][] i, byte[] b)
     {
-        M(new byte[][] { ""ABC""u8, ""ABC""u8 }, ""ABC""u8);
+        M(new byte[][] { ""ABC""u8.ToArray(), ""ABC""u8.ToArray() }, ""ABC""u8.ToArray());
     }
 }
 ",
