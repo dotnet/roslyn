@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract string GetContainerDisplayName(TMemberDeclarationSyntax namespaceDeclaration);
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
+        protected abstract DeclaredSymbolInfo? GetTypeDeclarationInfo(
+            SyntaxNode container, TTypeDeclarationSyntax typeDeclaration, StringTable stringTable, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         protected abstract void AddSingleDeclaredSymbolInfos(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         protected abstract void AddLocalFunctionInfos(
@@ -196,7 +198,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 AddNamespaceDeclaredSymbolInfos(GetName(namespaceDeclaration), fullyQualifiedContainerName);
 
                 var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
-                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
 
                 foreach (var usingAlias in GetUsingAliases(namespaceDeclaration))
                 {
@@ -204,6 +205,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         AddAliases(aliases, current);
                 }
 
+                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(namespaceDeclaration))
                 {
                     AddDeclaredSymbolInfos(
@@ -211,17 +213,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
             }
-            else if (memberDeclaration is TTypeDeclarationSyntax baseTypeDeclaration)
+            else if (memberDeclaration is TTypeDeclarationSyntax typeDeclaration)
             {
                 var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
-                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
-                foreach (var child in GetChildren(baseTypeDeclaration))
-                {
-                    AddDeclaredSymbolInfos(
-                        memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
-                        innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
-                }
 
+                // Add the item for the type itself:
+                declaredSymbolInfos.AddIfNotNull(GetTypeDeclarationInfo(
+                    container,
+                    typeDeclaration,
+                    stringTable,
+                    containerDisplayName,
+                    fullyQualifiedContainerName,
+                    cancellationToken));
+
+                // Then any synthesized members in that type (for example, synthesized properties in a record):
+                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 AddSynthesizedDeclaredSymbolInfos(
                     container,
                     memberDeclaration,
@@ -231,6 +237,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     innerFullyQualifiedContainerName,
                     cancellationToken);
 
+                // Then recurse into the children and add those.
+                foreach (var child in GetChildren(typeDeclaration))
+                {
+                    AddDeclaredSymbolInfos(
+                        memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                        innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
+                }
+            }
+            else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
+            {
+                var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
+
+                // Add the item for the type itself:
                 AddSingleDeclaredSymbolInfos(
                     container,
                     memberDeclaration,
@@ -239,10 +258,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     containerDisplayName,
                     fullyQualifiedContainerName,
                     cancellationToken);
-            }
-            else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
-            {
-                var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
+
+                // Then recurse into the children and add those.
                 var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(enumDeclaration))
                 {
@@ -250,18 +267,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
-
-                AddSingleDeclaredSymbolInfos(
-                    container,
-                    memberDeclaration,
-                    stringTable,
-                    declaredSymbolInfos,
-                    containerDisplayName,
-                    fullyQualifiedContainerName,
-                    cancellationToken);
             }
             else
             {
+                // For anything that isn't a namespace/type/enum (generally a member), try to add the information about that
                 var count = declaredSymbolInfos.Count;
                 AddSingleDeclaredSymbolInfos(
                     container,
@@ -273,7 +282,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     cancellationToken);
 
                 // If the AddSingle call added an item, and that item was an extension method, then go and add the
-                // information about this extension method
+                // information about this extension method to our 
                 if (declaredSymbolInfos.Count != count &&
                     declaredSymbolInfos.Last().Kind == DeclaredSymbolInfoKind.ExtensionMethod &&
                     memberDeclaration is TMethodDeclarationSyntax methodDeclaration)

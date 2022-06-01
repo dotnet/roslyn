@@ -215,6 +215,47 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
+        protected override DeclaredSymbolInfo? GetTypeDeclarationInfo(
+            SyntaxNode container,
+            TypeDeclarationSyntax typeDeclaration,
+            StringTable stringTable,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
+            CancellationToken cancellationToken)
+        {
+            // If this is a part of partial type that only contains nested types, then we don't make an info type for
+            // it. That's because we effectively think of this as just being a virtual container just to hold the nested
+            // types, and not something someone would want to explicitly navigate to itself.  Similar to how we think of
+            // namespaces.
+            if (typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) &&
+                typeDeclaration.Members.Any() &&
+                typeDeclaration.Members.All(m => m is BaseTypeDeclarationSyntax))
+            {
+                return null;
+            }
+
+            return DeclaredSymbolInfo.Create(
+                stringTable,
+                typeDeclaration.Identifier.ValueText,
+                GetTypeParameterSuffix(typeDeclaration.TypeParameterList),
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
+                typeDeclaration.Kind() switch
+                {
+                    SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
+                    SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
+                    SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
+                    SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
+                    SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
+                    _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
+                },
+                GetAccessibility(container, typeDeclaration.Modifiers),
+                typeDeclaration.Identifier.Span,
+                GetInheritanceNames(stringTable, typeDeclaration.BaseList),
+                IsNestedType(typeDeclaration));
+        }
+
         protected override void AddSingleDeclaredSymbolInfos(
             SyntaxNode container,
             MemberDeclarationSyntax node,
@@ -224,47 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
         {
-            // If this is a part of partial type that only contains nested types, then we don't make an info type for
-            // it. That's because we effectively think of this as just being a virtual container just to hold the nested
-            // types, and not something someone would want to explicitly navigate to itself.  Similar to how we think of
-            // namespaces.
-            if (node is TypeDeclarationSyntax typeDeclaration &&
-                typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) &&
-                typeDeclaration.Members.Any() &&
-                typeDeclaration.Members.All(m => m is BaseTypeDeclarationSyntax))
-            {
-                return;
-            }
-
+            Contract.ThrowIfTrue(node is TypeDeclarationSyntax);
             switch (node.Kind())
             {
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.RecordDeclaration:
-                case SyntaxKind.RecordStructDeclaration:
-                    var typeDecl = (TypeDeclarationSyntax)node;
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        typeDecl.Identifier.ValueText,
-                        GetTypeParameterSuffix(typeDecl.TypeParameterList),
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        typeDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        node.Kind() switch
-                        {
-                            SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-                            SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
-                            SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
-                            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
-                            SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-                            _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
-                        },
-                        GetAccessibility(container, typeDecl.Modifiers),
-                        typeDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, typeDecl.BaseList),
-                        IsNestedType(typeDecl)));
-                    return;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
