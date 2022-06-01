@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -276,14 +275,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 isNestedType: IsNestedType(enumDeclaration));
         }
 
-        protected override void AddSingleDeclaredSymbolInfos(
+        protected override void AddMemberDeclarationInfos(
             SyntaxNode container,
             MemberDeclarationSyntax node,
             StringTable stringTable,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
             string containerDisplayName,
-            string fullyQualifiedContainerName,
-            CancellationToken cancellationToken)
+            string fullyQualifiedContainerName)
         {
             Contract.ThrowIfTrue(node is TypeDeclarationSyntax);
             switch (node.Kind())

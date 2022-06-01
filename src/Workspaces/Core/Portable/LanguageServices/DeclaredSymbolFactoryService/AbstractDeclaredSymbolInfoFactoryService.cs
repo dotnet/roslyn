@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SyntaxNode container, TTypeDeclarationSyntax typeDeclaration, StringTable stringTable, string containerDisplayName, string fullyQualifiedContainerName);
         protected abstract DeclaredSymbolInfo GetEnumDeclarationInfo(
             SyntaxNode container, TEnumDeclarationSyntax enumDeclaration, StringTable stringTable, string containerDisplayName, string fullyQualifiedContainerName);
-        protected abstract void AddSingleDeclaredSymbolInfos(
-            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+        protected abstract void AddMemberDeclarationInfos(
+            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName);
         protected abstract void AddLocalFunctionInfos(
             TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         protected abstract void AddLocalFunctionInfos(
@@ -271,14 +271,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 // For anything that isn't a namespace/type/enum (generally a member), try to add the information about that
                 var count = declaredSymbolInfos.Count;
-                AddSingleDeclaredSymbolInfos(
+                AddMemberDeclarationInfos(
                     container,
                     memberDeclaration,
                     stringTable,
                     declaredSymbolInfos,
                     containerDisplayName,
-                    fullyQualifiedContainerName,
-                    cancellationToken);
+                    fullyQualifiedContainerName);
 
                 // If the AddSingle call added an item, and that item was an extension method, then go and add the
                 // information about this extension method to our 
@@ -286,11 +285,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     declaredSymbolInfos.Last().Kind == DeclaredSymbolInfoKind.ExtensionMethod &&
                     memberDeclaration is TMethodDeclarationSyntax methodDeclaration)
                 {
-                    AddExtensionMethodInfo(
-                        methodDeclaration,
-                        declaredSymbolInfos,
-                        aliases,
-                        extensionMethodInfo);
+                    AddExtensionMethodInfo(methodDeclaration);
                 }
 
                 AddLocalFunctionInfos(
@@ -339,41 +334,37 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     return fullyQualifiedContainerName;
                 }
             }
-        }
 
-        private void AddExtensionMethodInfo(
-            TMethodDeclarationSyntax methodDeclaration,
-            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            Dictionary<string, string?> aliases,
-            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo)
-        {
-            var declaredSymbolInfoIndex = declaredSymbolInfos.Count - 1;
-
-            var receiverTypeName = this.GetReceiverTypeName(methodDeclaration);
-
-            // Target type is an alias
-            if (aliases.TryGetValue(receiverTypeName, out var originalName))
+            void AddExtensionMethodInfo(TMethodDeclarationSyntax methodDeclaration)
             {
-                // it is an alias of multiple with identical name,
-                // simply treat it as a complex method.
-                if (originalName == null)
-                {
-                    receiverTypeName = FindSymbols.Extensions.ComplexReceiverTypeName;
-                }
-                else
-                {
-                    // replace the alias with its original name.
-                    receiverTypeName = originalName;
-                }
-            }
+                var declaredSymbolInfoIndex = declaredSymbolInfos.Count - 1;
 
-            if (!extensionMethodInfo.TryGetValue(receiverTypeName, out var arrayBuilder))
-            {
-                arrayBuilder = ArrayBuilder<int>.GetInstance();
-                extensionMethodInfo[receiverTypeName] = arrayBuilder;
-            }
+                var receiverTypeName = this.GetReceiverTypeName(methodDeclaration);
 
-            arrayBuilder.Add(declaredSymbolInfoIndex);
+                // Target type is an alias
+                if (aliases.TryGetValue(receiverTypeName, out var originalName))
+                {
+                    // it is an alias of multiple with identical name,
+                    // simply treat it as a complex method.
+                    if (originalName == null)
+                    {
+                        receiverTypeName = FindSymbols.Extensions.ComplexReceiverTypeName;
+                    }
+                    else
+                    {
+                        // replace the alias with its original name.
+                        receiverTypeName = originalName;
+                    }
+                }
+
+                if (!extensionMethodInfo.TryGetValue(receiverTypeName, out var arrayBuilder))
+                {
+                    arrayBuilder = ArrayBuilder<int>.GetInstance();
+                    extensionMethodInfo[receiverTypeName] = arrayBuilder;
+                }
+
+                arrayBuilder.Add(declaredSymbolInfoIndex);
+            }
         }
 
         private static void AddAliases(Dictionary<string, string?> allAliases, ImmutableArray<(string aliasName, string name)> aliases)

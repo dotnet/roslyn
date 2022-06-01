@@ -192,14 +192,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 IsNestedType(enumDeclaration))
         End Function
 
-        Protected Overrides Sub AddSingleDeclaredSymbolInfos(
+        Protected Overrides Sub AddMemberDeclarationInfos(
                 container As SyntaxNode,
                 node As StatementSyntax,
                 stringTable As StringTable,
                 declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
                 containerDisplayName As String,
-                fullyQualifiedContainerName As String,
-                cancellationToken As CancellationToken)
+                fullyQualifiedContainerName As String)
 
             If node.Kind() = SyntaxKind.PropertyBlock Then
                 node = DirectCast(node, PropertyBlockSyntax).PropertyStatement
