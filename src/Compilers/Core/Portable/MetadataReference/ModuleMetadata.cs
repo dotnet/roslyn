@@ -181,9 +181,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
             }
 
+            var prefetch = (options & (PEStreamOptions.PrefetchEntireImage | PEStreamOptions.PrefetchMetadata)) != 0;
+
             // If this stream is an UnmanagedMemoryStream, we can heavily optimize creating the metadata by directly
-            // accessing the underlying memory.
-            if (peStream is UnmanagedMemoryStream unmanagedMemoryStream)
+            // accessing the underlying memory. Note: we can only do this if the caller asked us not to prefetch the
+            // metadata from the stream.  In that case, we want to fall through below and have the PEReader read
+            // everything into a copy immediately.  If, however, we are allowed to be lazy, we can create an efficient
+            // metadata that is backed directly by the memory that is backed in, and which will release that memory (if
+            // requested) once it is done with it.
+            if (!prefetch && peStream is UnmanagedMemoryStream unmanagedMemoryStream)
             {
                 unsafe
                 {
