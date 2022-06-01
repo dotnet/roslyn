@@ -144,15 +144,18 @@ namespace Microsoft.CodeAnalysis.Remote
             if (solution.BranchId != _workspace.PrimaryBranchId)
                 return;
 
-            // Check if we've been asked to cancel because we've been paused.  If so, don't bother proceeding.
-            var uncancelledTokens = cancellationTokens.Where(ct => !ct.IsCancellationRequested).ToList();
-            if (uncancelledTokens.Count == 0)
+            // Because we dedupe the cancellation tokens we add to the set, and because we only add a new token once
+            // we've canceled the previous ones, there can only be at most one actual real cancellation token that is
+            // not already canceled.
+            var uncancelledToken = cancellationTokens.SingleOrNull(ct => !ct.IsCancellationRequested);
+
+            // if we didn't get an actual non-canceled token back, then this batch was entirely canceled and we have
+            // nothing to do.
+            if (uncancelledToken is null)
                 return;
 
-            uncancelledTokens.Add(disposalToken);
-
             // Create a token that will fire if we are disposed or if we get paused.
-            using var source = CancellationTokenSource.CreateLinkedTokenSource(uncancelledTokens.ToArray());
+            using var source = CancellationTokenSource.CreateLinkedTokenSource(uncancelledToken.Value, disposalToken);
 
             // Now actually synchronize the workspace.
             var cancellationToken = source.Token;
