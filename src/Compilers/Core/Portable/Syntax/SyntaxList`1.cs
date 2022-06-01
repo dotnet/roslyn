@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis
             return _node?.GetHashCode() ?? 0;
         }
 
-        [Obsolete("Implicit downcast is not safe. Use explicit cast instead.", error: true)]
+        [Obsolete("This method is preserved for binary compatibility only. Use explicit cast instead.", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxList<TNode> op_Implicit(SyntaxList<SyntaxNode> nodes)
         {

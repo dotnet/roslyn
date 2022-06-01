@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
         }
 
-        [Obsolete("Implicit downcast is not safe. Use explicit cast instead.", error: true)]
+        [Obsolete("This method is preserved for binary compatibility only. Use explicit cast instead.", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SeparatedSyntaxList<TNode> op_Implicit(SeparatedSyntaxList<SyntaxNode> nodes)
         {
