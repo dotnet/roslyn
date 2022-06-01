@@ -72,8 +72,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName);
         protected abstract void AddLocalFunctionInfos(
             TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
-        protected abstract void AddLocalFunctionInfos(
-            TCompilationUnitSyntax compilationUnit, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, CancellationToken cancellationToken);
         protected abstract void AddSynthesizedDeclaredSymbolInfos(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
 
@@ -172,13 +170,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             foreach (var child in GetChildren((TCompilationUnitSyntax)root))
                 AddDeclaredSymbolInfos(root, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, "", "", cancellationToken);
-
-            // Add local function for top-level-programs.
-            AddLocalFunctionInfos(
-                (TCompilationUnitSyntax)root,
-                stringTable,
-                declaredSymbolInfos,
-                cancellationToken);
         }
 
         private void AddDeclaredSymbolInfos(

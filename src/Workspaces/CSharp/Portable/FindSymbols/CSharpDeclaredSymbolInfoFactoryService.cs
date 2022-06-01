@@ -159,19 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         }
 
         protected override void AddLocalFunctionInfos(
-            CompilationUnitSyntax compilationUnit,
-            StringTable stringTable,
-            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            CancellationToken cancellationToken)
-        {
-            foreach (var member in compilationUnit.Members)
-            {
-                if (member is GlobalStatementSyntax)
-                    AddLocalFunctionInfosRecurse(member, stringTable, declaredSymbolInfos, containerDisplayName: "", fullyQualifiedContainerName: "", cancellationToken);
-            }
-        }
-
-        protected override void AddLocalFunctionInfos(
             MemberDeclarationSyntax memberDeclaration,
             StringTable stringTable,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
@@ -179,39 +166,35 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
         {
-            AddLocalFunctionInfosRecurse(memberDeclaration, stringTable, declaredSymbolInfos, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
-        }
+            AddLocalFunctionInfosRecurse(memberDeclaration);
 
-        private void AddLocalFunctionInfosRecurse(
-            SyntaxNode node,
-            StringTable stringTable,
-            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            string containerDisplayName,
-            string fullyQualifiedContainerName,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+            return;
 
-            foreach (var child in node.ChildNodesAndTokens())
+            void AddLocalFunctionInfosRecurse(SyntaxNode node)
             {
-                if (child.IsNode)
-                    AddLocalFunctionInfosRecurse(child.AsNode()!, stringTable, declaredSymbolInfos, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            if (node is LocalFunctionStatementSyntax localFunction)
-            {
-                declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                    stringTable,
-                    localFunction.Identifier.ValueText, GetMethodSuffix(localFunction),
-                    containerDisplayName,
-                    fullyQualifiedContainerName,
-                    isPartial: false,
-                    DeclaredSymbolInfoKind.Method,
-                    Accessibility.Private,
-                    localFunction.Identifier.Span,
-                    inheritanceNames: ImmutableArray<string>.Empty,
-                    parameterCount: localFunction.ParameterList.Parameters.Count,
-                    typeParameterCount: localFunction.TypeParameterList?.Parameters.Count ?? 0));
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                        AddLocalFunctionInfosRecurse(child.AsNode()!, stringTable, declaredSymbolInfos, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                }
+
+                if (node is LocalFunctionStatementSyntax localFunction)
+                {
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
+                        stringTable,
+                        localFunction.Identifier.ValueText, GetMethodSuffix(localFunction),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
+                        isPartial: false,
+                        DeclaredSymbolInfoKind.Method,
+                        Accessibility.Private,
+                        localFunction.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty,
+                        parameterCount: localFunction.ParameterList.Parameters.Count,
+                        typeParameterCount: localFunction.TypeParameterList?.Parameters.Count ?? 0));
+                }
             }
         }
 
