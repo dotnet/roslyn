@@ -122,6 +122,14 @@ namespace IdeCoreBenchmarks
                     (ctx, _) =>
                     {
                         var node = (ClassDeclarationSyntax)ctx.Node;
+                        //var symbol = ctx.SemanticModel.GetDeclaredSymbol(node);
+                        //foreach (var attribute in symbol.GetAttributes())
+                        //{
+                        //    if (attribute.AttributeClass.ToDisplayString() == "System.Text.Json.Serialization.JsonSerializationAttribute")
+                        //    {
+
+                        //    }
+                        //}
                         return node;
                     });
 #else
