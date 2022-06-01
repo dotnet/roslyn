@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 foreach (var child in node.ChildNodesAndTokens())
                 {
                     if (child.IsNode)
-                        AddLocalFunctionInfosRecurse(child.AsNode()!, stringTable, declaredSymbolInfos, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                        AddLocalFunctionInfosRecurse(child.AsNode()!);
                 }
 
                 if (node is LocalFunctionStatementSyntax localFunction)
