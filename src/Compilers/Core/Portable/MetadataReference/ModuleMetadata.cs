@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return CreateFromImage(
                         (IntPtr)unmanagedMemoryStream.PositionPointer,
-                        (int)unmanagedMemoryStream.Length,
+                        (int)Math.Min(unmanagedMemoryStream.Length, int.MaxValue),
                         owner: unmanagedMemoryStream,
                         disposeOwner: !options.HasFlag(PEStreamOptions.LeaveOpen));
                 }
