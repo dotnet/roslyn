@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
-            => CreateFromImage(peImage, size, owner: null, disposeOwner: false);
+            => CreateFromImage((byte*)peImage, size, owner: null, disposeOwner: false);
 
-        private static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size, IDisposable? owner, bool disposeOwner)
+        private static unsafe ModuleMetadata CreateFromImage(byte* peImage, int size, IDisposable? owner, bool disposeOwner)
         {
-            if (peImage == IntPtr.Zero)
+            if (peImage == null)
             {
                 throw new ArgumentNullException(nameof(peImage));
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader((byte*)peImage, size), owner, disposeOwner);
+            return new ModuleMetadata(new PEReader(peImage, size), owner, disposeOwner);
         }
 
         /// <summary>
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 unsafe
                 {
                     return CreateFromImage(
-                        (IntPtr)unmanagedMemoryStream.PositionPointer,
+                        unmanagedMemoryStream.PositionPointer,
                         (int)Math.Min(unmanagedMemoryStream.Length, int.MaxValue),
                         owner: unmanagedMemoryStream,
                         disposeOwner: !options.HasFlag(PEStreamOptions.LeaveOpen));
