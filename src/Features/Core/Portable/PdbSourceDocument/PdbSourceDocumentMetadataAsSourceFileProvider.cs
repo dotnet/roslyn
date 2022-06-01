@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
+        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
         private readonly IPdbSourceDocumentLogger? _logger;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
@@ -42,10 +43,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         public PdbSourceDocumentMetadataAsSourceFileProvider(
             IPdbFileLocatorService pdbFileLocatorService,
             IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService,
+            IImplementationAssemblyLookupService implementationAssemblyLookupService,
             [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
         {
             _pdbFileLocatorService = pdbFileLocatorService;
             _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
+            _implementationAssemblyLookupService = implementationAssemblyLookupService;
             _logger = logger;
         }
 
@@ -84,13 +87,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var isReferenceAssembly = MetadataAsSourceHelpers.IsReferenceAssembly(symbol.ContainingAssembly);
             if (isReferenceAssembly)
             {
-                if (MetadataAsSourceHelpers.TryFindImplementationAssemblyPath(dllPath, out dllPath))
+                if (_implementationAssemblyLookupService.TryFindImplementationAssemblyPath(dllPath, out dllPath))
                 {
                     _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 
                     // If the original assembly was a reference assembly, we can't trust that the implementation assembly
                     // we found actually contains the types, so we need to find it, following any type forwards.
-                    dllPath = MetadataAsSourceHelpers.FollowTypeForwards(symbolToFind, dllPath, _logger);
+
+                    dllPath = _implementationAssemblyLookupService.FollowTypeForwards(symbolToFind, dllPath, _logger);
                     if (dllPath is null)
                     {
                         _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
@@ -360,6 +364,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
             _fileToDocumentInfoMap.Clear();
             _sourceLinkEnabledProjects.Clear();
+            _implementationAssemblyLookupService.Clear();
         }
     }
 

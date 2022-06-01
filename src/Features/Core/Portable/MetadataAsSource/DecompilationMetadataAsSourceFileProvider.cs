@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -29,12 +30,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
 
         private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
+        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DecompilationMetadataAsSourceFileProvider()
+        public DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService)
         {
+            _implementationAssemblyLookupService = implementationAssemblyLookupService;
         }
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
@@ -156,7 +159,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
         }
 
-        private static (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)
+        private (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)
         {
             var metadataReference = compilation.GetMetadataReference(containingAssembly);
             var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             if (assemblyLocation is not null &&
                 isReferenceAssembly &&
-                !MetadataAsSourceHelpers.TryFindImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
+                !_implementationAssemblyLookupService.TryFindImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
             {
                 try
                 {
