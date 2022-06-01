@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public virtual Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
+        public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => false;
 

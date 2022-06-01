@@ -192,6 +192,9 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
+            public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 

@@ -9,13 +9,16 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal abstract partial class AbstractEditorInlineRenameService
     {
-        private class FailureInlineRenameInfo : IInlineRenameInfo
+        internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+
+        private sealed class FailureInlineRenameInfo : IInlineRenameInfo
         {
             public FailureInlineRenameInfo(string localizedErrorMessage)
                 => this.LocalizedErrorMessage = localizedErrorMessage;
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public bool HasOverloads => false;
 
-            public bool ForceRenameOverloads => false;
+            public bool MustRenameOverloads => false;
 
             public string LocalizedErrorMessage { get; }
 
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken) => null;
 
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) => Task.FromResult<IInlineRenameLocationSet>(null);
+            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken) => Task.FromResult<IInlineRenameLocationSet>(null);
 
             public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
 

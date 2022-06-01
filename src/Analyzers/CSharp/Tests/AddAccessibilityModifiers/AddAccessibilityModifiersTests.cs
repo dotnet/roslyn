@@ -581,5 +581,35 @@ public partial class C
 
             await test.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        public async Task TestStaticOperatorInInterface()
+        {
+            var source = @"
+internal interface I<T> where T : I<T>
+{
+    abstract static int operator +(T x);
+}
+
+internal class C : I<C>
+{
+    static int I<C>.operator +(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
+            };
+
+            await test.RunAsync();
+        }
     }
 }

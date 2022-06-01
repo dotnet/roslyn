@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DecompiledSource;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -56,14 +55,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToSymbolAsync(
+            ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
             {
                 return false;
             }
 
-            options ??= project.Solution.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -78,7 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options, cancellationToken);
+                    return await navigationService.TryNavigateToSpanAsync(
+                        editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return false;
                 }
 
-                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
                 if (navInfo == null)
                 {
@@ -115,14 +115,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
+            return await TryNavigateToMetadataAsync(project, symbol, options, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, NavigationOptions options, CancellationToken cancellationToken)
+        {
             var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
-            var result = ThreadingContext.JoinableTaskFactory.Run(() => _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken));
+
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
+
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_serviceProvider);
-            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
+            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out _, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
@@ -150,12 +158,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;
                 var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                return navigationService.TryNavigateToSpan(
+                return await navigationService.TryNavigateToSpanAsync(
                     editorWorkspace,
                     openedDocument.Id,
                     result.IdentifierLocation.SourceSpan,
-                    options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
-                    cancellationToken);
+                    options with { PreferProvisionalTab = true },
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return true;

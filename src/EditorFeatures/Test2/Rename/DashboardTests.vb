@@ -5,8 +5,8 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -15,8 +15,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNoOverload(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
@@ -37,14 +35,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                      </Workspace>), host:=host,
                     newName:="",
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
-                    changedOptionSet:=changingOptions)
+                    renameOverloads:=True)
         End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithOverload(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
@@ -70,15 +66,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     newName:="",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                     hasRenameOverload:=True,
-                    changedOptionSet:=changingOptions)
+                    renameOverloads:=True)
         End Function
 
         <WpfTheory>
         <WorkItem(883263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithInvalidOverload(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -99,7 +93,7 @@ class Program
                 host:=host,
                 newName:="Bar",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
-                changedOptionSet:=changingOptions,
+                renameOverloads:=True,
                 hasRenameOverload:=True,
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 1),
                 severity:=DashboardSeverity.Error)
@@ -129,10 +123,6 @@ class AttributeAttribute : System.Attribute { }
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameWithOverloadAndInStringsAndComments(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
-            changingOptions.Add(RenameOptions.RenameInStrings, True)
-            changingOptions.Add(RenameOptions.RenameInComments, True)
             Await VerifyDashboard(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
@@ -161,15 +151,15 @@ class AttributeAttribute : System.Attribute { }
                     newName:="",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 5),
                     hasRenameOverload:=True,
-                    changedOptionSet:=changingOptions)
+                    renameOverloads:=True,
+                    renameInStrings:=True,
+                    renameInComments:=True)
         End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInComments(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameInComments, True)
             Await VerifyDashboard(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
@@ -201,15 +191,13 @@ class $$Program
                      </Workspace>), host:=host,
                     newName:="P",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 6),
-                    changedOptionSet:=changingOptions)
+                    renameInComments:=True)
         End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInStrings(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameInStrings, True)
             Await VerifyDashboard(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
@@ -241,16 +229,13 @@ class $$Program
                      </Workspace>), host:=host,
                     newName:="P",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
-                    changedOptionSet:=changingOptions)
+                    renameInStrings:=True)
         End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         Public Async Function RenameInCommentsAndStrings(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameInComments, True)
-            changingOptions.Add(RenameOptions.RenameInStrings, True)
             Await VerifyDashboard(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
@@ -282,7 +267,8 @@ class $$Program
                      </Workspace>), host:=host,
                     newName:="P",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 7),
-                    changedOptionSet:=changingOptions)
+                    renameInStrings:=True,
+                    renameInComments:=True)
         End Function
 
         <WpfTheory>
@@ -512,8 +498,6 @@ class C
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromDefinition_WithRenameOverloads_Cascading(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -542,7 +526,7 @@ class D : B
                  </Workspace>), host:=host,
                    newName:="Mo",
                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 5),
-                   changedOptionSet:=changingOptions,
+                   renameOverloads:=True,
                    hasRenameOverload:=True)
         End Function
 
@@ -553,13 +537,22 @@ class D : B
             host As RenameTestHost,
             Optional hasRenameOverload As Boolean = False,
             Optional isRenameOverloadsEditable As Boolean = True,
-            Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
+            Optional renameOverloads As Boolean = False,
+            Optional renameInStrings As Boolean = False,
+            Optional renameInComments As Boolean = False,
+            Optional renameFile As Boolean = False,
             Optional resolvableConflictText As String = Nothing,
             Optional unresolvableConflictText As String = Nothing,
             Optional severity As DashboardSeverity = DashboardSeverity.None
         ) As Tasks.Task
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
+                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), renameOverloads)
+                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), renameInStrings)
+                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), renameInComments)
+                globalOptions.SetGlobalOption(New OptionKey(InlineRenameSessionOptionsStorage.RenameFile), renameFile)
+
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -574,16 +567,6 @@ class D : B
                 For Each d In workspace.Documents
                     d.GetTextView()
                 Next
-
-                Dim optionSet = workspace.Options
-
-                If changedOptionSet IsNot Nothing Then
-                    For Each entry In changedOptionSet
-                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
-                    Next
-                End If
-
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
 
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
@@ -637,8 +620,6 @@ class D : B
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithReferenceInUnchangeableDocument(host As RenameTestHost) As Task
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
                     (<Workspace>
                          <Project Language="C#">
@@ -660,7 +641,7 @@ class D : B
                      </Workspace>), host:=host,
                     newName:="C",
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
-                    changedOptionSet:=changingOptions)
+                    renameOverloads:=True)
         End Function
     End Class
 End Namespace

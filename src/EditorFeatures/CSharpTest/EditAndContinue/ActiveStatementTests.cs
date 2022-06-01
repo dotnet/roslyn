@@ -11221,18 +11221,32 @@ class C
             {
                 if (node.Parent is MethodDeclarationSyntax methodDecl && methodDecl.Identifier.Text == "G")
                 {
-                    throw outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
+                    throw outOfMemory ? new OutOfMemoryException() : new SimpleToStringException();
                 }
             });
 
             var expectedDiagnostic = outOfMemory ?
                 Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method) :
-                Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method);
+                Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method, SimpleToStringException.ToStringOutput);
 
             validator.VerifySemantics(
                 new[] { edits },
                 TargetFramework.NetCoreApp,
                 new[] { DocumentResults(diagnostics: new[] { expectedDiagnostic }) });
+        }
+
+        /// <summary>
+        /// Custom exception class that has a fixed ToString so that tests aren't relying
+        /// on stack traces, which could make them flaky
+        /// </summary>
+        private class SimpleToStringException : Exception
+        {
+            public const string ToStringOutput = "<Exception>";
+
+            public override string ToString()
+            {
+                return ToStringOutput;
+            }
         }
 
         #endregion

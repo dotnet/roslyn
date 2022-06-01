@@ -1499,7 +1499,7 @@ End Module
         Private Sub EnumerateChildren(iop As IOperation, ByRef numChildren as Integer)
             numChildren += 1
             Assert.NotNull(iop)
-            For Each child in iop.Children
+            For Each child In iop.ChildOperations
                 EnumerateChildren(child, numChildren)
             Next
         End Sub

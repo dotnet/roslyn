@@ -2,249 +2,229 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.CodeAnalysis.Test.Utilities.TextStructureNavigation
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
     <[UseExportProvider]>
     Public Class TextStructureNavigatorTests
+        Inherits AbstractTextStructureNavigatorTests
+
+        Protected Overrides ReadOnly Property ContentType As String = ContentTypeNames.VisualBasicContentType
+
+        Protected Overrides Function CreateWorkspace(code As String) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(code)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestEmpty()
             AssertExtent(
-                String.Empty,
-                pos:=0,
-                isSignificant:=False,
-                start:=0, length:=0)
+                "{|Insignificant:$$|}")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestWhitespace()
             AssertExtent(
-                "   ",
-                pos:=0,
-                isSignificant:=False,
-                start:=0, length:=3)
+                "{|Insignificant:$$   |}")
 
             AssertExtent(
-                "   ",
-                pos:=1,
-                isSignificant:=False,
-                start:=0, length:=3)
+                "{|Insignificant: $$  |}")
 
             AssertExtent(
-                "   ",
-                pos:=3,
-                isSignificant:=False,
-                start:=0, length:=3)
+                "{|Insignificant:   |}$$")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestEndOfFile()
             AssertExtent(
-                "Imports System",
-                pos:=14,
-                isSignificant:=True,
-                start:=8, length:=6)
+                "Imports {|Significant:System|}$$")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestNewLine()
             AssertExtent(
-                "Module Module1" & vbCrLf & vbCrLf & "End Module",
-                pos:=14,
-                isSignificant:=False,
-                start:=14, length:=2)
+                "Module Module1{|Insignificant:$$
+|}
+End Module")
 
             AssertExtent(
-                "Module Module1" & vbCrLf & vbCrLf & "End Module",
-                pos:=15,
-                isSignificant:=False,
-                start:=14, length:=2)
-
-            AssertExtent(
-                "Module Module1" & vbCrLf & vbCrLf & "End Module",
-                pos:=16,
-                isSignificant:=False,
-                start:=16, length:=2)
-
-            AssertExtent(
-                "Module Module1" & vbCrLf & vbCrLf & "End Module",
-                pos:=17,
-                isSignificant:=False,
-                start:=16, length:=2)
+                "Module Module1
+{|Insignificant:$$
+|}End Module")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestComment()
             AssertExtent(
-                " ' Comment  ",
-                pos:=1,
-                isSignificant:=True,
-                start:=1, length:=11)
+                " {|Significant:$$' Comment  |}")
 
             AssertExtent(
-                " ' Comment  ",
-                pos:=5,
-                isSignificant:=True,
-                start:=3, length:=7)
+                " ' {|Significant:Co$$mment|}  ")
 
             AssertExtent(
-                " ' () test",
-                pos:=4,
-                isSignificant:=True,
-                start:=3, length:=2)
+                " ' {|Significant:($$)|} test")
 
             AssertExtent(
-                " REM () test",
-                pos:=1,
-                isSignificant:=True,
-                start:=1, length:=11)
+                " {|Significant:$$REM () test|}")
 
             AssertExtent(
-                " rem () test",
-                pos:=6,
-                isSignificant:=True,
-                start:=5, length:=2)
+                " rem {|Significant:($$)|} test")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestKeyword()
-            For i = 7 To 12
-                AssertExtent(
-                    "Public Module Module1",
-                    pos:=i,
-                    isSignificant:=True,
-                    start:=7, length:=6)
-            Next
+            AssertExtent(
+                "Public {|Significant:$$Module|} Module1")
+
+            AssertExtent(
+                "Public {|Significant:M$$odule|} Module1")
+
+            AssertExtent(
+                "Public {|Significant:Mo$$dule|} Module1")
+
+            AssertExtent(
+                "Public {|Significant:Mod$$ule|} Module1")
+
+            AssertExtent(
+                "Public {|Significant:Modu$$le|} Module1")
+
+            AssertExtent(
+                "Public {|Significant:Modul$$e|} Module1")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestIdentifier()
-            For i = 13 To 13 + 8
-                AssertExtent(
-                    "Public Class SomeClass : Inherits Object",
-                    pos:=i,
-                    isSignificant:=True,
-                    start:=13, length:=9)
-            Next
+            AssertExtent(
+                "Public Class {|Significant:$$SomeClass|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:S$$omeClass|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:So$$meClass|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:Som$$eClass|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:Some$$Class|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:SomeC$$lass|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:SomeCl$$ass|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:SomeCla$$ss|} : Inherits Object")
+
+            AssertExtent(
+                "Public Class {|Significant:SomeClas$$s|} : Inherits Object")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestEscapedIdentifier()
-            For i = 12 To 12 + 7
-                AssertExtent(
-                    "Friend Enum [Module] As Long",
-                    pos:=i,
-                    isSignificant:=True,
-                    start:=12, length:=8)
-            Next
+            AssertExtent(
+                "Friend Enum {|Significant:$$[Module]|} As Long")
+
+            AssertExtent(
+                "Friend Enum {|Significant:[$$Module]|} As Long")
+
+            AssertExtent(
+                "Friend Enum {|Significant:[M$$odule]|} As Long")
+
+            AssertExtent(
+                "Friend Enum {|Significant:[Mo$$dule]|} As Long")
+
+            AssertExtent(
+                "Friend Enum {|Significant:[Mod$$ule]|} As Long")
+
+            AssertExtent(
+                "Friend Enum {|Significant:[Modu$$le]|} As Long")
+
+            AssertExtent(
+                "Friend Enum {|Significant:[Modul$$e]|} As Long")
+
+            AssertExtent(
+                "Friend Enum {|Significant:[Module$$]|} As Long")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestNumber()
-            For i = 37 To 37 + 12
-                AssertExtent(
-                    "Class Test : Dim number As Double = -1.234678E-120 : End Class",
-                    pos:=i,
-                    isSignificant:=True,
-                    start:=37, length:=13)
-            Next
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:$$1.234678E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1$$.234678E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.$$234678E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.2$$34678E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.23$$4678E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.234$$678E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.2346$$78E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.23467$$8E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.234678$$E-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.234678E$$-120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.234678E-$$120|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.234678E-1$$20|} : End Class")
+
+            AssertExtent(
+                "Class Test : Dim number As Double = -{|Significant:1.234678E-12$$0|} : End Class")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestString()
             AssertExtent(
-                "Class Test : Dim str As String = "" () test  "" : End Class",
-                pos:=33,
-                isSignificant:=True,
-                start:=33, length:=1)
+                "Class Test : Dim str As String = {|Significant:$$""|} () test  "" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = "" () test  "" : End Class",
-                pos:=34,
-                isSignificant:=False,
-                start:=34, length:=1)
+                "Class Test : Dim str As String = ""{|Insignificant:$$ |}() test  "" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = "" () test  "" : End Class",
-                pos:=35,
-                isSignificant:=True,
-                start:=35, length:=2)
+                "Class Test : Dim str As String = "" {|Significant:$$()|} test  "" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = "" () test  "" : End Class",
-                pos:=43,
-                isSignificant:=False,
-                start:=42, length:=2)
+                "Class Test : Dim str As String = "" () test{|Insignificant: $$ |}"" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = "" () test  "" : End Class",
-                pos:=44,
-                isSignificant:=True,
-                start:=44, length:=1)
+                "Class Test : Dim str As String = "" () test  {|Significant:$$""|} : End Class")
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub TestInterpolatedString()
             AssertExtent(
-                "Class Test : Dim str As String = $"" () test  "" : End Class",
-                pos:=33,
-                isSignificant:=True,
-                start:=33, length:=2)
+                "Class Test : Dim str As String = {|Significant:$$$""|} () test  "" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = $"" () test  "" : End Class",
-                pos:=35,
-                isSignificant:=False,
-                start:=35, length:=1)
+                "Class Test : Dim str As String = $""{|Insignificant:$$ |}() test  "" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = $"" () test  "" : End Class",
-                pos:=36,
-                isSignificant:=True,
-                start:=36, length:=2)
+                "Class Test : Dim str As String = $"" {|Significant:$$()|} test  "" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = $"" () test  "" : End Class",
-                pos:=44,
-                isSignificant:=False,
-                start:=43, length:=2)
+                "Class Test : Dim str As String = $"" () test{|Insignificant: $$ |}"" : End Class")
 
             AssertExtent(
-                "Class Test : Dim str As String = "" () test  "" : End Class",
-                pos:=45,
-                isSignificant:=False,
-                start:=45, length:=1)
+                "Class Test : Dim str As String = "" () test  ""{|Insignificant:$$ |}: End Class")
         End Sub
-
-        Private Shared Sub AssertExtent(
-            code As String,
-            pos As Integer,
-            isSignificant As Boolean,
-            start As Integer,
-            length As Integer)
-
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
-                Dim buffer = workspace.Documents.First().GetTextBuffer()
-
-                Dim provider = Assert.IsType(Of TextStructureNavigatorProvider)(
-                    workspace.GetService(Of ITextStructureNavigatorProvider)(ContentTypeNames.VisualBasicContentType))
-
-                Dim navigator = provider.CreateTextStructureNavigator(buffer)
-
-                Dim extent = navigator.GetExtentOfWord(New SnapshotPoint(buffer.CurrentSnapshot, pos))
-
-                Assert.Equal(isSignificant, extent.IsSignificant)
-
-                Dim expectedSpan As New SnapshotSpan(buffer.CurrentSnapshot, start, length)
-                Assert.Equal(expectedSpan, extent.Span)
-            End Using
-        End Sub
-
     End Class
-
 End Namespace

@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
 
@@ -48,11 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public bool CanNavigateTo()
                 => _navigationBucket != null && _navigationBucket.CanNavigateTo();
 
-            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
                 Contract.ThrowIfNull(_navigationBucket);
-                return _navigationBucket.NavigateToAsync(isPreview, shouldActivate, cancellationToken);
+                return _navigationBucket.NavigateToAsync(options, cancellationToken);
             }
         }
     }

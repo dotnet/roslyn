@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -28,15 +29,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
     internal partial class CallHierarchyProvider
     {
         private readonly IAsynchronousOperationListener _asyncListener;
+
+        public IThreadingContext ThreadingContext { get; }
         public IGlyphService GlyphService { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CallHierarchyProvider(
+            IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlyphService glyphService)
         {
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.CallHierarchy);
+            ThreadingContext = threadingContext;
             this.GlyphService = glyphService;
         }
 
@@ -44,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             Project project, IEnumerable<Location> callsites, CancellationToken cancellationToken)
         {
             if (symbol.Kind is SymbolKind.Method or
-                SymbolKind.Property or
-                SymbolKind.Event or
-                SymbolKind.Field)
+                               SymbolKind.Property or
+                               SymbolKind.Event or
+                               SymbolKind.Field)
             {
                 symbol = GetTargetSymbol(symbol);
 
@@ -66,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             return null;
         }
 
-        private ISymbol GetTargetSymbol(ISymbol symbol)
+        private static ISymbol GetTargetSymbol(ISymbol symbol)
         {
             if (symbol is IMethodSymbol methodSymbol)
             {
@@ -134,15 +139,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             return null;
         }
 
-        public void NavigateTo(SymbolKey id, Project project, CancellationToken cancellationToken)
+        public async Task NavigateToAsync(SymbolKey id, Project project, CancellationToken cancellationToken)
         {
-            var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
             var workspace = project.Solution.Workspace;
-            var options = project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+            var options = NavigationOptions.Default with { PreferProvisionalTab = true };
             var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
 
-            symbolNavigationService.TryNavigateToSymbol(resolution.Symbol, project, options, cancellationToken);
+            await symbolNavigationService.TryNavigateToSymbolAsync(
+                resolution.Symbol, project, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

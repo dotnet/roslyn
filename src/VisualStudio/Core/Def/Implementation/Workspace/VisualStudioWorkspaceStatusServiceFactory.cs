@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             private const string FeatureName = "VisualStudioWorkspaceStatusService";
 
-            public static readonly Option<bool> PartialLoadModeFeatureFlag = new(FeatureName, nameof(PartialLoadModeFeatureFlag), defaultValue: false,
+            public static readonly Option2<bool> PartialLoadModeFeatureFlag = new(FeatureName, nameof(PartialLoadModeFeatureFlag), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.PartialLoadMode"));
 
             ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(

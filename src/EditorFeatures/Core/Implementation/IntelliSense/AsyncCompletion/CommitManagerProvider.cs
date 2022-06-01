@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -20,13 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private readonly IThreadingContext _threadingContext;
         private readonly RecentItemsManager _recentItemsManager;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager)
+        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
+            _globalOptions = globalOptions;
         }
 
         IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            return new CommitManager(textView, _recentItemsManager, _threadingContext);
+            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext);
         }
     }
 }

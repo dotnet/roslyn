@@ -2528,5 +2528,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
+        {
+            if (containingSymbol.Kind is SymbolKind.Method)
+            {
+                switch (node)
+                {
+                    case RecordDeclarationSyntax:
+                        // Skip the topmost record declaration syntax node when analyzing synthesized record declaration constructor
+                        // to avoid duplicate syntax node callbacks.
+                        // We will analyze this node when analyzing the record declaration type symbol.
+                        return true;
+
+                    case CompilationUnitSyntax:
+                        // Skip compilation unit syntax node when analyzing synthesized top level entry point method
+                        // to avoid duplicate syntax node callbacks.
+                        // We will analyze this node when analyzing the global namespace symbol.
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

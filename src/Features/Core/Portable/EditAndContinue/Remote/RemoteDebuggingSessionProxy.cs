@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
+                diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                 moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
                 syntaxError = null;

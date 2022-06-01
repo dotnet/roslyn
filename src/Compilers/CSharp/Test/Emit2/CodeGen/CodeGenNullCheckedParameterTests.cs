@@ -1308,11 +1308,11 @@ class C
 {
   // Code size       26 (0x1a)
   .maxstack  3
-  IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""C.<GetChars>d__0..ctor(int)""
-  IL_0007:  ldarg.1
-  IL_0008:  ldstr      ""s""
-  IL_000d:  call       ""ThrowIfNull""
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldc.i4.s   -2
+  IL_000d:  newobj     ""C.<GetChars>d__0..ctor(int)""
   IL_0012:  dup
   IL_0013:  ldarg.1
   IL_0014:  stfld      ""string C.<GetChars>d__0.<>3__s""
@@ -1343,11 +1343,11 @@ class C
 {
   // Code size       33 (0x21)
   .maxstack  3
-  IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""C.<GetChars>d__0..ctor(int)""
-  IL_0007:  ldarg.1
-  IL_0008:  ldstr      ""s""
-  IL_000d:  call       ""ThrowIfNull""
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldc.i4.s   -2
+  IL_000d:  newobj     ""C.<GetChars>d__0..ctor(int)""
   IL_0012:  dup
   IL_0013:  ldarg.1
   IL_0014:  stfld      ""string C.<GetChars>d__0.<>3__s""
@@ -1376,18 +1376,17 @@ class Iterators
             }
         }
     }
-
 }";
             var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
 {
   // Code size       26 (0x1a)
   .maxstack  3
-  IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
-  IL_0007:  ldarg.0
-  IL_0008:  ldstr      ""s""
-  IL_000d:  call       ""ThrowIfNull""
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldc.i4.s   -2
+  IL_000d:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
   IL_0012:  dup
   IL_0013:  ldarg.0
   IL_0014:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.<>3__s""
@@ -1399,12 +1398,26 @@ class Iterators
         public void TestNullCheckedEnumeratorInLocalFunction()
         {
             var source = @"
+using System;
 using System.Collections.Generic;
+
+Iterators.Use();
+
 class Iterators
 {
-    void Use()
+    public static void Use()
     {
         IEnumerator<char> e = GetChars(""hello"");
+        Console.Write(1);
+
+        try
+        {
+            GetChars(null!);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(2);
+        }
         IEnumerator<char> GetChars(string s!!)
         {
             foreach (var c in s)
@@ -1415,16 +1428,16 @@ class Iterators
     }
 
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "12");
+            verifier.VerifyIL("Iterators.<Use>g__GetChars|0_0(string)", @"
 {
   // Code size       25 (0x19)
   .maxstack  3
-  IL_0000:  ldc.i4.0
-  IL_0001:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
-  IL_0006:  ldarg.0
-  IL_0007:  ldstr      ""s""
-  IL_000c:  call       ""ThrowIfNull""
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldc.i4.0
+  IL_000c:  newobj     ""Iterators.<<Use>g__GetChars|0_0>d..ctor(int)""
   IL_0011:  dup
   IL_0012:  ldarg.0
   IL_0013:  stfld      ""string Iterators.<<Use>g__GetChars|0_0>d.s""
@@ -1537,12 +1550,12 @@ class C
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
   // Code size       19 (0x13)
-  .maxstack  3
-  IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""C.<GetChars>d__1..ctor(int)""
-  IL_0007:  ldarg.0
-  IL_0008:  ldstr      ""s""
-  IL_000d:  call       ""ThrowIfNull""
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldc.i4.s   -2
+  IL_000d:  newobj     ""C.<GetChars>d__1..ctor(int)""
   IL_0012:  ret
 }");
         }
@@ -1563,12 +1576,12 @@ class C
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview).VerifyIL("C.GetChars(string)", @"
 {
   // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.0
-  IL_0001:  newobj     ""C.<GetChars>d__1..ctor(int)""
-  IL_0006:  ldarg.0
-  IL_0007:  ldstr      ""s""
-  IL_000c:  call       ""ThrowIfNull""
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldc.i4.0
+  IL_000c:  newobj     ""C.<GetChars>d__1..ctor(int)""
   IL_0011:  ret
 }");
         }
@@ -2027,6 +2040,409 @@ record struct RecordStruct(string Prop1!!, string Prop2!!);
   IL_001e:  ldarg.2
   IL_001f:  stfld      ""string RecordStruct.<Prop2>k__BackingField""
   IL_0024:  ret
+}");
+        }
+
+        [Fact, WorkItem(58824, "https://github.com/dotnet/roslyn/issues/58824")]
+        public void TestWithEmbeddedReference()
+        {
+            var source = @"
+using System;
+
+C.M(""a"");
+Console.Write(1);
+try
+{
+    C.M(null);
+    Console.Write(0);
+}
+catch
+{
+    Console.Write(2);
+}
+
+class C
+{
+    public static void M(string s!!)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, references: new[] { TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true) }, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", @"
+{
+    // Code size       12 (0xc)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldstr      ""s""
+    IL_0006:  call       ""ThrowIfNull""
+    IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncMethod_1()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+var c = new C();
+try
+{
+    await c.M(""a"");
+    Console.Write(1);
+}
+catch (ArgumentNullException)
+{
+    Console.Write(0);
+}
+
+try
+{
+    _ = c.M(null!);
+    Console.Write(0);
+}
+catch (ArgumentNullException)
+{
+    Console.Write(2);
+}
+
+class C
+{
+    public async Task M(string s!!)
+    {
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics(
+                // (28,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public async Task M(string s!!)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(28, 23));
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+  IL_0012:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C.<M>d__0>(ref C.<M>d__0)""
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0034:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_0039:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncLocalFunction()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+await C.M();
+
+class C
+{
+    public static async Task M()
+    {
+        try
+        {
+            await local(""a"");
+            Console.Write(1);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(0);
+        }
+
+        try
+        {
+            _ = local(null!);
+            Console.Write(0);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(2);
+        }
+
+        async Task local(string s!!) { }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics(
+                // (31,20): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async Task local(string s!!) { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(31, 20));
+            verifier.VerifyIL("C.<M>g__local|0_0", @"
+{
+    // Code size       58 (0x3a)
+    .maxstack  2
+    .locals init (C.<<M>g__local|0_0>d V_0)
+    IL_0000:  ldarg.0
+    IL_0001:  ldstr      ""s""
+    IL_0006:  call       ""ThrowIfNull""
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+    IL_0012:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+    IL_0017:  ldloca.s   V_0
+    IL_0019:  ldc.i4.m1
+    IL_001a:  stfld      ""int C.<<M>g__local|0_0>d.<>1__state""
+    IL_001f:  ldloca.s   V_0
+    IL_0021:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+    IL_0026:  ldloca.s   V_0
+    IL_0028:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C.<<M>g__local|0_0>d>(ref C.<<M>g__local|0_0>d)""
+    IL_002d:  ldloca.s   V_0
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<<M>g__local|0_0>d.<>t__builder""
+    IL_0034:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+    IL_0039:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncLambda()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+await C.M();
+
+class C
+{
+    public static async Task M()
+    {
+        var lambda = async Task (string s!!) => { };
+        try
+        {
+            await lambda(""a"");
+            Console.Write(1);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(0);
+        }
+
+        try
+        {
+            _ = lambda(null!);
+            Console.Write(0);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(2);
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics(
+                // (11,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         var lambda = async Task (string s!!) => { };
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(11, 46));
+            verifier.VerifyIL("C.<>c.<M>b__0_0", @"
+{
+    // Code size       58 (0x3a)
+    .maxstack  2
+    .locals init (C.<>c.<<M>b__0_0>d V_0)
+    IL_0000:  ldarg.1
+    IL_0001:  ldstr      ""s""
+    IL_0006:  call       ""ThrowIfNull""
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+    IL_0012:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0017:  ldloca.s   V_0
+    IL_0019:  ldc.i4.m1
+    IL_001a:  stfld      ""int C.<>c.<<M>b__0_0>d.<>1__state""
+    IL_001f:  ldloca.s   V_0
+    IL_0021:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0026:  ldloca.s   V_0
+    IL_0028:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C.<>c.<<M>b__0_0>d>(ref C.<>c.<<M>b__0_0>d)""
+    IL_002d:  ldloca.s   V_0
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<>c.<<M>b__0_0>d.<>t__builder""
+    IL_0034:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+    IL_0039:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncMethod_2()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+var c = new C();
+try
+{
+    await c.M(""a"");
+    Console.Write(1);
+}
+catch (ArgumentNullException)
+{
+    Console.Write(0);
+}
+
+try
+{
+    _ = c.M(null!);
+    Console.Write(0);
+}
+catch (ArgumentNullException)
+{
+    Console.Write(2);
+}
+
+class C
+{
+    public async Task M(string s!!)
+    {
+        if (s == """")
+            return;
+        await Task.CompletedTask;
+        return;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""s""
+  IL_0006:  call       ""ThrowIfNull""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+  IL_0012:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldarg.1
+  IL_001a:  stfld      ""string C.<M>d__0.s""
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldc.i4.m1
+  IL_0022:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C.<M>d__0>(ref C.<M>d__0)""
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<M>d__0.<>t__builder""
+  IL_003c:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNullCheckedRefString()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        var s = ""1"";
+        Console.Write(s);
+        M(ref s);
+        Console.Write(s);
+        s = null;
+        try
+        {
+            M(ref s!);
+            Console.Write(0);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(3);
+        }
+    }
+
+    public static void M(ref string x!!)
+    {
+        x = ""2"";
+    }
+}";
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  ldstr      ""x""
+  IL_0007:  call       ""ThrowIfNull""
+  IL_000c:  ldarg.0
+  IL_000d:  ldstr      ""2""
+  IL_0012:  stind.ref
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCheckedInString()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        var s = ""1"";
+        Console.Write(s);
+        M(in s);
+        s = null;
+        try
+        {
+            M(in s!);
+            Console.Write(0);
+        }
+        catch (ArgumentNullException)
+        {
+            Console.Write(2);
+        }
+    }
+
+    public static void M(in string x!!)
+    {
+    }
+}";
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  ldstr      ""x""
+  IL_0007:  call       ""ThrowIfNull""
+  IL_000c:  ret
 }");
         }
     }

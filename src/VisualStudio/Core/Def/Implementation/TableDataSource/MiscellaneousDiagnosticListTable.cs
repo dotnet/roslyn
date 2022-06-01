@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -19,30 +20,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         internal const string IdentifierString = nameof(MiscellaneousDiagnosticListTable);
 
+        private readonly IThreadingContext _threadingContext;
         private readonly ITableManagerProvider _tableManagerProvider;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousDiagnosticListTableWorkspaceEventListener(
+            IThreadingContext threadingContext,
             ITableManagerProvider tableManagerProvider,
             IGlobalOptionService globalOptions)
         {
+            _threadingContext = threadingContext;
             _tableManagerProvider = tableManagerProvider;
             _globalOptions = globalOptions;
         }
 
         public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
-            => _ = new MiscellaneousDiagnosticListTable(workspace, _globalOptions, diagnosticService, _tableManagerProvider);
+            => _ = new MiscellaneousDiagnosticListTable(workspace, _threadingContext, _globalOptions, diagnosticService, _tableManagerProvider);
 
         private sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
         {
             private readonly LiveTableDataSource _source;
 
-            public MiscellaneousDiagnosticListTable(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+            public MiscellaneousDiagnosticListTable(Workspace workspace, IThreadingContext threadingContext, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
                 : base(workspace, provider)
             {
-                _source = new LiveTableDataSource(workspace, globalOptions, diagnosticService, IdentifierString);
+                _source = new LiveTableDataSource(workspace, threadingContext, globalOptions, diagnosticService, IdentifierString);
 
                 AddInitialTableSource(workspace.CurrentSolution, _source);
                 ConnectWorkspaceEvents();

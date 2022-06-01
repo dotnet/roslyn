@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                 // This analyzer assembly has to be ignored, just like in CSharpCommandLineParser.ParseAnalyzers.
                 // This is only reached if CSharpCommandLineParser is not used (like when using Workspaces).
 
-                return null;
+                return null!;
             }
             // </Metalama>
 

@@ -3610,7 +3610,7 @@ class C
 [12]: when ((i % 2) == 0) ? [14] : [13]
 [13]: leaf `default`
 [14]: leaf `case int i when (i % 2) == 0:`
-", boundSwitch.DecisionDag.Dump());
+", boundSwitch.ReachabilityDecisionDag.Dump());
         }
 
         [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
@@ -3696,7 +3696,7 @@ class C
                 Console.Write(3);
                 break;
         }`
-", boundSwitch.DecisionDag.Dump());
+", boundSwitch.ReachabilityDecisionDag.Dump());
         }
 
         [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
@@ -3777,7 +3777,7 @@ class C : ITuple
                 Console.Write(2);
                 break;
         }`
-", boundSwitch.DecisionDag.Dump());
+", boundSwitch.ReachabilityDecisionDag.Dump());
         }
 
         [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
@@ -3823,7 +3823,7 @@ class C
 [9]: leaf <isPatternFailure> `< 5
                 or string { Length: 1 }
                 or bool`
-", boundIsPattern.DecisionDag.Dump());
+", boundIsPattern.ReachabilityDecisionDag.Dump());
         }
 
         [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
@@ -3865,7 +3865,7 @@ class C
 [9]: t0 is bool ? [10] : [11]
 [10]: leaf <arm> `bool => 3`
 [11]: leaf <arm> `_ => 4`
-", boundSwitch.DecisionDag.Dump());
+", boundSwitch.ReachabilityDecisionDag.Dump());
         }
 #endif
     }

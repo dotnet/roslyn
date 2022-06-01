@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private void AddFilteredData(ImmutableArray<ProjectTelemetryData> infos, ArrayBuilder<ProjectTelemetryData> filteredInfos)
+        private static void AddFilteredData(ImmutableArray<ProjectTelemetryData> infos, ArrayBuilder<ProjectTelemetryData> filteredInfos)
         {
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
 
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             }
         }
 
-        private void NotifyTelemetryService(ProjectTelemetryData info)
+        private static void NotifyTelemetryService(ProjectTelemetryData info)
         {
             try
             {

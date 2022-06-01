@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
         Public Sub New(document As SemanticDocument,
                        textSpan As TextSpan,
-                       options As OptionSet)
+                       options As ExtractMethodOptions)
             MyBase.New(document, textSpan, options)
         End Sub
 

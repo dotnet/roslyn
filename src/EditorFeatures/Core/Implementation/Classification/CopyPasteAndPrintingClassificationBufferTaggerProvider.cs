@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -30,17 +31,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     {
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly ClassificationTypeMap _typeMap;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CopyPasteAndPrintingClassificationBufferTaggerProvider(
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
             _typeMap = typeMap;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
+            _globalOptions = globalOptions;
         }
 
         public IAccurateTagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return null;
             }
 
-            return new Tagger(this, buffer, _asyncListener) as IAccurateTagger<T>;
+            return new Tagger(this, buffer, _asyncListener, _globalOptions) as IAccurateTagger<T>;
         }
 
         ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)

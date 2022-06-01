@@ -3,14 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using Xunit;
@@ -19,9 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
     public partial class DocumentChangesTests
     {
-        protected override TestComposition Composition => base.Composition
-            .AddParts(typeof(GetLspSolutionHandlerProvider));
-
         [Fact]
         public async Task LinkedDocuments_AllTracked()
         {
@@ -44,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             var trackedDocuments = testLspServer.GetQueueAccessor().GetTrackedTexts();
             Assert.Equal(1, trackedDocuments.Length);
 
-            var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
+            var solution = GetLSPSolution(testLspServer, caretLocation.Uri);
 
             foreach (var document in solution.Projects.First().Documents)
             {
@@ -95,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await DidChange(testLspServer, caretLocation.Uri, (4, 8, "// hi there"));
 
-            var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
+            var solution = GetLSPSolution(testLspServer, caretLocation.Uri);
 
             foreach (var document in solution.Projects.First().Documents)
             {
@@ -107,40 +99,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
 
-        private static async Task<Solution> GetLSPSolution(TestLspServer testLspServer, Uri uri)
+        private static Solution GetLSPSolution(TestLspServer testLspServer, Uri uri)
         {
-            var result = await testLspServer.ExecuteRequestAsync<Uri, Solution>(nameof(GetLSPSolutionHandler), uri, new ClientCapabilities(), null, CancellationToken.None);
-            Contract.ThrowIfNull(result);
-            return result;
-        }
-
-        [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-        [ProvidesMethod(GetLSPSolutionHandler.MethodName)]
-        private class GetLspSolutionHandlerProvider : AbstractRequestHandlerProvider
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public GetLspSolutionHandlerProvider()
-            {
-            }
-
-            public override ImmutableArray<IRequestHandler> CreateRequestHandlers() => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
-        }
-
-        private class GetLSPSolutionHandler : IRequestHandler<Uri, Solution>
-        {
-            public const string MethodName = nameof(GetLSPSolutionHandler);
-
-            public string Method => MethodName;
-
-            public bool MutatesSolutionState => false;
-            public bool RequiresLSPSolution => true;
-
-            public TextDocumentIdentifier? GetTextDocumentIdentifier(Uri request)
-                => new TextDocumentIdentifier { Uri = request };
-
-            public Task<Solution> HandleRequestAsync(Uri request, RequestContext context, CancellationToken cancellationToken)
-                => Task.FromResult(context.Solution!);
+            var lspDocument = testLspServer.GetManager().GetLspDocument(new TextDocumentIdentifier { Uri = uri }, null);
+            Contract.ThrowIfNull(lspDocument);
+            return lspDocument.Project.Solution;
         }
     }
 }

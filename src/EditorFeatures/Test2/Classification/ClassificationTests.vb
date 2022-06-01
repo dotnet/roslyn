@@ -147,6 +147,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Function ComputeSyntacticChangeRange(workspace As Workspace, oldRoot As SyntaxNode, newRoot As SyntaxNode, timeout As TimeSpan, cancellationToken As CancellationToken) As TextChangeRange? Implements IClassificationService.ComputeSyntacticChangeRange
                 Return Nothing
             End Function
+
+            Public Function AddEmbeddedLanguageClassificationsAsync(document As Document, textSpan As TextSpan, options As ClassificationOptions, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddEmbeddedLanguageClassificationsAsync
+                Return Task.CompletedTask
+            End Function
         End Class
     End Class
 End Namespace

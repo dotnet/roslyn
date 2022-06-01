@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -118,19 +117,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
                 => SpecializedTasks.True;
 
-            public override async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            public override async Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 return TryOpenFile() && TryNavigateToPosition();
             }
-
-            [Obsolete]
-            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
-
-            [Obsolete]
-            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
 
             private bool TryOpenFile()
             {

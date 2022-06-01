@@ -170,19 +170,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public void CombineData(int filterSetData)
             => _vector[filterSetData] = true;
 
-        public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet(bool addUnselectedExpander)
+        public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet()
         {
-            var builder = new ArrayBuilder<CompletionFilterWithState>();
+            using var _ = ArrayBuilder<CompletionFilterWithState>.GetInstance(out var builder);
 
-            // An unselected expander is only added if `addUnselectedExpander == true` and the expander is not in the set.
-            if (_vector[s_expanderMask])
-            {
-                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: true));
-            }
-            else if (addUnselectedExpander)
-            {
-                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: false));
-            }
+            // We always show expander but its selection state depends on whether it is in the set.
+            builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
 
             foreach (var filterWithMask in s_filters)
             {
@@ -192,19 +185,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
-        private readonly struct FilterWithMask
+        /// <summary>
+        /// Combine two filter lists while preserving the order as defined in <see cref="FilterSet"/>.
+        /// </summary>
+        public static ImmutableArray<CompletionFilterWithState> CombineFilterStates(ImmutableArray<CompletionFilterWithState> filters1, ImmutableArray<CompletionFilterWithState> filters2)
         {
-            public readonly CompletionFilter Filter;
-            public readonly int Mask;
+            using var _1 = PooledDictionary<CompletionFilter, bool>.GetInstance(out var filterStateMap);
+            AddFilterState(filters1);
+            AddFilterState(filters2);
 
-            public FilterWithMask(CompletionFilter filter, int mask)
+            using var _2 = ArrayBuilder<CompletionFilterWithState>.GetInstance(out var builder);
+            if (filterStateMap.TryGetValue(Expander, out var isSelected))
             {
-                Filter = filter;
-                Mask = mask;
+                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: isSelected));
+            }
+
+            // Make sure filters are kept in the relative order of their declaration above. 
+            foreach (var filterWithMask in s_filters)
+            {
+                if (filterStateMap.TryGetValue(filterWithMask.Filter, out isSelected))
+                {
+                    builder.Add(new CompletionFilterWithState(filterWithMask.Filter, isAvailable: true, isSelected: isSelected));
+                }
+            }
+
+            return builder.ToImmutable();
+
+            void AddFilterState(ImmutableArray<CompletionFilterWithState> filterStates)
+            {
+                foreach (var state in filterStates)
+                {
+                    filterStateMap.TryGetValue(state.Filter, out var isSelected);
+                    filterStateMap[state.Filter] = state.IsSelected || isSelected;
+                }
             }
         }
+
+        private readonly record struct FilterWithMask(CompletionFilter Filter, int Mask);
     }
 }

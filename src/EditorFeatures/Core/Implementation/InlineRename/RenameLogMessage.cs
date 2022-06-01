@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private const string UnresolvableConflicts = nameof(UnresolvableConflicts);
 
         public static KeyValueLogMessage Create(
-            OptionSet optionSet, UserActionOutcome outcome,
+            SymbolRenameOptions options, UserActionOutcome outcome,
             bool conflictResolutionFinishedComputing, bool previewChanges,
             IList<InlineRenameReplacementKind> replacementKinds)
         {
             return KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
-                m[RenameInComments] = optionSet.GetOption(RenameOptions.RenameInComments);
-                m[RenameInStrings] = optionSet.GetOption(RenameOptions.RenameInStrings);
-                m[RenameOverloads] = optionSet.GetOption(RenameOptions.RenameOverloads);
+                m[RenameInComments] = options.RenameInComments;
+                m[RenameInStrings] = options.RenameInStrings;
+                m[RenameOverloads] = options.RenameOverloads;
 
                 m[Committed] = (outcome & UserActionOutcome.Committed) == UserActionOutcome.Committed;
                 m[Canceled] = (outcome & UserActionOutcome.Canceled) == UserActionOutcome.Canceled;

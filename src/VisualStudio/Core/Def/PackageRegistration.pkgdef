@@ -37,6 +37,12 @@
 "Title"="Run C#/VB code analysis on .Net 6 (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
 
+[$RootKey$\FeatureFlags\Roslyn\UseInlineAdornmentForRename]
+"Description"="Use the new inline rename experience that changes the UI to be closer to the invocation point."
+"Value"=dword:00000000
+"Title"="C#/VB enable new inline rename"
+"PreviewPaneChannels"="IntPreview,int.main"
+
 // Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
 [$RootKey$\FeatureFlags\Lsp\PullDiagnostics]
 "Description"="Enables the LSP-powered diagnostics for managed .Net projects"

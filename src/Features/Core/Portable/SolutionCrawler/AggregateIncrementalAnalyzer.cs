@@ -61,6 +61,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
+        public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            if (TryGetAnalyzer(document.Project, out var analyzer))
+            {
+                await analyzer.ActiveDocumentSwitchedAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             // TODO: Is this correct?

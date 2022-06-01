@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // We use a very simple approach to build the cache in the background:
                     // queue a new task only if the previous task is completed. This is to avoid
-                    // queueing calculation for the same set of references repeatedly while
-                    // index is being constrcuted, which might take some time.
+                    // queuing calculation for the same set of references repeatedly while
+                    // index is being constructed, which might take some time.
                     if (s_indexingTask.IsCompleted)
                     {
                         // When building cache in the background, make sure we always use latest snapshot with full semantic
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var containingNamespacename = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
                 var overloadKey = (containingNamespacename, symbol.Name, isGeneric: symbol.Arity > 0);
 
-                // Select the overload convertable to any targeted type (if any) and with minimum number of parameters to display
+                // Select the overload convertible to any targeted type (if any) and with minimum number of parameters to display
                 if (overloadMap.TryGetValue(overloadKey, out var currentValue))
                 {
                     if (currentValue.includeInTargetTypedCompletion == includeInTargetTypedCompletion)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var ((containingNamespace, _, _), (bestSymbol, overloadCount, includeInTargetTypedCompletion)) in overloadMap)
             {
-                // To display the count of of additional overloads, we need to substract total by 1.
+                // To display the count of additional overloads, we need to subtract total by 1.
                 var item = new SerializableImportCompletionItem(
                     SymbolKey.CreateString(bestSymbol, cancellationToken),
                     bestSymbol.Name,

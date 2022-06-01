@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsInOutContext { get; private set; }
             public bool IsInMemberContext { get; private set; }
 
+            public bool IsInSourceGeneratedDocument { get; private set; }
             public bool IsInExecutableBlock { get; private set; }
             public bool IsInConditionalAccessExpression { get; private set; }
 
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             internal bool CanGenerateLocal()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return !IsInMemberContext && IsInExecutableBlock;
+                return !IsInMemberContext && IsInExecutableBlock && !IsInSourceGeneratedDocument;
             }
 
             internal bool CanGenerateParameter()
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
                 // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
                 return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
-                    && !IsInMemberContext && !IsConstant;
+                    && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument;
             }
 
             private bool TryInitializeExplicitInterface(
@@ -278,6 +279,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 IsInMemberContext =
                     simpleName != SimpleNameOrMemberAccessExpressionOpt ||
                     syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
+                IsInSourceGeneratedDocument = semanticDocument.Document is SourceGeneratedDocument;
 
                 ContainingMethod = FindContainingMethodSymbol(IdentifierToken.SpanStart, semanticModel, cancellationToken);
 

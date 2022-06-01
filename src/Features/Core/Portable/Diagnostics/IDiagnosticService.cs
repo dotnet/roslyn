@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// will return the requested diagnostics.</param>
         ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// will return the requested diagnostics.</param>
         ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
-            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// will return the requested buckets.</param>
         ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
-            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
@@ -74,6 +73,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// will return the requested buckets.</param>
         ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
-            Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+            DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
     }
 }

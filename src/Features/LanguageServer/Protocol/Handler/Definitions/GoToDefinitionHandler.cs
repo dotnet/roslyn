@@ -12,8 +12,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentDefinitionName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(GoToDefinitionHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentDefinitionName)]
     internal class GoToDefinitionHandler : AbstractGoToDefinitionHandler
     {
         [ImportingConstructor]
@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService) : base(metadataAsSourceFileService)
         {
         }
-
-        public override string Method => LSP.Methods.TextDocumentDefinitionName;
 
         public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
             => GetDefinitionAsync(request, typeOnly: false, context, cancellationToken);

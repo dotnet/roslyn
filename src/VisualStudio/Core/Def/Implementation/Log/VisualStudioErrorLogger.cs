@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
             }
         }
 
-        private bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
+        private static bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
 
         private static string ToLogFormat(Exception exception)
             => exception.Message + Environment.NewLine + exception.StackTrace;

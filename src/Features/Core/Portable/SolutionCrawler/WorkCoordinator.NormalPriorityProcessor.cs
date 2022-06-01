@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
                             {
-                                var textDocument = solution.GetTextDocument(documentId);
+                                var textDocument = solution.GetTextDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
 
                                 if (textDocument != null)
                                 {

@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -27,10 +28,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, AddImportPlacementOptions options, CancellationToken cancellationToken)
             {
-                var textChanges = await GetTextChangesAsync(
-                    document, node, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                var textChanges = await GetTextChangesAsync(document, node, options, cancellationToken).ConfigureAwait(false);
 
                 var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
                 var fullyQualifiedTypeName = string.Join(

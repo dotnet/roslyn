@@ -96,10 +96,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            var option = context.GetOption(
-                    ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
-                    context.SemanticModel.Language);
-            if (option == false)
+            if (!context.Options.GetIdeOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
             {
                 return;
             }

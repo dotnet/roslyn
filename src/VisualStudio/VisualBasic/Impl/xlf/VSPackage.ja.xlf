@@ -18,8 +18,19 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">再割り当てされる変数に下線を引く;インラインのヒントを表示する;コンストラクトの終端の自動挿入;再フォーマット設定の変更;アウトライン モードの変更;Interface と MustOverride メンバーの自動挿入;プロシージャ行の区切り記号の表示/非表示;エラー修正候補のオン/オフの切り替え;参照とキーワードの強調表示のオン/オフの切り替え;Regex;正規表現の色付け;カーソルの下の関連コンポーネントの強調表示;無効な正規表現の報告;RegEx;正規表現;拡張された色を使用する;エディターの配色;継承余白;インポート ディレクティブ;</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">再割り当てされる変数に下線を引く;インラインのヒントを表示する;コンストラクトの終端の自動挿入;再フォーマット設定の変更;アウトライン モードの変更;Interface と MustOverride メンバーの自動挿入;プロシージャ行の区切り記号の表示/非表示;エラー修正候補のオン/オフの切り替え;参照とキーワードの強調表示のオン/オフの切り替え;Regex;正規表現の色付け;カーソルの下の関連コンポーネントの強調表示;無効な正規表現の報告;RegEx;正規表現;拡張された色を使用する;エディターの配色;継承余白;インポート ディレクティブ;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -159,6 +160,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 Assert.Equal(document.FilePath, file.FilePath);
 
+                // Mapping the project from the generated document should map back to the original project
+                var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
+                var mappedProject = provider.MapDocument(document);
+                Assert.NotNull(mappedProject);
+                Assert.Equal(project.Id, mappedProject!.Id);
+
                 var actual = await document.GetTextAsync();
                 var actualSpan = file!.IdentifierLocation.SourceSpan;
 
@@ -247,7 +254,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 .AddReferences(project.MetadataReferences);
 
             IEnumerable<EmbeddedText>? embeddedTexts;
-            if (sourceLocation == Location.OnDisk)
+            if (buildReferenceAssembly)
+            {
+                embeddedTexts = null;
+            }
+            else if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
                 File.WriteAllText(sourceCodePath, source.ToString(), source.Encoding);

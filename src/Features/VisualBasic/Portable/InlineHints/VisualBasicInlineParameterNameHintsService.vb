@@ -96,5 +96,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
             Dim propertySymbol = TryCast(parameter.ContainingSymbol, IPropertySymbol)
             Return propertySymbol IsNot Nothing AndAlso propertySymbol.IsDefault
         End Function
+
+        Protected Overrides Function GetReplacementText(parameterName As String) As String
+            Return parameterName & ":="
+        End Function
     End Class
 End Namespace

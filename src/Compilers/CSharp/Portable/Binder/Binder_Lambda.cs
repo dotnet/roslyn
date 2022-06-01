@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // are reported now.
             ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics.DiagnosticBag ?? new DiagnosticBag());
 
-            if (data.HasNames)
+            if (data.HasSignature)
             {
                 var binder = new LocalScopeBinder(this);
                 bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);

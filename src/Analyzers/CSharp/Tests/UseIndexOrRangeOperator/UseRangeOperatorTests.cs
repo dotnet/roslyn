@@ -1202,5 +1202,62 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [WorkItem(40438, "https://github.com/dotnet/roslyn/issues/40438")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStartingFromZeroGoingToLengthMinus1()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|0, s.Length - 1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[..^1];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        public async Task TestNotInExpressionTree()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        Expression<Func<string, int, string>> e = (s, i) => s.Substring(i);
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
     }
 }

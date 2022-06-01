@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // file here, then the other thread unlocks and deletes the file, and then we
                 // acquire the lock on our file handle - but the actual file is already deleted.
                 // To close this race, we verify that the file does in fact still exist now that
-                // we have successfull acquired the locked FileStream.   (Note that this check is
+                // we have successfully acquired the locked FileStream.   (Note that this check is
                 // safe because we cannot race with an other attempt to create the file since we
                 // hold the guard, and after the FileStream constructor returned we can no race
                 // with file deletion because we hold the lock.)

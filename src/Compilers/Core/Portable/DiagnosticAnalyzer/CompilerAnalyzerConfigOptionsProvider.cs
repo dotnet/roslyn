@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static CompilerAnalyzerConfigOptionsProvider Empty { get; }
             = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
-                CompilerAnalyzerConfigOptions.Empty);
+                DictionaryAnalyzerConfigOptions.Empty);
 
         internal CompilerAnalyzerConfigOptionsProvider(
             ImmutableDictionary<object, AnalyzerConfigOptions> treeDict,
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override AnalyzerConfigOptions GlobalOptions { get; }
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-            => _treeDict.TryGetValue(tree, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
+            => _treeDict.TryGetValue(tree, out var options) ? options : DictionaryAnalyzerConfigOptions.Empty;
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
-            => _treeDict.TryGetValue(textFile, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
+            => _treeDict.TryGetValue(textFile, out var options) ? options : DictionaryAnalyzerConfigOptions.Empty;
 
         internal CompilerAnalyzerConfigOptionsProvider WithAdditionalTreeOptions(ImmutableDictionary<object, AnalyzerConfigOptions> treeDict)
             => new CompilerAnalyzerConfigOptionsProvider(_treeDict.AddRange(treeDict), GlobalOptions);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => new CompilerAnalyzerConfigOptionsProvider(_treeDict, globalOptions);
         
         // <Metalama>
-        internal CompilerAnalyzerConfigOptionsProvider WithMappedTrees(
+        private CompilerAnalyzerConfigOptionsProvider WithMappedTrees(
             IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap)
         {
             var builder = this._treeDict.ToBuilder();
@@ -55,6 +55,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return new CompilerAnalyzerConfigOptionsProvider(builder.ToImmutable(), this.GlobalOptions);
+        }
+
+        public static AnalyzerConfigOptionsProvider MapSyntaxTrees(
+             AnalyzerConfigOptionsProvider source, 
+             IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap )
+        {
+            return source switch
+            {
+                // This is the scenario when the code is compiled from the compiler.
+                CompilerAnalyzerConfigOptionsProvider fromCompiler => fromCompiler.WithMappedTrees(treeMap),
+
+                // This is the scenario when the code is compiled from Metalama.Try.
+                _ => source
+            };
         }
         // </Metalama>
     }

@@ -519,20 +519,11 @@
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>
-  <data name="Add_remove_braces_for_single_line_control_statements" xml:space="preserve">
-    <value>Add/remove braces for single-line control statements</value>
-  </data>
-  <data name="Apply_language_framework_type_preferences" xml:space="preserve">
-    <value>Apply language/framework type preferences</value>
-  </data>
-  <data name="Apply_implicit_explicit_type_preferences" xml:space="preserve">
-    <value>Apply implicit/explicit type preferences</value>
+  <data name="Add_required_braces_for_single_line_control_statements" xml:space="preserve">
+    <value>Add required braces for single-line control statements</value>
   </data>
   <data name="Apply_this_qualification_preferences" xml:space="preserve">
     <value>Apply 'this.' qualification preferences</value>
-  </data>
-  <data name="Sort_accessibility_modifiers" xml:space="preserve">
-    <value>Sort accessibility modifiers</value>
   </data>
   <data name="Apply_expression_block_body_preferences" xml:space="preserve">
     <value>Apply expression/block body preferences</value>
@@ -629,5 +620,65 @@
   </data>
   <data name="Selection_cannot_include_top_level_statements" xml:space="preserve">
     <value>Selection cannot include top-level statements</value>
+  </data>
+  <data name="Convert_to_raw_string" xml:space="preserve">
+    <value>Convert to raw string</value>
+  </data>
+  <data name="Convert_to_raw_string_no_indent" xml:space="preserve">
+    <value>Convert to raw string (no indent)</value>
+  </data>
+  <data name="Apply_blank_lines_between_consecutive_braces_preferences_experimental" xml:space="preserve">
+    <value>Apply blank lines between consecutive braces preferences (experimental)</value>
+  </data>
+  <data name="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental" xml:space="preserve">
+    <value>Apply blank line after colon in constructor initializer preferences (experimental)</value>
+  </data>
+  <data name="Apply_conditional_delegate_call_preferences" xml:space="preserve">
+    <value>Apply conditional delegate call preferences</value>
+  </data>
+  <data name="Apply_deconstruct_preferences" xml:space="preserve">
+    <value>Apply deconstruct preferences</value>
+  </data>
+  <data name="Apply_default_T_preferences" xml:space="preserve">
+    <value>Apply default(T) preferences</value>
+  </data>
+  <data name="Apply_embedded_statements_on_same_line_preferences_experimental" xml:space="preserve">
+    <value>Apply embedded statements on same line preferences (experimental)</value>
+  </data>
+  <data name="Apply_local_over_anonymous_function_preferences" xml:space="preserve">
+    <value>Apply local over anonymous function preferences</value>
+  </data>
+  <data name="Apply_method_group_conversion_preferences" xml:space="preserve">
+    <value>Apply method group conversion preferences</value>
+  </data>
+  <data name="Apply_namespace_preferences" xml:space="preserve">
+    <value>Apply namespace preferences</value>
+  </data>
+  <data name="Apply_new_preferences" xml:space="preserve">
+    <value>Apply new() preferences</value>
+  </data>
+  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
+    <value>Apply object collection initialization preferences</value>
+  </data>
+  <data name="Apply_parameter_null_preferences" xml:space="preserve">
+    <value>Apply parameter null preferences</value>
+  </data>
+  <data name="Apply_pattern_matching_preferences" xml:space="preserve">
+    <value>Apply pattern matching preferences</value>
+  </data>
+  <data name="Apply_range_preferences" xml:space="preserve">
+    <value>Apply range preferences</value>
+  </data>
+  <data name="Apply_static_local_function_preferences" xml:space="preserve">
+    <value>Apply static local function preferences</value>
+  </data>
+  <data name="Apply_throw_expression_preferences" xml:space="preserve">
+    <value>Apply throw expression preferences</value>
+  </data>
+  <data name="Apply_using_statement_preferences" xml:space="preserve">
+    <value>Apply using statement preferences</value>
+  </data>
+  <data name="Apply_var_preferences" xml:space="preserve">
+    <value>Apply 'var' preferences</value>
   </data>
 </root>

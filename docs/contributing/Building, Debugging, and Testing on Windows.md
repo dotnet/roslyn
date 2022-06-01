@@ -15,9 +15,8 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2022
 
-1. [Visual Studio 2022 17.0 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
+1. Use latest [Visual Studio 2022 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "17.0" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
 1. [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-windows-x64-installer)

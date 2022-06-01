@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -48,7 +49,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 project.Properties.Item("OptionInfer").Value = convertedValue;
             });
 
-        private EnvDTE.Project GetProject(string nameOrFileName)
+        private static EnvDTE.Project GetProject(string nameOrFileName)
             => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
                string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
@@ -88,6 +89,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var optionKey = new OptionKey(option);
             SetOption(optionKey, result);
         }
+
+        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
+            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(option.GetKey(language), value));
 
         private static object GetValue(object value, IOption option)
         {
@@ -220,23 +224,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 GetWaitingService().EnableActiveTokenTracking(true);
             });
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => InvokeOnUIThread(cancellationToken =>
             {
                 var option = GetOption(optionName, feature);
 
                 var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
-                var optionKey = string.IsNullOrWhiteSpace(language)
-                    ? new OptionKey(option)
-                    : new OptionKey(option, language);
-
-                SetOption(optionKey, value);
+                SetOption(new OptionKey(option, language), value);
             });
-
-        public string? GetWorkingFolder()
-        {
-            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
-            return service.TryGetStorageLocation(SolutionKey.ToSolutionKey(_visualStudioWorkspace.CurrentSolution));
-        }
     }
 }

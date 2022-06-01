@@ -35,15 +35,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                if (!AnalysisEnabled(document, _documentTrackingService))
+                if (!document.SupportsDiagnostics())
                 {
-                    // to reduce allocations, here, we don't clear existing diagnostics since it is dealt by other entry point such as
-                    // DocumentReset or DocumentClosed.
+                    return;
+                }
+
+                var isActiveDocument = _documentTrackingService.TryGetActiveDocument() == document.Id;
+                var isOpenDocument = document.IsOpen();
+                var isGeneratedRazorDocument = document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
+
+                // Only analyze open/active documents, unless it is a generated Razor document.
+                if (!isActiveDocument && !isOpenDocument && !isGeneratedRazorDocument)
+                {
                     return;
                 }
 
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
+                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                var backgroundAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project);
 
                 // We split the diagnostic computation for document into following steps:
                 //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
@@ -56,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using var _ = ArrayBuilder<StateSet>.GetInstance(out var nonCachedStateSets);
                 foreach (var stateSet in stateSets)
                 {
-                    var data = await TryGetCachedDocumentAnalysisDataAsync(document, stateSet, kind, cancellationToken).ConfigureAwait(false);
+                    var data = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
+                        backgroundAnalysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument, cancellationToken);
                     if (data.HasValue)
                     {
                         // We need to persist and raise diagnostics for suppressed analyzer.
@@ -73,9 +84,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
                     var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
+                    var logTelemetry = document.Project.Solution.Options.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
                     foreach (var stateSet in nonCachedStateSets)
                     {
-                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, cancellationToken).ConfigureAwait(false);
+                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry, cancellationToken).ConfigureAwait(false);
                         PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
                     }
                 }
@@ -132,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(a, project) && !a.IsOpenFileOnly(options));
+                                        .Where(a => AnalyzerHelper.IsAnalyzerEnabledForProject(a, project) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
@@ -256,6 +268,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
         }
 
+        public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            // When the analysis scope is set to 'ActiveFile' and the active document is switched,
+            // we retrigger analysis of newly active document.
+            // For the remaining analysis scopes, we always analyze all the open files, so switching active
+            // documents between two open files doesn't require us to retrigger analysis of the newly active document.
+            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) != BackgroundAnalysisScope.ActiveFile)
+            {
+                return;
+            }
+
+            // First reset the document states.
+            await TextDocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Trigger syntax analysis.
+            await AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+
+            // Trigger semantic analysis for source documents. Non-source documents do not support semantic analysis.
+            if (document is Document)
+                await AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
+        }
+
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
@@ -328,31 +362,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ClearCompilationsWithAnalyzersCache();
 
             return Task.CompletedTask;
-        }
-
-        private static bool AnalysisEnabled(TextDocument document, IDocumentTrackingService documentTrackingService)
-        {
-            if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
-            {
-                // This is a generated Razor document, and they want diagnostics, so let's report it
-                return true;
-            }
-
-            if (!document.SupportsDiagnostics())
-            {
-                return false;
-            }
-
-            // change it to check active file (or visible files), not open files if active file tracking is enabled.
-            // otherwise, use open file.
-            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile)
-            {
-                return documentTrackingService.TryGetActiveDocument() == document.Id;
-            }
-            else
-            {
-                return document.IsOpen();
-            }
         }
 
         /// <summary>
@@ -436,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(async raiseEvents =>
             {
                 foreach (var stateSet in stateSets)
                 {
@@ -466,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (oldAnalysisResult.IsEmpty && !newAnalysisResult.IsEmpty)
                     {
                         // add new diagnostics
-                        RaiseProjectDiagnosticsCreated(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                        await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
                         continue;
                     }
 
@@ -479,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false, raiseEvents);
 
                     // next update or create new ones
-                    RaiseProjectDiagnosticsCreated(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                    await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
                 }
             });
         }
@@ -529,13 +538,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsCreated(document, stateSet, kind, newItems, raiseEvents);
         }
 
-        private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private async Task RaiseProjectDiagnosticsCreatedAsync(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(newAnalysisResult.DocumentIds != null);
 
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
                 var document = project.GetTextDocument(documentId);
+
+                // If we couldn't find a normal document, and all features are enabled for source generated documents,
+                // attempt to locate a matching source generated document in the project.
+                if (document is null
+                    && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                {
+                    document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                }
+
                 if (document == null)
                 {
                     // it can happen with build synchronization since, in build case, 

@@ -41,6 +41,7 @@ class C
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
                     New MockStreamingFindReferencesPresenter(context),
+                    workspace.GlobalOptions,
                     listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)

@@ -1106,19 +1106,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundEvaluationDecisionDagNode evaluationNode:
                         {
-                            var e = evaluationNode.Evaluation;
-                            if (e is not BoundDagAssignmentEvaluation)
-                            {
-                                BoundExpression sideEffect = LowerEvaluation(e);
-                                Debug.Assert(sideEffect != null);
-                                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                            BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
+                            Debug.Assert(sideEffect != null);
+                            _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
 
-                                // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
-                                // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
-                                // synchronize on changes.
-                                if (GenerateInstrumentation)
-                                    _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
-                            }
+                            // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
+                            // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
+                            // synchronize on changes.
+                            if (GenerateInstrumentation)
+                                _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
 
                             if (nextNode != evaluationNode.Next)
                             {

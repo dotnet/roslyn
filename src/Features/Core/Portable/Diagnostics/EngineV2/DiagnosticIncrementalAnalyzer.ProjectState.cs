@@ -200,6 +200,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var documentId in result.DocumentIds)
                 {
                     var document = project.GetTextDocument(documentId);
+
+                    // If we couldn't find a normal document, and all features are enabled for source generated
+                    // documents, attempt to locate a matching source generated document in the project.
+                    if (document is null
+                        && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                    {
+                        document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
+                    }
+
                     if (document == null)
                     {
                         // it can happen with build synchronization since, in build case, 

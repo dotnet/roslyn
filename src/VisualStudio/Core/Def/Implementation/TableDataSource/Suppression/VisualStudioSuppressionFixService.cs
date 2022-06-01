@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -52,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IHierarchyItemToProjectIdMap _projectMap;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -64,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             IVsHierarchyItemManager vsHierarchyItemManager,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
@@ -80,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
             _tableControl = errorList?.TableControl;
             _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
+            _globalOptions = globalOptions;
         }
 
         public bool AddSuppressions(IVsHierarchy? projectHierarchy)
@@ -295,6 +299,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var options = _globalOptions.GetCodeActionOptions(language);
+                    var optionsProvider = new CodeActionOptionsProvider(_ => options);
+
                     var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
                     if (!documentDiagnosticsPerLanguage.IsEmpty)
                     {
@@ -307,6 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                 _workspace,
                                 suppressionFixer,
                                 suppressionFixAllProvider,
+                                optionsProvider,
                                 equivalenceKey,
                                 title,
                                 waitDialogMessage,
@@ -331,6 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                  _workspace,
                                  suppressionFixer,
                                  suppressionFixAllProvider,
+                                 optionsProvider,
                                  equivalenceKey,
                                  title,
                                  waitDialogMessage,

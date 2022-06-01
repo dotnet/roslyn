@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Range = ProtocolConversions.TextSpanToRange(new TextSpan(d.Offset, d.Length), text),
                 Tags = ConvertTags(d),
                 Source = d.Tool,
-                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.HelpLink),
+                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.GetHelpLinkUri()),
                 Projects = new[]
                 {
                     new VSDiagnosticProjectInformation

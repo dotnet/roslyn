@@ -12,6 +12,11 @@
         <target state="translated">Stosowanie zmian</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
         <target state="translated">Zmień konfigurację</target>
@@ -75,11 +80,6 @@
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">Uzyskaj pomoc dla „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Uzyskaj pomoc dla „{0}” z wyszukiwarki Bing</target>
         <note />
       </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">
@@ -150,6 +150,61 @@
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
         <target state="translated">Nieprawidłowe znaki w nazwie zestawu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Array">
+        <source>JSON in string literal - Array</source>
+        <target state="new">JSON in string literal - Array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Comment">
+        <source>JSON in string literal - Comment</source>
+        <target state="new">JSON in string literal - Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Constructor_Name">
+        <source>JSON in string literal - Constructor Name</source>
+        <target state="new">JSON in string literal - Constructor Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Keyword">
+        <source>JSON in string literal - Keyword</source>
+        <target state="new">JSON in string literal - Keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Number">
+        <source>JSON in string literal - Number</source>
+        <target state="new">JSON in string literal - Number</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Object">
+        <source>JSON in string literal - Object</source>
+        <target state="new">JSON in string literal - Object</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Operator">
+        <source>JSON in string literal - Operator</source>
+        <target state="new">JSON in string literal - Operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Property_Name">
+        <source>JSON in string literal - Property Name</source>
+        <target state="new">JSON in string literal - Property Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Punctuation">
+        <source>JSON in string literal - Punctuation</source>
+        <target state="new">JSON in string literal - Punctuation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_String">
+        <source>JSON in string literal - String</source>
+        <target state="new">JSON in string literal - String</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Text">
+        <source>JSON in string literal - Text</source>
+        <target state="new">JSON in string literal - Text</target>
         <note />
       </trans-unit>
       <trans-unit id="Keyword_Control">
@@ -270,11 +325,6 @@
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
         <source>The results may be incomplete due to the solution still loading projects.</source>
         <target state="translated">Wyniki mogą być niekompletne, ponieważ rozwiązanie nadal ładuje projekty.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_symbol_has_no_base">
-        <source>The symbol has no base.</source>
-        <target state="translated">Symbol nie ma wartości podstawowej.</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
@@ -545,11 +595,6 @@
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
         <target state="translated">Nie możesz zmienić nazwy tego elementu, ponieważ znajduje się on w lokalizacji, do której nie można nawigować.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_bases">
-        <source>'{0}' bases</source>
-        <target state="translated">Wartości podstawowe „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -967,11 +1012,6 @@
         <target state="translated">Trwa formatowanie aktualnie zaznaczonego tekstu...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Nie można przejść do symbolu pod karetką.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
         <target state="translated">Przejdź do definicji</target>
@@ -1379,11 +1419,6 @@ Czy chcesz kontynuować?</target>
         <target state="translated">Przejdź do implementacji</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_implementations">
-        <source>The symbol has no implementations.</source>
-        <target state="translated">Symbol nie ma implementacji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
         <target state="translated">Nowa nazwa: {0}</target>
@@ -1407,16 +1442,6 @@ Czy chcesz kontynuować?</target>
       <trans-unit id="Suggestion_ellipses">
         <source>Suggestion ellipses (…)</source>
         <target state="translated">Wielokropki sugestii (…)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_references">
-        <source>'{0}' references</source>
-        <target state="translated">'Odwołania „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_implementations">
-        <source>'{0}' implementations</source>
-        <target state="translated">'Implementacje „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">

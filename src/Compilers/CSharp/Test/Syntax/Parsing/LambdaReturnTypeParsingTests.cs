@@ -5004,6 +5004,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Async_TopLevelStatement()
+        {
+            string source = "async MyMethod() => null;";
+            UsingTree(source, TestOptions.Regular9);
+            verify();
+
+            UsingTree(source, TestOptions.Regular10);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.GlobalStatement);
+                    {
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            N(SyntaxKind.IdentifierToken, "MyMethod");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         public void Dynamic_01()
         {
             string source = "dynamic () => default";

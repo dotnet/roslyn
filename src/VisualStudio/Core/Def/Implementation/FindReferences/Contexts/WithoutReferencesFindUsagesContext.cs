@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -22,15 +23,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// This context will not group entries by definition, and will instead just create
         /// entries for the definitions themselves.
         /// </summary>
-        private class WithoutReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
+        private sealed class WithoutReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
         {
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
                 ImmutableArray<ITableColumnDefinition> customColumns,
+                IGlobalOptionService globalOptions,
                 bool includeContainingTypeAndMemberColumns,
                 bool includeKindColumn)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 

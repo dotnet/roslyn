@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -33,6 +34,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     private readonly IStreamingFindUsagesPresenter _streamingPresenter;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
     private readonly IAsynchronousOperationListener _listener;
+    private readonly IGlobalOptionService _globalOptions;
 
     /// <summary>
     /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that
@@ -59,19 +61,21 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         IThreadingContext threadingContext,
         IStreamingFindUsagesPresenter streamingPresenter,
         IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IAsynchronousOperationListener listener)
+        IAsynchronousOperationListener listener,
+        IGlobalOptionService globalOptions)
     {
         _threadingContext = threadingContext;
         _streamingPresenter = streamingPresenter;
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _listener = listener;
+        _globalOptions = globalOptions;
     }
 
     public abstract string DisplayName { get; }
     protected abstract string ScopeDescription { get; }
     protected abstract FunctionId FunctionId { get; }
 
-    protected abstract Task FindActionAsync(Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
+    protected abstract Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken);
 
     public CommandState GetCommandState(TCommandArgs args)
     {
@@ -161,11 +165,11 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // TLanguageService.  Once we get the results back we'll then decide what to do with them.  If we get only a
         // single result back, then we'll just go directly to it.  Otherwise, we'll present the results in the
         // IStreamingFindUsagesPresenter.
-        var findContext = new BufferedFindUsagesContext();
+        var findContext = new BufferedFindUsagesContext(_globalOptions);
 
         var cancellationToken = cancellationTokenSource.Token;
         var delayTask = Task.Delay(TaggerDelay.OnIdle.ComputeTimeDelay(), cancellationToken);
-        var findTask = Task.Run(() => FindResultsAsync(document, position, findContext, cancellationToken), cancellationToken);
+        var findTask = Task.Run(() => FindResultsAsync(findContext, document, position, cancellationToken), cancellationToken);
 
         var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
@@ -206,7 +210,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     {
         var cancellationToken = cancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(this.DisplayName, supportsReferences: false);
+        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, supportsReferences: false);
 
         try
         {
@@ -235,7 +239,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     }
 
     private async Task FindResultsAsync(
-        Document document, int position, IFindUsagesContext findContext, CancellationToken cancellationToken)
+        IFindUsagesContext findContext, Document document, int position, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
@@ -253,7 +257,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).
             // So we better be able to find it afterwards.
-            await FindActionAsync(document, position, findContext, cancellationToken).ConfigureAwait(false);
+            await FindActionAsync(findContext, document, position, cancellationToken).ConfigureAwait(false);
         }
     }
 }

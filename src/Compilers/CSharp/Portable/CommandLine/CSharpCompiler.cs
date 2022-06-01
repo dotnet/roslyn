@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         // </Metalama>
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache = null)
-            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader, driverCache)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache = null, ICommonCompilerFileSystem? fileSystem = null)
+            : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader, driverCache, fileSystem)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
             _tempDirectory = buildPaths.TempDirectory;
@@ -805,17 +805,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AttachedProperties.Add(resource.Resource, RefAssemblyResourceMarker.Instance);
             }
-
-            // Map the AnalyzerConfigOptionsProvider
-            var mappedAnalyzerConfigProvider = analyzerConfigProvider switch
-            {
-                // This is the scenario when the code is compiled from the compiler.
-                CompilerAnalyzerConfigOptionsProvider fromCompiler => fromCompiler.WithMappedTrees(
-                    oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree))),
-                
-                // This is the scenario when the code is compiled from Metalama.Try.
-                _ => analyzerConfigProvider
-            };
             
             return new TransformersResult(
                 annotatedInputCompilation, 
@@ -823,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  replacements, 
                 new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
                 addedResources.SelectAsArray( m => m.Resource),
-                mappedAnalyzerConfigProvider );
+                CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees( analyzerConfigProvider,oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree)) ) );
             
     
         }

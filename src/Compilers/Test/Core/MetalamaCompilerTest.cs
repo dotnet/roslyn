@@ -1,11 +1,16 @@
-﻿using System.Collections.Immutable;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Metalama.Backstage.Extensibility;
+using Metalama.Compiler;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Metalama.Compiler;
-using Metalama.Backstage.Extensibility;
 
 namespace Roslyn.Test.Utilities
 {
@@ -38,36 +43,40 @@ namespace Roslyn.Test.Utilities
         {
             public void Execute(TransformerContext context)
             {
-                static SyntaxToken ChangeWhitespace(SyntaxToken token)
-                {
-                    if (token.IsPartOfStructuredTrivia())
-                    {
-                        if (token.Kind() is SyntaxKind.XmlTextLiteralToken)
-                        {
-                            token = token.WithTrailingTrivia(
-                                token.TrailingTrivia.Add(SyntaxFactory.Space));
-                        }
-                        return token;
-                    }
+                var rewriter = new Rewriter();
 
+                var compilation = context.Compilation;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var root = tree.GetRoot();
+                    if (root is CSharpSyntaxNode)
+                    {
+                        context.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(rewriter.Visit(root), tree.Options));
+                    }
+                }
+
+            }
+
+            private class Rewriter : CSharpSyntaxRewriter
+            {
+                public Rewriter() : base(false)
+                {
+
+                }
+
+                public override SyntaxToken VisitToken(SyntaxToken token)
+                {
                     token = token.ReplaceTrivia(
-                        token.GetAllTrivia().Where(
-                            t => t.IsKind(SyntaxKind.WhitespaceTrivia) || t.IsKind(SyntaxKind.EndOfLineTrivia)),
-                        (_, _) => default);
+                      token.GetAllTrivia().Where(
+                          t => t.IsKind(SyntaxKind.WhitespaceTrivia) || t.IsKind(SyntaxKind.EndOfLineTrivia)),
+                      (_, _) => default);
                     token = token.WithTrailingTrivia(
                         token.TrailingTrivia.Add(SyntaxFactory.CarriageReturnLineFeed));
                     return token;
                 }
 
-                var compilation = context.Compilation;
-                foreach (var tree in compilation.SyntaxTrees)
-                {
-                    var newRoot = tree.GetRoot().ReplaceTokens(
-                        tree.GetRoot().DescendantTokens(descendIntoTrivia: true), (_, token) => ChangeWhitespace(token));
+                public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => node;
 
-                    context.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
-                }
-                
             }
         }
     }

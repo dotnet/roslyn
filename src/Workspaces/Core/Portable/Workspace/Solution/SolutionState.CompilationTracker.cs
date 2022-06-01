@@ -376,6 +376,13 @@ namespace Microsoft.CodeAnalysis
                     // so use a ConditionalWeakTable.
                     return SpecializedTasks.FromResult(compilation);
                 }
+                else if (cancellationToken.IsCancellationRequested)
+                {
+                    // Handle early cancellation here to avoid throwing/catching cancellation exceptions in the async
+                    // state machines. This helps reduce the total number of First Chance Exceptions occurring in IDE
+                    // typing scenarios.
+                    return Task.FromCanceled<Compilation>(cancellationToken);
+                }
                 else
                 {
                     return GetCompilationSlowAsync(solution, cancellationToken);

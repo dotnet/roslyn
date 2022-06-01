@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
         {
         }
 
-        internal override string EscapeText(string text, SyntaxToken token)
+        public override string EscapeText(string text, SyntaxToken token)
             => EmbeddedLanguageUtilities.EscapeText(text, token);
     }
 }

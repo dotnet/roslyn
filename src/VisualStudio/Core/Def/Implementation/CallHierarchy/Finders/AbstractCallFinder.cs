@@ -31,7 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         // For Testing only
         internal IImmutableSet<Document> Documents;
 
-        protected AbstractCallFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+        protected AbstractCallFinder(
+            ISymbol symbol,
+            ProjectId projectId,
+            IAsynchronousOperationListener asyncListener,
+            CallHierarchyProvider provider)
         {
             _asyncListener = asyncListener;
             _symbolKey = symbol.GetSymbolKey();
@@ -110,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             await SearchWorkerAsync(symbol, project, callback, documents, cancellationToken).ConfigureAwait(false);
         }
 
-        private IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
+        private static IImmutableSet<Document> IncludeDocuments(CallHierarchySearchScope scope, Project project)
         {
             if (scope is CallHierarchySearchScope.CurrentDocument or CallHierarchySearchScope.CurrentProject)
             {
@@ -154,7 +158,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 {
                     if (caller.CallingSymbol.Kind == SymbolKind.Field)
                     {
-                        initializerLocations.AddRange(caller.Locations.Select(l => new CallHierarchyDetail(l, project.Solution.Workspace)));
+                        initializerLocations.AddRange(caller.Locations.Select(
+                            l => new CallHierarchyDetail(this.Provider.ThreadingContext, l, project.Solution.Workspace)));
                     }
                     else
                     {

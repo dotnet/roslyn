@@ -5,118 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    /// <summary>
-    /// Dynamic call-site delegate, for call-sites that do not
-    /// match System.Action or System.Func signatures.
-    /// </summary>
-    internal sealed class SynthesizedDelegateSymbol : SynthesizedContainer
-    {
-        private readonly NamespaceOrTypeSymbol _containingSymbol;
-        private readonly MethodSymbol _constructor;
-        private readonly MethodSymbol _invoke;
-
-        public SynthesizedDelegateSymbol(
-            NamespaceOrTypeSymbol containingSymbol,
-            string name,
-            TypeSymbol objectType,
-            TypeSymbol intPtrType,
-            TypeSymbol? voidReturnTypeOpt,
-            int parameterCount,
-            RefKindVector refKinds)
-            : base(name, parameterCount, returnsVoid: voidReturnTypeOpt is not null)
-        {
-            Debug.Assert(refKinds.IsNull || parameterCount == refKinds.Capacity - (voidReturnTypeOpt is { } ? 0 : 1));
-
-            _containingSymbol = containingSymbol;
-            _constructor = new SynthesizedDelegateConstructor(this, objectType, intPtrType);
-            _invoke = createInvokeMethod(this, refKinds, voidReturnTypeOpt);
-
-            static SynthesizedDelegateInvokeMethod createInvokeMethod(SynthesizedDelegateSymbol containingType, RefKindVector refKinds, TypeSymbol? voidReturnTypeOpt)
-            {
-                var typeParams = containingType.TypeParameters;
-
-                int parameterCount = typeParams.Length - (voidReturnTypeOpt is null ? 1 : 0);
-                var parameterTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(parameterCount);
-                var parameterRefKinds = ArrayBuilder<RefKind>.GetInstance(parameterCount);
-                for (int i = 0; i < parameterCount; i++)
-                {
-                    parameterTypes.Add(TypeWithAnnotations.Create(typeParams[i]));
-                    parameterRefKinds.Add(refKinds.IsNull ? RefKind.None : refKinds[i]);
-                }
-
-                // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
-                var returnType = TypeWithAnnotations.Create(voidReturnTypeOpt ?? typeParams[parameterCount]);
-                var returnRefKind = (refKinds.IsNull || voidReturnTypeOpt is { }) ? RefKind.None : refKinds[parameterCount];
-
-                var method = new SynthesizedDelegateInvokeMethod(containingType, parameterTypes, parameterRefKinds, returnType, returnRefKind);
-                parameterRefKinds.Free();
-                parameterTypes.Free();
-                return method;
-            }
-        }
-
-        public override Symbol ContainingSymbol
-        {
-            get { return _containingSymbol; }
-        }
-
-        public override TypeKind TypeKind
-        {
-            get { return TypeKind.Delegate; }
-        }
-
-        internal override MethodSymbol Constructor
-        {
-            get { return _constructor; }
-        }
-
-        public override IEnumerable<string> MemberNames
-        {
-            get { return new[] { _constructor.Name, _invoke.Name }; }
-        }
-
-        public override ImmutableArray<Symbol> GetMembers()
-        {
-            return ImmutableArray.Create<Symbol>(_constructor, _invoke);
-        }
-
-        public override ImmutableArray<Symbol> GetMembers(string name)
-        {
-            return
-                (name == _constructor.Name) ? ImmutableArray.Create<Symbol>(_constructor) :
-                (name == _invoke.Name) ? ImmutableArray.Create<Symbol>(_invoke) :
-                ImmutableArray<Symbol>.Empty;
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get { return Accessibility.Internal; }
-        }
-
-        public override bool IsSealed
-        {
-            get { return true; }
-        }
-
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            => ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate);
-
-        public sealed override bool AreLocalsZeroed
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
-        internal override bool IsRecord => false;
-        internal override bool IsRecordStruct => false;
-        internal override bool HasPossibleWellKnownCloneMethod() => false;
-    }
-
     internal sealed class SynthesizedDelegateConstructor : SynthesizedInstanceConstructor
     {
         private readonly ImmutableArray<ParameterSymbol> _parameters;

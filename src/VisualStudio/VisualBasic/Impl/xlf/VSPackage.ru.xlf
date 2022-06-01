@@ -18,8 +18,19 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Подчеркивать переназначенные переменные;Показывать встроенные подсказки;Автоматическая вставка конечных конструкций;Изменение параметров автоматического форматирования;Изменение режима структуры;Автоматическая вставка интерфейса и элементов MustOverride;Показывать или скрывать разделители строк для процедуры;Включить или отключить предложения по исправлению ошибок;Включить или отключить выделение ссылок и ключевых слов;Регулярные выражения;Выделять регулярные выражения;Выделять родственные компоненты под курсором;Сообщать о недопустимых регулярных выражениях;регулярные выражения;регулярное выражение;Использование расширенного набора цветов;Цветовая схема редактора;Поле наследования;Директивы import;</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">Подчеркивать переназначенные переменные;Показывать встроенные подсказки;Автоматическая вставка конечных конструкций;Изменение параметров автоматического форматирования;Изменение режима структуры;Автоматическая вставка интерфейса и элементов MustOverride;Показывать или скрывать разделители строк для процедуры;Включить или отключить предложения по исправлению ошибок;Включить или отключить выделение ссылок и ключевых слов;Регулярные выражения;Выделять регулярные выражения;Выделять родственные компоненты под курсором;Сообщать о недопустимых регулярных выражениях;регулярные выражения;регулярное выражение;Использование расширенного набора цветов;Цветовая схема редактора;Поле наследования;Директивы import;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

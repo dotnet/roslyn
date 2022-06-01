@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, access);
                         }
 
+                    case BoundDagAssignmentEvaluation:
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
                 }
