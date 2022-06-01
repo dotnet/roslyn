@@ -1979,13 +1979,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // ReadOnlySpan may just refer to the blob, if possible.
-                if (this._module.Compilation.IsReadOnlySpanType(expression.Type) &&
-                    expression.Arguments.Length == 1)
+                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlace: false))
                 {
-                    if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace: false))
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 // none of the above cases, so just create an instance
@@ -2000,6 +1996,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EmitPopIfUnused(used);
             }
+        }
+
+        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, bool inPlace)
+        {
+            int argumentsLength = expression.Arguments.Length;
+            return ((argumentsLength == 1 &&
+                     expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
+                    (argumentsLength == 3 &&
+                     expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
+                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace,
+                           start: argumentsLength == 3 ? expression.Arguments[1] : null,
+                           length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }
 
         /// <summary>
@@ -2222,16 +2230,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             // ReadOnlySpan may just refer to the blob, if possible.
-            if (this._module.Compilation.IsReadOnlySpanType(objCreation.Type) && objCreation.Arguments.Length == 1)
+            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, inPlace: true))
             {
-                if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)objCreation.Type, objCreation.Arguments[0], used, inPlace: true))
+                if (used)
                 {
-                    if (used)
-                    {
-                        EmitExpression(target, used: true);
-                    }
-                    return;
+                    EmitExpression(target, used: true);
                 }
+                return;
             }
 
             var constructor = objCreation.Constructor;

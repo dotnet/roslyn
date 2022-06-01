@@ -625,6 +625,48 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string RequiredMemberAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public sealed class RequiredMemberAttribute : Attribute
+    {
+        public RequiredMemberAttribute()
+        {
+        }
+    }
+}
+";
+
+        protected const string SetsRequiredMembersAttribute = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+    public sealed class SetsRequiredMembersAttribute : Attribute
+    {
+        public SetsRequiredMembersAttribute()
+        {
+        }
+    }
+}
+";
+
+        internal const string CompilerFeatureRequiredAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+                public sealed class CompilerFeatureRequiredAttribute : Attribute
+                {
+                    public CompilerFeatureRequiredAttribute(string featureName)
+                    {
+                        FeatureName = featureName;
+                    }
+                    public string FeatureName { get; }
+                    public bool IsOptional { get; set; }
+                }
+            }
+            """;
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);
@@ -1316,12 +1358,12 @@ namespace System.Runtime.CompilerServices
 
         public static CSharpCompilation CreateCompilation(
             AssemblyIdentity identity,
-            string[] source,
-            MetadataReference[] references,
+            CSharpTestSource? source,
+            IEnumerable<MetadataReference> references,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null)
         {
-            var trees = (source == null) ? null : source.Select(s => Parse(s, options: parseOptions)).ToArray();
+            var trees = (source ?? CSharpTestSource.None).GetSyntaxTrees(parseOptions);
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
 
             ValidateCompilation(createCompilationLambda);
