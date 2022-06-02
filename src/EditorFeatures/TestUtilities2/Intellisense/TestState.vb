@@ -288,15 +288,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Return
             End If
 
-            If session.IsDismissed Then
-                Return
-            End If
-
-            Dim completionItems = session.GetComputedItems(CancellationToken.None)
-
-            ' During the computation we can explicitly dismiss the session or we can return no items.
-            ' Each of these conditions mean that there is no active completion.
-            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
+            Assert.True(session.IsDismissed, "AssertNoCompletionSession")
         End Function
 
         Public Sub AssertNoCompletionSessionWithNoBlock()
