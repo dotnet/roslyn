@@ -1767,23 +1767,31 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(diagnostic.Location.SourceTree);
+
+                
                 // Find the node in the tree where the diagnostic was reported.
                 var reportedSyntaxNode =
                     diagnostic.Location.SourceTree.GetRoot().FindNode(diagnostic.Location.SourceSpan);
 
                 // Find the node in the source syntax tree.
                 var sourceSyntaxNode = TreeTracker.GetSourceSyntaxNode(reportedSyntaxNode);
+                
+                // If sourceSyntaxNode == null, it means that two conditions are met:
+                //   1. The diagnostic is located in generated code AND
+                //   2. Diagnostics and PDBs are generated against the _source code_.
+                // When the PDBs are generated against the transformed code, we need to code  TryFindGeneratedCodeOrigin to determine if
+                // the diagnostic is located in generated code.
+                
+                var isGeneratedCode = reportedSyntaxNode.TryFindGeneratedCodeOrigin(out var codeGenerator);
 
-                if (sourceSyntaxNode == null)
+                if (sourceSyntaxNode == null || isGeneratedCode)
                 {
-                    // The node was reported in generated code.
                     if (diagnostic.Severity >= DiagnosticSeverity.Error &&
                         diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
                     {
                         // If this is a C# compiler error, it means that we have invalid code.
                         // Try to find the component that generated it and blame the error on it.
-
-                        reportedSyntaxNode.TryFindGeneratedCodeOrigin(out var codeGenerator);
 
                         if (codeGenerator == null)
                         {
@@ -1795,12 +1803,16 @@ namespace Microsoft.CodeAnalysis
                             hasAspectBug = true;
                         }
 
-                        var newDiagnostic = Diagnostic.Create(new DiagnosticInfo(
+                        // Replace the diagnostic by a wrapper.
+                        var diagnosticWrapper = Diagnostic.Create(new DiagnosticInfo(
                             MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_ErrorInGeneratedCode,
-                            diagnostic.Id, codeGenerator, diagnostic.GetMessage()));
-
-                        targetDiagnostics.Add(newDiagnostic);
+                            diagnostic.Id, codeGenerator, diagnostic.GetMessage())).WithLocation(diagnostic.Location);
+                        
+                        targetDiagnostics.Add(diagnosticWrapper);
+                        
+                        // Continue the execution flow to map the diagnostic location.
                         continue;
+
                     }
                     else
                     {
@@ -1810,7 +1822,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Find the final tree.
-                SyntaxTree? finalTree = SyntaxTreeHistory.GetLast(diagnostic.Location.SourceTree);
                 RoslynDebug.Assert(compilation.ContainsSyntaxTree(finalTree));
 
                 // Find the node in the final tree corresponding to the node in the original tree.
@@ -1825,7 +1836,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        // The rest can be skipped.
+                        // Non-errors or non-C# diagnostics are skipped.
                         continue;
                     }
 
