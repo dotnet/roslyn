@@ -812,6 +812,11 @@
         <target state="translated">Una expresión lambda con atributos no se puede convertir en un árbol de expresión</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">La línea contiene un espacio en blanco diferente de la línea de cierre del literal de cadena sin formato: \"{0}\" frente a \"{1}\"</target>
@@ -11680,11 +11685,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">El miembro de interfaz "{0}" no tiene una implementación más específica. Ni "{1}" ni "{2}" son los más específicos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">"{0}" no puede implementar el miembro de interfaz "{1}" en el tipo "{2}" porque la característica "{3}" no está disponible en C# {4}. Use la versión de idioma "{5}" o una posterior.</target>
         <note />
       </trans-unit>
     </body>
