@@ -23,7 +23,19 @@ namespace Microsoft.CodeAnalysis
 
         private readonly PEModule _module;
 
+        /// <summary>
+        /// Optional data that should be kept alive as long as this <see cref="ModuleMetadata"/> is alive.  This can be
+        /// useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
+        /// doesn't get garbage collected.
+        /// </summary>
         private readonly IDisposable? _owner;
+
+        /// <summary>
+        /// Whether or not <see cref="_owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
+        /// Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="CreateFromStream(Stream, bool)"/>, or if
+        /// <see cref="PEStreamOptions.LeaveOpen"/> is passed into <see cref="CreateFromStream(Stream,
+        /// PEStreamOptions)"/>.
+        /// </summary>
         private readonly bool _disposeOwner;
 
         private ModuleMetadata(PEReader peReader, IDisposable? owner = null, bool disposeOwner = false)
