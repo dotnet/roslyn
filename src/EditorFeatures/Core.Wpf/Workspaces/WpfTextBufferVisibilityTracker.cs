@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 _subjectBufferToCallbacks.Add(subjectBuffer, data);
             }
 
-            data.Callbacks.Add(callback);
+            data.Callbacks = data.Callbacks.Add(callback);
         }
 
         public void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback)
@@ -99,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
             // Both of these methods must succeed.  Otherwise we're somehow unregistering something we don't know about.
             Contract.ThrowIfFalse(_subjectBufferToCallbacks.TryGetValue(subjectBuffer, out var data));
-            Contract.ThrowIfFalse(data.Callbacks.Remove(callback));
+            Contract.ThrowIfFalse(data.Callbacks.Contains(callback));
+            data.Callbacks = data.Callbacks.Remove(callback);
 
             // If we have nothing that wants to listen to information about this buffer anymore, then disconnect it
             // from all events and remove our map.
@@ -112,11 +114,16 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         private sealed class VisibleTrackerData : IDisposable
         {
-            public readonly HashSet<Action> Callbacks = new();
             public readonly HashSet<ITextView> TextViews = new();
 
             private readonly WpfTextBufferVisibilityTracker _tracker;
             private readonly ITextBuffer _subjectBuffer;
+
+            /// <summary>
+            /// The callbacks that want to be notified when our <see cref="TextViews"/> change visibility.  Stored as an
+            /// <see cref="ImmutableHashSet{T}"/> so we can enumerate it safely without it changing underneath us.
+            /// </summary>
+            public ImmutableHashSet<Action> Callbacks = ImmutableHashSet<Action>.Empty;
 
             public VisibleTrackerData(
                 WpfTextBufferVisibilityTracker tracker,
