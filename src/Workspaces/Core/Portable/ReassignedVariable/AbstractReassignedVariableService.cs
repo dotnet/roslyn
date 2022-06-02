@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -206,10 +208,20 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (local.DeclaringSyntaxReferences.Length == 0)
                     return false;
 
-                var localDeclaration = local.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
-                if (localDeclaration.SyntaxTree != semanticModel.SyntaxTree)
+                var localDeclaration = local.DeclaringSyntaxReferences
+                    .Select(r => r.GetSyntax(cancellationToken))
+                    .Where(s => s.SyntaxTree == semanticModel.SyntaxTree)
+                    .FirstOrDefault();
+                if (localDeclaration == null)
                 {
-                    Contract.Fail("Local did not come from same file that we were analyzing?");
+                    try
+                    {
+                        throw new InvalidOperationException("Local did not come from same file that we were analyzing?");
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                    {
+                    }
+
                     return false;
                 }
 
