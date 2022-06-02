@@ -116,11 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: It is an error for the same modifier to appear multiple times in an
             // SPEC: operator declaration.
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
-            {
-                diagnostics.Add(info, location);
-            }
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
         }
 
         protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)

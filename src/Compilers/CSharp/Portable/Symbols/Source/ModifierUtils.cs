@@ -416,12 +416,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol, bool isExplicitInterfaceImplementation)
+        internal static bool CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol, bool isExplicitInterfaceImplementation, BindingDiagnosticBag diagnostics, Location errorLocation)
         {
             if (!IsValidAccessibility(modifiers))
             {
                 // error CS0107: More than one protection modifier
-                return new CSDiagnosticInfo(ErrorCode.ERR_BadMemberProtection);
+                diagnostics.Add(ErrorCode.ERR_BadMemberProtection, errorLocation);
+                return true;
             }
 
             if (!isExplicitInterfaceImplementation &&
@@ -436,7 +437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (symbol.ContainingType?.IsInterface == true && !symbol.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                         {
-                            return new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember);
+                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, errorLocation);
+                            return true;
                         }
                         break;
                 }
@@ -444,21 +446,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((modifiers & DeclarationModifiers.Required) != 0)
             {
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(futureDestination: diagnostics, assemblyBeingBuilt: symbol.ContainingAssembly);
                 switch (symbol)
                 {
-                    case FieldSymbol when !symbol.IsAsRestrictive(symbol.ContainingType, ref discardedUseSiteInfo):
-                    case PropertySymbol { SetMethod: { } method } when !method.IsAsRestrictive(symbol.ContainingType, ref discardedUseSiteInfo):
+                    case FieldSymbol when !symbol.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo):
+                    case PropertySymbol { SetMethod: { } method } when !method.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo):
                         // Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.
-                        return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, symbol, symbol.ContainingType);
+                        diagnostics.Add(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, errorLocation, symbol, symbol.ContainingType);
+                        diagnostics.Add(errorLocation, useSiteInfo);
+                        return true;
                     case PropertySymbol { SetMethod: null }:
                     case FieldSymbol when (modifiers & DeclarationModifiers.ReadOnly) != 0:
                         // Required member '{0}' must be settable.
-                        return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMemberMustBeSettable, symbol);
+                        diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSettable, errorLocation, symbol);
+                        return true;
                 }
             }
 
-            return null;
+            return false;
         }
 
         // Returns declared accessibility.
