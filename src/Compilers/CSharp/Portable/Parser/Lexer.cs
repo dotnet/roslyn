@@ -2459,7 +2459,7 @@ LoopExit:
 
             // First create a trivia from the start of this merge conflict marker to the
             // end of line/file (whichever comes first).
-            LexConflictMarkerHeader(ref triviaList);
+            LexConflictMarkerHeader(ref triviaList, startCh);
 
             // Now add the newlines as the next trivia.
             LexConflictMarkerEndOfLine(ref triviaList);
@@ -2524,8 +2524,11 @@ LoopExit:
             }
         }
 
-        private void LexConflictMarkerHeader(ref SyntaxListBuilder triviaList)
+        private void LexConflictMarkerHeader(ref SyntaxListBuilder triviaList, char startCh)
         {
+            RoslynDebug.Assert(IsConflictMarkerTrivia());
+            TextWindow.AdvanceChar(s_conflictMarkerLength + (startCh is '=' ? 0 : 1));
+
             while (true)
             {
                 var ch = this.TextWindow.PeekChar();

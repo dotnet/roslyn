@@ -741,7 +741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' First create a trivia from the start of this merge conflict marker to the
             ' end of line/file (whichever comes first).
-            ScanConflictMarkerHeader(tList)
+            ScanConflictMarkerHeader(tList, startCh)
 
             ' Now add the newlines as the next trivia.
             ScanConflictMarkerEndOfLine(tList)
@@ -784,8 +784,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Private Sub ScanConflictMarkerHeader(tList As SyntaxListBuilder)
+        Private Sub ScanConflictMarkerHeader(tList As SyntaxListBuilder, startCh As Char)
+            Debug.Assert(IsConflictMarkerTrivia())
+
             Dim start = _lineBufferOffset
+            AdvanceChar(s_conflictMarkerLength + If(startCh = "="c, 0, 1))
 
             While CanGet()
                 Dim ch = Peek()
