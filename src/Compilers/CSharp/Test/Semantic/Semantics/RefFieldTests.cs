@@ -4519,7 +4519,59 @@ class Program
             VerifyParameterSymbol(method.Parameters[3], "scoped ref scoped w", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
-        // PROTOTYPE: Test 'scoped' with 'this'.
+        [Fact]
+        public void ThisScope()
+        {
+            var source =
+@"class C
+{
+    public C() { }
+    void F1() { }
+}
+struct S1
+{
+    public S1() { }
+    void F1() { }
+    readonly void F2() { }
+}
+ref struct R1
+{
+    public R1() { }
+    void F1() { }
+    readonly void F2() { }
+}
+readonly struct S2
+{
+    public S2() { }
+    void F1() { }
+    readonly void F2() { }
+}
+readonly ref struct R2
+{
+    public R2() { }
+    void F1() { }
+    readonly void F2() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C..ctor").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("C.F1").ThisParameter, "C this", RefKind.None, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1..ctor").ThisParameter, "scoped out S1 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F1").ThisParameter, "scoped ref S1 this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S1.F2").ThisParameter, "scoped in S1 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1..ctor").ThisParameter, "scoped out R1 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F1").ThisParameter, "scoped ref R1 this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R1.F2").ThisParameter, "scoped in R1 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2..ctor").ThisParameter, "scoped out S2 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F1").ThisParameter, "scoped in S2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S2.F2").ThisParameter, "scoped in S2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2..ctor").ThisParameter, "scoped out R2 this", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F1").ThisParameter, "scoped in R2 this", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("R2.F2").ThisParameter, "scoped in R2 this", RefKind.In, DeclarationScope.RefScoped);
+        }
+
+        // PROTOTYPE: Test 'scoped' with extension method 'this'.
         // PROTOTYPE: Test 'scoped' with 'params'.
 
         // PROTOTYPE: Report error for implicit conversion between delegate types that differ by 'scoped',

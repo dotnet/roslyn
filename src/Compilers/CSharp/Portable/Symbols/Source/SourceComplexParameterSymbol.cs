@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A source parameter, potentially with a default value, attributes, etc.
     /// </summary>
-    internal abstract class SourceComplexParameterSymbol : SourceParameterSymbol, IAttributeTargetSymbol
+    internal abstract class SourceComplexParameterSymbolBase : SourceParameterSymbol, IAttributeTargetSymbol
     {
         [Flags]
         private enum ParameterSyntaxKind : byte
@@ -31,13 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly SyntaxReference _syntaxRef;
         private readonly ParameterSyntaxKind _parameterSyntaxKind;
-        private readonly DeclarationScope _scope;
 
         private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         protected ConstantValue _lazyDefaultSyntaxValue;
 
-        protected SourceComplexParameterSymbol(
+        protected SourceComplexParameterSymbolBase(
             Symbol owner,
             int ordinal,
             TypeWithAnnotations parameterType,
@@ -48,13 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             DeclarationScope scope)
-            : base(owner, parameterType, ordinal, refKind, name, locations)
+            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
 
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
-            _scope = scope;
 
             if (isParams)
             {
@@ -1421,8 +1419,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
 
-        internal sealed override DeclarationScope Scope => _scope;
-
         public abstract override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
@@ -1433,11 +1429,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SourceComplexParameterSymbolWithCustomModifiers : SourceComplexParameterSymbol
+    internal sealed class SourceComplexParameterSymbol : SourceComplexParameterSymbolBase
+    {
+        internal SourceComplexParameterSymbol(
+            Symbol owner,
+            int ordinal,
+            TypeWithAnnotations parameterType,
+            RefKind refKind,
+            string name,
+            ImmutableArray<Location> locations,
+            SyntaxReference syntaxRef,
+            bool isParams,
+            bool isExtensionMethodThis,
+            DeclarationScope scope)
+            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
+        {
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+    }
+
+    internal sealed class SourceComplexParameterSymbolWithCustomModifiersPrecedingRef : SourceComplexParameterSymbolBase
     {
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
-        internal SourceComplexParameterSymbolWithCustomModifiers(
+        internal SourceComplexParameterSymbolWithCustomModifiersPrecedingRef(
             Symbol owner,
             int ordinal,
             TypeWithAnnotations parameterType,
@@ -1451,6 +1467,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationScope scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
+            Debug.Assert(!refCustomModifiers.IsEmpty);
+
             _refCustomModifiers = refCustomModifiers;
 
             Debug.Assert(refKind != RefKind.None || _refCustomModifiers.IsEmpty);

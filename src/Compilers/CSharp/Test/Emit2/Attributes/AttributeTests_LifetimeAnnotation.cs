@@ -185,10 +185,12 @@ class Program
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("A.F2(int)").WithLocation(7, 11),
                 // (10,11): error CS0570: 'A.F3(object, ref int)' is not supported by the language
                 //         A.F3(x, ref y);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("A.F3(object, ref int)").WithLocation(10, 11),
-                // (11,11): error CS0570: 'A.F4(ref R)' is not supported by the language
-                //         A.F4(ref r);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F4").WithArguments("A.F4(ref R)").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("A.F3(object, ref int)").WithLocation(10, 11));
+
+            var method = comp.GetMember<MethodSymbol>("A.F4");
+            Assert.Equal("void A.F4(ref scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.AddParameterOptions(SymbolDisplayParameterOptions.IncludeScoped)));
+            var parameter = method.Parameters[0];
+            Assert.Equal(DeclarationScope.ValueScoped, parameter.Scope);
         }
 
         [Fact]

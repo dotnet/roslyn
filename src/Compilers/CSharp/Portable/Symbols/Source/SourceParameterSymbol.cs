@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
+        private readonly DeclarationScope _scope;
 
         public static SourceParameterSymbol Create(
             Binder context,
@@ -57,24 +58,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
             Debug.Assert(!inModifiers.IsDefault);
 
+            if (!inModifiers.IsDefaultOrEmpty)
+            {
+                return new SourceComplexParameterSymbolWithCustomModifiersPrecedingRef(
+                    owner,
+                    ordinal,
+                    parameterType,
+                    refKind,
+                    inModifiers,
+                    name,
+                    locations,
+                    syntax.GetReference(),
+                    isParams,
+                    isExtensionMethodThis,
+                    scope);
+            }
+
             if (!isParams &&
                 !isExtensionMethodThis &&
-                scope == DeclarationScope.Unscoped &&
                 (syntax.Default == null) &&
-                inModifiers.IsEmpty &&
                 (syntax.AttributeLists.Count == 0) &&
                 !owner.IsPartialMethod() &&
                 syntax.ExclamationExclamationToken.Kind() == SyntaxKind.None)
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, scope, name, locations);
             }
 
-            return new SourceComplexParameterSymbolWithCustomModifiers(
+            return new SourceComplexParameterSymbol(
                 owner,
                 ordinal,
                 parameterType,
                 refKind,
-                inModifiers,
                 name,
                 locations,
                 syntax.GetReference(),
@@ -88,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
+            DeclarationScope scope,
             string name,
             ImmutableArray<Location> locations)
             : base(owner, ordinal)
@@ -101,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
             this.parameterType = parameterType;
             _refKind = refKind;
+            _scope = scope;
             _name = name;
             _locations = locations;
         }
@@ -116,10 +132,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeWithAnnotations newTypeWithModifiers = this.TypeWithAnnotations.WithTypeAndModifiers(newType, newCustomModifiers);
 
+            if (newRefCustomModifiers.IsEmpty)
+            {
+                return new SourceComplexParameterSymbol(
+                    this.ContainingSymbol,
+                    this.Ordinal,
+                    newTypeWithModifiers,
+                    _refKind,
+                    _name,
+                    _locations,
+                    this.SyntaxReference,
+                    newIsParams,
+                    this.IsExtensionMethodThis,
+                    this.Scope);
+            }
+
             // Local functions should never have custom modifiers
             Debug.Assert(!(ContainingSymbol is LocalFunctionSymbol));
 
-            return new SourceComplexParameterSymbolWithCustomModifiers(
+            return new SourceComplexParameterSymbolWithCustomModifiersPrecedingRef(
                 this.ContainingSymbol,
                 this.Ordinal,
                 newTypeWithModifiers,
@@ -191,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _refKind;
             }
         }
+
+        internal sealed override DeclarationScope Scope => _scope;
 
         public sealed override string Name
         {

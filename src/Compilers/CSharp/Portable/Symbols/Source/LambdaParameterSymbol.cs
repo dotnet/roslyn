@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbol
+    internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbolBase
     {
         private readonly SyntaxList<AttributeListSyntax> _attributeLists;
 

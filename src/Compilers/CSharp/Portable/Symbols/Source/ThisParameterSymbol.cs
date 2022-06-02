@@ -174,6 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+        internal override DeclarationScope Scope => ContainingType?.TypeKind != TypeKind.Struct ? DeclarationScope.Unscoped : DeclarationScope.RefScoped;
     }
 }

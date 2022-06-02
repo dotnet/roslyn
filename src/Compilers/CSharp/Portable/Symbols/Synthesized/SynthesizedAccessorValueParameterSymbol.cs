@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// This parameter has no source location/syntax, but may have attributes.
     /// Attributes with 'param' target specifier on the accessor must be applied to the this parameter.
     /// </summary>
-    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
+    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbolBase
     {
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,

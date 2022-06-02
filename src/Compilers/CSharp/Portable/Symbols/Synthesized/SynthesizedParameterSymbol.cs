@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name = "",
             ImmutableArray<CustomModifier> refCustomModifiers = default,
-            SourceComplexParameterSymbol? baseParameterForAttributes = null,
+            SourceComplexParameterSymbolBase? baseParameterForAttributes = null,
             bool isNullChecked = false)
         {
             if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
         // The parameter containing attributes to inherit into this synthesized parameter, if any.
-        private readonly SourceComplexParameterSymbol? _baseParameterForAttributes;
+        private readonly SourceComplexParameterSymbolBase? _baseParameterForAttributes;
 
         public SynthesizedComplexParameterSymbol(
             MethodSymbol? container,
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            SourceComplexParameterSymbol? baseParameterForAttributes,
+            SourceComplexParameterSymbolBase? baseParameterForAttributes,
             bool isNullChecked)
             : base(container, type, ordinal, refKind, name, isNullChecked)
         {

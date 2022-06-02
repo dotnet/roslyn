@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
             // s = Scope. 2 bits.
-            // Current total = 31 bits.
+            // Current total = 30 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
@@ -984,9 +984,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return (isRefScoped, isValueScoped) switch
             {
                 (false, false) => DeclarationScope.Unscoped,
-                (false, true) => type.IsRefLikeType ? DeclarationScope.ValueScoped : null,
                 (true, false) => refKind != RefKind.None ? DeclarationScope.RefScoped : null,
-                (true, true) => null,
+                (_, true) => type.IsRefLikeType ? DeclarationScope.ValueScoped : null,
             };
         }
 
