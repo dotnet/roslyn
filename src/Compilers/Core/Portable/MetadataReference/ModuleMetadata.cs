@@ -32,9 +32,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Whether or not <see cref="_owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
-        /// Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="CreateFromStream(Stream, bool)"/>, or if
-        /// <see cref="PEStreamOptions.LeaveOpen"/> is passed into <see cref="CreateFromStream(Stream,
-        /// PEStreamOptions)"/>.
+        /// Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="CreateFromStream(Stream, bool)"/>, or
+        /// the <see cref="PEStreamOptions.LeaveOpen"/> flag in <see cref="CreateFromStream(Stream, PEStreamOptions)"/>.
         /// </summary>
         private readonly bool _disposeOwner;
 
