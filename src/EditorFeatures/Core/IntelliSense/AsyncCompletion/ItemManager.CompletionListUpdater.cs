@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private readonly bool _highlightMatchingPortions;
             private readonly bool _showCompletionItemFilters;
 
-            private readonly Action<IEnumerable<(RoslynCompletionItem, PatternMatch?)>, string, IList<RoslynCompletionItem>> _filterMethod;
+            private readonly Action<IReadOnlyList<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>.Builder> _filterMethod;
 
             private CompletionTriggerReason InitialTriggerReason => _snapshotData.InitialTrigger.Reason;
             private CompletionTriggerReason UpdateTriggerReason => _snapshotData.Trigger.Reason;
@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // called concurrently, which essentially makes the pooled list a singleton,
             // but we still use ObjectPool for concurrency handling just to be robust.
             private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool = new(factory: () => new(), size: 1);
-            private static readonly ObjectPool<List<RoslynCompletionItem>> s_listOfFilteredItemPool = new(factory: () => new(), size: 1);
+            private static readonly ObjectPool<List<(RoslynCompletionItem, PatternMatch?)>> s_listOfItemMatchPairPool = new(factory: () => new(), size: 1);
+            private static readonly ObjectPool<ImmutableArray<RoslynCompletionItem>.Builder> s_filteredItemBuilderPool = new(factory: () => ImmutableArray.CreateBuilder<RoslynCompletionItem>(), size: 1);
 
             public CompletionListUpdater(
                 ITrackingSpan applicableToSpan,
@@ -253,13 +254,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private ItemSelection? HandleNormalFiltering(IReadOnlyList<MatchResult<VSCompletionItem>> items)
             {
-                var filteredItemsBuilder = s_listOfFilteredItemPool.Allocate();
+                var itemMatchPairBuilder = s_listOfItemMatchPairPool.Allocate();
+                var filteredItemsBuilder = s_filteredItemBuilderPool.Allocate();
                 try
                 {
                     // Not deletion.  Defer to the language to decide which item it thinks best
                     // matches the text typed so far.
-                    var matchingItems = items.Where(r => r.MatchedFilterText).Select(t => (t.RoslynCompletionItem, t.PatternMatch));
-                    _filterMethod(matchingItems, _filterText, filteredItemsBuilder);
+                    itemMatchPairBuilder.AddRange(items.Where(r => r.MatchedFilterText).Select(t => (t.RoslynCompletionItem, t.PatternMatch)));
+                    _filterMethod(itemMatchPairBuilder, _filterText, filteredItemsBuilder);
 
                     // Ask the language to determine which of the *matched* items it wants to select.
                     int selectedItemIndex;
@@ -313,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             // PreferredItems from IntelliCode are duplicate of normal items, so we ignore them
                             // when deciding if we have an unique item.
-                            if (matchingItems.Count(r => !r.RoslynCompletionItem.IsPreferredItem()) == 1)
+                            if (itemMatchPairBuilder.Count(pair => !pair.Item1.IsPreferredItem()) == 1)
                                 uniqueItem = items[selectedItemIndex].EditorCompletionItem;
                         }
                     }
@@ -342,8 +344,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 finally
                 {
                     // Don't call ClearAndFree, which resets the capacity to a default value.
+                    itemMatchPairBuilder.Clear();
                     filteredItemsBuilder.Clear();
-                    s_listOfFilteredItemPool.Free(filteredItemsBuilder);
+                    s_listOfItemMatchPairPool.Free(itemMatchPairBuilder);
+                    s_filteredItemBuilderPool.Free(filteredItemsBuilder);
                 }
             }
 

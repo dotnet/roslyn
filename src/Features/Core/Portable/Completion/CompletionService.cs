@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -219,19 +220,19 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
-            var itemsWithPatternMatch = items.Select(
-                item => (item, helper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            var itemsWithPatternMatch = new SegmentedList<(CompletionItem, PatternMatch?)>(items.Select(
+                item => (item, helper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
 
             var builder = ImmutableArray.CreateBuilder<CompletionItem>();
             FilterItems(helper, itemsWithPatternMatch, filterText, builder);
-            return builder.MoveToImmutable();
+            return builder.ToImmutable();
         }
 
         internal virtual void FilterItems(
            Document document,
-           IEnumerable<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
            string filterText,
-           IList<CompletionItem> filteredItemsBuilder)
+           ImmutableArray<CompletionItem>.Builder builder)
         {
             // Default implementation just drops the pattern matches and builder, and
             // calls the public overload of FilterItems instead for compatibility.
@@ -248,9 +249,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal static void FilterItems(
             CompletionHelper completionHelper,
-            IEnumerable<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
+            IReadOnlyList<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
             string filterText,
-            IList<CompletionItem> filteredItemsBuilder)
+            ImmutableArray<CompletionItem>.Builder builder)
         {
             // It's very common for people to type expecting completion to fix up their casing,
             // so if no uppercase characters were typed so far, we'd loosen our standard on comparing items
@@ -344,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
                 }
 
-                filteredItemsBuilder.AddRange(bestItems.Select(itemWithPatternMatch => itemWithPatternMatch.item));
+                builder.AddRange(bestItems.Select(itemWithPatternMatch => itemWithPatternMatch.item));
             }
             finally
             {

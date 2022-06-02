@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var listBuilder = new ArrayBuilder<CompletionFilter>();
             var vectorForSingleItem = new BitVector32();
 
-            if (CompletionItemFlagsHelper.IsExpanded(item.Flags))
+            if (item.Flags.IsExpanded())
             {
                 listBuilder.Add(Expander);
                 vectorForSingleItem[s_expanderMask] = _vector[s_expanderMask] = true;

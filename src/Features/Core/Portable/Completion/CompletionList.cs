@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -69,11 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             Span = defaultSpan;
             ItemsInternal = items;
-
-            if (items is ImmutableArray<CompletionItem>)
-                _lazyItems = new(() => (ImmutableArray<CompletionItem>)ItemsInternal);
-            else
-                _lazyItems = new(() => ItemsInternal.ToImmutableArray(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
+            _lazyItems = new(() => ItemsInternal.ToImmutableArrayOrEmpty(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
 
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;

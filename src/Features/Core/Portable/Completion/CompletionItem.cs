@@ -409,8 +409,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // rely on this behavior when combining delayed expanded items list with 
             // non-expanded items (to avoid sorting again). if this changed, we need
             // to make sure to sort items properly in ItemManager.
-            var thisIsExpandItem = CompletionItemFlagsHelper.IsExpanded(Flags);
-            var otherIsExpandItem = CompletionItemFlagsHelper.IsExpanded(other.Flags);
+            var thisIsExpandItem = Flags.IsExpanded();
+            var otherIsExpandItem = other.Flags.IsExpanded();
 
             if (thisIsExpandItem == otherIsExpandItem)
             {

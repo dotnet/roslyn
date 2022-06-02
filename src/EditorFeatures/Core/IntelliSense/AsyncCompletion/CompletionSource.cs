@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             VSCompletionItemData itemData;
 
-            if (CompletionItemFlagsHelper.IsCached(roslynItem.Flags) && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var boxedItemData))
+            if (roslynItem.Flags.IsCached() && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var boxedItemData))
             {
                 itemData = boxedItemData.Value;
                 filterSet.CombineData(itemData.FilterSetData);
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // It doesn't make sense to cache VS item data for those Roslyn items created from scratch for each session,
                 // since CWT uses object identity for comparison.
-                if (CompletionItemFlagsHelper.IsCached(roslynItem.Flags))
+                if (roslynItem.Flags.IsCached())
                 {
                     s_roslynItemToVsItemData.Add(roslynItem, new StrongBox<VSCompletionItemData>(itemData));
                 }

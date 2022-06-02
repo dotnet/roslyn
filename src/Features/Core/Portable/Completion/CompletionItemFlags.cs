@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -30,14 +29,12 @@ namespace Microsoft.CodeAnalysis.Completion
         CachedAndExpanded = Cached | Expanded,
     }
 
-    internal static class CompletionItemFlagsHelper
+    internal static class CompletionItemFlagsExtensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsCached(CompletionItemFlags flags)
+        public static bool IsCached(this CompletionItemFlags flags)
             => (flags & CompletionItemFlags.Cached) != 0;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsExpanded(CompletionItemFlags flags)
+        public static bool IsExpanded(this CompletionItemFlags flags)
             => (flags & CompletionItemFlags.Expanded) != 0;
     }
 }

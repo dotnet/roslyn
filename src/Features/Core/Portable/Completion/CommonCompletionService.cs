@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -41,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal override void FilterItems(
            Document document,
-           IEnumerable<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
            string filterText,
-           IList<CompletionItem> filteredItemsBuilder)
+           ImmutableArray<CompletionItem>.Builder builder)
         {
             var helper = CompletionHelper.GetHelper(document);
-            CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText, filteredItemsBuilder);
+            CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText, builder);
         }
     }
 }
