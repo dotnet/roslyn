@@ -302,11 +302,9 @@ class C
         public void TestGetSemanticTokensRange_AssertCustomTokenTypes(string fieldName)
             => Assert.True(SemanticTokensHelpers.RoslynCustomTokenTypes.Contains(fieldName), $"Missing token type {fieldName}.");
 
-        public static IEnumerable<object[]> ClassificationTypeNamesToMatch => typeof(ClassificationTypeNames).GetAllFields().Where(
-            field => field.GetValue(null) is string value &&
-                !SemanticTokensHelpers.ClassificationTypeToSemanticTokenTypeMap.ContainsKey(value) &&
-                !ClassificationTypeNames.AdditiveTypeNames.Contains(value) &&
-                value is not ClassificationTypeNames.ReassignedVariable).Select(field => new object[] { (string)field.GetValue(null) });
+        public static IEnumerable<object[]> ClassificationTypeNamesToMatch => ClassificationTypeNames.AllTypeNames.Where(
+            type => !SemanticTokensHelpers.ClassificationTypeToSemanticTokenTypeMap.ContainsKey(type) &&
+                !ClassificationTypeNames.AdditiveTypeNames.Contains(type)).Select(field => new object[] { field });
 
     }
 }
