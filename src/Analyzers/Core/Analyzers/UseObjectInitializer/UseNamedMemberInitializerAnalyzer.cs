@@ -87,9 +87,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
             }
 
-            foreach (var child in containingBlockOrCompilationUnit.ChildNodes())
+            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
             {
-                var extractedChild = _syntaxFacts.IsGlobalStatement(child) ? _syntaxFacts.GetStatementOfGlobalStatement(child) : child;
+                if (child.IsToken)
+                    continue;
+
+                var childNode = child.AsNode();
+                var extractedChild = _syntaxFacts.IsGlobalStatement(childNode) ? _syntaxFacts.GetStatementOfGlobalStatement(childNode) : childNode;
 
                 if (!foundStatement)
                 {
