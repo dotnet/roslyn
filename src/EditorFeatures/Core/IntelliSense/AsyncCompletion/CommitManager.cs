@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
 
                 Contract.ThrowIfNull(lspSnippetText);
-                if (!_languageServerSnippetExpander.TryExpand(lspSnippetText, triggerSnapshotSpan, _textView))
+                if (!_languageServerSnippetExpander.TryExpand(lspSnippetText, mappedSpan, _textView))
                 {
                     FatalError.ReportAndCatch(new InvalidOperationException("The invoked LSP snippet expander came back as false."), ErrorSeverity.Critical);
                 }

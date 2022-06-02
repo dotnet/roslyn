@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Extends the TextChange to encompass all placeholder positions as well as caret position.
         /// Generates a LSP formatted snippet from a TextChange, list of placeholders, and caret position.
         /// </summary>
-        public static async Task<string> GenerateLSPSnippetAsync(Document document, int caretPosition, ImmutableArray<SnippetPlaceholder> placeholders, TextChange textChange, CancellationToken cancellationToken)
+        public static async Task<string> GenerateLSPSnippetAsync(Document document, int caretPosition, ImmutableArray<SnippetPlaceholder> placeholders, TextChange textChange, int triggerLocation, CancellationToken cancellationToken)
         {
-            var extendedTextChange = await ExtendSnippetTextChangeAsync(document, textChange, placeholders, caretPosition, cancellationToken).ConfigureAwait(false);
+            var extendedTextChange = await ExtendSnippetTextChangeAsync(document, textChange, placeholders, caretPosition, triggerLocation, cancellationToken).ConfigureAwait(false);
             return ConvertToLSPSnippetString(extendedTextChange, placeholders, caretPosition);
         }
 
@@ -108,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// This is important for the cases in which the document does not determine the TextChanges from
         /// the original document accurately.
         /// </summary>
-        private static async Task<TextChange> ExtendSnippetTextChangeAsync(Document document, TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition, CancellationToken cancellationToken)
+        private static async Task<TextChange> ExtendSnippetTextChangeAsync(Document document, TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition, int triggerLocation, CancellationToken cancellationToken)
         {
-            var extendedSpan = GetUpdatedTextSpan(textChange, placeholders, caretPosition);
+            var extendedSpan = GetUpdatedTextSpan(textChange, placeholders, caretPosition, triggerLocation);
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newString = documentText.ToString(extendedSpan);
             var newTextChange = new TextChange(extendedSpan, newString);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// come before or after what is indicated by the snippet's TextChange.
         /// If so, adjust the starting and ending position accordingly.
         /// </summary>
-        private static TextSpan GetUpdatedTextSpan(TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition)
+        private static TextSpan GetUpdatedTextSpan(TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition, int triggerLocation)
         {
             var textChangeText = textChange.NewText;
             Contract.ThrowIfNull(textChangeText);
@@ -139,6 +139,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             startPosition = Math.Min(startPosition, caretPosition);
             endPosition = Math.Max(endPosition, caretPosition);
+
+            startPosition = Math.Min(startPosition, triggerLocation);
 
             return TextSpan.FromBounds(startPosition, endPosition);
         }
