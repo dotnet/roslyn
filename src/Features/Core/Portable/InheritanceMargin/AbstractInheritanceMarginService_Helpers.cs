@@ -17,11 +17,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
+    using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
+
     internal abstract partial class AbstractInheritanceMarginService
     {
         private static readonly SymbolDisplayFormat s_displayFormat = new(
@@ -38,85 +41,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                 SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetGlobalImportItemsAsync(
-            Document document,
-            TextSpan spanToSearch,
-            bool frozenPartialSemantics,
-            CancellationToken cancellationToken)
-        {
-            var solution = document.Project.Solution;
-            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
-            if (remoteClient != null)
-            {
-                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
-                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
-                // accurate results in the future because taggers are set to recompute when compilations are fully
-                // available on the OOP side.
-                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) =>
-                        service.GetGlobalImportItemsAsync(solutionInfo, document.Id, spanToSearch, frozenPartialSemantics, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<InheritanceMarginItem>.Empty;
-                }
-
-                return result.Value;
-            }
-            else
-            {
-                return await GetGlobalImportsItemsInProcessAsync(
-                    document, spanToSearch, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        public static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
+        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolInheritanceChainItemsAsync(
             Project project,
             Document? document,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
-            bool frozenPartialSemantics,
-            CancellationToken cancellationToken)
-        {
-            var solution = project.Solution;
-            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
-            if (remoteClient != null)
-            {
-                // Here the line number is also passed to the remote process. It is done in this way because when a set
-                // of symbols is passed to remote process, those without inheritance targets would not be returned. To
-                // match the returned inheritance targets to the line number, we need set an 'Id' when calling the
-                // remote process, however, given the line number is just an int, setting up an int 'Id' for an int is
-                // quite useless, so just passed it to the remote process.
-                //
-                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
-                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
-                // accurate results in the future because taggers are set to recompute when compilations are fully
-                // available on the OOP side.
-                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) =>
-                        service.GetSymbolItemsAsync(solutionInfo, project.Id, document?.Id, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                if (!result.HasValue)
-                {
-                    return ImmutableArray<InheritanceMarginItem>.Empty;
-                }
-
-                return result.Value;
-            }
-            else
-            {
-                return await GetSymbolItemsInProcessAsync(
-                    project, document, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsInProcessAsync(
-            Project project,
-            Document? document,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            SymbolAndLineNumberArray symbolAndLineNumbers,
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
@@ -129,13 +57,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             var solution = project.Solution;
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
-
-            foreach (var (symbolKey, lineNumber) in symbolKeyAndLineNumbers)
+            foreach (var (symbol, lineNumber) in symbolAndLineNumbers)
             {
-                var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
                     await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
@@ -150,7 +74,80 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return builder.ToImmutable();
         }
 
-        private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsInProcessAsync(
+        private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
+            Document document,
+            TextSpan spanToSearch,
+            CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
+            if (!allDeclarationNodes.IsEmpty)
+            {
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
+                using var _ = ArrayBuilder<(ISymbol symbol, int lineNumber)>.GetInstance(out var builder);
+
+                Project? project = null;
+
+                foreach (var memberDeclarationNode in allDeclarationNodes)
+                {
+                    var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
+                    if (member == null || !CanHaveInheritanceTarget(member))
+                        continue;
+
+                    // Use mapping service to find correct solution & symbol. (e.g. metadata symbol)
+                    var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
+                    if (mappingResult == null)
+                        continue;
+
+                    // All the symbols here are declared in the same document, they should belong to the same project.
+                    // So here it is enough to get the project once.
+                    project ??= mappingResult.Project;
+                    builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                }
+
+                if (project != null)
+                    return (project, builder.ToImmutable());
+            }
+
+            return (document.Project, SymbolAndLineNumberArray.Empty);
+        }
+
+        private async Task<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsInProcessAsync(
+            Document document,
+            TextSpan spanToSearch,
+            bool includeGlobalImports,
+            bool frozenPartialSemantics,
+            CancellationToken cancellationToken)
+        {
+            var (remappedProject, symbolAndLineNumbers) = await GetMemberSymbolsAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
+
+            // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
+            // the originating project), then we're in teh same project and we should try to get global import
+            // information to display.
+            var remapped = remappedProject != document.Project;
+
+            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
+
+            if (includeGlobalImports && !remapped)
+                result.AddRange(await GetGlobalImportsItemsAsync(document, spanToSearch, frozenPartialSemantics: frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
+
+            if (!symbolAndLineNumbers.IsEmpty)
+            {
+                result.AddRange(await GetSymbolInheritanceChainItemsAsync(
+                    remappedProject,
+                    document: remapped ? null : document,
+                    symbolAndLineNumbers,
+                    frozenPartialSemantics: frozenPartialSemantics,
+                    cancellationToken).ConfigureAwait(false));
+            }
+
+            return result.ToImmutable();
+        }
+
+        private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsAsync(
             Document document,
             TextSpan spanToSearch,
             bool frozenPartialSemantics,
