@@ -37,29 +37,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal CompilerAnalyzerConfigOptionsProvider WithGlobalOptions(AnalyzerConfigOptions globalOptions)
             => new CompilerAnalyzerConfigOptionsProvider(_treeDict, globalOptions);
-        
+
         // <Metalama>
         private CompilerAnalyzerConfigOptionsProvider WithMappedTrees(
             IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap)
         {
+            var hasChange = false;
             var builder = this._treeDict.ToBuilder();
-            
+
             foreach (var entry in treeMap)
             {
                 if (builder.TryGetValue(entry.OldTree, out var options))
                 {
+                    hasChange = true;
+
                     builder.Remove(entry.OldTree);
                     builder[entry.NewTree] = options;
                 }
-                
+
             }
 
-            return new CompilerAnalyzerConfigOptionsProvider(builder.ToImmutable(), this.GlobalOptions);
+            if (!hasChange)
+            {
+                return this;
+            }
+            else
+            {
+                return new CompilerAnalyzerConfigOptionsProvider(builder.ToImmutable(), this.GlobalOptions);
+            }
         }
 
         public static AnalyzerConfigOptionsProvider MapSyntaxTrees(
-             AnalyzerConfigOptionsProvider source, 
-             IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap )
+             AnalyzerConfigOptionsProvider source,
+             IEnumerable<(SyntaxTree OldTree, SyntaxTree NewTree)> treeMap)
         {
             return source switch
             {

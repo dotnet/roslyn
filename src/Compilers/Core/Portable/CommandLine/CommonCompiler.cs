@@ -1291,26 +1291,27 @@ namespace Microsoft.CodeAnalysis
                     {
                         return;
                     }
-                    
+
                     // Fix whitespaces in generated syntax trees, embed them into the PDB or write them to disk.
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider)!;
-                    bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(transformedOutputPath);
+                    bool shouldSaveTransformedCode = !string.IsNullOrWhiteSpace(transformedOutputPath);
 
-                    if (compilation != compilationBeforeTransformation && (shouldDebugTransformedCode || hasTransformedOutputPath))
+                    if (compilation != compilationBeforeTransformation && (shouldDebugTransformedCode || shouldSaveTransformedCode))
                     {
 
                         var treeMap = new List<(SyntaxTree OldTree, SyntaxTree NewTree)>(transformersResult.TransformedTrees.Length);
 
-                        if (shouldDebugTransformedCode && !hasTransformedOutputPath)
+                        if (shouldDebugTransformedCode && !shouldSaveTransformedCode)
                         {
+                            // Emit a warning.
                             var diagnostic = Diagnostic.Create(new DiagnosticInfo(
                                 MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
                             diagnostics.Add(diagnostic);
                         }
 
                         // Make sure we start from an empty directory, otherwise we may let garbage from a previous run.
-                        if (hasTransformedOutputPath && Directory.Exists(transformedOutputPath))
+                        if (shouldSaveTransformedCode && Directory.Exists(transformedOutputPath))
                         {
                             Directory.Delete(transformedOutputPath, true);
                         }
@@ -1328,21 +1329,20 @@ namespace Microsoft.CodeAnalysis
 
                             EnsurePathIsUnique();
 
-                            var newTree = tree
-                                // TODO: this causes https://github.com/dotnet/roslyn/issues/47278; fix that bug in Roslyn
-                                .WithRootAndOptions(tree.GetRoot(cancellationToken), tree.Options);
+                            var newTree = tree;
 
                             var text = newTree.GetText(cancellationToken);
 
                             if (!text.CanBeEmbedded)
                             {
                                 text = SourceText.From(text.ToString(), Encoding.UTF8);
+                                newTree = newTree.WithChangedText(text);
                             }
 
-                            newTree = newTree.WithChangedText(text);
-
-                            if (hasTransformedOutputPath)
+                            if (shouldSaveTransformedCode)
                             {
+                                // Write the code to disk.
+
                                 var fullPath = Path.Combine(transformedOutputPath, path);
                                 var directory = Path.GetDirectoryName(fullPath);
                                 if (!Directory.Exists(directory))
@@ -1364,13 +1364,17 @@ namespace Microsoft.CodeAnalysis
                             }
                             else
                             {
+                                // Embed the transformed code in the PDB.
                                 newTree = newTree.WithFilePath(path);
 
                                 embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(path, text));
                             }
 
-                            compilation = compilation.ReplaceSyntaxTree(tree, newTree);
-                            treeMap.Add((tree, newTree));
+                            if (shouldDebugTransformedCode)
+                            {
+                                compilation = compilation.ReplaceSyntaxTree(tree, newTree);
+                                treeMap.Add((tree, newTree));
+                            }
 
                             void EnsurePathIsUnique()
                             {
@@ -1394,7 +1398,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        mappedAnalyzerOptions =  CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(mappedAnalyzerOptions, treeMap );
+                        mappedAnalyzerOptions = CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(mappedAnalyzerOptions, treeMap);
                     }
 
                     // Add a suppressor to handle the suppressions given by the transformations.
