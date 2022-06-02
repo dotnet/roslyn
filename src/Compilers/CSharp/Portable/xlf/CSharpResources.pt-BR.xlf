@@ -812,6 +812,11 @@
         <target state="translated">Uma expressão lambda com atributos não pode ser convertida em uma árvore de expressão</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">A linha contém espaços em branco diferentes dos da linha de fechamento da literal de cadeia de caracteres bruta: “{0}” x “{1}”</target>
@@ -11680,11 +11685,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">O membro de interface '{0}' não tem uma implementação mais específica. Nem '{1}' nem '{2}' são mais específicos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">'{0}' não pode implementar o membro de interface '{1}' no tipo '{2}' porque o recurso '{3}' não está disponível no C# {4}. Use a versão de linguagem '{5}' ou superior.</target>
         <note />
       </trans-unit>
     </body>

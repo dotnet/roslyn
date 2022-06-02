@@ -812,6 +812,11 @@
         <target state="translated">Výraz lambda s atributy nejde převést na strom výrazu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">Řádek obsahuje jiné prázdné znaky než ukončovací řádek literálu nezpracovaného řetězce: {0} versus {1}</target>
@@ -11680,11 +11685,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">Člen rozhraní {0} nemá nejvíce specifickou implementaci. {1} ani {2} nejsou nejvíce specifické.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože funkce {3} není v jazyce C# {4} k dispozici. Použijte prosím verzi jazyka {5} nebo vyšší.</target>
         <note />
       </trans-unit>
     </body>
