@@ -1113,6 +1113,32 @@ namespace Microsoft.CodeAnalysis
         }
 
 
+        // <Metalama>
+        private void CompileAndEmit(
+            TouchedFileLogger? touchedFilesLogger,
+            ref Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<ISourceTransformer> transformers,
+            ImmutableArray<object> plugins,
+            ImmutableArray<AdditionalText> additionalTextFiles,
+            AnalyzerConfigSet? analyzerConfigSet,
+            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
+            ImmutableArray<EmbeddedText?> embeddedTexts,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken,
+            out CancellationTokenSource? analyzerCts,
+            out bool reportAnalyzer,
+            out AnalyzerDriver? analyzerDriver)
+        {
+            DiagnosticBag diagnosticBuffer = new();
+
+            this.CompileAndEmitImpl(touchedFilesLogger, ref compilation, analyzers, generators, transformers, plugins, additionalTextFiles,
+                analyzerConfigSet, sourceFileAnalyzerConfigOptions, embeddedTexts, diagnosticBuffer, cancellationToken, out analyzerCts, out reportAnalyzer, out analyzerDriver);
+            
+            MapDiagnosticSyntaxTreesToFinalCompilation(diagnosticBuffer, diagnostics, compilation, true );
+        }
+        
         // </Metalama>
 
         /// <summary>
@@ -1120,7 +1146,7 @@ namespace Microsoft.CodeAnalysis
         /// (parsing, binding, compile, emit), resulting in diagnostics
         /// and analyzer output.
         /// </summary>
-        private void CompileAndEmit(
+        private void CompileAndEmitImpl ( // <Metalama/>: rename to Impl
             TouchedFileLogger? touchedFilesLogger,
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
@@ -1142,6 +1168,7 @@ namespace Microsoft.CodeAnalysis
             analyzerCts = null;
             reportAnalyzer = false;
             analyzerDriver = null;
+
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
@@ -1254,11 +1281,14 @@ namespace Microsoft.CodeAnalysis
 
 
                 // <Metalama>
+
+                // Attach the debugger if asked.
                 bool shouldAttachDebugger = ShouldAttachDebugger(analyzerConfigProvider);
                 if (shouldAttachDebugger)
                 {
                     Debugger.Launch();
                 }
+
 
                 if (!transformers.IsEmpty)
                 {
@@ -1284,7 +1314,8 @@ namespace Microsoft.CodeAnalysis
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
-                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
+                    var dummy = false;
+                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation );
 
                     // Don't continue if transformers failed.
                     if (!transformersResult.Success)
@@ -1441,11 +1472,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+
             if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
             }
-
+            
             cancellationToken.ThrowIfCancellationRequested();
 
             // Given a compilation and a destination directory, determine three names:
@@ -1633,12 +1665,6 @@ namespace Microsoft.CodeAnalysis
                     }
 
 
-                    // <Metalama>
-                    RemoveDiagnosticsFromGeneratedCode(diagnostics);
-                    // </Metalama>
-
-
-
                     if (HasUnsuppressedErrors(diagnostics))
                     {
                         success = false;
@@ -1728,8 +1754,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         // <Metalama>
-        private static void MapDiagnosticSyntaxTreesToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation)
+        private static void MapDiagnosticSyntaxTreesToFinalCompilation(DiagnosticBag sourceDiagnostics, DiagnosticBag targetDiagnostics, Compilation compilation, bool reportDiagnosticHelp = false )
         {
+            var hasSystemBug = false;
+            var hasAspectBug = false;
+            
             foreach (var diagnostic in sourceDiagnostics.AsEnumerable())
             {
                 if (!diagnostic.Location.IsInSource)
@@ -1748,8 +1777,36 @@ namespace Microsoft.CodeAnalysis
                 if (sourceSyntaxNode == null)
                 {
                     // The node was reported in generated code.
-                    targetDiagnostics.Add(diagnostic);
-                    continue;
+                    if (diagnostic.Severity >= DiagnosticSeverity.Error &&
+                        diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // If this is a C# compiler error, it means that we have invalid code.
+                        // Try to find the component that generated it and blame the error on it.
+
+                        reportedSyntaxNode.TryFindGeneratedCodeOrigin(out var codeGenerator);
+
+                        if (codeGenerator == null)
+                        {
+                            hasSystemBug = true;
+                            codeGenerator = "Metalama";
+                        }
+                        else
+                        {
+                            hasAspectBug = true;
+                        }
+
+                        var newDiagnostic = Diagnostic.Create(new DiagnosticInfo(
+                            MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_ErrorInGeneratedCode,
+                            diagnostic.Id, codeGenerator, diagnostic.GetMessage()));
+
+                        targetDiagnostics.Add(newDiagnostic);
+                        continue;
+                    }
+                    else
+                    {
+                        // Other diagnostics on generated code can be ignored.
+                        continue;
+                    }
                 }
 
                 // Find the final tree.
@@ -1771,10 +1828,26 @@ namespace Microsoft.CodeAnalysis
                         // The rest can be skipped.
                         continue;
                     }
-                    
+
                 }
 
                 targetDiagnostics.Add(diagnostic.WithLocation(finalNode.Location));
+            }
+
+            // If we had an error in generated code, report tips to diagnose the issue.
+            if (hasSystemBug)
+            {
+                var newDiagnostic = Diagnostic.Create(new DiagnosticInfo(
+                    MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_HowToReportMetalamaBug));
+
+                targetDiagnostics.Add(newDiagnostic);
+            } 
+            else if (hasAspectBug)
+            {
+                var newDiagnostic = Diagnostic.Create(new DiagnosticInfo(
+                    MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_HowToDiagnoseInvalidAspect));
+
+                targetDiagnostics.Add(newDiagnostic);
             }
 
         }
@@ -1810,17 +1883,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
-
-        // Remove warnings and analyzer errors in generated code.
-        private static void RemoveDiagnosticsFromGeneratedCode(DiagnosticBag diagnostics)
-        {
-            var inputDiagnostics = diagnostics.ToReadOnly();
-            diagnostics.Clear();
-            diagnostics.AddRange(
-                inputDiagnostics.Where(diagnostic => diagnostic.Severity >= DiagnosticSeverity.Error && diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase) ||
-                                                     !TreeTracker.IsTransformedLocation(diagnostic.Location)));
-        }
-        // </Metalama>
 
         // virtual for testing
         protected virtual Diagnostics.AnalyzerOptions CreateAnalyzerOptions(

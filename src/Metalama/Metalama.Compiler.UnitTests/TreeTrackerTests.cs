@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
@@ -43,6 +44,35 @@ namespace Metalama.Compiler.UnitTests
             Assert.Same(block, TreeTracker.GetSourceSyntaxNode(block));
             Assert.Same(originalBlock.Statements[0], TreeTracker.GetSourceSyntaxNode(block.Statements[0]));
             Assert.Same(block.Statements[1], TreeTracker.GetSourceSyntaxNode(block.Statements[1]));
+        }
+        
+        [Fact]
+        public void CopyOriginalLocation()
+        {
+             var originalBlock = (BlockSyntax)SyntaxFactory.ParseStatement("{ return 5; }");
+            
+            var annotatedBlock = TreeTracker.AnnotateNodeAndChildren(originalBlock);
+
+            var modifiedBlock = new ReturnRewriter().Visit(annotatedBlock);
+
+            // Check that rewriting of trivias still works.
+            _ = modifiedBlock.NormalizeWhitespace();
+
+        }
+        
+        class ReturnRewriter : CSharpSyntaxRewriter
+        {
+            public override SyntaxNode? VisitReturnStatement(ReturnStatementSyntax node)
+            {
+                var assignment = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName("x"), node.Expression));
+                
+                assignment = assignment.WithOriginalLocationAnnotationFrom(node);
+
+                return SyntaxFactory.Block(assignment,
+                    SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName("x")));
+            }
         }
     }
 }

@@ -764,14 +764,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
                         }
                     }
-                    
-                    
+
+
                 }
                 catch (Exception ex)
                 {
                     var crashReportDirectory = Path.Combine( Path.GetTempPath(), "Metalama", "CrashReport");
                     var crashReportPath = Path.Combine( crashReportDirectory, Guid.NewGuid() + ".txt");
-                    
+
                     // Report a diagnostic.
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
                         MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.Message, crashReportPath));
