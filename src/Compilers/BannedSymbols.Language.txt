@@ -1,0 +1,1 @@
+﻿P:Microsoft.CodeAnalysis.Text.SourceText.Item(System.Int32); Do not use SourceText's indexer during parsing. Depending on its implementation, indexing might be inefficient and slower than O(1). Use PeekChar() and other methods on SlidingTextWindow that are optimized for sequential reading instead.

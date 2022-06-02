@@ -713,31 +713,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared ReadOnly s_conflictMarkerLength As Integer = "<<<<<<<".Length
 
         Private Function IsConflictMarkerTrivia() As Boolean
-            If CanGet() Then
-                Dim ch = Peek()
+            If CanGet(s_conflictMarkerLength - 1) Then
+                Dim firstCh = Peek()
 
-                If ch = "<"c OrElse ch = ">"c OrElse ch = "="c Then
-                    Dim position = _lineBufferOffset
-                    Dim text = _buffer
-
-                    If position = 0 OrElse SyntaxFacts.IsNewLine(text(position - 1)) Then
-                        Dim firstCh = _buffer(position)
-
-                        If (position + s_conflictMarkerLength) <= text.Length Then
-                            For i = 0 To s_conflictMarkerLength - 1
-                                If text(position + i) <> firstCh Then
-                                    Return False
-                                End If
-                            Next
-
-                            If firstCh = "="c Then
-                                Return True
-                            End If
-
-                            Return (position + s_conflictMarkerLength) < text.Length AndAlso
-                                   text(position + s_conflictMarkerLength) = " "c
+                If firstCh = "<"c OrElse firstCh = ">"c OrElse firstCh = "="c Then
+                    For i = 1 To s_conflictMarkerLength - 1
+                        If Peek(i) <> firstCh Then
+                            Return False
                         End If
+                    Next
+
+                    If firstCh <> "="c AndAlso Not (CanGet(s_conflictMarkerLength) AndAlso Peek(s_conflictMarkerLength) = " "c) Then
+                        Return False
                     End If
+
+                    ' Keep the new line check last because Peek(-1) might need to recopy the buffer,
+                    ' although that's rare in practice.
+                    Return _lineBufferOffset = 0 OrElse SyntaxFacts.IsNewLine(Peek(-1))
                 End If
             End If
 

@@ -78,35 +78,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Builds leading spaces up to the error span
                 For position = Math.Min(sourceSpanStart, line.Start) To Math.Min(line.End, sourceSpanStart) - 1
+#Disable Warning RS0030 ' Do not used banned APIs - This isn't a parsing scenario.
                     If (text(position) = vbTab) Then
+#Enable Warning RS0030 ' Do not used banned APIs
                         ' normalize tabs with 4 spaces
                         sb.Append(" "c, 4)
                     Else
-                        sb.Append(" ")
+                        sb.Append(" "c)
                     End If
                 Next
 
                 ' Builds squiggles
                 If sourceSpan.IsEmpty Then
-                    sb.Append("~")
+                    sb.Append("~"c)
                 Else
                     For position = Math.Max(sourceSpanStart, line.Start) To Math.Min(If(sourceSpanEnd = sourceSpanStart, sourceSpanEnd, sourceSpanEnd - 1), line.End - 1)
+#Disable Warning RS0030 ' Do not used banned APIs - This isn't a parsing scenario.
                         If (text(position) = vbTab) Then
+#Enable Warning RS0030 ' Do not used banned APIs
                             ' normalize tabs with 4 spaces
                             sb.Append("~"c, 4)
                         Else
-                            sb.Append("~")
+                            sb.Append("~"c)
                         End If
                     Next
                 End If
 
                 ' Builds trailing spaces up to the end of this line
                 For position = Math.Min(sourceSpanEnd, line.End) To line.End - 1
+#Disable Warning RS0030 ' Do not used banned APIs - This isn't a parsing scenario.
                     If (text(position) = vbTab) Then
+#Enable Warning RS0030 ' Do not used banned APIs
                         ' normalize tabs with 4 spaces
                         sb.Append(" "c, 4)
                     Else
-                        sb.Append(" ")
+                        sb.Append(" "c)
                     End If
                 Next
 
