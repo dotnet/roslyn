@@ -1314,8 +1314,7 @@ namespace Microsoft.CodeAnalysis
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
-                    var dummy = false;
-                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation );
+                    MapDiagnosticSyntaxTreesToFinalCompilation(transformersDiagnostics, diagnostics, compilation);
 
                     // Don't continue if transformers failed.
                     if (!transformersResult.Success)
