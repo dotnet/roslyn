@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             foreach (var child in containingBlockOrCompilationUnit.ChildNodes())
             {
-                var extractedChild = _syntaxFacts.ExtractGlobalStatementOrSelf(child);
+                var extractedChild = _syntaxFacts.IsGlobalStatement(child) ? _syntaxFacts.GetStatementOfGlobalStatement(child) : child;
 
                 if (!foundStatement)
                 {

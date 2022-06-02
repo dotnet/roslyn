@@ -337,14 +337,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node);
-
-        /// <summary>
-        /// If the given node is a global statement then returns its containing statement.
-        /// Otherwise just returns the given input
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        SyntaxNode ExtractGlobalStatementOrSelf(SyntaxNode node);
+        SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node);
         bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement);
 
         bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
