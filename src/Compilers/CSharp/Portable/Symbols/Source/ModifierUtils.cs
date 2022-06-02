@@ -444,10 +444,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((modifiers & DeclarationModifiers.Required) != 0)
             {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 switch (symbol)
                 {
-                    case FieldSymbol or PropertySymbol when symbol.DeclaredAccessibility < minimumAccessibilityForRequiredMember(symbol):
-                    case PropertySymbol { SetMethod.DeclaredAccessibility: var accessibility } when accessibility < minimumAccessibilityForRequiredMember(symbol):
+                    case FieldSymbol when !symbol.IsAsRestrictive(symbol.ContainingType, ref discardedUseSiteInfo):
+                    case PropertySymbol { SetMethod: { } method } when !method.IsAsRestrictive(symbol.ContainingType, ref discardedUseSiteInfo):
                         // Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.
                         return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, symbol, symbol.ContainingType);
                     case PropertySymbol { SetMethod: null }:
@@ -458,55 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
-
-            static Accessibility minimumAccessibilityForRequiredMember(Symbol symbol)
-            {
-                // A required member must be visible in any context where the containing type is visible. This means that, for example, a required member in a protected
-                // inner class must be at least internal, and possibly public, depending on whether the outer type itself is public.
-
-                Accessibility minimumAccessibility = Accessibility.NotApplicable;
-
-                for (var containingType = symbol.ContainingType;
-                     containingType is not null;
-                     containingType = containingType.ContainingType)
-                {
-                    var containingTypeAccessibility = containingType.DeclaredAccessibility;
-                    switch (containingTypeAccessibility)
-                    {
-                        case Accessibility.Public:
-                            // Accessibility of the current type is public, but it could still be effectively internal if it's an inner class of an internal type,
-                            // so we'll need to check the containing type.
-                            minimumAccessibility = containingTypeAccessibility;
-                            break;
-
-                        case Accessibility.Internal:
-                            // The containing type (or series of containing types) can never be seen outside the assembly, so internal is the minimum.
-                            return Accessibility.Internal;
-
-                        case Accessibility.ProtectedOrInternal:
-                        case Accessibility.Protected:
-                            // The minimum accessibility will depend on the type containing this type. If it's internal, then this type is effectively internal, and the
-                            // properties must also be at least internal. Otherwise, it needs to be public.
-                            Debug.Assert(containingType.ContainingType is not null);
-                            break;
-
-                        case Accessibility.ProtectedAndInternal:
-                            // Type is only visible inside the assembly, so the minimum accessibility is internal.
-                            return Accessibility.Internal;
-
-                        case Accessibility.Private:
-                            // The current type can never be seen outside of its containing type, so members must be internally visible.
-                            return Accessibility.Internal;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(containingTypeAccessibility);
-                    }
-
-                }
-
-                Debug.Assert(minimumAccessibility != Accessibility.NotApplicable);
-                return minimumAccessibility;
-            }
         }
 
         // Returns declared accessibility.
