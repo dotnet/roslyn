@@ -772,10 +772,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Sub ScanConflictMarkerEndOfLine(tList As SyntaxListBuilder)
-            Dim ch = Peek()
+            If CanGet() Then
+                Dim ch = Peek()
 
-            If IsNewLine(ch) Then
-                tList.Add(ScanNewlineAsTrivia(ch))
+                If IsNewLine(ch) Then
+                    tList.Add(ScanNewlineAsTrivia(ch))
+                End If
             End If
         End Sub
 
