@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 if (!context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                     return;
 
-                if (context.Compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!) is null)
+                if (context.Compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!) is null)
                     return;
 
                 var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
