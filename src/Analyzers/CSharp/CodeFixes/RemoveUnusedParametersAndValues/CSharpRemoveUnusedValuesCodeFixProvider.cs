@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     return catchDeclaration.WithIdentifier(newName.WithTriviaFrom(catchDeclaration.Identifier));
 
                 case SyntaxKind.VarPattern:
-                    return SyntaxFactory.DiscardPattern().WithTriviaFrom(node);
+                    return SyntaxFactory.DiscardDesignation();
 
                 default:
                     Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'");
@@ -163,6 +163,23 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
                 return SyntaxFactory.BinaryExpression(mappedBinaryExpressionKind, leftOfAssignment, rightOfAssignment);
             }
+        }
+
+        protected override SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode)
+        {
+            if (originalVarPattern is not VarPatternSyntax pattern)
+            {
+                Debug.Fail($"The given {nameof(originalVarPattern)} node is not a var pattern, but {originalVarPattern.Kind()}");
+                return newNameNode;
+            }
+
+            if (newNameNode is not DiscardDesignationSyntax discard)
+            {
+                Debug.Fail($"The given {nameof(newNameNode)} node is not a discard designation, but {newNameNode.Kind()}");
+                return newNameNode;
+            }
+
+            return pattern.WithDesignation(discard);
         }
     }
 }

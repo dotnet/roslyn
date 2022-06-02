@@ -63,6 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Throw New NotImplementedException()
         End Function
 
+        Protected Overrides Function GetReplacementNodeForVarPattern(originalVarPattern As SyntaxNode, newNameNode As SyntaxNode) As SyntaxNode
+            ' VB does not have var patterns
+            Throw New NotImplementedException()
+        End Function
+
         Protected Overrides Function GetCandidateLocalDeclarationForRemoval(declarator As VariableDeclaratorSyntax) As LocalDeclarationStatementSyntax
             Return TryCast(declarator.Parent, LocalDeclarationStatementSyntax)
         End Function

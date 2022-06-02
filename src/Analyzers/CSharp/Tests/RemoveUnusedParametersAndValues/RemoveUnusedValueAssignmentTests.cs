@@ -8518,7 +8518,7 @@ public class Test
     public object P { get; }
     void M(C c)
     {
-        var x = c is { P : _ };
+        var x = c is { P : var _ };
     }
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion));
         }
@@ -8821,6 +8821,64 @@ namespace ConsoleApp
 	}
 }";
             await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_PartOfCase()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        switch (string.Empty.Length)
+        {
+            case var [|i|] when string.Empty.Length switch { var y => y > 0 }:
+            {
+                break;
+            }
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        switch (string.Empty.Length)
+        {
+            case var _ when string.Empty.Length switch { var y => y > 0 }:
+            {
+                break;
+            }
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_PartOfIs()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var [|x|])
+        {
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var _)
+        {
+        }
+    }
+}", options: PreferDiscard);
         }
     }
 }
