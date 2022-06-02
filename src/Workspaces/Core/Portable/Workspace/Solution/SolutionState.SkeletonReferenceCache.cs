@@ -177,6 +177,9 @@ internal partial class SolutionState
             SolutionState solution,
             CancellationToken cancellationToken)
         {
+            // It's acceptable for this computation to be something that multiple calling threads may hit at once.  The
+            // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
+            // only one thread actually does the computation and the rest wait.
             var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
             var workspace = solution.Workspace;
 
