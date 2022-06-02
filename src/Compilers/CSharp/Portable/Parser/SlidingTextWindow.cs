@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _basis;                                // Offset of the window relative to the SourceText start.
         private int _offset;                               // Offset from the start of the window.
         private readonly int _textEnd;                     // Absolute end position
-        private char[] _characterWindow;                   // Moveable window of chars from source text
+        private char[]? _characterWindow;                  // Moveable window of chars from source text
         private int _characterWindowCount;                 // # of valid characters in chars buffer
 
         private int _lexemeStart;                          // Start of current lexeme relative to the window start.
@@ -114,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
+                RoslynDebug.AssertNotNull(_characterWindow);
+
                 return _characterWindow;
             }
         }
@@ -173,6 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void Reset(int position)
         {
+            RoslynDebug.AssertNotNull(_characterWindow);
+
             // if position is within already read character range then just use what we have
             int relative = position - _basis;
             if (relative >= 0 && relative <= _characterWindowCount)
@@ -198,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool MoreChars()
         {
+            RoslynDebug.AssertNotNull(_characterWindow);
+
             if (_offset >= _characterWindowCount)
             {
                 if (this.Position >= _textEnd)
@@ -325,6 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </returns>
         public char PeekChar()
         {
+            RoslynDebug.AssertNotNull(_characterWindow);
+
             if (_offset >= _characterWindowCount
                 && !MoreChars())
             {
@@ -344,6 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </returns>
         public char PeekChar(int delta)
         {
+            RoslynDebug.AssertNotNull(_characterWindow);
+
             int position = this.Position;
             this.AdvanceChar(delta);
 
@@ -395,14 +403,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int position = this.Position;
 
             // if we're peeking, then we don't want to change the position
-            SyntaxDiagnosticInfo info;
+            SyntaxDiagnosticInfo? info;
             var ch = this.ScanUnicodeEscape(peek: true, surrogateCharacter: out surrogateCharacter, info: out info);
             Debug.Assert(info == null, "Never produce a diagnostic while peeking.");
             this.Reset(position);
             return ch;
         }
 
-        public char NextCharOrUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo info)
+        public char NextCharOrUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo? info)
         {
             var ch = this.PeekChar();
             Debug.Assert(ch != InvalidCharacter, "Precondition established by all callers; required for correctness of AdvanceChar() call.");
@@ -421,12 +429,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        public char NextUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo info)
+        public char NextUnicodeEscape(out char surrogateCharacter, out SyntaxDiagnosticInfo? info)
         {
             return ScanUnicodeEscape(peek: false, surrogateCharacter: out surrogateCharacter, info: out info);
         }
 
-        private char ScanUnicodeEscape(bool peek, out char surrogateCharacter, out SyntaxDiagnosticInfo info)
+        private char ScanUnicodeEscape(bool peek, out char surrogateCharacter, out SyntaxDiagnosticInfo? info)
         {
             surrogateCharacter = InvalidCharacter;
             info = null;
@@ -674,6 +682,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string GetInternedText()
         {
+            RoslynDebug.AssertNotNull(_characterWindow);
+
             return this.Intern(_characterWindow, _lexemeStart, this.Width);
         }
 
@@ -684,6 +694,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string GetText(int position, int length, bool intern)
         {
+            RoslynDebug.AssertNotNull(_characterWindow);
+
             int offset = position - _basis;
 
             // PERF: Whether interning or not, there are some frequently occurring

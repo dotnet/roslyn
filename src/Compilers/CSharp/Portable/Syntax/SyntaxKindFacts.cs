@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static SyntaxKind GetPreprocessorKeywordKind(string text)
+        public static SyntaxKind GetPreprocessorKeywordKind(string? text)
         {
             switch (text)
             {
