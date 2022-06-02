@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// <summary>
     /// helper class to aggregate some numeric value log in client side
     /// </summary>
-    internal abstract class AbstractLogAggregator<T> : IEnumerable<KeyValuePair<object, T>>
+    internal abstract class AbstractLogAggregator<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
         private static int s_globalId;
 
-        private readonly ConcurrentDictionary<object, T> _map = new(concurrencyLevel: 2, capacity: 2);
-        private readonly Func<object, T> _createCounter;
+        private readonly ConcurrentDictionary<TKey, TValue> _map = new(concurrencyLevel: 2, capacity: 2);
+        private readonly Func<TKey, TValue> _createCounter;
 
         protected AbstractLogAggregator()
         {
             _createCounter = _ => CreateCounter();
         }
 
-        protected abstract T CreateCounter();
+        protected abstract TValue CreateCounter();
 
         public static int GetNextId()
             => Interlocked.Increment(ref s_globalId);
@@ -65,17 +65,17 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public bool IsEmpty => _map.IsEmpty;
 
-        public IEnumerator<KeyValuePair<object, T>> GetEnumerator()
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
             => _map.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => this.GetEnumerator();
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279909", AllowCaptures = false)]
-        protected T GetCounter(object key)
+        protected TValue GetCounter(TKey key)
             => _map.GetOrAdd(key, _createCounter);
 
-        protected bool TryGetCounter(object key, out T counter)
+        protected bool TryGetCounter(TKey key, out TValue counter)
         {
             if (_map.TryGetValue(key, out counter))
             {

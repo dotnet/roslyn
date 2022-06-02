@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Logging
 {
     internal static class SolutionLogger
     {
-        private static readonly LogAggregator s_logAggregator = new();
+        private static readonly LogAggregator<string> s_logAggregator = new();
 
         public static void UseExistingPartialProjectState()
             => s_logAggregator.IncreaseCount(nameof(UseExistingPartialProjectState));

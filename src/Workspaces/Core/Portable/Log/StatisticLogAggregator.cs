@@ -8,23 +8,23 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal sealed class StatisticLogAggregator : AbstractLogAggregator<StatisticLogAggregator.StatisticCounter>
+    internal sealed class StatisticLogAggregator<TKey> : AbstractLogAggregator<TKey, StatisticLogAggregator<TKey>.StatisticCounter>
     {
         protected override StatisticCounter CreateCounter()
             => new();
 
-        public void AddDataPoint(object key, int value)
+        public void AddDataPoint(TKey key, int value)
         {
             var counter = GetCounter(key);
             counter.AddDataPoint(value);
         }
 
-        public void AddDataPoint(object key, TimeSpan timeSpan)
+        public void AddDataPoint(TKey key, TimeSpan timeSpan)
         {
             AddDataPoint(key, (int)timeSpan.TotalMilliseconds);
         }
 
-        public StatisticResult GetStaticticResult(object key)
+        public StatisticResult GetStaticticResult(TKey key)
         {
             if (TryGetCounter(key, out var counter))
             {

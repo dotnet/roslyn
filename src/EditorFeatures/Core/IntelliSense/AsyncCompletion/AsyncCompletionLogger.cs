@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal static class AsyncCompletionLogger
     {
-        private static readonly LogAggregator s_logAggregator = new();
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(25, 500);
+        private static readonly LogAggregator<ActionInfo> s_logAggregator = new();
+        private static readonly StatisticLogAggregator<ActionInfo> s_statisticLogAggregator = new();
+        private static readonly HistogramLogAggregator<ActionInfo> s_histogramLogAggregator = new(25, 500);
 
         private enum ActionInfo
         {
@@ -45,34 +45,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static void LogImportCompletionGetContext(bool isBlocking, bool delayed)
         {
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
+            s_logAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
 
             if (isBlocking)
-                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionBlocking);
+                s_logAggregator.IncreaseCount(ActionInfo.SessionWithImportCompletionBlocking);
 
             if (delayed)
-                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionDelayed);
+                s_logAggregator.IncreaseCount(ActionInfo.SessionWithImportCompletionDelayed);
         }
 
         internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
+            s_logAggregator.IncreaseCount(ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
 
         internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(TimeSpan timeSpan) =>
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
+            s_histogramLogAggregator.IncreaseCount(ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
 
         internal static void LogDelayedImportCompletionIncluded() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
+            s_logAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
 
         internal static void LogExpanderUsage() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExpanderUsageCount);
+            s_logAggregator.IncreaseCount(ActionInfo.ExpanderUsageCount);
 
         internal static void LogGetDefaultsMatchTicksDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.GetDefaultsMatchTicks, count);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.GetDefaultsMatchTicks, count);
 
         internal static void LogSourceInitializationTicksDataPoint(TimeSpan elapsed)
         {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.SourceInitializationTicks, elapsed);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.SourceInitializationTicks, elapsed);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.SourceInitializationTicks, elapsed);
+            s_histogramLogAggregator.IncreaseCount(ActionInfo.SourceInitializationTicks, elapsed);
         }
 
         internal static void LogSourceGetContextTicksDataPoint(TimeSpan elapsed, bool isCanceled)
@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 ? ActionInfo.SourceGetContextCanceledTicks
                 : ActionInfo.SourceGetContextCompletedTicks;
 
-            s_statisticLogAggregator.AddDataPoint((int)key, elapsed);
-            s_histogramLogAggregator.IncreaseCount((int)key, elapsed);
+            s_statisticLogAggregator.AddDataPoint(key, elapsed);
+            s_histogramLogAggregator.IncreaseCount(key, elapsed);
         }
 
         internal static void LogItemManagerSortTicksDataPoint(TimeSpan elapsed)
         {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ItemManagerSortTicks, elapsed);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ItemManagerSortTicks, elapsed);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.ItemManagerSortTicks, elapsed);
+            s_histogramLogAggregator.IncreaseCount(ActionInfo.ItemManagerSortTicks, elapsed);
         }
 
         internal static void LogItemManagerUpdateDataPoint(TimeSpan elapsed, bool isCanceled)
@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 ? ActionInfo.ItemManagerUpdateCanceledTicks
                 : ActionInfo.ItemManagerUpdateCompletedTicks;
 
-            s_statisticLogAggregator.AddDataPoint((int)key, elapsed);
-            s_histogramLogAggregator.IncreaseCount((int)key, elapsed);
+            s_statisticLogAggregator.AddDataPoint(key, elapsed);
+            s_histogramLogAggregator.IncreaseCount(key, elapsed);
         }
 
         internal static void ReportTelemetry()
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 foreach (var kv in s_statisticLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
+                    var info = kv.Key.ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
 
                     m[CreateProperty(info, nameof(StatisticResult.Maximum))] = statistics.Maximum;
@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 foreach (var kv in s_logAggregator)
                 {
-                    var mergeInfo = ((ActionInfo)kv.Key).ToString("f");
+                    var mergeInfo = kv.Key.ToString("f");
                     m[mergeInfo] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
+                    var info = kv.Key.ToString("f");
                     m[$"{info}.BucketSize"] = kv.Value.BucketSize;
                     m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
                     m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
