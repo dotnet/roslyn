@@ -9206,7 +9206,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield break;", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.yield_break_statement),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 4;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -9254,7 +9256,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -9305,7 +9308,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "yield return 4;", CSharpFeaturesResources.yield_return_statement),
+                Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]
@@ -9382,58 +9387,56 @@ class C
         /// <summary>
         /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
-        [Theory]
-        [InlineData("await F(1);", "await F(2);")]
-        [InlineData("if (await F(1)) { Console.WriteLine(1); }", "if (await F(1)) { Console.WriteLine(2); }")]
-        [InlineData("if (await F(1)) { Console.WriteLine(1); }", "if (await F(2)) { Console.WriteLine(1); }")]
-        [InlineData("if (F(1, await F(1))) { Console.WriteLine(1); }", "if (F(1, await F(1))) { Console.WriteLine(2); }")]
-        [InlineData("if (await F(1)) { Console.WriteLine(1); }", "while (await F(1)) { Console.WriteLine(1); }")]
-        [InlineData("do { Console.WriteLine(1); } while (await F(1));", "do { Console.WriteLine(2); } while (await F(2));")]
-        [InlineData("for (var x = await F(1); await G(1); await H(1)) { Console.WriteLine(1); }", "for (var x = await F(2); await G(2); await H(2)) { Console.WriteLine(2); }")]
-        [InlineData("foreach (var x in await F(1)) { Console.WriteLine(1); }", "foreach (var x in await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("using (var x = await F(1)) { Console.WriteLine(1); }", "using (var x = await F(2)) { Console.WriteLine(1); }")]
-        [InlineData("lock (await F(1)) { Console.WriteLine(1); }", "lock (await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("lock (a = await F(1)) { Console.WriteLine(1); }", "lock (a = await F(2)) { Console.WriteLine(2); }")]
-        [InlineData("var a = await F(1), b = await G(1);", "var a = await F(2), b = await G(2);")]
-        [InlineData("a = await F(1);", "b = await F(2);")]
-        [InlineData("switch (await F(2)) { case 1: return b = await F(1); }", "switch (await F(2)) { case 1: return b = await F(2); }")]
-        [InlineData("return await F(1);", "return await F(2);")]
-        public void AwaitSpilling_OK(string oldStatement, string newStatement)
-        {
-            var src1 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        " + oldStatement + @"
-    }
-}
-";
-            var src2 = @"
-class C
-{
-    static async Task<int> F()
-    {
-        " + newStatement + @"
-    }
-}
-";
-            var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics();
-        }
-
         [Fact]
-        public void AwaitSpilling_ExpressionBody()
+        public void AwaitSpilling_OK()
         {
             var src1 = @"
 class C
 {
+    static async Task<int> F()
+    {
+        await F(1);
+        if (await F(1)) { Console.WriteLine(1); }
+        if (await F(1)) { Console.WriteLine(1); }
+        if (F(1, await F(1))) { Console.WriteLine(1); }
+        if (await F(1)) { Console.WriteLine(1); } 
+        do { Console.WriteLine(1); } while (await F(1));  
+        for (var x = await F(1); await G(1); await H(1)) { Console.WriteLine(1); } 
+        foreach (var x in await F(1)) { Console.WriteLine(1); } 
+        using (var x = await F(1)) { Console.WriteLine(1); } 
+        lock (await F(1)) { Console.WriteLine(1); } 
+        lock (a = await F(1)) { Console.WriteLine(1); } 
+        var a = await F(1), b = await G(1);
+        a = await F(1);
+        switch (await F(2)) { case 1: return b = await F(1); }
+        return await F(1);
+    }
+
     static async Task<int> G() => await F(1);
 }
 ";
             var src2 = @"
 class C
 {
+    static async Task<int> F()
+    {
+        await F(2);
+        if (await F(1)) { Console.WriteLine(2); }        
+        if (await F(2)) { Console.WriteLine(1); }       
+        if (F(1, await F(1))) { Console.WriteLine(2); } 
+        while (await F(1)) { Console.WriteLine(1); }   
+        do { Console.WriteLine(2); } while (await F(2));  
+        for (var x = await F(2); await G(2); await H(2)) { Console.WriteLine(2); } 
+        foreach (var x in await F(2)) { Console.WriteLine(2); } 
+        using (var x = await F(2)) { Console.WriteLine(1); } 
+        lock (await F(2)) { Console.WriteLine(2); } 
+        lock (a = await F(2)) { Console.WriteLine(2); } 
+        var a = await F(2), b = await G(2);
+        b = await F(2);
+        switch (await F(2)) { case 1: return b = await F(2); }
+        return await F(2);
+    }
+
     static async Task<int> G() => await F(2);
 }
 ";
@@ -9444,25 +9447,22 @@ class C
         /// <summary>
         /// Tests spilling detection logic of <see cref="CSharpEditAndContinueAnalyzer.ReportStateMachineSuspensionPointRudeEdits"/>.
         /// </summary>
-        [Theory]
-        [InlineData("F(1, await F(1));", "F(2, await F(1));")]
-        [InlineData("F(1, await F(1));", "F(1, await F(2));")]
-        [InlineData("F(await F(1));", "F(await F(2));")]
-        [InlineData("await F(await F(1));", "await F(await F(2));")]
-        [InlineData("if (F(1, await F(1))) { Console.WriteLine(1); }", "if (F(2, await F(1))) { Console.WriteLine(1); }",
-                    new[] { "F(2, await F(1))" })]
-        [InlineData("var a = F(1, await F(1)), b = F(1, await G(1));", "var a = F(1, await F(2)), b = F(1, await G(2));",
-                    new[] { "var a = F(1, await F(2)), b = F(1, await G(2));", "var a = F(1, await F(2)), b = F(1, await G(2));" })]
-        [InlineData("b = F(1, await F(1));", "b = F(1, await F(2));")]
-        [InlineData("b += await F(1);", "b += await F(2);")]
-        public void AwaitSpilling_Errors(string oldStatement, string newStatement, string[] errorMessages = null)
+        [Fact]
+        public void AwaitSpilling_Errors()
         {
             var src1 = @"
 class C
 {
     static async Task<int> F()
     {
-        " + oldStatement + @"
+        F(1, await F(1));
+        F(1, await F(1));
+        F(await F(1));
+        await F(await F(1));
+        if (F(1, await F(1))) { Console.WriteLine(1); }
+        var a = F(1, await F(1)), b = F(1, await G(1));
+        b = F(1, await F(1));
+        b += await F(1);
     }
 }
 ";
@@ -9471,17 +9471,30 @@ class C
 {
     static async Task<int> F()
     {
-        " + newStatement + @"
+        F(2, await F(1));                                
+        F(1, await F(2));                                
+        F(await F(2));                                   
+        await F(await F(2));                            
+        if (F(2, await F(1))) { Console.WriteLine(1); }  
+        var a = F(1, await F(2)), b = F(1, await G(2));
+        b = F(1, await F(2));
+        b += await F(2);
     }
 }
 ";
             var edits = GetTopEdits(src1, src2);
 
             // consider: these edits can be allowed if we get more sophisticated
-            var expectedDiagnostics = from errorMessage in errorMessages ?? new[] { newStatement }
-                                      select Diagnostic(RudeEditKind.AwaitStatementUpdate, errorMessage);
-
-            edits.VerifySemanticDiagnostics(expectedDiagnostics.ToArray());
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "F(2, await F(1));"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "F(1, await F(2));"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "F(await F(2));"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "await F(await F(2));"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "F(2, await F(1))"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "var a = F(1, await F(2)), b = F(1, await G(2));"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "var a = F(1, await F(2)), b = F(1, await G(2));"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "b = F(1, await F(2));"),
+                Diagnostic(RudeEditKind.AwaitStatementUpdate, "b += await F(2);"));
         }
 
         [Fact]
@@ -9535,7 +9548,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "F(2);", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -9561,7 +9575,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "await F(1);", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -9581,7 +9596,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -9601,7 +9617,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -9627,7 +9644,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false));
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var x in G())", CSharpFeaturesResources.foreach_statement));
         }
 
         [Fact]
@@ -9653,7 +9671,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false));
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var (x, y) in G())", CSharpFeaturesResources.foreach_statement));
         }
 
         [Fact]
@@ -9678,7 +9697,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false));
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_foreach_statement));
         }
 
         [Fact]
@@ -9704,7 +9724,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -9730,7 +9751,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -9755,7 +9777,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false));
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -9781,7 +9805,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false));
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration),
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration));
         }
 
         [Fact]
@@ -9834,7 +9860,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -9863,8 +9891,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "await F(await F(1));"),
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "await F(await F(2));"));
+                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -9885,7 +9915,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AwaitStatementUpdate, "await F(await F(1))"));
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -9964,7 +9994,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", "await"));
         }
 
         [Fact]
@@ -9990,7 +10021,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "y = new D()", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
         [Fact]
@@ -10018,7 +10050,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", "await"));
         }
 
         [Fact]
@@ -10055,7 +10088,13 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await foreach (var x in G()) { }", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_foreach_statement),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "x = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "y = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "await Task.FromResult(1)", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.await_expression),
+                Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 1;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));
         }
 
         [Fact]

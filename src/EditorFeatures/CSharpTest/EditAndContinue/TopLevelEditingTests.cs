@@ -6472,9 +6472,9 @@ partial class C
                 new[]
                 {
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
+                    DocumentResults(diagnostics: new[]
                     {
-                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
+                        Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.yield_return_statement)
                     })
                 });
         }
@@ -8499,7 +8499,7 @@ class C
 
             edits.VerifySemanticDiagnostics();
 
-            VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
+            VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
 
         [WorkItem(1087305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087305")]
@@ -16998,7 +16998,8 @@ await Task.Delay(200);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -17018,7 +17019,8 @@ await Task.Delay(100);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -17230,7 +17232,8 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -17283,7 +17286,8 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
 
         [Fact]

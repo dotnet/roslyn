@@ -241,13 +241,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected abstract bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2);
 
-        protected abstract bool SupportsStateMachineUpdates { get; }
-
-        protected abstract bool IsStateMachineResumableStateSyntax(SyntaxNode node);
-
         /// <summary>
         /// True if both nodes represent the same kind of suspension point 
-        /// (await expression, await foreach statement, await using statement, await using local variable declarator, yield return).
+        /// (await expression, await foreach statement, await using declarator, yield return, yield break).
         /// </summary>
         protected virtual bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
             => suspensionPoint1.RawKind == suspensionPoint2.RawKind;
@@ -1486,38 +1482,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (oldStateMachineSuspensionPoints.Length > 0)
             {
-                if (SupportsStateMachineUpdates)
+                Debug.Assert(oldStateMachineSuspensionPoints.Length == newStateMachineSuspensionPoints.Length);
+
+                for (var i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
                 {
-                    foreach (var (oldNode, newNode) in match.Matches)
+                    var oldNode = oldStateMachineSuspensionPoints[i];
+                    var newNode = newStateMachineSuspensionPoints[i];
+
+                    // changing yield return to yield break, await to await foreach, yield to await, etc.
+                    if (StateMachineSuspensionPointKindEquals(oldNode, newNode))
                     {
-                        ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
+                        Debug.Assert(StatementLabelEquals(oldNode, newNode));
                     }
-                }
-                else
-                {
-                    Debug.Assert(oldStateMachineSuspensionPoints.Length == newStateMachineSuspensionPoints.Length);
-
-                    for (var i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
+                    else
                     {
-                        var oldNode = oldStateMachineSuspensionPoints[i];
-                        var newNode = newStateMachineSuspensionPoints[i];
-
-                        // changing yield return to yield break, await to await foreach, yield to await, etc.
-                        if (StateMachineSuspensionPointKindEquals(oldNode, newNode))
-                        {
-                            Debug.Assert(StatementLabelEquals(oldNode, newNode));
-                        }
-                        else
-                        {
-                            diagnostics.Add(new RudeEditDiagnostic(
-                                RudeEditKind.ChangingStateMachineShape,
-                                newNode.Span,
-                                newNode,
-                                new[] { GetSuspensionPointDisplayName(oldNode, EditKind.Update), GetSuspensionPointDisplayName(newNode, EditKind.Update) }));
-                        }
-
-                        ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
+                        diagnostics.Add(new RudeEditDiagnostic(
+                            RudeEditKind.ChangingStateMachineShape,
+                            newNode.Span,
+                            newNode,
+                            new[] { GetSuspensionPointDisplayName(oldNode, EditKind.Update), GetSuspensionPointDisplayName(newNode, EditKind.Update) }));
                     }
+
+                    ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldNode, newNode);
                 }
             }
             else if (activeNodes.Length > 0)
@@ -1596,11 +1582,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<SyntaxNode> oldStateMachineSuspensionPoints,
             ImmutableArray<SyntaxNode> newStateMachineSuspensionPoints)
         {
-            if (SupportsStateMachineUpdates)
-            {
-                return;
-            }
-
             // State machine suspension points (yield statements, await expressions, await foreach loops, await using declarations) 
             // determine the structure of the generated state machine.
             // Change of the SM structure is far more significant then changes of the value (arguments) of these nodes.
