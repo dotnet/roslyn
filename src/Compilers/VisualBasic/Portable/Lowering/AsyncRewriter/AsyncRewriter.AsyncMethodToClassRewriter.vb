@@ -66,12 +66,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            builder As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            nonReusableLocalProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
-                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
                            owner As AsyncRewriter,
                            diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, diagnostics)
+                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, slotAllocatorOpt, diagnostics)
 
                 Me._method = method
                 Me._builder = builder

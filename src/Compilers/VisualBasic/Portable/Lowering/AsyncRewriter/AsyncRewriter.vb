@@ -28,13 +28,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
                        stateMachineType As AsyncStateMachine,
-                       stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                        slotAllocatorOpt As VariableSlotAllocator,
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
                        diagnostics As BindingDiagnosticBag)
 
-            MyBase.New(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._binder = CreateMethodBinder(method)
             Me._lookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
@@ -72,7 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  methodOrdinal As Integer,
-                                                 stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As BindingDiagnosticBag,
@@ -94,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
-            Dim rewriter As New AsyncRewriter(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
+            Dim rewriter As New AsyncRewriter(body, method, stateMachineType, slotAllocatorOpt, asyncMethodKind, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -259,7 +257,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder:=_builderField,
                 hoistedVariables:=hoistedVariables,
                 nonReusableLocalProxies:=nonReusableLocalProxies,
-                StateDebugInfoBuilder,
                 slotAllocatorOpt:=SlotAllocatorOpt,
                 owner:=Me,
                 diagnostics:=Diagnostics)

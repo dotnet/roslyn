@@ -23,12 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        method As MethodSymbol,
                        isEnumerable As Boolean,
                        stateMachineType As IteratorStateMachine,
-                       stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                        slotAllocatorOpt As VariableSlotAllocator,
                        compilationState As TypeCompilationState,
                        diagnostics As BindingDiagnosticBag)
 
-            MyBase.New(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._isEnumerable = isEnumerable
 
@@ -47,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  methodOrdinal As Integer,
-                                                 stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As BindingDiagnosticBag,
@@ -74,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
-            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
+            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -349,7 +347,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 current:=_currentField,
                 hoistedVariables:=hoistedVariables,
                 localProxies:=nonReusableLocalProxies,
-                StateDebugInfoBuilder,
                 slotAllocatorOpt:=SlotAllocatorOpt,
                 diagnostics:=Diagnostics)
 

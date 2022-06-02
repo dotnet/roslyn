@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal readonly MethodSymbol OriginalMethod;
 
+        /// <summary>
+        /// Generate return statements from the state machine method body.
+        /// </summary>
+        protected abstract BoundStatement GenerateReturn(bool finished);
+
         protected readonly SyntheticBoundNodeFactory F;
 
         /// <summary>
@@ -51,10 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected readonly LocalSymbol cachedThis;
 
-        /// <summary>
-        /// Allocates resumable states, i.e. states that resume execution of the state machine after await expression or yield return.
-        /// </summary>
-        private readonly ResumableStateMachineStateAllocator _resumableStateAllocator;
+        private int _nextState;
 
         /// <summary>
         /// For each distinct label, the set of states that need to be dispatched to that label.
@@ -88,11 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals;
         private int _nextFreeHoistedLocalSlot;
 
-        /// <summary>
-        /// EnC support: the rewriter stores debug info for each await/yield in this builder.
-        /// </summary>
-        private readonly ArrayBuilder<StateMachineStateDebugInfo> _stateDebugInfoBuilder;
-
         // new:
         public MethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
@@ -101,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
-            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
@@ -139,26 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
-
-            _stateDebugInfoBuilder = stateMachineStateDebugInfoBuilder;
-
-            // Use the first state number that is not used by any previous version of the state machine
-            // for the first added state that doesn't match any states of the previous state machine.
-            // Note the initial states of the previous and the current state machine are always the same.
-            // Note the previous state machine might not have any non-initial states.
-            _resumableStateAllocator = new ResumableStateMachineStateAllocator(
-                slotAllocatorOpt,
-                firstState: FirstIncreasingResumableState,
-                increasing: true);
         }
-
-        protected abstract int FirstIncreasingResumableState { get; }
-        protected abstract string EncMissingStateMessage { get; }
-
-        /// <summary>
-        /// Generate return statements from the state machine method body.
-        /// </summary>
-        protected abstract BoundStatement GenerateReturn(bool finished);
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
@@ -198,66 +175,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.Syntax = oldSyntax;
             return result;
         }
-#nullable enable
-        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out int stateNumber, out GeneratedLabelSymbol resumeLabel)
-            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out stateNumber, out resumeLabel);
 
-        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out int stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax);
-            AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber);
+            stateNumber = _nextState++;
             AddState(stateNumber, out resumeLabel);
-        }
-
-        protected void AddStateDebugInfo(SyntaxNode node, int stateNumber)
-        {
-            Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
-
-            int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
-            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, stateNumber));
         }
 
         protected void AddState(int stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            _dispatches ??= new Dictionary<LabelSymbol, List<int>>();
-
-            resumeLabel = F.GenerateLabel("stateMachine");
-            _dispatches.Add(resumeLabel, new List<int> { stateNumber });
-        }
-
-        /// <summary>
-        /// Generates code that switches over states and jumps to the target labels listed in <see cref="_dispatches"/>.
-        /// </summary>
-        /// <param name="isOutermost">
-        /// If this is the outermost state dispatch switching over all states of the state machine - i.e. not state dispatch generated for a try-block.
-        /// </param>
-        protected BoundStatement Dispatch(bool isOutermost)
-        {
-            var sections = from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key));
-            var result = F.Switch(F.Local(cachedState), sections.ToImmutableArray());
-
-            // Suspension states that were generated for any previous generation of the state machine
-            // but are not present in the current version (awaits/yields have been deleted) need to be dispatched to a throw expression.
-            // When an instance of previous version of the state machine is suspended in a state that does not exist anymore
-            // in the current version dispatch that state to a throw expression. We do not know for sure where to resume in the new version of the method.
-            // Guessing would likely result in unexpected behavior. Resuming in an incorrect point might result in an execution of code that
-            // has already been executed or skipping code that initializes some user state.
-            if (isOutermost)
+            if (_dispatches == null)
             {
-                var missingStateDispatch = GenerateMissingStateDispatch();
-                if (missingStateDispatch != null)
-                {
-                    result = F.Block(result, missingStateDispatch);
-                }
+                _dispatches = new Dictionary<LabelSymbol, List<int>>();
             }
 
-            return result;
+            resumeLabel = F.GenerateLabel("stateMachine");
+            var states = new List<int>();
+            states.Add(stateNumber);
+            _dispatches.Add(resumeLabel, states);
         }
 
-        protected virtual BoundStatement? GenerateMissingStateDispatch()
-            => _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), EncMissingStateMessage);
+        protected BoundStatement Dispatch()
+        {
+            return F.Switch(F.Local(cachedState),
+                    (from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key))).ToImmutableArray()
+                    );
+        }
 
-#nullable disable
 #if DEBUG
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -831,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 tryBlock = F.Block(
                     F.HiddenSequencePoint(),
-                    Dispatch(isOutermost: false),
+                    Dispatch(),
                     tryBlock);
 
                 oldDispatches ??= new Dictionary<LabelSymbol, List<int>>();

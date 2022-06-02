@@ -47,8 +47,7 @@ namespace Roslyn.Test.Utilities
 
                     return EditAndContinueMethodDebugInformation.Create(
                         compressedSlotMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                        compressedLambdaMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
-                        compressedStateMachineStateMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncStateMachineStateMap));
+                        compressedLambdaMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
                 }
             }
 

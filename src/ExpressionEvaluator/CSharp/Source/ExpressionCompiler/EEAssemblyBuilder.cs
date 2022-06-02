@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -174,13 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return false;
             }
 
-            public override bool TryGetPreviousStateMachineState(SyntaxNode awaitOrYieldSyntax, out int stateOrdinal)
-            {
-                stateOrdinal = 0;
-                return false;
-            }
-
-            public override int? GetFirstUnusedStateMachineState(bool increasing) => null;
             public override string? PreviousStateMachineTypeName => null;
             public override int PreviousHoistedLocalSlotCount => 0;
             public override int PreviousAwaiterSlotCount => 0;

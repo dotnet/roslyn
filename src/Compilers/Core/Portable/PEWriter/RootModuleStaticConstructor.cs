@@ -161,10 +161,7 @@ namespace Microsoft.Cci
 
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => ImmutableArray<LambdaDebugInfo>.Empty;
 
-        public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
-
         public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
-
 
         public sealed override bool Equals(object obj)
         {

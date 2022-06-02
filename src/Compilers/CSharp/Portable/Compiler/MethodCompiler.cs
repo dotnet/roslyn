@@ -264,7 +264,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
                 var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
                 var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
-                var stateMachineStateDebugInfoBuilder = ArrayBuilder<StateMachineStateDebugInfo>.GetInstance();
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
                 const int methodOrdinal = -1;
 
@@ -281,7 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref lazyVariableSlotAllocator,
                     lambdaDebugInfoBuilder,
                     closureDebugInfoBuilder,
-                    stateMachineStateDebugInfoBuilder,
                     out stateMachineTypeOpt);
 
                 Debug.Assert((object)lazyVariableSlotAllocator == null);
@@ -289,11 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(dynamicAnalysisSpans.IsEmpty);
                 Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
                 Debug.Assert(closureDebugInfoBuilder.IsEmpty());
-                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
 
                 lambdaDebugInfoBuilder.Free();
                 closureDebugInfoBuilder.Free();
-                stateMachineStateDebugInfoBuilder.Free();
 
                 if (emitMethodBodies)
                 {
@@ -304,7 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         loweredBody,
                         ImmutableArray<LambdaDebugInfo>.Empty,
                         ImmutableArray<ClosureDebugInfo>.Empty,
-                        ImmutableArray<StateMachineStateDebugInfo>.Empty,
                         stateMachineTypeOpt: null,
                         variableSlotAllocatorOpt: null,
                         diagnostics: diagnostics,
@@ -704,7 +699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var stateMachineStateDebugInfoBuilder = ArrayBuilder<StateMachineStateDebugInfo>.GetInstance();
             var oldImportChain = compilationState.CurrentImportChain;
             try
             {
@@ -734,13 +728,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
                         IteratorStateMachine iteratorStateMachine;
-                        BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+                        BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
                         StateMachineTypeSymbol stateMachine = iteratorStateMachine;
 
                         if (!loweredBody.HasErrors)
                         {
                             AsyncStateMachine asyncStateMachine;
-                            loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                            loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
 
                             Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                             stateMachine = stateMachine ?? asyncStateMachine;
@@ -758,7 +752,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 loweredBody,
                                 ImmutableArray<LambdaDebugInfo>.Empty,
                                 ImmutableArray<ClosureDebugInfo>.Empty,
-                                stateMachineStateDebugInfoBuilder.ToImmutable(),
                                 stateMachine,
                                 variableSlotAllocatorOpt,
                                 diagnosticsThisMethod,
@@ -792,14 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(emittedBody is null);
                     }
-
-                    stateMachineStateDebugInfoBuilder.Clear();
                 }
             }
             finally
             {
                 compilationState.CurrentImportChain = oldImportChain;
-                stateMachineStateDebugInfoBuilder.Free();
             }
         }
 
@@ -879,7 +869,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundBody,
                         ImmutableArray<LambdaDebugInfo>.Empty,
                         ImmutableArray<ClosureDebugInfo>.Empty,
-                        ImmutableArray<StateMachineStateDebugInfo>.Empty,
                         stateMachineTypeOpt: null,
                         variableSlotAllocatorOpt: null,
                         diagnostics: diagnosticsThisMethod,
@@ -1182,7 +1171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
                 var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
                 var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
-                var stateMachineStateDebugInfoBuilder = ArrayBuilder<StateMachineStateDebugInfo>.GetInstance();
                 BoundStatement loweredBodyOpt = null;
 
                 try
@@ -1202,7 +1190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ref lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder,
                             closureDebugInfoBuilder,
-                            stateMachineStateDebugInfoBuilder,
                             out stateMachineTypeOpt);
 
                         Debug.Assert(loweredBodyOpt != null);
@@ -1255,7 +1242,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ref lazyVariableSlotAllocator,
                                     lambdaDebugInfoBuilder,
                                     closureDebugInfoBuilder,
-                                    stateMachineStateDebugInfoBuilder,
                                     out initializerStateMachineTypeOpt);
 
                                 processedInitializers.LoweredInitializers = lowered;
@@ -1316,7 +1302,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 boundBody,
                                 lambdaDebugInfoBuilder.ToImmutable(),
                                 closureDebugInfoBuilder.ToImmutable(),
-                                stateMachineStateDebugInfoBuilder.ToImmutable(),
                                 stateMachineTypeOpt,
                                 lazyVariableSlotAllocator,
                                 diagsForCurrentMethod,
@@ -1337,7 +1322,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     lambdaDebugInfoBuilder.Free();
                     closureDebugInfoBuilder.Free();
-                    stateMachineStateDebugInfoBuilder.Free();
                 }
             }
             finally
@@ -1361,7 +1345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref VariableSlotAllocator lazyVariableSlotAllocator,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
-            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             out StateMachineTypeSymbol stateMachineTypeOpt)
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
@@ -1416,7 +1399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return loweredBody;
                 }
 
-                lazyVariableSlotAllocator ??= compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics.DiagnosticBag);
+                if (lazyVariableSlotAllocator == null)
+                {
+                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics.DiagnosticBag);
+                }
 
                 BoundStatement bodyWithoutLambdas = loweredBody;
                 if (sawLambdas || sawLocalFunctions)
@@ -1441,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutLambdas;
                 }
 
-                BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
+                BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out IteratorStateMachine iteratorStateMachine);
 
                 if (bodyWithoutIterators.HasErrors)
@@ -1449,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutIterators;
                 }
 
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out AsyncStateMachine asyncStateMachine);
 
                 Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
@@ -1474,7 +1460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement block,
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
-            ImmutableArray<StateMachineStateDebugInfo> stateMachineStateDebugInfos,
             StateMachineTypeSymbol stateMachineTypeOpt,
             VariableSlotAllocator variableSlotAllocatorOpt,
             BindingDiagnosticBag diagnostics,
@@ -1624,7 +1609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
                     stateMachineAwaiterSlots,
-                    StateMachineStatesDebugInfo.Create(variableSlotAllocatorOpt, stateMachineStateDebugInfos),
                     moveNextBodyDebugInfoOpt,
                     dynamicAnalysisDataOpt);
             }
