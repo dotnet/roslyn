@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Packaging;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -20,9 +21,11 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [Export(typeof(IWpfTextViewCreationListener))]
@@ -33,14 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         private readonly VisualStudioWorkspace _workspace;
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
+        private readonly JsonSerializer _serializer;
 
         [MemberNotNullWhen(true, nameof(Package))]
         private bool Initialized { get; set; }
 
         private RoslynPackage? Package { get; set; }
         private IThreadingContext ThreadingContext { get; }
-
-        private bool FirstPass { get; set; } = true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             _workspace = workspace;
             _languageServiceBroker = languageServiceBroker;
+            _serializer = new JsonSerializer();
             ThreadingContext = threadingContext;
         }
 
@@ -70,12 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public async Task ShowSampleToolWindowAsync(CancellationToken cancellationToken)
         {
-            /*if (FirstPass)
-            {
-                FirstPass = false;
-                return;
-            }*/
-
             if (!Initialized)
             {
                 throw new NotSupportedException("Tool window not initialized");
@@ -101,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 var service = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-                window.InitializeIfNeeded(_workspace, service, _languageServiceBroker);
+                window.InitializeIfNeeded(_workspace, service, _languageServiceBroker, ThreadingContext);
 
                 return window;
             }
