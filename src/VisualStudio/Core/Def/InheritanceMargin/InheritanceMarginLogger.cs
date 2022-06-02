@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.InheritanceMargin
 
         public static void LogGenerateBackgroundInheritanceInfo(TimeSpan elapsedTime)
             => s_histogramLogAggregator.IncreaseCount(
-                ActionInfo.GetInheritanceMarginMembers, Convert.ToDecimal(elapsedTime.TotalMilliseconds));
+                ActionInfo.GetInheritanceMarginMembers, elapsedTime);
 
         public static void LogInheritanceTargetsMenuOpen()
             => Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));

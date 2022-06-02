@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
@@ -138,15 +139,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        internal static void LogCommitInformation(int numDeclarationsUpdated, int numCallSitesUpdated, int elapsedMS)
+        internal static void LogCommitInformation(int numDeclarationsUpdated, int numCallSitesUpdated, TimeSpan elapsedTime)
         {
             s_logAggregator.IncreaseCount((int)ActionInfo.ChangeSignatureCommitCompleted);
 
             s_logAggregator.IncreaseCountBy((int)ActionInfo.CommittedSessionNumberOfDeclarationsUpdated, numDeclarationsUpdated);
             s_logAggregator.IncreaseCountBy((int)ActionInfo.CommittedSessionNumberOfCallSitesUpdated, numCallSitesUpdated);
 
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.CommittedSessionCommitElapsedMS, elapsedMS);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.CommittedSessionCommitElapsedMS, elapsedMS);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.CommittedSessionCommitElapsedMS, (int)elapsedTime.TotalMilliseconds);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.CommittedSessionCommitElapsedMS, elapsedTime);
         }
 
         internal static void LogAddedParameterTypeBinds()

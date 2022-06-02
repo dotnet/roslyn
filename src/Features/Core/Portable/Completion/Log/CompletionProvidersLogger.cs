@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
@@ -33,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             CommitUsingDotToAddParenthesis
         }
 
-        internal static void LogTypeImportCompletionTicksDataPoint(int count)
+        internal static void LogTypeImportCompletionTicksDataPoint(TimeSpan elapsed)
         {
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, elapsed);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, elapsed);
         }
 
         internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
@@ -51,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogCommitOfTypeImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
 
-        internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isRemote)
+        internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, bool isRemote)
         {
             s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, total);
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, total);
 
             if (isRemote)
             {
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionRemoteTicks, (total - getSymbols - createItems));
+                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionRemoteTicks, total - getSymbols - createItems);
             }
 
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);

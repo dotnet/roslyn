@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -56,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
 
-        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(int count) =>
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, count);
+        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(TimeSpan timeSpan) =>
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
 
         internal static void LogDelayedImportCompletionIncluded() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
@@ -68,36 +69,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal static void LogGetDefaultsMatchTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.GetDefaultsMatchTicks, count);
 
-        internal static void LogSourceInitializationTicksDataPoint(int count)
+        internal static void LogSourceInitializationTicksDataPoint(TimeSpan elapsed)
         {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.SourceInitializationTicks, count);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.SourceInitializationTicks, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.SourceInitializationTicks, elapsed);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.SourceInitializationTicks, elapsed);
         }
 
-        internal static void LogSourceGetContextTicksDataPoint(int count, bool isCanceled)
+        internal static void LogSourceGetContextTicksDataPoint(TimeSpan elapsed, bool isCanceled)
         {
             var key = isCanceled
                 ? ActionInfo.SourceGetContextCanceledTicks
                 : ActionInfo.SourceGetContextCompletedTicks;
 
-            s_statisticLogAggregator.AddDataPoint((int)key, count);
-            s_histogramLogAggregator.IncreaseCount((int)key, count);
+            s_statisticLogAggregator.AddDataPoint((int)key, elapsed);
+            s_histogramLogAggregator.IncreaseCount((int)key, elapsed);
         }
 
-        internal static void LogItemManagerSortTicksDataPoint(int count)
+        internal static void LogItemManagerSortTicksDataPoint(TimeSpan elapsed)
         {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ItemManagerSortTicks, count);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ItemManagerSortTicks, count);
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ItemManagerSortTicks, elapsed);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ItemManagerSortTicks, elapsed);
         }
 
-        internal static void LogItemManagerUpdateDataPoint(int count, bool isCanceled)
+        internal static void LogItemManagerUpdateDataPoint(TimeSpan elapsed, bool isCanceled)
         {
             var key = isCanceled
                 ? ActionInfo.ItemManagerUpdateCanceledTicks
                 : ActionInfo.ItemManagerUpdateCompletedTicks;
 
-            s_statisticLogAggregator.AddDataPoint((int)key, count);
-            s_histogramLogAggregator.IncreaseCount((int)key, count);
+            s_statisticLogAggregator.AddDataPoint((int)key, elapsed);
+            s_histogramLogAggregator.IncreaseCount((int)key, elapsed);
         }
 
         internal static void ReportTelemetry()
