@@ -159,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override IEnumerable<string> MemberNames => GetMembers().SelectAsArray(member => member.Name);
 
+            internal override bool HasDeclaredRequiredMembers => false;
+
             public override ImmutableArray<Symbol> GetMembers() => _members;
 
             public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray((member, name) => member.Name == name, name);
