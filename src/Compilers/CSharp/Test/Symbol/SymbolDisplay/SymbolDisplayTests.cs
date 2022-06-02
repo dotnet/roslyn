@@ -8133,7 +8133,7 @@ delegate void D(scoped R r1, in scoped R r2, scoped ref R r3);
             var formatTypeOnly = s_fullDelegateFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName);
             var formatTypeAndRef = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut);
             var formatTypeAndScoped = formatTypeOnly.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
-            var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped); ;
+            var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
 
             Verify(delegateType.ToDisplayParts(formatTypeAndRef),
                 "delegate void D(R r1, in R r2, ref R r3)");
@@ -8173,7 +8173,7 @@ unsafe class Program
 
             var formatMinimal = new SymbolDisplayFormat();
             var formatTypeRefAndScoped = s_fullDelegateFormat.
-                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped); ;
+                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
 
             Verify(type.ToDisplayParts(formatMinimal),
                 "delegate*<R, in R, ref R, Void>");
