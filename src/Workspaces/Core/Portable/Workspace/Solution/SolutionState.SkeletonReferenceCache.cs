@@ -202,7 +202,13 @@ internal partial class SolutionState
             if (storage == null)
                 return null;
 
-            var (metadata, directMemoryAccess) = ComputeMetadata(storage, cancellationToken);
+            var stream = storage.ReadStream(cancellationToken);
+            var directMemoryAccess = stream as ISupportDirectMemoryAccess;
+
+            // TODO: Update CreateFromStream to be efficient if we pass along a stream which exposes raw memory access.
+            var metadata = directMemoryAccess != null
+                ? AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(directMemoryAccess.GetPointer(), (int)stream.Length))
+                : AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
 
             // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
             // the stream as well.
@@ -211,32 +217,6 @@ internal partial class SolutionState
                 directMemoryAccess,
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
-        }
-
-        private static (AssemblyMetadata, ISupportDirectMemoryAccess?) ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
-        {
-            // first see whether we can use native memory directly.
-            var stream = storage.ReadStream(cancellationToken);
-
-            if (stream is ISupportDirectMemoryAccess supportNativeMemory)
-            {
-                // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
-                // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
-                // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
-
-                return (metadata, supportNativeMemory);
-            }
-            else
-            {
-                // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
-                // internally copy it to native memory again. since compiler owns lifetime of stream,
-                // it would be great if compiler can be little bit smarter on how it deals with stream.
-
-                // We don't deterministically release the resulting metadata since we don't know 
-                // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                return (AssemblyMetadata.CreateFromStream(stream, leaveOpen: false), null);
-            }
         }
 
         private bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
