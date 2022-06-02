@@ -19,16 +19,7 @@ public partial struct IncrementalGeneratorInitializationContext
             if (x == y)
                 return true;
 
-            if (x.Length != y.Length)
-                return false;
-
-            for (int i = 0, n = x.Length; i < n; i++)
-            {
-                if (!EqualityComparer<T>.Default.Equals(x[i], y[i]))
-                    return false;
-            }
-
-            return true;
+            return x.SequenceEqual(y, 0, static (a, b, _) => EqualityComparer<T>.Default.Equals(a, b));
         }
 
         public int GetHashCode(ImmutableArray<T> obj)
