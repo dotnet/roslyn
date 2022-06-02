@@ -112,6 +112,25 @@ namespace Microsoft.CodeAnalysis.Workspaces
             }
         }
 
+        public TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        public struct TestAccessor
+        {
+            private readonly WpfTextBufferVisibilityTracker _visibilityTracker;
+
+            public TestAccessor(WpfTextBufferVisibilityTracker visibilityTracker)
+            {
+                _visibilityTracker = visibilityTracker;
+            }
+
+            public void TriggerCallbacks(ITextBuffer subjectBuffer)
+            {
+                var data = _visibilityTracker._subjectBufferToCallbacks[subjectBuffer];
+                data.TriggerCallbacks();
+            }
+        }
+
         private sealed class VisibleTrackerData : IDisposable
         {
             public readonly HashSet<ITextView> TextViews = new();
@@ -191,6 +210,11 @@ namespace Microsoft.CodeAnalysis.Workspaces
             }
 
             private void VisualElement_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+            {
+                TriggerCallbacks();
+            }
+
+            internal void TriggerCallbacks()
             {
                 _tracker._threadingContext.ThrowIfNotOnUIThread();
                 foreach (var callback in Callbacks)
