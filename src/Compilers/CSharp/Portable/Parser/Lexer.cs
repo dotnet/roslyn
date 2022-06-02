@@ -2513,14 +2513,10 @@ LoopExit:
         private void LexConflictMarkerEndOfLine(ref SyntaxListBuilder triviaList)
         {
             this.Start();
-            while (SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()))
-            {
-                this.TextWindow.AdvanceChar();
-            }
 
-            if (this.TextWindow.Width > 0)
+            if (ScanEndOfLine() is { } endOfLine)
             {
-                this.AddTrivia(SyntaxFactory.EndOfLine(TextWindow.GetText(false)), ref triviaList);
+                this.AddTrivia(endOfLine, ref triviaList);
             }
         }
 
