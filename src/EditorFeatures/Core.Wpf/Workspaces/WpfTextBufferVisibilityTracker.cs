@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 _subjectBufferToCallbacks.Add(subjectBuffer, data);
             }
 
-            data.Callbacks = data.Callbacks.Add(callback);
+            data.AddCallback(callback);
         }
 
         public void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, Action callback)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             // Both of these methods must succeed.  Otherwise we're somehow unregistering something we don't know about.
             Contract.ThrowIfFalse(_subjectBufferToCallbacks.TryGetValue(subjectBuffer, out var data));
             Contract.ThrowIfFalse(data.Callbacks.Contains(callback));
-            data.Callbacks = data.Callbacks.Remove(callback);
+            data.RemoveCallback(callback);
 
             // If we have nothing that wants to listen to information about this buffer anymore, then disconnect it
             // from all events and remove our map.
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             /// The callbacks that want to be notified when our <see cref="TextViews"/> change visibility.  Stored as an
             /// <see cref="ImmutableHashSet{T}"/> so we can enumerate it safely without it changing underneath us.
             /// </summary>
-            public ImmutableHashSet<Action> Callbacks = ImmutableHashSet<Action>.Empty;
+            public ImmutableHashSet<Action> Callbacks { get; private set; } = ImmutableHashSet<Action>.Empty;
 
             public VisibleTrackerData(
                 WpfTextBufferVisibilityTracker tracker,
@@ -145,6 +145,18 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 UpdateTextViews(Array.Empty<ITextView>());
 
                 Contract.ThrowIfTrue(TextViews.Count > 0);
+            }
+
+            public void AddCallback(Action callback)
+            {
+                _tracker._threadingContext.ThrowIfNotOnUIThread();
+                this.Callbacks = this.Callbacks.Add(callback);
+            }
+
+            public void RemoveCallback(Action callback)
+            {
+                _tracker._threadingContext.ThrowIfNotOnUIThread();
+                this.Callbacks = this.Callbacks.Remove(callback);
             }
 
             public void UpdateAssociatedViews()
