@@ -103,8 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refKind,
                         ordinal,
                         owner,
-                        customModifiers,
-                        scope);
+                        customModifiers);
                 },
                 parsingFunctionPointer: true);
         }
@@ -509,14 +508,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
-                    case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
-                    case SyntaxKind.ReadOnlyKeyword when parsingFunctionPointerParams:
-                        diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
-                        break;
-
-                    case SyntaxKind.ScopedKeyword:
+                    case SyntaxKind.ScopedKeyword when !parsingFunctionPointerParams:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
                         // PROTOTYPE: Check for duplicate modifiers; check ordering.
+                        break;
+
+                    case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
+                    case SyntaxKind.ReadOnlyKeyword when parsingFunctionPointerParams:
+                    case SyntaxKind.ScopedKeyword when parsingFunctionPointerParams:
+                        diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
                         break;
 
                     default:

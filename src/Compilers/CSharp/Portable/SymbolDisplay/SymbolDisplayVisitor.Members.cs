@@ -611,19 +611,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    if (param.IsRefScoped)
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
+                    Debug.Assert(!param.IsRefScoped);
+                    Debug.Assert(!param.IsValueScoped);
 
                     AddParameterRefKind(param.RefKind);
-
-                    if (param.IsValueScoped)
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
 
                     AddCustomModifiersIfRequired(param.RefCustomModifiers);
 

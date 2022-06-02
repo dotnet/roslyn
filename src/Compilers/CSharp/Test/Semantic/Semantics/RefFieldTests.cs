@@ -4410,17 +4410,52 @@ class Program
         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void F1(scoped R r1) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 20),
+                // (5,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void F2(ref scoped R x, scoped ref int y) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 24),
+                // (5,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void F2(ref scoped R x, scoped ref int y) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 36),
+                // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<scoped R, void> f1 = &F1;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
+                // (9,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 23),
+                // (9,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33));
+            verify(comp);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
-            var methods = decls.Select(d => ((FunctionPointerTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).Signature).ToArray();
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<scoped R, void> f1 = &F1;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
+                // (9,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 23),
+                // (9,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33));
+            verify(comp);
 
-            VerifyParameterSymbol(methods[0].Parameters[0], "scoped R", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(methods[1].Parameters[0], "ref scoped R", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(methods[1].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var methods = decls.Select(d => ((FunctionPointerTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).Signature).ToArray();
+
+                VerifyParameterSymbol(methods[0].Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(methods[1].Parameters[0], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(methods[1].Parameters[1], "ref System.Int32", RefKind.Ref, DeclarationScope.Unscoped);
+            }
         }
 
         [Fact]
@@ -5089,9 +5124,9 @@ class C
                 // (1,17): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
                 // delegate void D(scoped C c);
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped C c").WithLocation(1, 17),
-                // (6,19): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                // (6,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped C, int> d = default;
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped C").WithLocation(6, 19));
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(6, 19));
         }
 
         [Theory]

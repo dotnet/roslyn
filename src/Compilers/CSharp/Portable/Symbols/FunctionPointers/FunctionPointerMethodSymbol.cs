@@ -462,8 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         originalParam.RefKind,
                         originalParam.Ordinal,
                         containingSymbol: this,
-                        customModifiers,
-                        originalParam.Scope));
+                        customModifiers));
                 }
 
                 _parameters = paramsBuilder.ToImmutableAndFree();
@@ -499,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var refCustomModifiers = arg.ParamRefCustomModifiers.IsDefault ? getCustomModifierArrayForRefKind(refKind, arg.Comp) : arg.ParamRefCustomModifiers[i];
                     Debug.Assert(refCustomModifiers.IsEmpty || refKind != RefKind.None);
-                    return new FunctionPointerParameterSymbol(type, refKind, i, arg.Method, refCustomModifiers: refCustomModifiers, DeclarationScope.Unscoped);
+                    return new FunctionPointerParameterSymbol(type, refKind, i, arg.Method, refCustomModifiers: refCustomModifiers);
                 });
 
             static ImmutableArray<CustomModifier> getCustomModifierArrayForRefKind(RefKind refKind, CSharpCompilation compilation)
@@ -557,8 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var paramRefCustomMods = CSharpCustomModifier.Convert(param.RefCustomModifiers);
                         var paramType = TypeWithAnnotations.Create(param.Type, customModifiers: CSharpCustomModifier.Convert(param.CustomModifiers));
                         RefKind paramRefKind = getRefKind(param, paramRefCustomMods, RefKind.In, RefKind.Out);
-                        DeclarationScope scope = DeclarationScope.Unscoped; // PROTOTYPE: Include scope.
-                        paramsBuilder.Add(new FunctionPointerParameterSymbol(paramType, paramRefKind, i, parent, paramRefCustomMods, scope));
+                        paramsBuilder.Add(new FunctionPointerParameterSymbol(paramType, paramRefKind, i, parent, paramRefCustomMods));
                     }
 
                     return paramsBuilder.ToImmutableAndFree();

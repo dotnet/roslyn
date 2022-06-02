@@ -8158,12 +8158,28 @@ unsafe class Program
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,15): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //     delegate*<scoped R, in scoped R, scoped ref R, void> D;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 15),
+                // (5,28): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //     delegate*<scoped R, in scoped R, scoped ref R, void> D;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 28),
+                // (5,38): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //     delegate*<scoped R, in scoped R, scoped ref R, void> D;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 38));
+
             var type = comp.GetMember<FieldSymbol>("Program.D").Type;
 
-            var format = new SymbolDisplayFormat();
-            Verify(type.ToDisplayParts(format),
-                "delegate*<scoped R, in scoped R, scoped ref R, Void>");
+            var formatMinimal = new SymbolDisplayFormat();
+            var formatTypeRefAndScoped = s_fullDelegateFormat.
+                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeScoped);
+
+            Verify(type.ToDisplayParts(formatMinimal),
+                "delegate*<R, in R, ref R, Void>");
+
+            Verify(type.ToDisplayParts(formatTypeRefAndScoped),
+                "delegate*<R, in R, ref R, void>");
         }
 
         [Fact]
