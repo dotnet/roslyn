@@ -131,6 +131,9 @@ class Program
     <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
         <forwardIterator name=""&lt;Goo&gt;d__0"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""11"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
@@ -267,6 +270,12 @@ class Program
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""101"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""32"" />
+          <state number=""2"" offset=""57"" />
+          <state number=""3"" offset=""122"" />
+          <state number=""4"" offset=""151"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
@@ -342,6 +351,11 @@ class Test<T>
           <slot kind=""5"" offset=""42"" />
           <slot kind=""0"" offset=""42"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""42"" />
+          <state number=""1"" offset=""117"" />
+          <state number=""2"" offset=""155"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -572,16 +586,30 @@ public class Test
           <slot kind=""5"" offset=""104"" />
           <slot kind=""0"" offset=""104"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""11"" />
+          <state number=""1"" offset=""68"" />
+          <state number=""-4"" offset=""104"" />
+          <state number=""2"" offset=""160"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1"" name=""get_IterProp"">
       <customDebugInfo>
         <forwardIterator name=""&lt;get_IterProp&gt;d__3"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""16"" />
+          <state number=""2"" offset=""48"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1"" name=""IterMethod"">
       <customDebugInfo>
         <forwardIterator name=""&lt;IterMethod&gt;d__4"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""11"" />
+          <state number=""2"" offset=""45"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test"" name=""Main"">
@@ -956,6 +984,16 @@ class C
           <slot kind=""3"" offset=""367"" />
           <slot kind=""2"" offset=""367"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""53"" />
+          <state number=""1"" offset=""67"" />
+          <state number=""-4"" offset=""149"" />
+          <state number=""2"" offset=""163"" />
+          <state number=""-5"" offset=""216"" />
+          <state number=""3"" offset=""237"" />
+          <state number=""-6"" offset=""266"" />
+          <state number=""4"" offset=""280"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1303,6 +1341,9 @@ class C
           <closure offset=""0"" />
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""129"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1385,6 +1426,9 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""35"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>

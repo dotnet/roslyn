@@ -195,7 +195,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Debug.Assert(Me.IsDefinition)
             ' Check event type.
-            Dim useSiteInfo = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
+            Dim useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
+            MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type))
             Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
             If errorInfo IsNot Nothing Then
@@ -237,16 +238,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return useSiteInfo
         End Function
 
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedType1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedType1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
                 Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
-                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedEvent1)
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedEvent1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 

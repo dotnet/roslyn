@@ -1308,6 +1308,14 @@ class Derived : Base
         }
 
         [Fact]
+        public void TestRequiredKeywordNormalization()
+        {
+            const string Expected = @"public required partial int Field;";
+            const string Text = @"public  required  partial int Field;";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
         [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
         public void TestNormalizeNestedUsingStatements1()
         {

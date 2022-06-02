@@ -512,23 +512,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #region Use-Site Diagnostics
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is highest priority while calculating use site error for this symbol. 
         /// </summary>
-        protected override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BogusType;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code)
+            => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
 
-        public sealed override bool HasUnsupportedMetadata
+        public override bool HasUnsupportedMetadata
         {
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                return (object)info != null && info.Code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
             }
         }
 

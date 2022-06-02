@@ -983,7 +983,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckSwitchSections(sections);
+
             GeneratedLabelSymbol breakLabel = new GeneratedLabelSymbol("break");
+
             var caseBuilder = ArrayBuilder<(ConstantValue Value, LabelSymbol label)>.GetInstance();
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
             statements.Add(null!); // placeholder at statements[0] for the dispatch

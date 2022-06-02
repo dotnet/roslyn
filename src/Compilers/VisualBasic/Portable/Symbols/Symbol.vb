@@ -946,21 +946,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Return error code that has highest priority while calculating use site error for this symbol. 
+        ''' Returns true if the error code is highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overridable ReadOnly Property HighestPriorityUseSiteError As Integer ' Supposed to be ERRID, but it causes inconsistent accessibility error.
-            Get
-                Return Integer.MaxValue
-            End Get
-        End Property
-
-        Friend Function MergeUseSiteInfo(first As UseSiteInfo(Of AssemblySymbol), second As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
-            MergeUseSiteInfo(first, second, HighestPriorityUseSiteError)
-            Return first
+        Protected Overridable Function IsHighestPriorityUseSiteError(code As Integer) As Boolean ' Supposed to be ERRID, but it causes inconsistent accessibility error.
+            Return False
         End Function
 
-        Friend Shared Function MergeUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), other As UseSiteInfo(Of AssemblySymbol), highestPriorityUseSiteError As Integer) As Boolean
-            If other.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+        Friend Function MergeUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), other As UseSiteInfo(Of AssemblySymbol)) As Boolean
+            If other.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(other.DiagnosticInfo.Code) Then
                 result = other
                 Return True
             End If
@@ -978,26 +971,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return False
             Else
-                Return result.DiagnosticInfo.Code = highestPriorityUseSiteError
+                Return IsHighestPriorityUseSiteError(result.DiagnosticInfo.Code)
             End If
         End Function
 
-        Friend Function DeriveUseSiteInfoFromParameter(param As ParameterSymbol, highestPriorityUseSiteError As Integer) As UseSiteInfo(Of AssemblySymbol)
+        Friend Function DeriveUseSiteInfoFromParameter(param As ParameterSymbol) As UseSiteInfo(Of AssemblySymbol)
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(param.Type)
 
-            If useSiteInfo.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+            If useSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(useSiteInfo.DiagnosticInfo.Code) Then
                 Return useSiteInfo
             End If
 
             Dim refModifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(param.RefCustomModifiers)
 
-            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+            If refModifiersUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(refModifiersUseSiteInfo.DiagnosticInfo.Code) Then
                 Return refModifiersUseSiteInfo
             End If
 
             Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(param.CustomModifiers)
 
-            If modifiersUseSiteInfo.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+            If modifiersUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(modifiersUseSiteInfo.DiagnosticInfo.Code) Then
                 Return modifiersUseSiteInfo
             End If
 
@@ -1019,10 +1012,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function DeriveUseSiteInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As UseSiteInfo(Of AssemblySymbol)
             Dim paramsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
-            Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
 
             For Each param As ParameterSymbol In parameters
-                If MergeUseSiteInfo(paramsUseSiteInfo, DeriveUseSiteInfoFromParameter(param, highestPriorityUseSiteError), highestPriorityUseSiteError) Then
+                If MergeUseSiteInfo(paramsUseSiteInfo, DeriveUseSiteInfoFromParameter(param)) Then
                     Exit For
                 End If
             Next
@@ -1035,7 +1027,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional allowIsExternalInit As Boolean = False
         ) As UseSiteInfo(Of AssemblySymbol)
             Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
-            Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
 
             For Each modifier As CustomModifier In customModifiers
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol)
@@ -1046,7 +1037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
                     GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(useSiteInfo)
 
-                    If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo, highestPriorityUseSiteError) Then
+                    If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo) Then
                         Exit For
                     End If
                 End If
@@ -1054,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol)
 
 
-                If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo, highestPriorityUseSiteError) Then
+                If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo) Then
                     Exit For
                 End If
             Next

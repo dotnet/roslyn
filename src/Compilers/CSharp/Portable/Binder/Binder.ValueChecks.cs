@@ -2613,6 +2613,7 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
+                case BoundKind.UTF8String:
                     // always returnable
                     return Binder.ExternalScope;
 
@@ -3018,6 +3019,7 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
+                case BoundKind.UTF8String:
                     // always returnable
                     return true;
 
