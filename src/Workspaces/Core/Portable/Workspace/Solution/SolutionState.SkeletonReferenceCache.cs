@@ -66,9 +66,9 @@ internal partial class SolutionState
         /// want to get the same skeleton set for it.  Second, consider the following scenario:
         /// <list type="number">
         /// <item>Project A is referenced by projects B and C (both have a different language than A).</item>
-        /// <item>Producing the compilation for 'B' produces the compilation for 'A' which produced the skeleton that 'B' references.</item>
+        /// <item>Producing the compilation for 'B' produces the compilation for 'A' which produces the skeleton that 'B' references.</item>
         /// <item>B's compilation is released and then GC'ed.</item> 
-        /// <item>Producing the compilation for 'B' produces the compilation for 'A'</item>
+        /// <item>Producing the compilation for 'C' needs the skeleton from 'A'</item>
         /// </list>
         /// At this point we would not want to re-emit the assembly metadata for A's compilation.  We already did that
         /// for 'B', and it can be enormously expensive to do so again.  So as long as A's compilation lives, we really
