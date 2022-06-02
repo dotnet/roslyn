@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration;
 /// Simple wrapper class around an immutable array so we can have the value-semantics needed for the incremental
 /// generator to know when a change actually happened and it should run later transform stages.
 /// </summary>
-internal class GlobalAliases : IEquatable<GlobalAliases>
+internal sealed class GlobalAliases : IEquatable<GlobalAliases>
 {
     public static readonly GlobalAliases Empty = new(ImmutableArray<(string aliasName, string symbolName)>.Empty);
 
