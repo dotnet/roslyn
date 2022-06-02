@@ -1224,11 +1224,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
                     this,
-                    false, // do not allow ref
+                    allowRefKind: false, // do not allow ref
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue);
+                    equalsValue,
+                    hasScopedModifier: false);
             }
 
             return localSymbol;

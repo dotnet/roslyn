@@ -241,10 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             kind = LocalDeclarationKind.RegularVariable;
                         }
-                        bool scopedModifier = decl.Modifiers.Any(SyntaxKind.ScopedKeyword);
+                        bool hasScopedModifier = decl.Modifiers.Any(SyntaxKind.ScopedKeyword);
                         foreach (var vdecl in decl.Declaration.Variables)
                         {
-                            var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder, scopedModifier);
+                            var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, hasScopedModifier, localDeclarationBinder);
                             locals.Add(localSymbol);
 
                             // also gather expression-declared variables from the bracketed argument lists and the initializers
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind, Binder initializerBinderOpt = null, bool scopedModifier = false)
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind, bool hasScopedModifier, Binder initializerBinderOpt = null)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
@@ -324,8 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarator.Identifier,
                 kind,
                 declarator.Initializer,
-                initializerBinderOpt,
-                scopedModifier);
+                hasScopedModifier,
+                initializerBinderOpt);
         }
 
         protected LocalFunctionSymbol MakeLocalFunction(LocalFunctionStatementSyntax declaration)
