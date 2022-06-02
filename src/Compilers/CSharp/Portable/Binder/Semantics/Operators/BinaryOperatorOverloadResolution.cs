@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -1311,8 +1312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op2Right = op2.RightType;
             }
 
-            var uninst1 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
+            using var uninst1 = TemporaryArray<TypeSymbol>.Empty;
+            using var uninst2 = TemporaryArray<TypeSymbol>.Empty;
 
             uninst1.Add(op1Left);
             uninst1.Add(op1Right);
@@ -1320,10 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uninst2.Add(op2Left);
             uninst2.Add(op2Right);
 
-            BetterResult result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
-
-            uninst1.Free();
-            uninst2.Free();
+            BetterResult result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
 
             return result;
         }
