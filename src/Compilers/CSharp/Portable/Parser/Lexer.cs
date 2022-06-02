@@ -2482,7 +2482,7 @@ LoopExit:
             while (true)
             {
                 var ch = this.TextWindow.PeekChar();
-                if (ch == SlidingTextWindow.InvalidCharacter)
+                if (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd())
                 {
                     break;
                 }
@@ -2532,7 +2532,7 @@ LoopExit:
             while (true)
             {
                 var ch = this.TextWindow.PeekChar();
-                if (ch == SlidingTextWindow.InvalidCharacter || SyntaxFacts.IsNewLine(ch))
+                if ((ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd()) || SyntaxFacts.IsNewLine(ch))
                 {
                     break;
                 }
