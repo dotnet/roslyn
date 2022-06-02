@@ -51,10 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind ILocalSymbol.RefKind => _underlying.RefKind;
 
-        bool ILocalSymbol.IsRefScoped => _underlying.Scope == DeclarationScope.RefScoped;
-
-        bool ILocalSymbol.IsValueScoped => _underlying.Scope == DeclarationScope.ValueScoped;
-
         bool ILocalSymbol.HasConstantValue => _underlying.HasConstantValue;
 
         object ILocalSymbol.ConstantValue => _underlying.ConstantValue;

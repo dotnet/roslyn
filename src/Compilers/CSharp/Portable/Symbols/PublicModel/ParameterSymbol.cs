@@ -58,10 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind IParameterSymbol.RefKind => _underlying.RefKind;
 
-        bool IParameterSymbol.IsRefScoped => _underlying.Scope == DeclarationScope.RefScoped;
-
-        bool IParameterSymbol.IsValueScoped => _underlying.Scope == DeclarationScope.ValueScoped;
-
         bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
 
         bool IParameterSymbol.IsParams => _underlying.IsParams;

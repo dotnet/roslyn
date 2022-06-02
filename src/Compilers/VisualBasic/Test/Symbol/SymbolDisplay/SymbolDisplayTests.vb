@@ -5337,7 +5337,7 @@ class Program
 
             Dim format = SymbolDisplayFormat.TestFormat
             If includeScoped Then
-                format = format.AddParameterOptions(SymbolDisplayParameterOptions.IncludeScoped)
+                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
             End If
 
             Verify(SymbolDisplay.ToDisplayParts(method, format),
@@ -5397,7 +5397,7 @@ class Program
 
             Dim format = SymbolDisplayFormat.TestFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
             If includeScoped Then
-                format = format.AddParameterOptions(SymbolDisplayParameterOptions.IncludeScoped)
+                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
             End If
 
             Verify(SymbolDisplay.ToDisplayParts(locals(0), format),

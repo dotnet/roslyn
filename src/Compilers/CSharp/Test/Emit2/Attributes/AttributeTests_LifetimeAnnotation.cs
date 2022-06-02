@@ -188,7 +188,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("A.F3(object, ref int)").WithLocation(10, 11));
 
             var method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(ref scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.AddParameterOptions(SymbolDisplayParameterOptions.IncludeScoped)));
+            Assert.Equal("void A.F4(ref scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
             Assert.Equal(DeclarationScope.ValueScoped, parameter.Scope);
         }

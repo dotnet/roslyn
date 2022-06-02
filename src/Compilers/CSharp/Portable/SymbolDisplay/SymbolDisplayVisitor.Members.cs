@@ -611,8 +611,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    Debug.Assert(!param.IsRefScoped);
-                    Debug.Assert(!param.IsValueScoped);
+                    // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                    Debug.Assert((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope is null or DeclarationScope.Unscoped);
 
                     AddParameterRefKind(param.RefKind);
 
@@ -773,8 +773,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddParameterRefKindIfRequired(symbol);
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
-                if (symbol.IsValueScoped &&
-                    format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeScoped))
+                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope == DeclarationScope.ValueScoped &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
@@ -1064,8 +1065,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                if (symbol.IsRefScoped &&
-                    format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeScoped))
+                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope == DeclarationScope.RefScoped &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();

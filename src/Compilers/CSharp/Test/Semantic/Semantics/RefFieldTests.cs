@@ -4751,8 +4751,8 @@ public class A
         }
 
         private static readonly SymbolDisplayFormat displayFormatWithScoped = SymbolDisplayFormat.TestFormat.
-            AddParameterOptions(SymbolDisplayParameterOptions.IncludeScoped).
-            AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef | SymbolDisplayLocalOptions.IncludeScoped);
+            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped).
+            AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef);
 
         private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
@@ -4769,8 +4769,9 @@ public class A
         private static void VerifyParameterSymbol(IParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, parameter.RefKind);
-            Assert.Equal(expectedScope == DeclarationScope.RefScoped, parameter.IsRefScoped);
-            Assert.Equal(expectedScope == DeclarationScope.ValueScoped, parameter.IsValueScoped);
+            // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+            //Assert.Equal(expectedScope == DeclarationScope.RefScoped, parameter.IsRefScoped);
+            //Assert.Equal(expectedScope == DeclarationScope.ValueScoped, parameter.IsValueScoped);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
         }
 
@@ -5016,8 +5017,9 @@ scoped = true;
         private static void VerifyLocalSymbol(ILocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
-            Assert.Equal(expectedScope == DeclarationScope.RefScoped, local.IsRefScoped);
-            Assert.Equal(expectedScope == DeclarationScope.ValueScoped, local.IsValueScoped);
+            // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+            //Assert.Equal(expectedScope == DeclarationScope.RefScoped, local.IsRefScoped);
+            //Assert.Equal(expectedScope == DeclarationScope.ValueScoped, local.IsValueScoped);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
         }
 

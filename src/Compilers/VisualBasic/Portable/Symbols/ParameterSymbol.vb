@@ -116,18 +116,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public MustOverride ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
 
-        Private ReadOnly Property IParameterSymbol_IsRefScoped As Boolean Implements IParameterSymbol.IsRefScoped
-            Get
-                Return False
-            End Get
-        End Property
-
-        Private ReadOnly Property IParameterSymbol_IsValueScoped As Boolean Implements IParameterSymbol.IsValueScoped
-            Get
-                Return False
-            End Get
-        End Property
-
         ''' <summary>
         ''' Gets the ordinal order of this parameter. The first type parameter has ordinal zero.
         ''' </summary>

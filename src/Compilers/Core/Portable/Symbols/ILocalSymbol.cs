@@ -41,16 +41,6 @@ namespace Microsoft.CodeAnalysis
         RefKind RefKind { get; }
 
         /// <summary>
-        /// Returns true if the ref local is scoped to the current method.
-        /// </summary>
-        bool IsRefScoped { get; }
-
-        /// <summary>
-        /// Returns true if the local value is scoped to the current method.
-        /// </summary>
-        bool IsValueScoped { get; }
-
-        /// <summary>
         /// Returns false if the local variable wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>

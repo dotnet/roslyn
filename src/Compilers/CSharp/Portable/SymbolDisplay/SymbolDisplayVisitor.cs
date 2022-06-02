@@ -190,8 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsRef &&
                 format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
             {
-                if (symbol.IsRefScoped &&
-                    format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeScoped))
+                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                if ((symbol as Symbols.PublicModel.LocalSymbol)?.GetSymbol<LocalSymbol>().Scope == DeclarationScope.RefScoped &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
@@ -207,8 +208,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (symbol.IsValueScoped &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeScoped))
+            // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+            if ((symbol as Symbols.PublicModel.LocalSymbol)?.GetSymbol<LocalSymbol>().Scope == DeclarationScope.ValueScoped &&
+                format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
             {
                 AddKeyword(SyntaxKind.ScopedKeyword);
                 AddSpace();
