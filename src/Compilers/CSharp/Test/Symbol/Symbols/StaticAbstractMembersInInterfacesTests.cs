@@ -16604,6 +16604,214 @@ public class C2 : C11<int>, I1<int>
             }
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(61553, "https://github.com/dotnet/roslyn/issues/61553")]
+        public void ImplementAbstractStaticMethod_23(bool genericFirst, bool isVirtual)
+        {
+            // An "ambiguity" in implicit implementation declared in generic base class 
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
+            var generic =
+@"
+    public static void M01(T x)
+    {
+        System.Console.WriteLine(""T"");
+    }
+";
+            var nonGeneric =
+@"
+    public static void M01(int x)
+    {
+        System.Console.WriteLine(""int"");
+    }
+";
+            var source1 =
+@"
+public interface I1
+{
+    " + modifier + @" static void M01(int x)" + body + @"
+}
+
+public class C1<T>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
+
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1<int>, I1
+{
+    static void Main()
+    {
+        Test<C2>();
+    }
+
+    static void Test<T>() where T : I1
+    {
+        T.M01(0);
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: _supportingFramework,
+                                             references: new[] { reference });
+
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !(Execute(isVirtual) && ExecutionConditionUtil.IsMonoOrCoreClr) ? null : (genericFirst ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics(
+                    // (2,28): warning CS1956: Member 'C1<int>.M01(int)' implements interface member 'I1.M01(int)' in type 'C2'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                    // public class C2 : C1<int>, I1
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "I1").WithArguments("C1<int>.M01(int)", "I1.M01(int)", "C2").WithLocation(2, 28)
+                    );
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var baseI1M01 = c2.BaseType().FindImplementationForInterfaceMember(m01);
+                Assert.Null(baseI1M01);
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal("void C2.I1.M01(System.Int32 x)", c1M01.ToTestDisplayString());
+                    Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                }
+                else if (genericFirst)
+                {
+                    Assert.Equal("void C1<T>.M01(T x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("void C1<T>.M01(System.Int32 x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+
+                foreach (var method in c2.BaseType().GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.Empty(method.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(61553, "https://github.com/dotnet/roslyn/issues/61553")]
+        public void ImplementAbstractStaticMethod_24(bool genericFirst, bool genericIsStatic, bool isVirtual)
+        {
+            // Static vs. instance doesn't cause an ambiguity in implicit implementation declared in generic base class 
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
+            var generic =
+@"
+    public " + (genericIsStatic ? "static " : "") + @"void M01(T x)
+    {
+        System.Console.WriteLine(""T"");
+    }
+";
+            var nonGeneric =
+@"
+    public " + (!genericIsStatic ? "static " : "") + @"void M01(int x)
+    {
+        System.Console.WriteLine(""int"");
+    }
+";
+            var source1 =
+@"
+public interface I1
+{
+    " + modifier + @" static void M01(int x)" + body + @"
+}
+
+public class C1<T>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
+
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1<int>, I1
+{
+    static void Main()
+    {
+        Test<C2>();
+    }
+
+    static void Test<T>() where T : I1
+    {
+        T.M01(0);
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: _supportingFramework,
+                                             references: new[] { reference });
+
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !(Execute(isVirtual) && ExecutionConditionUtil.IsMonoOrCoreClr) ? null : (genericIsStatic ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics();
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var baseI1M01 = c2.BaseType().FindImplementationForInterfaceMember(m01);
+                Assert.Null(baseI1M01);
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal("void C2.I1.M01(System.Int32 x)", c1M01.ToTestDisplayString());
+                    Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                }
+                else if (genericIsStatic)
+                {
+                    Assert.Equal("void C1<T>.M01(T x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("void C1<T>.M01(System.Int32 x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+
+                foreach (var method in c2.BaseType().GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.Empty(method.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
         private static string UnaryOperatorName(string op, bool isChecked = false) => OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked);
         private static string BinaryOperatorName(string op, bool isChecked = false) =>
             op switch { ">>" => WellKnownMemberNames.RightShiftOperatorName, ">>>" => WellKnownMemberNames.UnsignedRightShiftOperatorName, _ => OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked) };

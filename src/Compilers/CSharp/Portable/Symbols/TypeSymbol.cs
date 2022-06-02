@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (Symbol member in implicitImpl.ContainingType.GetMembers(implicitImpl.Name))
                 {
-                    if (member.DeclaredAccessibility != Accessibility.Public || member.IsStatic || member == implicitImpl)
+                    if (member.DeclaredAccessibility != Accessibility.Public || member == implicitImpl)
                     {
                         //do nothing - not an ambiguous implementation
                     }
