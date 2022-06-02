@@ -730,15 +730,26 @@ namespace Microsoft.CodeAnalysis
         /// <param name="input">The compilation before any source generation has occurred.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
-        /// <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options</param>
+        /// <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options.</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
-        /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
+        /// <param name="trackIncrementalGeneratorSteps">Whether not incremental generator performance should be tracked.</param>
+        /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation.</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics)
+        private protected (Compilation, GeneratorDriverTimingInfo) RunGenerators(
+            Compilation input,
+            ParseOptions parseOptions,
+            ImmutableArray<ISourceGenerator> generators,
+            AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
+            ImmutableArray<AdditionalText> additionalTexts,
+            bool trackIncrementalGeneratorSteps,
+            DiagnosticBag generatorDiagnostics)
         {
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
-            bool disableCache = !Arguments.ParseOptions.Features.ContainsKey("enable-generator-cache") || string.IsNullOrWhiteSpace(Arguments.OutputFileName);
+            bool disableCache =
+                !Arguments.ParseOptions.Features.ContainsKey("enable-generator-cache") ||
+                string.IsNullOrWhiteSpace(Arguments.OutputFileName) ||
+                trackIncrementalGeneratorSteps;
             if (this.GeneratorDriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();
@@ -748,7 +759,8 @@ namespace Microsoft.CodeAnalysis
                                                   .ReplaceAdditionalTexts(additionalTexts);
             }
 
-            driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            var driverOptions = new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps);
+            driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts, driverOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
@@ -756,7 +768,12 @@ namespace Microsoft.CodeAnalysis
             {
                 this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }
-            return compilationOut;
+
+            var driverTimingInfo = trackIncrementalGeneratorSteps
+                ? driver.GetTimingInfo()
+                : default;
+
+            return (compilationOut, driverTimingInfo);
 
             string deriveCacheKey()
             {
@@ -782,7 +799,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+        private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions generatorDriverOptions);
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
@@ -878,8 +895,8 @@ namespace Microsoft.CodeAnalysis
                 diagnostics,
                 cancellationToken,
                 out CancellationTokenSource? analyzerCts,
-                out bool reportAnalyzer,
-                out var analyzerDriver);
+                out var analyzerDriver,
+                out var driverTimingInfo);
 
             // At this point analyzers are already complete in which case this is a no-op.  Or they are 
             // still running because the compilation failed before all of the compilation events were 
@@ -905,10 +922,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             diagnostics.Free();
-            if (reportAnalyzer)
+            if (Arguments.ReportAnalyzer)
             {
-                Debug.Assert(analyzerDriver is object);
-                ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
+                ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
             }
 
             return exitCode;
@@ -972,12 +988,12 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken,
             out CancellationTokenSource? analyzerCts,
-            out bool reportAnalyzer,
-            out AnalyzerDriver? analyzerDriver)
+            out AnalyzerDriver? analyzerDriver,
+            out GeneratorDriverTimingInfo? generatorTimingInfo)
         {
             analyzerCts = null;
-            reportAnalyzer = false;
             analyzerDriver = null;
+            generatorTimingInfo = null;
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
@@ -1017,10 +1033,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     // At this point we have a compilation with nothing yet computed. 
                     // We pass it to the generators, which will realize any symbols they require. 
-                    compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+                    (compilation, var timingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, Arguments.ReportAnalyzer, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
                     bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
+                    if (Arguments.ReportAnalyzer)
+                    {
+                        generatorTimingInfo = timingInfo;
+                    }
 
                     var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
 
@@ -1106,7 +1126,6 @@ namespace Microsoft.CodeAnalysis
                         severityFilter,
                         out compilation,
                         analyzerCts.Token);
-                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
                 }
             }
 
@@ -1459,72 +1478,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)
-        {
-            Debug.Assert(analyzerDriver.AnalyzerExecutionTimes != null);
-            if (analyzerDriver.AnalyzerExecutionTimes.IsEmpty)
-            {
-                return;
-            }
-
-            var totalAnalyzerExecutionTime = analyzerDriver.AnalyzerExecutionTimes.Sum(kvp => kvp.Value.TotalSeconds);
-            Func<double, string> getFormattedTime = d => d.ToString("##0.000", culture);
-            consoleOutput.WriteLine();
-            consoleOutput.WriteLine(string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, getFormattedTime(totalAnalyzerExecutionTime)));
-
-            if (isConcurrentBuild)
-            {
-                consoleOutput.WriteLine(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote);
-            }
-
-            var analyzersByAssembly = analyzerDriver.AnalyzerExecutionTimes
-                .GroupBy(kvp => kvp.Key.GetType().GetTypeInfo().Assembly)
-                .OrderByDescending(kvp => kvp.Sum(entry => entry.Value.Ticks));
-
-            consoleOutput.WriteLine();
-
-            getFormattedTime = d => d < 0.001 ?
-                string.Format(culture, "{0,8:<0.000}", 0.001) :
-                string.Format(culture, "{0,8:##0.000}", d);
-            Func<int, string> getFormattedPercentage = i => string.Format("{0,5}", i < 1 ? "<1" : i.ToString());
-            Func<string?, string> getFormattedAnalyzerName = s => "   " + s;
-
-            // Table header
-            var analyzerTimeColumn = string.Format("{0,8}", CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader);
-            var analyzerPercentageColumn = string.Format("{0,5}", "%");
-            var analyzerNameColumn = getFormattedAnalyzerName(CodeAnalysisResources.AnalyzerNameColumnHeader);
-            consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
-
-            // Table rows grouped by assembly.
-            foreach (var analyzerGroup in analyzersByAssembly)
-            {
-                var executionTime = analyzerGroup.Sum(kvp => kvp.Value.TotalSeconds);
-                var percentage = (int)(executionTime * 100 / totalAnalyzerExecutionTime);
-
-                analyzerTimeColumn = getFormattedTime(executionTime);
-                analyzerPercentageColumn = getFormattedPercentage(percentage);
-                analyzerNameColumn = getFormattedAnalyzerName(analyzerGroup.Key.FullName);
-
-                consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
-
-                // Rows for each diagnostic analyzer in the assembly.
-                foreach (var kvp in analyzerGroup.OrderByDescending(kvp => kvp.Value))
-                {
-                    executionTime = kvp.Value.TotalSeconds;
-                    percentage = (int)(executionTime * 100 / totalAnalyzerExecutionTime);
-
-                    analyzerTimeColumn = getFormattedTime(executionTime);
-                    analyzerPercentageColumn = getFormattedPercentage(percentage);
-                    var analyzerIds = string.Join(", ", kvp.Key.SupportedDiagnostics.Select(d => d.Id).Distinct().OrderBy(id => id));
-                    analyzerNameColumn = getFormattedAnalyzerName($"   {kvp.Key} ({analyzerIds})");
-
-                    consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
-                }
-
-                consoleOutput.WriteLine();
-            }
         }
 
         /// <summary>

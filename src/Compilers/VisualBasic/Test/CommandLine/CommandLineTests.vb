@@ -8851,6 +8851,8 @@ End Class
             Dim output = outWriter.ToString()
             Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains(GetType(DoNothingGenerator).FullName, output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(source)
         End Sub
 
@@ -10602,6 +10604,14 @@ End Class
             Dim diagLocation = Location.Create(path, span, linePosSpan)
             Dim diag = Diagnostic.Create(Rule, diagLocation, IO.Path.GetFileNameWithoutExtension(path))
             context.ReportDiagnostic(diag)
+        End Sub
+    End Class
+
+    Friend Class DoNothingGenerator
+        Implements IIncrementalGenerator
+
+        Public Sub Initialize(context As IncrementalGeneratorInitializationContext) Implements IIncrementalGenerator.Initialize
+
         End Sub
     End Class
 End Namespace
