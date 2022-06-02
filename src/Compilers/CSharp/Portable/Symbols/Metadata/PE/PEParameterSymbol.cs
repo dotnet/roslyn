@@ -1016,12 +1016,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 bool filterIsReadOnlyAttribute = this.RefKind == RefKind.In;
+                bool filterLifetimeAnnotationAttribute = Scope != DeclarationScope.Unscoped;
 
-                if (filterOutParamArrayAttribute || filterOutConstantAttributeDescription.Signatures != null || filterIsReadOnlyAttribute)
+                if (filterOutParamArrayAttribute || filterOutConstantAttributeDescription.Signatures != null || filterIsReadOnlyAttribute || filterLifetimeAnnotationAttribute)
                 {
                     CustomAttributeHandle paramArrayAttribute;
                     CustomAttributeHandle constantAttribute;
-                    CustomAttributeHandle isReadOnlyAttribute;
 
                     ImmutableArray<CSharpAttributeData> attributes =
                         containingPEModuleSymbol.GetCustomAttributesForToken(
@@ -1030,10 +1030,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default,
                             out constantAttribute,
                             filterOutConstantAttributeDescription,
-                            out isReadOnlyAttribute,
+                            out _,
                             filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
                             out _,
-                            default);
+                            filterLifetimeAnnotationAttribute ? AttributeDescription.LifetimeAnnotationAttribute : default);
 
                     if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil)
                     {

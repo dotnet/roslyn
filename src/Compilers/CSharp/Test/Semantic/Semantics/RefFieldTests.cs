@@ -4760,6 +4760,9 @@ public class A
             Assert.Equal(expectedScope, parameter.Scope);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
 
+            var attribute = parameter.GetAttributes().FirstOrDefault(a => a.GetTargetAttributeSignatureIndex(parameter, AttributeDescription.LifetimeAnnotationAttribute) != -1);
+            Assert.Null(attribute);
+
             VerifyParameterSymbol(parameter.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
         }
 
@@ -5016,6 +5019,43 @@ scoped = true;
             Assert.Equal(expectedScope == DeclarationScope.RefScoped, local.IsRefScoped);
             Assert.Equal(expectedScope == DeclarationScope.ValueScoped, local.IsValueScoped);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        public void ParameterScope_EmbeddedMethod()
+        {
+            var sourceA =
+@"using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""_.dll"")]
+[assembly: Guid(""DB204C34-AE89-49C6-9174-09F72E7F7F10"")]
+[ComImport()]
+[Guid(""933FEEE7-2728-4F87-A802-953F3CF1B1E9"")]
+public interface I
+{
+    void M(scoped ref int i);
+}
+";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference(embedInteropTypes: true);
+
+            var sourceB =
+@"class C : I
+{
+    public void M(scoped ref int i) { }
+}
+class Program
+{
+    static void Main()
+    {
+    }
+}";
+            CompileAndVerify(sourceB, references: new[] { refA },
+                symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<PEMethodSymbol>("I.M");
+                    // Attribute is not included for the parameter from the embedded method.
+                    VerifyParameterSymbol(method.Parameters[0], "ref System.Int32 i", RefKind.Ref, DeclarationScope.Unscoped);
+                });
         }
 
         [Fact]
