@@ -214,14 +214,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     .FirstOrDefault();
                 if (localDeclaration == null)
                 {
-                    try
-                    {
-                        throw new InvalidOperationException("Local did not come from same file that we were analyzing?");
-                    }
-                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-                    {
-                    }
-
+                    FatalError.ReportAndCatch(new InvalidOperationException("Local did not come from same file that we were analyzing?"));
                     return false;
                 }
 
