@@ -8518,7 +8518,7 @@ public class Test
     public object P { get; }
     void M(C c)
     {
-        var x = c is { P : var _ };
+        var x = c is { P : _ };
     }
 }", options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion));
         }
@@ -8875,6 +8875,31 @@ namespace ConsoleApp
     public static void Main()
     {
         if (string.Empty.Length is var _)
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_TestTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var [|/*1*/x/*2*/|])
+        {
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var /*1*/_/*2*/)
         {
         }
     }

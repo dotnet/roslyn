@@ -68,7 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     return catchDeclaration.WithIdentifier(newName.WithTriviaFrom(catchDeclaration.Identifier));
 
                 case SyntaxKind.VarPattern:
-                    return SyntaxFactory.DiscardDesignation();
+                    return node.IsParentKind(SyntaxKind.Subpattern)
+                        ? SyntaxFactory.DiscardPattern().WithTriviaFrom(node)
+                        : SyntaxFactory.DiscardDesignation();
 
                 default:
                     Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'");
@@ -173,13 +175,23 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                 return newNameNode;
             }
 
-            if (newNameNode is not DiscardDesignationSyntax discard)
+            // If the replacement node is DiscardDesignationSyntax
+            // then we need to just change the incoming var's pattern designation
+            if (newNameNode is DiscardDesignationSyntax discardDesignation)
             {
-                Debug.Fail($"The given {nameof(newNameNode)} node is not a discard designation, but {newNameNode.Kind()}");
+                return pattern.WithDesignation(discardDesignation.WithTriviaFrom(pattern.Designation));
+            }
+            // Otherwise replacement node must be DiscardPatternSyntax.
+            // This means the whole var pattern can be replaced
+            else if (newNameNode is DiscardPatternSyntax)
+            {
                 return newNameNode;
             }
-
-            return pattern.WithDesignation(discard);
+            else
+            {
+                Debug.Fail($"The given {nameof(newNameNode)} node is not a discard pattern or designation, but {newNameNode.Kind()}");
+                return newNameNode;
+            }
         }
     }
 }
