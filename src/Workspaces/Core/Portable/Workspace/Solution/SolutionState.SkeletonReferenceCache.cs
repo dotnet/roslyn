@@ -66,7 +66,7 @@ internal partial class SolutionState
         /// want to get the same skeleton set for it.  Second, consider the following scenario:
         /// <list type="number">
         /// <item>Project A is referenced by projects B and C (both have a different language than A).</item>
-        /// <item>Producing the compilation for 'B' produces the compilation for 'A' which produced the skeleton that 'B' references.</item>
+        /// <item>Producing the compilation for 'B' produces the compilation for 'A' which produces the skeleton that 'B' references.</item>
         /// <item>B's compilation is released and then GC'ed.</item> 
         /// <item>Producing the compilation for 'B' produces the compilation for 'A'</item>
         /// </list>
