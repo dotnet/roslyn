@@ -39,7 +39,7 @@ internal sealed class GlobalAliases : IEquatable<GlobalAliases>
         if (ga2.AliasAndSymbolNames.Length == 0)
             return ga1;
 
-        return Create(ga1.AliasAndSymbolNames.Concat(ga2.AliasAndSymbolNames));
+        return new(ga1.AliasAndSymbolNames.Concat(ga2.AliasAndSymbolNames));
     }
 
     public override int GetHashCode()
