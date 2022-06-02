@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
                         (solution, documents) => solution.AddDocuments(documents),
-                        (solution, documentId) => solution.RemoveDocument(documentId)).ConfigureAwait(false);
+                        (solution, documentIds) => solution.RemoveDocuments(documentIds)).ConfigureAwait(false);
                 }
 
                 // changed additional documents
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
                         (solution, documents) => solution.AddAdditionalDocuments(documents),
-                        (solution, documentId) => solution.RemoveAdditionalDocument(documentId)).ConfigureAwait(false);
+                        (solution, documentIds) => solution.RemoveAdditionalDocuments(documentIds)).ConfigureAwait(false);
                 }
 
                 // changed analyzer config documents
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
                         (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
-                        (solution, documentId) => solution.RemoveAnalyzerConfigDocument(documentId)).ConfigureAwait(false);
+                        (solution, documentIds) => solution.RemoveAnalyzerConfigDocuments(documentIds)).ConfigureAwait(false);
                 }
 
                 return project.Solution;
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 ChecksumCollection oldChecksums,
                 ChecksumCollection newChecksums,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
-                Func<Solution, DocumentId, Solution> removeDocument)
+                Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments)
             {
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -420,13 +420,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // removed document
+                ImmutableArray<DocumentId>.Builder? lazyDocumentsToRemove = null;
                 foreach (var (documentId, _) in oldMap)
                 {
                     if (!newMap.ContainsKey(documentId))
                     {
                         // we have a document removed
-                        project = removeDocument(project.Solution, documentId).GetProject(project.Id)!;
+                        lazyDocumentsToRemove ??= ImmutableArray.CreateBuilder<DocumentId>();
+                        lazyDocumentsToRemove.Add(documentId);
                     }
+                }
+
+                if (lazyDocumentsToRemove is not null)
+                {
+                    project = removeDocuments(project.Solution, lazyDocumentsToRemove.ToImmutable()).GetProject(project.Id)!;
                 }
 
                 return project;
