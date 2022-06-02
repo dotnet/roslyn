@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal sealed class StatisticLogAggregator : AbstractLogAggregator<StatisticLogAggregator.StatisticCounter>
@@ -15,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             var counter = GetCounter(key);
             counter.AddDataPoint(value);
+        }
+
+        public void AddDataPoint(object key, TimeSpan timeSpan)
+        {
+            AddDataPoint(key, (int)timeSpan.TotalMilliseconds);
         }
 
         public StatisticResult GetStaticticResult(object key)

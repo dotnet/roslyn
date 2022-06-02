@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             telemetryTimer.Stop();
-            ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, (int)telemetryTimer.ElapsedMilliseconds);
+            ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, telemetryTimer.Elapsed);
 
             return (currentSolution, confirmationMessage);
         }
