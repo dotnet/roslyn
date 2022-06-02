@@ -344,6 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </returns>
         public char PeekChar(int delta)
         {
+            Debug.Assert(delta >= 0);
+
             int position = this.Position;
             this.AdvanceChar(delta);
 
