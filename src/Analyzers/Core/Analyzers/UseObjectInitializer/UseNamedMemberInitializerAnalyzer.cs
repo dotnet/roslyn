@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
-            // If containig statement is inside a block (e.g. method), than we need to iterate through its child statements.
-            // If containig statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
+            // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
+            // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
             var containingBlockOrCompilationUnit = _containingStatement.Parent;
 
             // In case of top-level code parent of the statement will be GlobalStatementSyntax,
