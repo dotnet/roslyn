@@ -1377,5 +1377,46 @@ class C2
 
             AssertEx.EqualOrDiff(expectedText2, await TestServices.SolutionExplorer.GetFileContentsAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken));
         }
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [WorkItem(61334, "https://github.com/dotnet/roslyn/issues/61334")]
+        public async Task UseExpressionBodyBeforeExtractBaseClass()
+        {
+            await SetUpEditorAsync(@"
+public class Program
+{
+    $$public void M()
+    {
+        System.Console.WriteLine(0);
+    }
+}
+", HangMitigatingCancellationToken);
+
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.EventHookup,
+                    FeatureAttribute.Rename,
+                    FeatureAttribute.RenameTracking,
+                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles,
+                },
+                HangMitigatingCancellationToken);
+
+            // Suspend file change notification during code action application, since spurious file change notifications
+            // can cause silent failure to apply the code action if they occur within this block.
+            await using var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var expectedItems = new[]
+            {
+                "Use expression body for methods",
+                "Extract base class...",
+            };
+
+            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+        }
     }
 }
