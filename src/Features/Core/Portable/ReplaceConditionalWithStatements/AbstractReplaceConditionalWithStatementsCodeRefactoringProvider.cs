@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -101,13 +102,45 @@ internal class AbstractReplaceConditionalWithStatementsCodeRefactoringProvider<
         throw new NotImplementedException();
     }
 
-    private Task<Document> ReplaceConditionalExpressionInReturnStatement(
+    private async Task<Document> ReplaceConditionalExpressionInReturnStatement(
         Document document,
         TConditionalExpressionSyntax conditionalExpression,
         TExpressionSyntax topExpression,
         TReturnStatementSyntax returnStatement,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        // When we have `return x ? y : z`, then the type of 'y' and 'z' can influence each other.
+        // If we convert this into:
+        //
+        // if (x)
+        //   return y;
+        // else
+        //   return z;
+        //
+        // Then we need to preserve that meaning so that 'y' and 'z' have the same type/value, even after the
+        // transformation.
+        var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
+
+        syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
+        var ifStatement = generator.IfStatement(
+            condition,
+            new[] { generator.ReturnStatement(TryCast(generator, whenTrue, conditionalType)) },
+            new[] { generator.ReturnStatement(TryCast(generator, whenFalse, conditionalType)) }).WithTriviaFrom(returnStatement);
+
+        var editor = new SyntaxEditor(root, generator);
+        editor.ReplaceNode(
+            returnStatement,
+            ifStatement);
     }
+
+    private static SyntaxNode TryCast(SyntaxGenerator generator, SyntaxNode whenTrue, ITypeSymbol? conditionalType)
+        => conditionalType is null or IErrorTypeSymbol
+            ? whenTrue
+            : generator.CastExpression(conditionalType, whenTrue);
 }
