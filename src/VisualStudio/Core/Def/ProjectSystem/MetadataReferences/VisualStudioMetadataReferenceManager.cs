@@ -210,9 +210,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
 
-            // under VS host, direct access should be supported
-            var directAccess = (ISupportDirectMemoryAccess)stream;
-            pImage = directAccess.GetPointer();
+            // In VS host, direct access should be supported through an UnmanagedMemoryStream
+            var directAccess = (UnmanagedMemoryStream)stream;
+            unsafe
+            {
+                pImage = (IntPtr)directAccess.PositionPointer;
+            }
         }
 
         private static void StreamCopy(Stream source, Stream destination, int start, int length)

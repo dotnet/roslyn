@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,15 +21,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
             private readonly List<ITemporaryStreamStorage> _storages;
-            private readonly ConditionalWeakTable<Metadata, object> _lifetimeMap;
 
-            public RecoverableMetadataValueSource(AssemblyMetadata value, List<ITemporaryStreamStorage> storages, ConditionalWeakTable<Metadata, object> lifetimeMap)
+            public RecoverableMetadataValueSource(AssemblyMetadata value, List<ITemporaryStreamStorage> storages)
             {
                 Contract.ThrowIfFalse(storages.Count > 0);
 
                 _weakValue = new WeakReference<AssemblyMetadata>(value);
                 _storages = storages;
-                _lifetimeMap = lifetimeMap;
             }
 
             public IEnumerable<ITemporaryStreamStorage> GetStorages()
@@ -74,19 +73,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return metadata;
             }
 
-            private ModuleMetadata GetModuleMetadata(ITemporaryStreamStorage storage)
+            private static ModuleMetadata GetModuleMetadata(ITemporaryStreamStorage storage)
             {
                 var stream = storage.ReadStream(CancellationToken.None);
 
-                // under VS host, direct access should be supported
-                var directAccess = (ISupportDirectMemoryAccess)stream;
-                var pImage = directAccess.GetPointer();
+                // In VS host, direct access should be supported through an UnmanagedMemoryStream
+                Contract.ThrowIfFalse(stream is UnmanagedMemoryStream);
 
-                var metadata = ModuleMetadata.CreateFromMetadata(pImage, (int)stream.Length);
-
-                // memory management.
-                _lifetimeMap.Add(metadata, stream);
-                return metadata;
+                // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+                return ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
             }
         }
     }

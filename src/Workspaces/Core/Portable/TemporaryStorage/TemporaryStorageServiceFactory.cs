@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Host
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
                         using var stream = _memoryMappedInfo.CreateReadableStream();
-                        using var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length);
+                        using var reader = CreateTextReaderFromTemporaryStorage(stream);
 
                         // we pass in encoding we got from original source text even if it is null.
                         return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
@@ -309,15 +309,15 @@ namespace Microsoft.CodeAnalysis.Host
                     WriteText(text, cancellationToken);
                 }
 
-                private static unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
+                private static unsafe TextReader CreateTextReaderFromTemporaryStorage(UnmanagedMemoryStream stream)
                 {
-                    var src = (char*)accessor.GetPointer();
+                    var src = (char*)stream.PositionPointer;
 
                     // BOM: Unicode, little endian
                     // Skip the BOM when creating the reader
                     Debug.Assert(*src == 0xFEFF);
 
-                    return new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1);
+                    return new DirectMemoryAccessStreamReader(src + 1, (int)stream.Length / sizeof(char) - 1);
                 }
             }
 

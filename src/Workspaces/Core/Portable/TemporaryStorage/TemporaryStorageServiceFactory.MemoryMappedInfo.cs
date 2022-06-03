@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// Caller is responsible for disposing the returned stream.
             /// multiple call of this will not increase VM.
             /// </summary>
-            public Stream CreateReadableStream()
+            public UnmanagedMemoryStream CreateReadableStream()
             {
                 // Note: TryAddReference behaves according to its documentation even if the target object has been
                 // disposed. If it returns non-null, then the object will not be disposed before the returned
