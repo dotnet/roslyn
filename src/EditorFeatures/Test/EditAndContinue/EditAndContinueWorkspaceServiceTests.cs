@@ -1332,6 +1332,74 @@ class C1
         }
 
         [Fact]
+        public async Task RudeEdits2()
+        {
+            var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
+            var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
+
+            var moduleId = EmitAndLoadLibraryToDebuggee(source1);
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            (solution, var document) = AddDefaultTestProject(solution, source1);
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            var activeLineSpan1 = SourceText.From(source1, Encoding.UTF8).Lines.GetLinePositionSpan(GetSpan(source1, "System.Console.WriteLine(1);"));
+            var activeLineSpan2 = SourceText.From(source2, Encoding.UTF8).Lines.GetLinePositionSpan(GetSpan(source2, "System.Console.WriteLine(2);"));
+
+            var activeStatements = ImmutableArray.Create(
+                new ManagedActiveStatementDebugInfo(
+                    new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1),
+                    document.FilePath,
+                    activeLineSpan1.ToSourceSpan(),
+                    ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.PartiallyExecuted));
+
+            EnterBreakState(debuggingSession, activeStatements);
+
+            // change the source (rude edit):
+            solution = solution.WithDocumentText(document.Id, SourceText.From(source2, Encoding.UTF8));
+            var document2 = solution.GetDocument(document.Id);
+
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(new[] { "ENC0001: " + string.Format(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application) },
+                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            // exit break state without applying the change:
+            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            // enter break state again (with the same active statements)
+
+            EnterBreakState(debuggingSession, activeStatements);
+
+            diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(new[] { "ENC0001: " + string.Format(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application) },
+                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            // exit break state without applying the change:
+            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+
+            // apply the change:
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+            Assert.NotEmpty(updates.Updates);
+            Assert.Empty(emitDiagnostics);
+
+            CommitSolutionUpdate(debuggingSession);
+
+            EnterBreakState(debuggingSession, activeStatements);
+
+            // no rude edits - changes have been applied
+            diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            ExitBreakState(debuggingSession);
+            EndDebuggingSession(debuggingSession);
+        }
+
+        [Fact]
         public async Task RudeEdits_SourceGenerators()
         {
             var sourceV1 = @"
