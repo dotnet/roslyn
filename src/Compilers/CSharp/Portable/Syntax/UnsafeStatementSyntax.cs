@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class UnsafeStatementSyntax
     {
         public UnsafeStatementSyntax Update(SyntaxToken unsafeKeyword, BlockSyntax block)
-            => Update(attributeLists: default, unsafeKeyword, block);
+            => Update(AttributeLists, unsafeKeyword, block);
     }
 }
 

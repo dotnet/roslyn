@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Debugging
 
         /// <summary>
         /// C# and VB. Encodes EnC local variable slot map.
-        /// See https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLocalSlotMap.
+        /// See https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLocalSlotMap.
         /// </summary>
         EditAndContinueLocalSlotMap = 6,
 
         /// <summary>
         /// C# and VB. Encodes EnC lambda map.
-        /// See https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLambdaAndClosureMap.
+        /// See https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLambdaAndClosureMap.
         /// </summary>
         EditAndContinueLambdaMap = 7,
 
@@ -62,5 +62,10 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// C# and VB. Tuple element names for local variables and constants.
         /// </summary>
         TupleElementNames = 8,
+
+        /// <summary>
+        /// C# and VB. Syntax offsets of nodes associated with state machine states in an async/iterator method and their corresponding state numbers.
+        /// </summary>
+        EditAndContinueStateMachineStateMap = 9,
     }
 }

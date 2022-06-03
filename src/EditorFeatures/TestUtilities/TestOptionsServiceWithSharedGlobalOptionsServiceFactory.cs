@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -29,9 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestOptionsServiceWithSharedGlobalOptionsServiceFactory(
+            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {
-            _globalOptionService = new GlobalOptionService(optionProviders.ToImmutableArray(), SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>());
+            _globalOptionService = new GlobalOptionService(workspaceThreadingService, optionProviders.ToImmutableArray(), SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersisterProvider>>());
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

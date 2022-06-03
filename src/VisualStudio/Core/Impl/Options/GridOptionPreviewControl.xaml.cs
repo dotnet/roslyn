@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
         {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.AllOptions.As<IOption>());
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
             yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
         }
 

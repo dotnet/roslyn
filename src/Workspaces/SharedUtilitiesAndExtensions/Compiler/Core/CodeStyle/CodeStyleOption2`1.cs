@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -37,26 +38,29 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
     /// then those values will write back as false/true.
     /// </summary>
-    internal partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    [DataContract]
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
     {
         static CodeStyleOption2()
         {
             ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
         }
 
-        public static CodeStyleOption2<T> Default => new(default!, NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
 
-        private NotificationOption2 _notification;
+        [DataMember(Order = 0)]
+        public T Value { get; }
+
+        [DataMember(Order = 1)]
+        public NotificationOption2 Notification { get; }
 
         public CodeStyleOption2(T value, NotificationOption2 notification)
         {
             Value = value;
-            _notification = notification ?? throw new ArgumentNullException(nameof(notification));
+            Notification = notification;
         }
-
-        public T Value { get; set; }
 
         object? ICodeStyleOption.Value => this.Value;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
@@ -66,17 +70,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>() => this;
 #else
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
-            => this is TCodeStyleOption ? this : (ICodeStyleOption)new CodeStyleOption<T>(this);
+            => this is TCodeStyleOption ? this : new CodeStyleOption<T>(this);
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 #endif
 
         private int EnumValueAsInt32 => (int)(object)Value!;
-
-        public NotificationOption2 Notification
-        {
-            get => _notification;
-            set => _notification = value ?? throw new ArgumentNullException(nameof(value));
-        }
 
         public XElement ToXElement() =>
             new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
@@ -85,15 +83,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new XAttribute(nameof(Value), GetValueForSerialization()),
                 new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
-        private object? GetValueForSerialization()
+        private object GetValueForSerialization()
         {
             if (typeof(T) == typeof(string))
             {
-                return Value;
+                return Value!;
             }
             else if (typeof(T) == typeof(bool))
             {
-                return Value;
+                return Value!;
             }
             else if (IsZeroOrOneValueOfEnum())
             {
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private bool IsZeroOrOneValueOfEnum()
         {
             var intVal = EnumValueAsInt32;
-            return intVal == 0 || intVal == 1;
+            return intVal is 0 or 1;
         }
 
         public static CodeStyleOption2<T> FromXElement(XElement element)
@@ -133,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var typeAttribute = element.Attribute("Type");
             var valueAttribute = element.Attribute(nameof(Value));
             var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int)element.Attribute(nameof(SerializationVersion));
+            var version = (int?)element.Attribute(nameof(SerializationVersion));
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // Try to map a boolean value.  Either map it to true/false if we're a 
                     // CodeStyleOption<bool> or map it to the 0 or 1 value for an enum if we're
                     // a CodeStyleOption<SomeEnumType>.
-                    (Func<string, T>)(v => Convert(bool.Parse(v))),
+                    v => Convert(bool.Parse(v)),
                 nameof(Int32) => v => Convert(int.Parse(v)),
                 nameof(String) => v => (T)(object)v,
                 _ => throw new ArgumentException(nameof(type)),

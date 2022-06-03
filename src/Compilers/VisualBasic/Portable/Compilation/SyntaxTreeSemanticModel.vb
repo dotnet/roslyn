@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Case SyntaxKind.CompilationUnit
                                     namespaceToLookInForImplicitType = Me._sourceModule.RootNamespace
                                 Case SyntaxKind.NamespaceBlock
-                                    namespaceToLookInForImplicitType = GetDeclaredSymbol(DirectCast(statementSyntax.Parent, NamespaceBlockSyntax))
+                                    namespaceToLookInForImplicitType = GetDeclaredSymbol(DirectCast(statementSyntax.Parent, NamespaceBlockSyntax), cancellationToken)
                             End Select
 
                             If namespaceToLookInForImplicitType IsNot Nothing Then

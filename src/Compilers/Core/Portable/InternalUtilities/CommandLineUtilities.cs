@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -45,17 +46,23 @@ namespace Roslyn.Utilities
         /// and the double quotation mark is "escaped" by the remaining backslash, 
         /// causing a literal double quotation mark (") to be placed in argv.
         /// </remarks>
-        public static IEnumerable<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments)
+        public static List<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments)
         {
             return SplitCommandLineIntoArguments(commandLine, removeHashComments, out _);
         }
 
-        public static IEnumerable<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
+        public static List<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
         {
-            var builder = new StringBuilder(commandLine.Length);
             var list = new List<string>();
+            SplitCommandLineIntoArguments(commandLine.AsSpan(), removeHashComments, new StringBuilder(), list, out illegalChar);
+            return list;
+        }
+
+        public static void SplitCommandLineIntoArguments(ReadOnlySpan<char> commandLine, bool removeHashComments, StringBuilder builder, List<string> list, out char? illegalChar)
+        {
             var i = 0;
 
+            builder.Length = 0;
             illegalChar = null;
             while (i < commandLine.Length)
             {
@@ -146,8 +153,6 @@ namespace Roslyn.Utilities
                     list.Add(builder.ToString());
                 }
             }
-
-            return list;
         }
     }
 }

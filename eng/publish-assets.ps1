@@ -15,9 +15,6 @@ Param(
   [switch]$test,
 
   # Credentials
-  [string]$gitHubUserName = "",
-  [string]$gitHubToken = "",
-  [string]$gitHubEmail = "",
   [string]$nugetApiKey = ""
 )
 Set-StrictMode -version 2.0
@@ -39,10 +36,34 @@ function Publish-Nuget($publishData, [string]$packageDir) {
   try {
     # Retrieve the feed name to source mapping.
     $feedData = GetFeedPublishData
+    
+    # Let packageFeeds default to the default set of feeds
+    $packageFeeds = "default"
+    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
+      $packageFeeds = $publishData.packageFeeds
+    }
+
+    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
+    if ($packageFeeds.equals("arcade")) {
+      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
+      continue
+    }
+
+    # Let packageFeeds default to the default set of feeds
+    $packageFeeds = "default"
+    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
+      $packageFeeds = $publishData.packageFeeds
+    }
+
+    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
+    if ($packageFeeds.equals("arcade")) {
+      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
+      continue
+    }
 
     # Each branch stores the name of the package to feed map it should use.
     # Retrieve the correct map for this particular branch.
-    $packagesData = GetPackagesPublishData $publishData.packageFeeds
+    $packagesData = GetPackagesPublishData $packageFeeds
 
     foreach ($package in Get-ChildItem *.nupkg) {
       $nupkg = Split-Path -Leaf $package
@@ -83,15 +104,6 @@ function Publish-Nuget($publishData, [string]$packageDir) {
   }
 }
 
-function Publish-Channel([string]$packageDir, [string]$name) {
-  $publish = GetProjectOutputBinary "RoslynPublish.exe"
-  $args = "-nugetDir `"$packageDir`" -channel $name -gu $gitHubUserName -gt $gitHubToken -ge $githubEmail"
-  Write-Host "Publishing $packageDir to channel $name"
-  if (-not $test) {
-    Exec-Console $publish $args
-  }
-}
-
 # Do basic verification on the values provided in the publish configuration
 function Test-Entry($publishData, [switch]$isBranch) {
   if ($isBranch) {
@@ -110,13 +122,6 @@ function Publish-Entry($publishData, [switch]$isBranch) {
   # First publish the NuGet packages to the specified feeds
   foreach ($nugetKind in $publishData.nugetKind) {
     Publish-NuGet $publishData (Join-Path $PackagesDir $nugetKind)
-  }
-
-  # Finally get our channels uploaded to versions
-  foreach ($channel in $publishData.channels) {
-    foreach ($nugetKind in $publishData.nugetKind) {
-      Publish-Channel (Join-Path $PackagesDir $nugetKind) $channel
-    }
   }
 
   exit 0

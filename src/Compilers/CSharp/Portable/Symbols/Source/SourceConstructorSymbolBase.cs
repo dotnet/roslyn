@@ -6,7 +6,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(
                 syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                syntax.IsKind(SyntaxKind.RecordDeclaration));
+                syntax.IsKind(SyntaxKind.RecordDeclaration) ||
+                syntax.IsKind(SyntaxKind.RecordStructDeclaration));
         }
 
         protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
@@ -60,7 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
 
             var location = this.Locations[0];
-            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0))
+            // Don't report ERR_StaticConstParam if the ctor symbol name doesn't match the containing type name.
+            // This avoids extra unnecessary errors.
+            // There will already be a diagnostic saying Method must have a return type.
+            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0) &&
+                ContainingType.Name == ((ConstructorDeclarationSyntax)this.SyntaxNode).Identifier.ValueText)
             {
                 diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
             }
@@ -241,5 +248,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract CSharpSyntaxNode GetInitializer();
 
         protected abstract bool IsWithinExpressionOrBlockBody(int position, out int offset);
+
+#nullable enable
+        protected sealed override bool HasSetsRequiredMembersImpl
+            => GetEarlyDecodedWellKnownAttributeData()?.HasSetsRequiredMembersAttribute == true;
+
+        internal sealed override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        {
+            if (arguments.SymbolPart == AttributeLocation.None)
+            {
+                if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.SetsRequiredMembersAttribute))
+                {
+                    var earlyData = arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>();
+                    earlyData.HasSetsRequiredMembersAttribute = true;
+
+                    if (ContainingType.IsWellKnownSetsRequiredMembersAttribute())
+                    {
+                        // Avoid a binding cycle for this scenario.
+                        return (null, null);
+                    }
+
+                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out bool hasAnyDiagnostics);
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                    else
+                    {
+                        return (null, null);
+                    }
+                }
+            }
+
+            return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddRequiredMembersMarkerAttributes(ref attributes, this);
+        }
     }
 }

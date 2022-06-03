@@ -29,13 +29,12 @@ namespace RunTests
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
-        private const long MaxTotalDumpSizeInMegabytes = 4096;
+        private const long MaxTotalDumpSizeInMegabytes = 8196;
 
         internal static async Task<int> Main(string[] args)
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-
             var options = Options.Parse(args);
             if (options == null)
             {
@@ -220,7 +219,7 @@ namespace RunTests
 
                 // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
                 // to bug investigations.
-                if (name == "procdump" || name == "conhost")
+                if (name is "procdump" or "conhost")
                 {
                     return;
                 }
@@ -289,7 +288,7 @@ namespace RunTests
 
             foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Platform)));
+                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Architecture)));
             }
 
             return list;
@@ -327,10 +326,23 @@ namespace RunTests
                 var fileName = $"{name}.dll";
                 foreach (var targetFramework in options.TargetFrameworks)
                 {
-                    var filePath = Path.Combine(project, options.Configuration, targetFramework, fileName);
+                    var fileContainingDirectory = Path.Combine(project, options.Configuration, targetFramework);
+                    var filePath = Path.Combine(fileContainingDirectory, fileName);
                     if (File.Exists(filePath))
                     {
                         list.Add((filePath, targetFramework));
+                    }
+                    else if (Directory.Exists(fileContainingDirectory) && Directory.GetFiles(fileContainingDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
+                    {
+                        // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
+                        // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
+                        // For example, one unit test project might be referencing another unit test project.
+                        if (matches.Length > 1)
+                        {
+                            var message = $"Multiple unit test assemblies found in '{fileContainingDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
+                            throw new Exception(message);
+                        }
+                        list.Add((matches[0], targetFramework));
                     }
                 }
             }
@@ -372,10 +384,10 @@ namespace RunTests
                 dotnetFilePath: options.DotnetFilePath,
                 procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
                 testResultsDirectory: options.TestResultsDirectory,
-                trait: options.Trait,
-                noTrait: options.NoTrait,
+                testFilter: options.TestFilter,
                 includeHtml: options.IncludeHtml,
-                retry: options.Retry);
+                retry: options.Retry,
+                collectDumps: options.CollectDumps);
             return new ProcessTestExecutor(testExecutionOptions);
         }
 
@@ -394,6 +406,7 @@ namespace RunTests
                 currentTotalSize += fileSizeInMegabytes;
                 if (currentTotalSize > MaxTotalDumpSizeInMegabytes)
                 {
+                    ConsoleUtil.WriteLine($"Deleting '{dumpFile}' because we have exceeded our total dump size of {MaxTotalDumpSizeInMegabytes} megabytes.");
                     File.Delete(dumpFile);
                 }
             }

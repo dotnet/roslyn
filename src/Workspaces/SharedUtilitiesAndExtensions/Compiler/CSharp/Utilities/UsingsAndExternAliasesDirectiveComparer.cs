@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private enum UsingKind
         {
             Extern,
+            GlobalNamespace,
+            GlobalUsingStatic,
+            GlobalAlias,
             Namespace,
             UsingStatic,
             Alias
@@ -51,15 +54,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 RoslynDebug.AssertNotNull(usingDirective);
             }
 
-            if (usingDirective.Alias != null)
+            if (usingDirective.GlobalKeyword != default)
             {
-                return UsingKind.Alias;
+                if (usingDirective.Alias != null)
+                    return UsingKind.GlobalAlias;
+
+                if (usingDirective.StaticKeyword != default)
+                    return UsingKind.GlobalUsingStatic;
+
+                return UsingKind.GlobalNamespace;
             }
-            if (usingDirective.StaticKeyword != default)
+            else
             {
-                return UsingKind.UsingStatic;
+                if (usingDirective.Alias != null)
+                    return UsingKind.Alias;
+
+                if (usingDirective.StaticKeyword != default)
+                    return UsingKind.UsingStatic;
+
+                return UsingKind.Namespace;
             }
-            return UsingKind.Namespace;
         }
 
         public int Compare(SyntaxNode? directive1, SyntaxNode? directive2)
@@ -70,9 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return 1;
 
             if (directive1 == directive2)
-            {
                 return 0;
-            }
 
             var using1 = directive1 as UsingDirectiveSyntax;
             var using2 = directive2 as UsingDirectiveSyntax;

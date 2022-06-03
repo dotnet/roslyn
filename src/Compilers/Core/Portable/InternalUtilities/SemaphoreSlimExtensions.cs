@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
         [NonCopyable]
         internal struct SemaphoreDisposer : IDisposable
         {
-            private readonly SemaphoreSlim _semaphore;
+            private SemaphoreSlim? _semaphore;
 
             public SemaphoreDisposer(SemaphoreSlim semaphore)
             {
@@ -35,7 +35,23 @@ namespace Roslyn.Utilities
 
             public void Dispose()
             {
-                _semaphore.Release();
+                // Officially, Dispose() being called more than once is allowable, but in this case
+                // if that were to ever happen that means something is very, very wrong. Since it's an internal
+                // type, better to be strict.
+
+                // Nulling this out also means it's a bit easier to diagnose some async deadlocks; if you have an
+                // async deadlock where a SemaphoreSlim is held but you're unsure why, as long all the users of the
+                // SemaphoreSlim used the Disposable helpers, you can search memory and find the instance that
+                // is pointing to the SemaphoreSlim that hasn't nulled out this field yet; in that case you know
+                // that's holding the lock and can figure out who is holding that SemaphoreDisposer.
+                var semaphoreToDispose = Interlocked.Exchange(ref _semaphore, null);
+
+                if (semaphoreToDispose is null)
+                {
+                    throw new ObjectDisposedException($"Somehow a {nameof(SemaphoreDisposer)} is being disposed twice.");
+                }
+
+                semaphoreToDispose.Release();
             }
         }
     }

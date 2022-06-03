@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method handles duplicate types in a few different ways:
         /// - for types before C# 7, the first candidate is returned with a warning
         /// - for types after C# 7, the type is considered missing
-        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, any duplicate coming from corlib will be ignored (ie not count as a duplicate)
+        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, type from corlib will not count as a duplicate
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(wellknownType);
         }
 
-        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol? accessWithinOpt)
         {
             var members = declaringType.GetMembers(descriptor.Name);
             return GetRuntimeMember(members, descriptor, comparer, accessWithinOpt);
@@ -540,6 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void EnsureNativeIntegerAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
+            Debug.Assert(ShouldEmitNativeIntegerAttributes());
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute, diagnostics, location, modifyCompilation);
         }
 
@@ -593,6 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case EmbeddableAttributes.NativeIntegerAttribute:
                     // If the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need.
+                    Debug.Assert(ShouldEmitNativeIntegerAttributes());
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
@@ -983,6 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal static void Encode(ArrayBuilder<bool> builder, TypeSymbol type)
             {
+                Debug.Assert(type.ContainingAssembly?.RuntimeSupportsNumericIntPtr != true);
                 type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder), builder);
             }
 
@@ -992,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SpecialType.System_IntPtr:
                     case SpecialType.System_UIntPtr:
-                        builder.Add(type.IsNativeIntegerType);
+                        builder.Add(type.IsNativeIntegerWrapperType);
                         break;
                 }
                 // Continue walking types

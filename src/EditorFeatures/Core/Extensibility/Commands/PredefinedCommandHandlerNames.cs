@@ -148,6 +148,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string SignatureHelpAfterCompletion = "Signature Help After Completion Command Handler";
 
         /// <summary>
+        /// Command handler name for String Copy Paste.
+        /// </summary>
+        public const string StringCopyPaste = "String Copy Paste";
+
+        /// <summary>
         /// Command handler name for Toggle Block Comments.
         /// </summary>
         /// <remarks></remarks>
@@ -178,5 +183,15 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for Edit and Continue file save handler.
         /// </summary>
         public const string EditAndContinueFileSave = "Edit and Continue Save File Handler";
+
+        /// <summary>
+        /// Command handler name for showing the Value Tracking tool window.
+        /// </summary>
+        public const string ShowValueTracking = "Show Value Tracking";
+
+        /// <summary>
+        /// Command handler name for showing the Callstack Explorer tool window.
+        /// </summary>
+        public const string ShowCallstackExplorer = "Show Callstack Explorer";
     }
 }

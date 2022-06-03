@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -241,19 +242,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CommonEventEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override CSharpAttributeData? EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
-            CSharpAttributeData? boundAttribute;
+            CSharpAttributeData? attributeData;
+            BoundAttribute? boundAttribute;
             ObsoleteAttributeData? obsoleteData;
 
-            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out attributeData, out boundAttribute, out obsoleteData))
             {
                 if (obsoleteData != null)
                 {
                     arguments.GetOrCreateData<CommonEventEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                 }
 
-                return boundAttribute;
+                return (attributeData, boundAttribute);
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -283,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -319,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length));
             }
 
-            if (type.Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
@@ -468,10 +470,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.AccessibilityMask;
                 }
             }
-            else if (isInterface)
+            else
             {
                 Debug.Assert(explicitInterfaceImplementation);
-                allowedModifiers |= DeclarationModifiers.Abstract;
+
+                if (isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+                }
+
+                allowedModifiers |= DeclarationModifiers.Static;
             }
 
             if (this.ContainingType.IsStructType())
@@ -484,7 +492,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Extern;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+
+            ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -504,6 +515,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckModifiersAndType(BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
+            Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
+
             Location location = this.Locations[0];
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
             bool isExplicitInterfaceImplementationInInterface = ContainingType.IsInterface && IsExplicitInterfaceImplementation;
@@ -511,11 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
             {
                 diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
-            }
-            else if (IsStatic && (IsOverride || IsVirtual || IsAbstract))
-            {
-                // A static member '{0}' cannot be marked as override, virtual, or abstract
-                diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, this);
             }
             else if (IsReadOnly && IsStatic)
             {
@@ -736,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(compilation, conversions, location, diagnostics);
 
-            if (Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
                 compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -745,6 +754,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations.NeedsNullableAttribute())
             {
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();
+
+            if (explicitlyImplementedEvent is object)
+            {
+                CheckExplicitImplementationAccessor(AddMethod, explicitlyImplementedEvent.AddMethod, explicitlyImplementedEvent, diagnostics);
+                CheckExplicitImplementationAccessor(RemoveMethod, explicitlyImplementedEvent.RemoveMethod, explicitlyImplementedEvent, diagnostics);
+            }
+        }
+
+        private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, BindingDiagnosticBag diagnostics)
+        {
+            if (!otherAccessor.IsImplementable() && thisAccessor is object)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.Locations[0], thisAccessor, explicitlyImplementedEvent);
             }
         }
     }

@@ -2,16 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
@@ -20,28 +23,31 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     {
         private class NavigableSymbol : INavigableSymbol
         {
+            private readonly Workspace _workspace;
             private readonly ImmutableArray<DefinitionItem> _definitions;
-            private readonly Document _document;
             private readonly IThreadingContext _threadingContext;
             private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IWaitIndicator _waitIndicator;
+            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+            private readonly IAsynchronousOperationListener _listener;
 
             public NavigableSymbol(
+                Workspace workspace,
                 ImmutableArray<DefinitionItem> definitions,
                 SnapshotSpan symbolSpan,
-                Document document,
                 IThreadingContext threadingContext,
                 IStreamingFindUsagesPresenter streamingPresenter,
-                IWaitIndicator waitIndicator)
+                IUIThreadOperationExecutor uiThreadOperationExecutor,
+                IAsynchronousOperationListenerProvider listenerProvider)
             {
                 Contract.ThrowIfFalse(definitions.Length > 0);
 
+                _workspace = workspace;
                 _definitions = definitions;
-                _document = document;
                 SymbolSpan = symbolSpan;
                 _threadingContext = threadingContext;
                 _presenter = streamingPresenter;
-                _waitIndicator = waitIndicator;
+                _uiThreadOperationExecutor = uiThreadOperationExecutor;
+                _listener = listenerProvider.GetListener(FeatureAttribute.NavigableSymbols);
             }
 
             public SnapshotSpan SymbolSpan { get; }
@@ -49,19 +55,29 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             public IEnumerable<INavigableRelationship> Relationships =>
                 SpecializedCollections.SingletonEnumerable(PredefinedNavigableRelationships.Definition);
 
-            public void Navigate(INavigableRelationship relationship) =>
-                _waitIndicator.Wait(
+            public void Navigate(INavigableRelationship relationship)
+            {
+                // Fire and forget.
+                var token = _listener.BeginAsyncOperation(nameof(NavigateAsync));
+                _ = NavigateAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+            }
+
+            private async Task NavigateAsync()
+            {
+                using var context = _uiThreadOperationExecutor.BeginExecute(
                     title: EditorFeaturesResources.Go_to_Definition,
-                    message: EditorFeaturesResources.Navigating_to_definition,
-                    allowCancel: true,
-                    showProgress: false,
-                    action: context => GoToDefinitionHelpers.TryGoToDefinition(
-                        _definitions,
-                        _document.Project.Solution,
-                        _definitions[0].NameDisplayParts.GetFullText(),
-                        _threadingContext,
-                        _presenter,
-                        context.CancellationToken));
+                    defaultDescription: EditorFeaturesResources.Navigating_to_definition,
+                    allowCancellation: true,
+                    showProgress: false);
+
+                var cancellationToken = context.UserCancellationToken;
+                await _presenter.TryPresentLocationOrNavigateIfOneAsync(
+                    _threadingContext,
+                    _workspace,
+                    _definitions[0].NameDisplayParts.GetFullText(),
+                    _definitions,
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <inheritdoc cref="CodeStyleOption2{T}"/>
-    public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
+    public sealed class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
         static CodeStyleOption()
         {
@@ -25,14 +25,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             => _codeStyleOptionImpl = codeStyleOptionImpl;
 
         public CodeStyleOption(T value, NotificationOption notification)
-            : this(new CodeStyleOption2<T>(value, (NotificationOption2)notification))
+            : this(new CodeStyleOption2<T>(value, new NotificationOption2(notification.Severity)))
         {
         }
 
         public T Value
         {
             get => _codeStyleOptionImpl.Value;
-            set => _codeStyleOptionImpl.Value = value;
+
+            [Obsolete("Modifying a CodeStyleOption<T> is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => _codeStyleOptionImpl.ShouldReuseInSerialization;
@@ -41,13 +43,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, (NotificationOption)notification);
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
-            => this is TCodeStyleOption ? this : (ICodeStyleOption)_codeStyleOptionImpl;
+            => this is TCodeStyleOption ? this : _codeStyleOptionImpl;
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => this;
 
         public NotificationOption Notification
         {
             get => (NotificationOption)_codeStyleOptionImpl.Notification;
-            set => _codeStyleOptionImpl.Notification = (NotificationOption2)(value ?? throw new ArgumentNullException(nameof(value)));
+
+            [Obsolete("Modifying a CodeStyleOption<T> is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
         internal CodeStyleOption2<T> UnderlyingOption => _codeStyleOptionImpl;

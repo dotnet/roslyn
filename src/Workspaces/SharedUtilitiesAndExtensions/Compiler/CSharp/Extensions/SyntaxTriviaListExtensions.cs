@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -62,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
                     var currentLineIsBlank = currentLine.All(static t =>
-                        t.Kind() == SyntaxKind.EndOfLineTrivia ||
-                        t.Kind() == SyntaxKind.WhitespaceTrivia);
+                        t.Kind() is SyntaxKind.EndOfLineTrivia or
+                        SyntaxKind.WhitespaceTrivia);
                     if (!currentLineIsBlank)
                     {
                         break;

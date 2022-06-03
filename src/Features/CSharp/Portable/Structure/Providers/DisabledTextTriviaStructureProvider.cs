@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public override void CollectBlockSpans(
             SyntaxTrivia trivia,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             CollectBlockSpans(trivia.SyntaxTree, trivia, ref spans, cancellationToken);

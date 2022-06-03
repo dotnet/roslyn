@@ -9,11 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
@@ -60,9 +63,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     return;
                 }
 
+                var hideAdvancedMembers = context.Options.GetOptions(document.Project.LanguageServices).HideAdvancedMembers;
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var matchingTypes = await GetMatchingTypesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
+                var matchingTypes = await GetMatchingTypesAsync(document, semanticModel, node, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
                 var matchingNamespaces = await GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
 
                 if (matchingTypes.IsEmpty && matchingNamespaces.IsEmpty)
@@ -118,9 +122,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     memberName = name;
                 }
 
-                var codeAction = new MyCodeAction(
-                    $"{containerName}.{memberName}",
-                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c));
+                var title = $"{containerName}.{memberName}";
+                var codeAction = CodeAction.Create(
+                    title,
+                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c),
+                    title);
 
                 yield return codeAction;
             }
@@ -144,10 +150,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private async Task<ImmutableArray<SymbolResult>> GetMatchingTypesAsync(
-            Project project, SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SemanticModel semanticModel, SyntaxNode node, bool hideAdvancedMembers, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var project = document.Project;
             var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
@@ -167,9 +174,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 symbols = symbols.Concat(attributeSymbols);
             }
 
+            var editorBrowserInfo = new EditorBrowsableInfo(semanticModel.Compilation);
+
             var validSymbols = symbols
                 .OfType<INamedTypeSymbol>()
-                .Where(s => IsValidNamedTypeSearchResult(semanticModel, arity, inAttributeContext, looksGeneric, s))
+                .Where(s => IsValidNamedTypeSearchResult(semanticModel, arity, inAttributeContext, looksGeneric, s) &&
+                            s.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation, editorBrowserInfo))
                 .ToImmutableArray();
 
             // Check what the current node binds to.  If it binds to any symbols, but with
@@ -326,14 +336,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             => symbols.Distinct()
                .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
                .Order();
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
-            {
-            }
-        }
 
         private class GroupingCodeAction : CodeAction.CodeActionWithNestedActions
         {

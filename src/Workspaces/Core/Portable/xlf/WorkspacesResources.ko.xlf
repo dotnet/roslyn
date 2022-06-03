@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_project_may_not_reference_itself">
         <source>A project may not reference itself.</source>
-        <target state="new">A project may not reference itself.</target>
+        <target state="translated">프로젝트는 자신을 참조할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
@@ -67,6 +67,16 @@
         <target state="translated">소스 파일 '{0}'의 콘텐츠를 읽는 동안 오류가 발생했습니다. -- '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
+        <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
+        <target state="new">'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
+        <source>'FixAllScope.Custom' is not supported with this API</source>
+        <target state="new">'FixAllScope.Custom' is not supported with this API</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">들여쓰기 및 간격</target>
@@ -85,6 +95,11 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">옵션을 지정된 솔루션에서 가져오지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="translated">{0}에서 {1}(으)로의 미리 정의된 변환입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
@@ -434,7 +449,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
-        <target state="translated">이름을 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">이름을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

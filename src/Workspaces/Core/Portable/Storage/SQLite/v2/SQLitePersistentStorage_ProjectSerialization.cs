@@ -5,7 +5,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
     internal partial class SQLitePersistentStorage
     {
-        public override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, string name, Checksum checksum, CancellationToken cancellationToken)
+        protected override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, Project? project, string name, Checksum checksum, CancellationToken cancellationToken)
             => _projectAccessor.ChecksumMatchesAsync((projectKey, name), checksum, cancellationToken);
 
-        public override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, string name, Checksum? checksum, CancellationToken cancellationToken)
+        protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? project, string name, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.ReadStreamAsync((projectKey, name), checksum, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+        protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.WriteStreamAsync((projectKey, name), stream, checksum, cancellationToken);
 
         /// <summary>
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override (ProjectId projectId, string name) GetWriteQueueKey((ProjectKey projectKey, string name) key)
                 => (key.projectKey.Id, key.name);
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, out long dataId)
-                => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, out dataId);
+            protected override bool TryGetDatabaseId(SqlConnection connection, (ProjectKey projectKey, string name) key, bool allowWrite, out long dataId)
+                => Storage.TryGetProjectDataId(connection, key.projectKey, key.name, allowWrite, out dataId);
 
             protected override void BindFirstParameter(SqlStatement statement, long dataId)
                 => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);

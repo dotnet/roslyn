@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,16 +25,10 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
         where TAnonymousObjectInitializer : SyntaxNode
         where TAnonymousObjectMemberDeclaratorSyntax : SyntaxNode
     {
-        protected AbstractAddAnonymousTypeMemberNameCodeFixProvider()
-        {
-        }
-
         protected abstract bool HasName(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TExpressionSyntax GetExpression(TAnonymousObjectMemberDeclaratorSyntax declarator);
         protected abstract TAnonymousObjectMemberDeclaratorSyntax WithName(TAnonymousObjectMemberDeclaratorSyntax declarator, SyntaxToken name);
         protected abstract IEnumerable<string> GetAnonymousObjectMemberNames(TAnonymousObjectInitializer initializer);
-
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -51,22 +43,25 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
             }
 
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(document, diagnostic, c)),
+                CodeAction.Create(
+                    FeaturesResources.Add_member_name,
+                    GetDocumentUpdater(context),
+                    nameof(FeaturesResources.Add_member_name)),
                 context.Diagnostics);
         }
 
-        private async Task<TAnonymousObjectMemberDeclaratorSyntax> GetMemberDeclaratorAsync(
+        private async Task<TAnonymousObjectMemberDeclaratorSyntax?> GetMemberDeclaratorAsync(
             Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var span = diagnostic.Location.SourceSpan;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindNode(span, getInnermostNodeForTie: true) as TExpressionSyntax;
             if (node?.Span != span)
             {
                 return null;
             }
 
-            if (!(node.Parent is TAnonymousObjectMemberDeclaratorSyntax declarator))
+            if (node.Parent is not TAnonymousObjectMemberDeclaratorSyntax declarator)
             {
                 return null;
             }
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return null;
             }
 
-            if (!(declarator.Parent is TAnonymousObjectInitializer))
+            if (declarator.Parent is not TAnonymousObjectInitializer)
             {
                 return null;
             }
@@ -87,13 +82,13 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // If we're only introducing one name, then add the rename annotation to
             // it so the user can pick a better name if they want.
             var annotation = diagnostics.Length == 1 ? RenameAnnotation.Create() : null;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 await FixOneAsync(
@@ -104,7 +99,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
         private async Task FixOneAsync(
             Document document, SemanticModel semanticModel, Diagnostic diagnostic,
-            SyntaxEditor editor, SyntaxAnnotation annotation, CancellationToken cancellationToken)
+            SyntaxEditor editor, SyntaxAnnotation? annotation, CancellationToken cancellationToken)
         {
             var declarator = await GetMemberDeclaratorAsync(document, diagnostic, cancellationToken).ConfigureAwait(false);
             if (declarator == null)
@@ -112,20 +107,20 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return;
             }
 
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var name = semanticFacts.GenerateNameForExpression(semanticModel, GetExpression(declarator), capitalize: true, cancellationToken);
             if (string.IsNullOrEmpty(name))
             {
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             editor.ReplaceNode(
                 declarator,
                 (current, generator) =>
                 {
                     var currentDeclarator = (TAnonymousObjectMemberDeclaratorSyntax)current;
-                    var initializer = (TAnonymousObjectInitializer)currentDeclarator.Parent;
+                    var initializer = (TAnonymousObjectInitializer)currentDeclarator.GetRequiredParent();
                     var existingNames = GetAnonymousObjectMemberNames(initializer);
                     var anonymousType = current.Parent;
                     var uniqueName = NameGenerator.EnsureUniqueness(name, existingNames, syntaxFacts.IsCaseSensitive);
@@ -138,14 +133,6 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
                     return WithName(currentDeclarator, nameToken);
                 });
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_member_name, createChangedDocument)
-            {
-            }
         }
     }
 }

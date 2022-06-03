@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -375,6 +376,94 @@ internal static class C
 {
     unsafe partial void M();
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [WorkItem(52297, "https://github.com/dotnet/roslyn/pull/52297")]
+        public async Task TestInLocalFunction()
+        {
+            // Not handled for performance reason.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public static async void M()
+    {
+        [|async|] static void Local() { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingMember_NotApplicable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"{|FixAllInContainingMember:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingType()
+        {
+            await TestInRegularAndScript1Async(
+@"{|FixAllInContainingType:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}",
+@"internal static class C
+{
+    internal static class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task RequiredAfterAllOnProp()
+        {
+            await TestInRegularAndScriptAsync("""
+                class C
+                {
+                    [|required|] public virtual unsafe int Prop { get; init; }
+                }
+                """,
+                """
+                class C
+                {
+                    public virtual unsafe required int Prop { get; init; }
+                }
+                """);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task RequiredAfterAllButVolatileOnField()
+        {
+            await TestInRegularAndScriptAsync("""
+                class C
+                {
+                    [|required|] public unsafe volatile int Field;
+                }
+                """,
+                """
+                class C
+                {
+                    public unsafe required volatile int Field;
+                }
+                """);
         }
     }
 }

@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 // break the cycle and the resulting order will end up being unpredictable.
                 var actualOrder = ExtensionOrderer.Order(providers).ToArray();
                 Assert.Equal(3, actualOrder.Length);
-                Assert.Equal(PredefinedCodeFixProviderNames.Suppression, actualOrder[0].Metadata.Name);
-                Assert.Equal(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, actualOrder[1].Metadata.Name);
-                Assert.Equal(PredefinedCodeFixProviderNames.ConfigureSeverity, actualOrder[2].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.Suppression, actualOrder[0].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.ConfigureCodeStyleOption, actualOrder[1].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.ConfigureSeverity, actualOrder[2].Metadata.Name);
             }
         }
 

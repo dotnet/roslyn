@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAttribute
     {
-        protected override ImmutableArray<BoundNode?> Children => StaticCast<BoundNode?>.From(this.ConstructorArguments.AddRange(this.NamedArguments));
+        protected override ImmutableArray<BoundNode?> Children => StaticCast<BoundNode?>.From(this.ConstructorArguments.AddRange(StaticCast<BoundExpression>.From(this.NamedArguments)));
     }
 
     internal partial class BoundQueryClause
@@ -175,9 +175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(this.Expression);
     }
 
-    internal partial class BoundIndexOrRangePatternIndexerAccess
+    internal partial class BoundImplicitIndexerAccess
     {
-        protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(Receiver, Argument);
+        protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(this.Receiver, Argument);
     }
 
     internal partial class BoundFunctionPointerInvocation : IBoundInvalidNode

@@ -43,12 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.Type.IsNullableType())
                 {
-                    if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
-                    {
-                        return BadExpression(node.Syntax, node.Type, node);
-                    }
-
-                    return new BoundObjectCreationExpression(node.Syntax, nullableCtor, rangeCreation);
+                    return ConvertToNullable(node.Syntax, node.Type, rangeCreation);
                 }
 
                 return rangeCreation;
@@ -146,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-                        condition = MakeBinaryOperator(node.Syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null);
+                        condition = MakeBinaryOperator(node.Syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null, constrainedToTypeOpt: null);
                     }
 
                     return MakeOptimizedGetValueOrDefault(tempOperand.Syntax, tempOperand);

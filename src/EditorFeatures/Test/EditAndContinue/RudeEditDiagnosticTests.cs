@@ -34,12 +34,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.FieldKindUpdate,
                 RudeEditKind.TypeKindUpdate,
                 RudeEditKind.AccessorKindUpdate,
-                RudeEditKind.MethodKindUpdate,
                 RudeEditKind.DeclareLibraryUpdate,
                 RudeEditKind.DeclareAliasUpdate,
                 RudeEditKind.InsertDllImport,
-                RudeEditKind.MethodBodyAdd,
-                RudeEditKind.MethodBodyDelete,
                 RudeEditKind.GenericMethodUpdate,
                 RudeEditKind.GenericTypeUpdate,
                 RudeEditKind.ExperimentalFeaturesEnabled,
@@ -49,13 +46,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
+                RudeEditKind.NotSupportedByRuntime,
+                RudeEditKind.MakeMethodAsyncNotSupportedByRuntime,
+                RudeEditKind.MakeMethodIteratorNotSupportedByRuntime,
+                RudeEditKind.ChangeImplicitMainReturnType
             };
 
             var arg2 = new HashSet<RudeEditKind>()
             {
-                RudeEditKind.ConstraintKindUpdate,
                 RudeEditKind.InsertIntoStruct,
-                RudeEditKind.ConstraintKindUpdate,
                 RudeEditKind.InsertIntoStruct,
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.AccessingCapturedVariableInLambda,
@@ -64,12 +63,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
+                RudeEditKind.ChangingNonCustomAttribute,
             };
 
             var arg3 = new HashSet<RudeEditKind>()
             {
                 RudeEditKind.InsertLambdaWithMultiScopeCapture,
                 RudeEditKind.DeleteLambdaWithMultiScopeCapture,
+                RudeEditKind.ChangingNamespace,
             };
 
             var allKinds = Enum.GetValues(typeof(RudeEditKind)).Cast<RudeEditKind>();

@@ -86,6 +86,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 projectGuid,
                 hierarchy,
                 binOutputPath,
+                assemblyName: null,
                 CancellationToken.None);
 
             cpsProject.SetOptions(ImmutableArray.Create(commandLineArguments));
@@ -105,6 +106,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 Guid.NewGuid(),
                 hierarchy,
                 binOutputPath: null,
+                assemblyName: null,
                 CancellationToken.None);
         }
 

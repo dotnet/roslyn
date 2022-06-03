@@ -120,6 +120,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw New NotSupportedException()
         End Function
 
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Throw New NotSupportedException()
+        End Function
+
         Public Overloads Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Throw New NotSupportedException()
         End Function

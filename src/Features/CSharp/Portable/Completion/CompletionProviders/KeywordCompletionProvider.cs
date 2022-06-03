@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new AsKeywordRecommender(),
                 new AssemblyKeywordRecommender(),
                 new AsyncKeywordRecommender(),
-                new AwaitKeywordRecommender(),
                 new BaseKeywordRecommender(),
                 new BoolKeywordRecommender(),
                 new BreakKeywordRecommender(),
@@ -129,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new RefKeywordRecommender(),
                 new RegionKeywordRecommender(),
                 new RemoveKeywordRecommender(),
+                new RequiredKeywordRecommender(),
                 new RestoreKeywordRecommender(),
                 new ReturnKeywordRecommender(),
                 new SByteKeywordRecommender(),
@@ -171,7 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;

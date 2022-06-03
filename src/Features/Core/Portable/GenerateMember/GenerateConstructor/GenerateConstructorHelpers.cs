@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // However, theoretically the public type from A could have a user-defined conversion.
                 // The alternative approach might be to map the type of the parameters back into B, and then
                 // classify the conversions in Project B, but that'll run into other issues if the experssions
-                // don't have a natural type (like default). We choose to ignore all potentially crazy cases here.
+                // don't have a natural type (like default). We choose to ignore all complicated cases here.
                 return false;
             }
 

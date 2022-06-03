@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class FixedStatementSyntax
     {
         public FixedStatementSyntax Update(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
-            => Update(attributeLists: default, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
+            => Update(AttributeLists, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
     }
 }
 

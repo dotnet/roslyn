@@ -7,7 +7,6 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 
 namespace Roslyn.Test.Utilities
 {
@@ -18,7 +17,7 @@ namespace Roslyn.Test.Utilities
 
         public EnsureInvariantCulture()
         {
-            _threadId = Thread.CurrentThread.ManagedThreadId;
+            _threadId = Environment.CurrentManagedThreadId;
             _threadCulture = CultureInfo.CurrentCulture;
 
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -26,9 +25,9 @@ namespace Roslyn.Test.Utilities
 
         public void Dispose()
         {
-            Debug.Assert(_threadId == Thread.CurrentThread.ManagedThreadId);
+            Debug.Assert(_threadId == Environment.CurrentManagedThreadId);
 
-            if (_threadId == Thread.CurrentThread.ManagedThreadId)
+            if (_threadId == Environment.CurrentManagedThreadId)
             {
                 CultureInfo.CurrentCulture = _threadCulture;
             }

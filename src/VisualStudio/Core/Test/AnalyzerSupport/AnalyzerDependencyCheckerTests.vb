@@ -861,7 +861,7 @@ public class A
             Assert.False(ignorableAssemblyList.Includes(alpha))
         End Sub
 
-        Private Function BuildLibrary(directory As DisposableDirectory, fileContents As String, libraryName As String, ParamArray referenceNames As String()) As String
+        Private Shared Function BuildLibrary(directory As DisposableDirectory, fileContents As String, libraryName As String, ParamArray referenceNames As String()) As String
             Dim sourceFile = directory.CreateFile(libraryName + ".cs").WriteAllText(fileContents).Path
             Dim tempOut = Path.Combine(directory.Path, libraryName + ".out")
             Dim libraryOut = Path.Combine(directory.Path, libraryName + ".dll")

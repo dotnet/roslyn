@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
         protected override bool SupportsPropertyInitializer(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
         protected override bool CanExplicitInterfaceImplementationsBeFixed()
             => false;
@@ -47,13 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             MemberDeclarationSyntax member,
             List<AnalysisResult> analysisResults)
         {
-            if (member.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax? namespaceDeclaration))
+            if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
             }
             else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration))
+                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
+                member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
             {
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         {
             return fieldDeclaration.Declaration.Variables.Count == 1
                 ? fieldDeclaration
-                : (SyntaxNode)variableDeclarator;
+                : variableDeclarator;
         }
     }
 }

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext Then
+            If context.IsAnyExpressionContext OrElse context.IsStatementContext Then
                 Return ImmutableArray.Create(CreateRecommendedKeywordForIntrinsicOperator(
                     SyntaxKind.GetTypeKeyword, VBFeaturesResources.GetType_function, Glyph.Keyword, New GetTypeExpressionDocumentation(), context.SemanticModel, context.Position))
             End If

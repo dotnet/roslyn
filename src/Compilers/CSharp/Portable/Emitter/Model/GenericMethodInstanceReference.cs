@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             foreach (var arg in UnderlyingMethod.TypeArgumentsWithAnnotations)
             {
                 Debug.Assert(arg.CustomModifiers.IsEmpty);
-                yield return moduleBeingBuilt.Translate(arg.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                yield return moduleBeingBuilt.Translate(arg.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
             }
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // NoPia method might come through here.
             return ((PEModuleBuilder)context.Module).Translate(
                 UnderlyingMethod.OriginalDefinition,
-                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics,
                 needDeclaration: true);
         }

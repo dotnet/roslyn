@@ -835,5 +835,10 @@ partial class Bar
 
             await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
         }
+
+        private Task VerifyItemExistsAsync(string markup, string expectedItem)
+        {
+            return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit: true);
+        }
     }
 }

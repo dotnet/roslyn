@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_blank_line_after_block">
         <source>Add blank line after block</source>
-        <target state="new">Add blank line after block</target>
+        <target state="translated">Dodaj pusty wiersz po bloku</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_both">
@@ -17,9 +17,24 @@
         <target state="translated">Dodaj przypadek domyślny</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Dodaj nagłówek pliku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="new">Alias ambiguous type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
@@ -32,9 +47,19 @@
         <target state="translated">Popraw wszystkie wystąpienia w</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_class_abstract">
+        <source>Make class 'abstract'</source>
+        <target state="new">Make class 'abstract'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
-        <target state="new">Remove extra blank lines</target>
+        <target state="translated">Usuń dodatkowe puste wiersze</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">

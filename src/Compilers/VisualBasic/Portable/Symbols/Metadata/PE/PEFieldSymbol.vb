@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -61,6 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -376,6 +383,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim fieldUseSiteInfo = CalculateUseSiteInfo()
 
+                If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
+                    Dim errorInfo = DeriveCompilerFeatureRequiredDiagnostic(fieldUseSiteInfo)
+                    If errorInfo IsNot Nothing Then
+                        fieldUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                    End If
+                End If
+
                 ' if there was no previous use site error for this symbol, check the constant value
                 If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
 
@@ -394,6 +408,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
+        End Function
+
+        Private Function DeriveCompilerFeatureRequiredDiagnostic(ByRef result As UseSiteInfo(Of AssemblySymbol)) As DiagnosticInfo
+            Dim containingModule = _containingType.ContainingPEModule
+            Return If(DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, containingModule, Handle, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(containingModule, _containingType)),
+                      _containingType.GetCompilerFeatureRequiredDiagnostic())
         End Function
 
         Friend ReadOnly Property Handle As FieldDefinitionHandle

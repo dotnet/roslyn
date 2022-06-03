@@ -9,12 +9,17 @@
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
-        <target state="translated">Příkaz if lze zjednodušit.</target>
+        <target state="translated">Příkaz if může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="Imports_statement_is_unnecessary">
         <source>Imports statement is unnecessary.</source>
         <target state="translated">Příkaz Imports není potřebný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">Vytváření objektů může být zjednodušené.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_ByVal">

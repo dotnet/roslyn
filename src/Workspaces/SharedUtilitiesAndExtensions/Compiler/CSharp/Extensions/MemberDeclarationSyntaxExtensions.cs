@@ -16,21 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class MemberDeclarationSyntaxExtensions
     {
-        private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>> s_declarationCache =
-            new();
-        private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>>.CreateValueCallback s_createLocalDeclarationMap = CreateLocalDeclarationMap;
+        private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>> s_declarationCache = new();
 
         public static LocalDeclarationMap GetLocalDeclarationMap(this MemberDeclarationSyntax member)
-        {
-            var result = s_declarationCache.GetValue(member, s_createLocalDeclarationMap);
-            return new LocalDeclarationMap(result);
-        }
-
-        private static Dictionary<string, ImmutableArray<SyntaxToken>> CreateLocalDeclarationMap(MemberDeclarationSyntax member)
-        {
-            var dictionary = DeclarationFinder.GetAllDeclarations(member);
-            return dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutable<SyntaxToken>());
-        }
+            => new(s_declarationCache.GetValue(member, static member =>
+            {
+                var dictionary = DeclarationFinder.GetAllDeclarations(member);
+                return dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutable());
+            }));
 
         public static SyntaxToken GetNameToken(this MemberDeclarationSyntax member)
         {
@@ -44,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).Identifier;
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).Identifier;
@@ -82,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).Arity;
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).Arity;
@@ -103,37 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).TypeParameterList;
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).TypeParameterList;
                     case SyntaxKind.MethodDeclaration:
                         return ((MethodDeclarationSyntax)member).TypeParameterList;
-                }
-            }
-
-            return null;
-        }
-
-        public static BaseParameterListSyntax GetParameterList(this MemberDeclarationSyntax member)
-        {
-            if (member != null)
-            {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.ConstructorDeclaration:
-                        return ((ConstructorDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.DestructorDeclaration:
-                        return ((DestructorDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)member).ParameterList;
                 }
             }
 
@@ -189,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).WithAttributeLists(attributeLists);
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).WithAttributeLists(attributeLists);

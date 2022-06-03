@@ -6,13 +6,17 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -24,13 +28,43 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
+        private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
+        {
+            const string unconditionalSuppressMessageDef = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
+    public sealed class UnconditionalSuppressMessageAttribute : System.Attribute
+    {
+        public UnconditionalSuppressMessageAttribute(string category, string checkId)
+        {
+            Category = category;
+            CheckId = checkId;
+        }
+        public string Category { get; }
+        public string CheckId { get; }
+        public string Scope { get; set; }
+        public string Target { get; set; }
+        public string MessageId { get; set; }
+        public string Justification { get; set; }
+    }
+}";
+            return CSharpCompilation.Create("unconditionalsuppress",
+                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef) },
+                references: new[] { TestBase.MscorlibRef }).EmitToImageReference();
+        }, LazyThreadSafetyMode.PublicationOnly);
+
         protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
         {
             using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
+
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
             {
                 new AnalyzerImageReference(analyzers.ToImmutableArray())
-            }));
+            }).WithProjectMetadataReferences(
+                workspace.Projects.Single().Id,
+                workspace.Projects.Single().MetadataReferences.Append(_unconditionalSuppressMessageRef.Value)));
 
             var documentId = workspace.Documents[0].Id;
             var document = workspace.CurrentSolution.GetDocument(documentId);

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
+        Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Resets all the document state cached by the analyzer.
@@ -30,5 +31,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e);
+
+        Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
+        Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Resets all the document state cached by the analyzer.
+        /// </summary>
+        Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken);
+
+        Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken);
+
+        void LogAnalyzerCountSummary();
+        int Priority { get; }
     }
 }

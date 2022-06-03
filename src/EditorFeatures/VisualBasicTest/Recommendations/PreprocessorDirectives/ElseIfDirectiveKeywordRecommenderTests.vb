@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ElseIfDirectiveKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashElseIfNotInFileTest()

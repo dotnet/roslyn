@@ -100,6 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are method type parameters.
         /// </summary>
         MustNotBeMethodTypeParameter = 1 << 14,
+
+        /// <summary>
+        /// Consider only symbols that are abstract or virtual.
+        /// </summary>
+        MustBeAbstractOrVirtual = 1 << 15,
     }
 
     internal static class LookupOptionExtensions

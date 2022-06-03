@@ -7,35 +7,40 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class MockManagedEditAndContinueDebuggerService : IManagedEditAndContinueDebuggerService
+    internal class MockManagedEditAndContinueDebuggerService : IManagedHotReloadService
     {
-        public Func<Guid, ManagedEditAndContinueAvailability>? IsEditAndContinueAvailable;
-        public Dictionary<Guid, ManagedEditAndContinueAvailability>? LoadedModules;
+        public Func<Guid, ManagedHotReloadAvailability>? IsEditAndContinueAvailable;
+        public Dictionary<Guid, ManagedHotReloadAvailability>? LoadedModules;
         public Func<ImmutableArray<ManagedActiveStatementDebugInfo>>? GetActiveStatementsImpl;
+        public Func<ImmutableArray<string>>? GetCapabilitiesImpl;
 
-        public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => Task.FromResult(GetActiveStatementsImpl?.Invoke() ?? ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+        public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(GetActiveStatementsImpl?.Invoke() ?? ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
-        public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
+        public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
         {
             if (IsEditAndContinueAvailable != null)
             {
-                return Task.FromResult(IsEditAndContinueAvailable(mvid));
+                return ValueTaskFactory.FromResult(IsEditAndContinueAvailable(mvid));
             }
 
             if (LoadedModules != null)
             {
-                return Task.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.ModuleNotLoaded));
+                return ValueTaskFactory.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.ModuleNotLoaded));
             }
 
             throw new NotImplementedException();
         }
 
-        public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
-            => Task.CompletedTask;
+        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(GetCapabilitiesImpl?.Invoke() ?? ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+
+        public ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
+            => ValueTaskFactory.CompletedTask;
     }
 }

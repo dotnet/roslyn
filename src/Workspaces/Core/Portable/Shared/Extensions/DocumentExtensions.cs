@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -15,17 +16,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsFromPrimaryBranch(this Document document)
             => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
 
-        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
-            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
+        public static async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
 
-        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
+        public static ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 
         /// <summary>
         /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model
         /// is only guaranteed to contain the syntax tree for <paramref name="document"/> and nothing else.
         /// </summary>
-        public static async Task<SemanticModel?> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        public static async Task<(Document document, SemanticModel? semanticModel)> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
             if (document.Project.TryGetCompilation(out var compilation))
             {
@@ -34,16 +39,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 // Make sure the compilation is kept alive so that GetSemanticModelAsync() doesn't become expensive
                 GC.KeepAlive(compilation);
-                return semanticModel;
+                return (document, semanticModel);
             }
             else
             {
                 var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
-                return await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return (frozenDocument, await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
         }
 
         internal static Document WithSolutionOptions(this Document document, OptionSet options)
-            => document.Project.Solution.WithOptions(options).GetDocument(document.Id)!;
+            => document.Project.Solution.WithOptions(options).GetRequiredDocument(document.Id);
     }
 }

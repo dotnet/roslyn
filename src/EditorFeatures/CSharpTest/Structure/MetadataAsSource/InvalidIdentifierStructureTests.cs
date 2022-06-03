@@ -26,11 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         protected override string LanguageName => LanguageNames.CSharp;
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
 
-        internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position)
+        internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position)
         {
             var outliningService = document.GetLanguageService<BlockStructureService>();
-
-            return (await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans;
+            return (await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans;
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]

@@ -4,6 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class IsKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact>
         <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
