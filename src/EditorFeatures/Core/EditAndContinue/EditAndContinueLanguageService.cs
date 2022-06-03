@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private RemoteDebuggingSessionProxy? _debuggingSession;
 
         private Solution? _pendingUpdatedDesignTimeSolution;
-        public event Action<Solution>? SolutionCommitted;
-
         private Solution? _committedDesignTimeSolution;
+
+        public event Action<Solution>? SolutionCommitted;
 
         /// <summary>
         /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
@@ -235,7 +235,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var solution = GetCurrentCompileTimeSolution();
                 await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+
                 _debuggingSession = null;
+                _committedDesignTimeSolution = null;
+                _pendingUpdatedDesignTimeSolution = null;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
