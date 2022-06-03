@@ -161,6 +161,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             var enumType = GetSwitchType(switchOperation);
 
+            // Take real value of the enum if it is nullable
+            if (enumType.IsNullable())
+                enumType = enumType.GetTypeArguments()[0];
+
             var generator = editor.Generator;
 
             var newArms = new List<TSwitchArmSyntax>();
