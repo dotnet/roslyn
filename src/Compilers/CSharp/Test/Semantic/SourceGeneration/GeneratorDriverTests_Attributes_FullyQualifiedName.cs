@@ -270,7 +270,7 @@ using System;
     }
 
     [Fact]
-    public void FindLocalFunctionAttribute1()
+    public void FindTopLocalFunctionAttribute1()
     {
         var source = @"
 using System;
@@ -278,6 +278,81 @@ using System;
 [CLSCompliant(true)]
 void LocalFunc()
 {
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<LocalFunctionStatementSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is LocalFunctionStatementSyntax { Identifier.ValueText: "LocalFunc" }));
+    }
+
+    [Fact]
+    public void FindNestedLocalFunctionAttribute1()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        [CLSCompliant(true)]
+        void LocalFunc()
+        {
+        }
+    }
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<LocalFunctionStatementSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is LocalFunctionStatementSyntax { Identifier.ValueText: "LocalFunc" }));
+    }
+
+    [Fact]
+    public void FindNestedLocalFunctionAttribute2()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        var v = () =>
+        {
+            [CLSCompliant(true)]
+            void LocalFunc()
+            {
+            }
+        };
+    }
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
