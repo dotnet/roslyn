@@ -1370,7 +1370,7 @@ class C
         }
 
         [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
-        public async Task DoNotKeepNullability()
+        public async Task TestForNullableEnum_NullableEnabled()
         {
             await TestInRegularAndScript1Async(
 @"#nullable enable
@@ -1394,6 +1394,120 @@ static class MyEnumExtensions
     public static string ToAnotherEnum(this MyEnum? myEnumValue)
         => myEnumValue switch
         {
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+            null => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+            null => throw null,
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            null => throw null,
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+            null => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+            null => throw null,
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            null => throw null,
             MyEnum.Value1 => throw new System.NotImplementedException(),
             MyEnum.Value2 => throw new System.NotImplementedException(),
         };

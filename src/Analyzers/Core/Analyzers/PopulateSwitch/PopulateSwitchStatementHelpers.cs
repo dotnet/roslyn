@@ -66,6 +66,25 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return enumMembers.Values;
         }
 
+        public static bool HasNullSwitchArm(ISwitchOperation operation)
+        {
+            foreach (var switchCase in operation.Cases)
+            {
+                foreach (var clause in switchCase.Clauses)
+                {
+                    if (clause.CaseKind != CaseKind.SingleValue)
+                        continue;
+
+                    var value = ((ISingleValueCaseClauseOperation)clause).Value;
+
+                    if (value.ConstantValue is { HasValue: true, Value: null })
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         private static bool TryRemoveExistingEnumMembers(ISwitchOperation switchStatement, Dictionary<long, ISymbol> enumValues)
         {
             foreach (var switchCase in switchStatement.Cases)
@@ -88,12 +107,18 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
                         case CaseKind.SingleValue:
                             var value = ((ISingleValueCaseClauseOperation)clause).Value;
-                            if (value == null || !value.ConstantValue.HasValue)
+                            if (value is null || !value.ConstantValue.HasValue)
                             {
                                 // We had a case which didn't resolve properly.  
                                 // Assume the switch is complete.
                                 return false;
                             }
+
+                            // null will be casted to 0, which creates a bug,
+                            // when a switch with null arm will not add enum's 0 value equivalentю
+                            // So we need to avoid it.
+                            if (value.ConstantValue.Value is null)
+                                continue;
 
                             var caseValue = IntegerUtilities.ToInt64(value.ConstantValue.Value);
                             enumValues.Remove(caseValue);

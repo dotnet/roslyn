@@ -38,8 +38,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected abstract ITypeSymbol GetSwitchType(TSwitchOperation switchStatement);
         protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation switchOperation);
+        protected abstract bool HasNullSwitchArm(TSwitchOperation switchOperation);
 
         protected abstract TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel);
+        protected abstract TSwitchArmSyntax CreateNullSwitchArm(SyntaxGenerator generator, Compilation compilation);
         protected abstract TSwitchArmSyntax CreateDefaultSwitchArm(SyntaxGenerator generator, Compilation compilation);
         protected abstract int InsertPosition(TSwitchOperation switchOperation);
         protected abstract TSwitchSyntax InsertSwitchArms(SyntaxGenerator generator, TSwitchSyntax switchNode, int insertLocation, List<TSwitchArmSyntax> newArms);
@@ -159,7 +161,14 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool hasMissingCases, bool hasMissingDefaultCase,
             TSwitchSyntax switchNode, TSwitchOperation switchOperation)
         {
-            var enumType = GetSwitchType(switchOperation).RemoveNullableIfPresent();
+            var enumType = GetSwitchType(switchOperation);
+            var isNullable = false;
+
+            if (enumType.IsNullable(out var underlyingType))
+            {
+                isNullable = true;
+                enumType = underlyingType;
+            }
 
             var generator = editor.Generator;
 
@@ -173,6 +182,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     select CreateSwitchArm(generator, semanticModel.Compilation, caseLabel);
 
                 newArms.AddRange(missingArms);
+
+                if (isNullable && !HasNullSwitchArm(switchOperation))
+                    newArms.Add(CreateNullSwitchArm(generator, semanticModel.Compilation));
             }
 
             if (hasMissingDefaultCase && addDefaultCase)
