@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         #region string operations
 
-        /// <inheritdoc cref="object.ToString"/>
+        /// <inheritdoc/>
         public override string ToString()
             => SurrogateChar != 0 ? SurrogateChar.ToString() : Rune.ToString();
 
