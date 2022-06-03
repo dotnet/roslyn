@@ -40,7 +40,6 @@
     <None Include="Symbols\SymbolsAndNoPia.docx" />
     <None Include="Syntax\Syntax.xml" />
     <None Include="Errors\Errors.vb" />
-    <AdditionalFiles Include="..\..\BannedSymbols.Language.txt" Link="BannedSymbols.Language.txt" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />

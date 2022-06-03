@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void PreLex()
         {
             // NOTE: Do not cancel in this method. It is called from the constructor.
-            var size = Math.Min(4096, Math.Max(32, this.lexer.TextWindow.Text.Length / 2));
+            var size = Math.Min(4096, Math.Max(32, this.lexer.TextWindow.Length / 2));
             _lexedTokens = new ArrayElement<SyntaxToken>[size];
             var lexer = this.lexer;
             var mode = _mode;

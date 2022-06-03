@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // the preprocessor directive parser, which may itself run into the same problem that caused the
             // original failure.
             var builder = new SyntaxListBuilder(1);
-            builder.Add(SyntaxFactory.BadToken(null, lexer.TextWindow.Text.ToString(), null));
+            builder.Add(SyntaxFactory.BadToken(null, lexer.TextWindow.GetFullText(), null));
             var fileAsTrivia = _syntaxFactory.SkippedTokensTrivia(builder.ToList<SyntaxToken>());
             node = AddLeadingSkippedSyntax(node, fileAsTrivia);
             ForceEndOfFile(); // force the scanner to report that it is at the end of the input.

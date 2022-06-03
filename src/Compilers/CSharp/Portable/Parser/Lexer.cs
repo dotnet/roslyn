@@ -915,9 +915,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (_badTokenCount++ > 200)
                     {
                         // If we get too many characters that we cannot make sense of, absorb the rest of the input.
-                        int end = TextWindow.Text.Length;
-                        int width = end - startingPosition;
-                        info.Text = TextWindow.Text.ToString(new TextSpan(startingPosition, width));
+                        int end = TextWindow.Length;
+                        info.Text = TextWindow.GetFullText(TextSpan.FromBounds(startingPosition, end));
                         TextWindow.Reset(end);
                     }
                     else

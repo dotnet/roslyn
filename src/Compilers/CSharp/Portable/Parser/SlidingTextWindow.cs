@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public SourceText Text => _text;
-
         /// <summary>
         /// The current absolute position in the text file.
         /// </summary>
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         /// <summary>
         /// The absolute position of the start of the current lexeme in the given
-        /// SourceText.
+        /// <see cref="SourceText"/>.
         /// </summary>
         public int LexemeStartPosition
         {
@@ -162,6 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return _offset - _lexemeStart;
             }
         }
+
+        /// <summary>
+        /// The length of the <see cref="SourceText"/>.
+        /// </summary>
+        public int Length => _text.Length;
 
         /// <summary>
         /// Start parsing a new lexeme.
@@ -735,6 +738,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return new string(_characterWindow, offset, length);
             }
         }
+
+        public string GetFullText()
+            => _text.ToString();
+
+        public string GetFullText(TextSpan span)
+            => _text.ToString(span);
 
         internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
         {
