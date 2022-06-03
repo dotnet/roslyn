@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
@@ -26,12 +29,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { $$ }|} }</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim spanMapper = service.GetService(Of ISpanMappingService)
 
                 Dim position = subjectDocument.CursorPosition.Value
@@ -50,12 +53,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C$$ { }|} }</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim spanMapper = service.GetService(Of ISpanMappingService)
 
                 Dim position = subjectDocument.CursorPosition.Value
@@ -82,24 +85,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C$$ { }|} }</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim documentOperations = service.GetService(Of IDocumentOperationService)
 
                 ' contained document supports both document modification and diagnostics
                 ' soon, contained document will be only used to support old venus and razor but not new razor
-                ' which will use thier own implementation of these services
+                ' which will use their own implementation of these services
                 Assert.True(documentOperations.CanApplyChange)
                 Assert.True(documentOperations.SupportDiagnostics)
-
-                Dim documentProperties = service.GetService(Of DocumentPropertiesService)
-                Assert.True(documentProperties.DesignTimeOnly)
             End Using
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Workspace)>
+        Public Async Function TestSourceGeneratedDocumentOperation() As Task
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <DocumentFromSourceGenerator>class C { }</DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
+
+                Dim subjectDocument = workspace.Documents.Single()
+                Dim openDocument = subjectDocument.GetOpenTextContainer()
+                Dim sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(openDocument)
+                Dim document = Assert.IsType(Of SourceGeneratedDocument)(Await workspace.CurrentSolution.GetDocumentAsync(sourceGeneratedDocumentId, includeSourceGenerated:=True))
+                Dim documentServices = document.State.Services
+                Dim documentOperations = documentServices.GetService(Of IDocumentOperationService)()
+
+                Assert.False(documentOperations.CanApplyChange)
+                Assert.True(documentOperations.SupportDiagnostics)
+            End Using
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_SingleLine() As Task
@@ -108,19 +129,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { }|} }</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
-                Assert.Equal(projectedDocument.TextBuffer.CurrentSnapshot.GetText(), content)
+                Assert.Equal(projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(), content)
 
                 Dim expcetedFormatted = {FormattedClassifications.Text("class projected { "),
                                          Keyword("class"),
@@ -146,20 +167,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { }|} }</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 ' make sure single line buffer doesn't throw on ExcerptMode.Tooltip
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
-                Assert.Equal(projectedDocument.TextBuffer.CurrentSnapshot.GetText(), content)
+                Assert.Equal(projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(), content)
 
                 Dim expcetedFormatted = {FormattedClassifications.Text("class projected { "),
                                          Keyword("class"),
@@ -185,7 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { }|} }</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim projectedContent = <Code>class projected 
 {|Content:                        {|WithoutLeadingWhitespace:{ 
@@ -197,24 +218,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                         }|}|}</Code>
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
 
                 ' calculate expected span
                 Dim contentSpan = GetNamedSpan(projectedDocument, "Content")
-                Dim expectedContent = projectedDocument.TextBuffer.CurrentSnapshot.GetText(contentSpan.ToSpan())
+                Dim expectedContent = projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(contentSpan.ToSpan())
                 Assert.Equal(expectedContent, content)
 
-                Dim firstText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "WithoutLeadingWhitespace").ToSpan())
+                Dim firstText = projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "WithoutLeadingWhitespace").ToSpan())
                 Dim documentSpan = GetNamedSpan(projectedDocument, "Document").ToSpan()
-                Dim lastText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(Span.FromBounds(documentSpan.End, projectedDocument.TextBuffer.CurrentSnapshot.Length))
+                Dim lastText = projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(Span.FromBounds(documentSpan.End, projectedDocument.GetTextBuffer().CurrentSnapshot.Length))
 
                 Dim expcetedFormatted = {FormattedClassifications.Text(firstText),
                                          Keyword("class"),
@@ -242,7 +263,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:            class C { }         |} }</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim projectedContent = <Code>class projected 
 { 
@@ -250,12 +271,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 }</Code>
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()

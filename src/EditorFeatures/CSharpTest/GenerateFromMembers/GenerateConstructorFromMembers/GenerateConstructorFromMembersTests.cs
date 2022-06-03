@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
-using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFrom
     public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+            => new CSharpGenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
@@ -486,7 +490,7 @@ class Z
 
     public int A { get; private set; }
     public string B { get; private set; }
-}", options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+}", options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -728,7 +732,6 @@ class X
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task Tuple()
         {
@@ -813,7 +816,7 @@ class Z
         this._field = field;
     }
 }",
-options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
@@ -837,7 +840,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
     public string Title { get; }
     public int Number { get; }
 }",
-options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
@@ -850,7 +853,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
   [|public abstract string Title { get; }
     public int Number { get; }|]
 }",
-new TestParameters(options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement)));
+new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1000,6 +1003,84 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceType()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z
+{
+    int a;
+    string b;
+    string? c;
+
+    public Z(int a, string b, string? c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+
+    public Z(int a, string b, T? c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestAddNullChecks2()
         {
@@ -1037,7 +1118,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1072,7 +1153,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1113,7 +1194,7 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-    options: Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1209,7 +1290,7 @@ class Z
 
     public int Prop { get; set; }
 }",
-options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
@@ -1352,10 +1433,19 @@ chosenSymbols: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPartialFieldSelectionBeforeIdentifier()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class Z
 {
     int [||]a;
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
 }");
         }
 
@@ -1363,10 +1453,19 @@ chosenSymbols: null);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestPartialFieldSelectionAfterIdentifier()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScript1Async(
 @"class Z
 {
     int a[||];
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
 }");
         }
 
@@ -1439,12 +1538,32 @@ chosenSymbols: null);
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestMultiplePartialFieldSelection3()
+        public async Task TestMultiplePartialFieldSelection3_1()
         {
             await TestInRegularAndScriptAsync(
 @"class Z
 {
     int [|a|] = 2, b = 3;
+}",
+@"class Z
+{
+    int a = 2, b = 3;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection3_2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a = 2, b|] = 3;
 }",
 @"class Z
 {
@@ -1526,7 +1645,7 @@ chosenSymbols: null);
     {
         field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1546,7 +1665,7 @@ chosenSymbols: null);
     {
         field_s_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1566,7 +1685,7 @@ chosenSymbols: null);
     {
         s_field_a = p_a_End;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1577,7 +1696,7 @@ chosenSymbols: null);
 @"class Z
 {
     int [|field__End|] = 2;
-}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+}", new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
         [WorkItem(36741, "https://github.com/dotnet/roslyn/issues/36741")]
@@ -1599,7 +1718,76 @@ chosenSymbols: null);
     {
         s_field_a = p_a;
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestUnsafeField()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Z
+{
+    [|unsafe int* a;|]
+}",
+@"
+class Z
+{
+    unsafe int* a;
+
+    public unsafe Z(int* a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestUnsafeFieldInUnsafeClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+unsafe class Z
+{
+    [|int* a;|]
+}",
+@"
+unsafe class Z
+{
+    int* a;
+
+    public Z(int* a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+        }
+
+        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMissingWhenTypeNotInCompilation()
+        {
+            await TestMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"">
+        <Document>
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+<![CDATA[ class Z<T> where T : class ]]>
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +11,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -14,6 +19,8 @@ namespace Roslyn.Utilities
 {
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif
@@ -31,18 +38,16 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001001;
+        internal const byte VersionByte2 = 0b00001011;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// Map of reference id's to deserialized objects.
-        ///
-        /// These are not readonly because they're structs and we mutate them.
         /// </summary>
-        private ReaderReferenceMap<object> _objectReferenceMap;
-        private ReaderReferenceMap<string> _stringReferenceMap;
+        private readonly ReaderReferenceMap<object> _objectReferenceMap;
+        private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
@@ -58,16 +63,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectReader"/>.
         /// </summary>
         /// <param name="stream">The stream to read objects from.</param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
         /// <param name="cancellationToken"></param>
         private ObjectReader(
             Stream stream,
+            bool leaveOpen,
             CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _reader = new BinaryReader(stream, Encoding.UTF8);
+            _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = ReaderReferenceMap<object>.Create();
             _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
@@ -85,6 +92,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
+            bool leaveOpen = false,
             CancellationToken cancellationToken = default)
         {
             if (stream == null)
@@ -98,7 +106,43 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            return new ObjectReader(stream, cancellationToken);
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
+        /// of the data in the stream to exactly match the current format version.
+        /// Should only be used to read data written by the same version of Roslyn.
+        /// </summary>
+        public static ObjectReader GetReader(
+            Stream stream,
+            bool leaveOpen,
+            CancellationToken cancellationToken)
+        {
+            var b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte1)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
+
+            b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte2)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
+
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
         }
 
         public void Dispose()
@@ -143,13 +187,11 @@ namespace Roslyn.Utilities
             object value;
             if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 // If we're recursing too deep, move the work to another thread to do so we
                 // don't blow the stack.
-                var task = Task.Factory.StartNew(
-                    () => ReadValueWorker(),
-                    _cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
+                var task = SerializationThreadPool.RunOnBackgroundThreadAsync(() => ReadValueWorker());
 
                 // We must not proceed until the additional task completes. After returning from a read, the underlying
                 // stream providing access to raw memory will be closed; if this occurs before the separate thread
@@ -238,33 +280,53 @@ namespace Roslyn.Utilities
                 case EncodingKind.Array_2:
                 case EncodingKind.Array_3:
                     return ReadArray(kind);
+
+                case EncodingKind.EncodingName: return Encoding.GetEncoding(ReadString());
+                case EncodingKind.EncodingUTF8: return s_encodingUTF8;
+                case EncodingKind.EncodingUTF8_BOM: return Encoding.UTF8;
+                case EncodingKind.EncodingUTF32_BE: return s_encodingUTF32_BE;
+                case EncodingKind.EncodingUTF32_BE_BOM: return s_encodingUTF32_BE_BOM;
+                case EncodingKind.EncodingUTF32_LE: return s_encodingUTF32_LE;
+                case EncodingKind.EncodingUTF32_LE_BOM: return Encoding.UTF32;
+                case EncodingKind.EncodingUnicode_BE: return s_encodingUnicode_BE;
+                case EncodingKind.EncodingUnicode_BE_BOM: return Encoding.BigEndianUnicode;
+                case EncodingKind.EncodingUnicode_LE: return s_encodingUnicode_LE;
+                case EncodingKind.EncodingUnicode_LE_BOM: return Encoding.Unicode;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
+        private static readonly Encoding s_encodingUTF8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        private static readonly Encoding s_encodingUTF32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
+        private static readonly Encoding s_encodingUTF32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
+        private static readonly Encoding s_encodingUTF32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
+        private static readonly Encoding s_encodingUnicode_BE = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
+        private static readonly Encoding s_encodingUnicode_LE = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
+
         /// <summary>
-        /// An reference-id to object map, that can share base data efficiently.
+        /// A reference-id to object map, that can share base data efficiently.
         /// </summary>
-        private struct ReaderReferenceMap<T> where T : class
+        private struct ReaderReferenceMap<T> : IDisposable
+            where T : class
         {
-            private readonly List<T> _values;
+            private readonly SegmentedList<T> _values;
 
-            internal static readonly ObjectPool<List<T>> s_objectListPool
-                = new ObjectPool<List<T>>(() => new List<T>(20));
+            private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
+                = new(() => new SegmentedList<T>(20));
 
-            private ReaderReferenceMap(List<T> values)
+            private ReaderReferenceMap(SegmentedList<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()
-                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
+                => new(s_objectListPool.Allocate());
 
             public void Dispose()
             {
                 _values.Clear();
                 s_objectListPool.Free(_values);
             }
-
 
             public int GetNextObjectId()
             {

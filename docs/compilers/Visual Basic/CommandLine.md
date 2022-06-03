@@ -31,9 +31,9 @@
 | `/debug`{`+`&#124;`-`} | Emit debugging information.
 | `/debug`:`full` | Emit debugging information to .pdb file using default format for the current platform: _Windows PDB_ on Windows, _Portable PDB_ on other systems
 | `/debug`:`pdbonly` | Same as `/debug:full`. For backward compatibility. 
-| `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md)
-| `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md).
-| `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/source_link.md) info to embed into PDB.
+| `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/portable_pdb.md)
+| `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/portable_pdb.md).
+| `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/main/Documentation/diagnostics/source_link.md) info to embed into PDB.
 | `/optimize`{`+`&#124;`-`} | Enable optimizations.
 | `/removeintchecks`{`+`&#124;`-`} | Remove integer checks. Default off.
 | `/debug:full` | Emit full debugging information (default).
@@ -84,7 +84,7 @@
 | `/moduleassemblyname:`*string* | Name of the assembly which this module will be a part of.
 | `/netcf` | Target the .NET Compact Framework.
 | `/nostdlib` | Do not reference standard libraries (`system.dll` and `VBC.RSP` file).
-| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... |  Specify a mapping for source path names output by the compiler.
+| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... |  Specify a mapping for source path names output by the compiler. Two consecutive separator characters are treated as a single character that is part of the key or value (i.e. `==` stands for `=` and `,,` for `,`).
 | `/platform:`*string* | Limit which platforms this code can run on; must be `x86`, `x64`, `Itanium`, `arm`, `AnyCPU32BitPreferred` or `anycpu` (default).
 | `/preferreduilang` | Specify the preferred output language name.
 | `/sdkpath:`*path* | Location of the .NET Framework SDK directory (`mscorlib.dll`).

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Roslyn.Utilities;
 
@@ -15,7 +18,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _diagnosticReporter = diagnosticReporter;
         }
 
-        public bool TryGetAbsoluteSolutionPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, out string absolutePath)
+        public bool TryGetAbsoluteSolutionPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absolutePath)
         {
             try
             {
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return true;
         }
 
-        public bool TryGetAbsoluteProjectPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, out string absolutePath)
+        public bool TryGetAbsoluteProjectPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absolutePath)
         {
             try
             {

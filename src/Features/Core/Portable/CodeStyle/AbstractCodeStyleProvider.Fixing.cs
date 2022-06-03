@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -13,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     // subclasses cannot change anything.  All code relevant to subclasses relating to fixing is
     // contained in AbstractCodeStyleProvider.cs
 
-    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
+    internal abstract partial class AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>
     {
         private async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -28,22 +33,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public abstract class CodeFixProvider : SyntaxEditorBasedCodeFixProvider
         {
-            public readonly TCodeStyleProvider _codeStyleProvider;
+            public readonly TCodeStyleProvider _codeStyleProvider = new();
 
             protected CodeFixProvider()
             {
-                _codeStyleProvider = new TCodeStyleProvider();
                 FixableDiagnosticIds = ImmutableArray.Create(_codeStyleProvider._descriptorId);
             }
-
-            internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
             public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
                 => _codeStyleProvider.RegisterCodeFixesAsync(context);
 
-            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+            protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
                 => _codeStyleProvider.FixAllAsync(document, diagnostics, editor, cancellationToken);
         }
     }

@@ -1,9 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
@@ -21,7 +26,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             AssertValidId(id, Sub(value) Assert.False(value))
         End Sub
 
+#Disable Warning CA1822 ' Mark members as static - False positive due to https://github.com/dotnet/roslyn/issues/50582
         Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))
+#Enable Warning CA1822
             Using workspace = TestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
@@ -44,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             <%= code.Replace(vbCrLf, vbLf) %>
         </Document>
     </Project>
-</Workspace>, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+</Workspace>, composition:=VisualStudioTestCompositions.LanguageServices)
         End Function
 
         Protected Function GetDocument(workspace As TestWorkspace) As Document

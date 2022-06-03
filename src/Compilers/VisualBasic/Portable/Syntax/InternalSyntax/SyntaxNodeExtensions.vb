@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------------------------------------
 '
@@ -443,10 +445,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' as many consecutive tokens as possible into a SkippedTokens trivia node.
         Private Class SkippedTriviaBuilder
             ' Maintain the list of trivia that we're accumulating.
+#Disable Warning IDE0044 ' Add readonly modifier - Adding readonly generates compile error - see https://github.com/dotnet/roslyn/issues/47198
             Private _triviaListBuilder As SyntaxListBuilder(Of GreenNode) = SyntaxListBuilder(Of GreenNode).Create()
+#Enable Warning IDE0044 ' Add readonly modifier
 
             ' Maintain a list of tokens we're accumulating to put into a SkippedNodes trivia.
-            Private _skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
+            Private ReadOnly _skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
 
             Private ReadOnly _preserveExistingDiagnostics As Boolean
             Private _addDiagnosticsToFirstTokenOnly As Boolean
@@ -841,4 +845,3 @@ TryAgain:
 
     End Module
 End Namespace
-

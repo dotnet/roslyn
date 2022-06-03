@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Reflection;
@@ -40,7 +44,8 @@ namespace Microsoft.Cci
             }
             else
             {
-                typeName = MetadataWriter.GetMangledName((INamedTypeReference)t);
+                int generation = (t is INamedTypeDefinition namedType) ? _writer.Module.GetTypeDefinitionGeneration(namedType) : 0;
+                typeName = MetadataWriter.GetMangledName((INamedTypeReference)t, generation);
 
                 INamespaceTypeDefinition namespaceTypeDef;
                 if ((namespaceTypeDef = t.AsNamespaceTypeDefinition(_writer.Context)) != null)

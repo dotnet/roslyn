@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public PlaceholderLocal(Symbol containingSymbol, object identifier, TypeWithAnnotations type)
             {
                 Debug.Assert(identifier != null);
+                Debug.Assert(containingSymbol is null || containingSymbol.DeclaringCompilation is not null);
                 _containingSymbol = containingSymbol;
                 _type = type;
                 _identifier = identifier;
@@ -51,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override bool IsPinned => false;
             public override RefKind RefKind => RefKind.None;
             internal override SynthesizedLocalKind SynthesizedKind => throw ExceptionUtilities.Unreachable;
-            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null) => null;
-            internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableArray<Diagnostic>.Empty;
+            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null) => null;
+            internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
             internal override SyntaxNode GetDeclaratorSyntax() => throw ExceptionUtilities.Unreachable;
             internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) => throw ExceptionUtilities.Unreachable;
             internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;

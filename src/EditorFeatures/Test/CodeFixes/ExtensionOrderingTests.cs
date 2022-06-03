@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
     [UseExportProvider]
     public class ExtensionOrderingTests
     {
-        private ExportProvider ExportProvider => TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+        private static ExportProvider ExportProvider => EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
 
-        [ConditionalFact(typeof(x86))]
+        [Fact]
         public void TestNoCyclesInFixProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our code fix providers.
@@ -38,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var actualOrder = ExtensionOrderer.Order(csharpProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
             Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddImport) <
-                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
+                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.FullyQualify));
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
             ExtensionOrderer.TestAccessor.CheckForCycles(vbProviders);
             actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
             Assert.True(actualOrder.Length > 0);
             Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddImport) <
-                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.RenameTracking));
+                actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.FullyQualify));
         }
 
         [Fact]
@@ -73,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 // break the cycle and the resulting order will end up being unpredictable.
                 var actualOrder = ExtensionOrderer.Order(providers).ToArray();
                 Assert.Equal(3, actualOrder.Length);
-                Assert.Equal(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, actualOrder[0].Metadata.Name);
-                Assert.Equal(PredefinedCodeFixProviderNames.ConfigureSeverity, actualOrder[1].Metadata.Name);
-                Assert.Equal(PredefinedCodeFixProviderNames.Suppression, actualOrder[2].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.Suppression, actualOrder[0].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.ConfigureCodeStyleOption, actualOrder[1].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.ConfigureSeverity, actualOrder[2].Metadata.Name);
             }
         }
 

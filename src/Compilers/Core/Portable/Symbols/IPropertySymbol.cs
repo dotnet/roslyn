@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +30,11 @@ namespace Microsoft.CodeAnalysis
         /// True if this is a write-only property; that is, a property with no get accessor.
         /// </summary>
         bool IsWriteOnly { get; }
+
+        /// <summary>
+        /// True if this property is required to be set in an object initializer during construction.
+        /// </summary>
+        bool IsRequired { get; }
 
         /// <summary>
         /// Returns true if this property is an auto-created WithEvents property that takes place of
@@ -67,12 +74,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
         /// </summary>
-        IMethodSymbol GetMethod { get; }
+        IMethodSymbol? GetMethod { get; }
 
         /// <summary>
         /// The 'set' accessor of the property, or null if the property is read-only.
         /// </summary>
-        IMethodSymbol SetMethod { get; }
+        IMethodSymbol? SetMethod { get; }
 
         /// <summary>
         /// The original definition of the property. If the property is constructed from another
@@ -84,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the overridden property, or null.
         /// </summary>
-        IPropertySymbol OverriddenProperty { get; }
+        IPropertySymbol? OverriddenProperty { get; }
 
         /// <summary>
         /// Returns interface properties explicitly implemented by this property.

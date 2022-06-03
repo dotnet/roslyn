@@ -1,35 +1,39 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class FromKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "From")
-        End Function
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterDimEqualsNewTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = New |</MethodBody>, "From")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "From")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterFromTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo From |</ClassDeclaration>, "From")
-        End Function
+        Public Sub NoneAfterDimEqualsNewTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = New |</MethodBody>, "From")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterWith1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New With |</ClassDeclaration>, "From")
-        End Function
+        Public Sub NoneAfterFromTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Goo From |</ClassDeclaration>, "From")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterWith2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo With |</ClassDeclaration>, "From")
-        End Function
+        Public Sub NoneAfterWith1Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New With |</ClassDeclaration>, "From")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromAfterDimEqualsNewTypeNameTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Imports System.Collections.Generic
+        Public Sub NoneAfterWith2Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Goo With |</ClassDeclaration>, "From")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub FromAfterDimEqualsNewTypeNameTest()
+            VerifyRecommendationsContain(<File>Imports System.Collections.Generic
                                              
 Class C
     Implements IEnumerable(Of Integer)
@@ -42,11 +46,11 @@ Module Program
         Dim x = new C |
     End Sub
 End Module</File>, "From")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromAfterDimEqualsNewTypeNameAndParensTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Imports System.Collections.Generic
+        Public Sub FromAfterDimEqualsNewTypeNameAndParensTest()
+            VerifyRecommendationsContain(<File>Imports System.Collections.Generic
                                              
 Class C
     Implements IEnumerable(Of Integer)
@@ -59,16 +63,16 @@ Module Program
         Dim x = new C() |
     End Sub
 End Module</File>, "From")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterDimAsNewTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x As New |</MethodBody>, "From")
-        End Function
+        Public Sub NoneAfterDimAsNewTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x As New |</MethodBody>, "From")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromAfterDimAsNewTypeNameTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Imports System.Collections.Generic
+        Public Sub FromAfterDimAsNewTypeNameTest()
+            VerifyRecommendationsContain(<File>Imports System.Collections.Generic
                                              
 Class C
     Implements IEnumerable(Of Integer)
@@ -81,11 +85,11 @@ Module Program
         Dim x as new C |
     End Sub
 End Module</File>, "From")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromAfterDimAsNewTypeNameAndParensTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Imports System.Collections.Generic
+        Public Sub FromAfterDimAsNewTypeNameAndParensTest()
+            VerifyRecommendationsContain(<MethodBody>Imports System.Collections.Generic
                                              
 Class C
     Implements IEnumerable(Of Integer)
@@ -98,16 +102,16 @@ Module Program
         Dim x As new C() |
     End Sub
 End Module</MethodBody>, "From")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterAssignmentNewTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>x = New |</MethodBody>, "From")
-        End Function
+        Public Sub NoneAfterAssignmentNewTest()
+            VerifyRecommendationsMissing(<MethodBody>x = New |</MethodBody>, "From")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromAfterAssignmentNewTypeNameTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Imports System.Collections.Generic
+        Public Sub FromAfterAssignmentNewTypeNameTest()
+            VerifyRecommendationsContain(<File>Imports System.Collections.Generic
                                              
 Class C
     Implements IEnumerable(Of Integer)
@@ -120,11 +124,11 @@ Module Program
         Dim b = New C |
     End Sub
 End Module</File>, "From")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromAfterAssignmentNewTypeNameAndParensTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Imports System.Collections.Generic
+        Public Sub FromAfterAssignmentNewTypeNameAndParensTest()
+            VerifyRecommendationsContain(<MethodBody>Imports System.Collections.Generic
                                              
 Class C
     Implements IEnumerable(Of Integer)
@@ -138,17 +142,17 @@ Module Program
         x = new C() |
     End Sub
 End Module</MethodBody>, "From")
-        End Function
+        End Sub
 
         <WorkItem(542741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542741")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromAfterLambdaHeaderTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 As Func(Of Integer()) = Function() |</MethodBody>, "From")
-        End Function
+        Public Sub FromAfterLambdaHeaderTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q1 As Func(Of Integer()) = Function() |</MethodBody>, "From")
+        End Sub
 
         <WorkItem(543291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoFromAfterDotTest() As Task
+        Public Sub NoFromAfterDotTest()
             Dim code = <File>
 Class C
     Sub M()
@@ -157,12 +161,12 @@ Class C
 End Class
                        </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "From")
-        End Function
+            VerifyRecommendationsMissing(code, "From")
+        End Sub
 
         <WorkItem(542252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542252")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoFromIfNotCollectionInitializerTest() As Task
+        Public Sub NoFromIfNotCollectionInitializerTest()
             Dim code = <File>
 System
 Imports System.Collections.Generic
@@ -178,13 +182,13 @@ Class Goo
 End Class
                        </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "From")
-        End Function
+            VerifyRecommendationsMissing(code, "From")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <File>Imports System.Collections.Generic
                                              
 Class C
@@ -196,12 +200,12 @@ Class C
     Dim b = New C 
 |
 End Class</File>, "From")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <File>Imports System.Collections.Generic
                                              
 Class C
@@ -213,11 +217,11 @@ Class C
     Dim b = New C _
 |
 End Class</File>, "From")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <File>Imports System.Collections.Generic
                                              
 Class C
@@ -229,11 +233,11 @@ Class C
     Dim b = New C _ ' Test
 |
 End Class</File>, "From")
-        End Function
+        End Sub
 
         <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromForTypeInheritingCollectionInitializerPatternTest() As Task
+        Public Sub FromForTypeInheritingCollectionInitializerPatternTest()
             Dim code = <File>
 Imports System.Collections
 
@@ -261,12 +265,12 @@ End Class
 
                        </File>
 
-            Await VerifyRecommendationsContainAsync(code, "From")
-        End Function
+            VerifyRecommendationsContain(code, "From")
+        End Sub
 
         <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromForTypeInheritingCollectionInitializerPatternInAccessibleTest() As Task
+        Public Sub FromForTypeInheritingCollectionInitializerPatternInAccessibleTest()
             Dim code = <File>
 Imports System.Collections
 
@@ -294,12 +298,12 @@ End Class
 
                        </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "From")
-        End Function
+            VerifyRecommendationsMissing(code, "From")
+        End Sub
 
         <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FromForTypeInheritingCollectionInitializerPatternAccessibleTest() As Task
+        Public Sub FromForTypeInheritingCollectionInitializerPatternAccessibleTest()
             Dim code = <File>
 Imports System.Collections
 
@@ -323,7 +327,7 @@ Public Class DerivedSupportsAdd
     End Sub
 End Class</File>
 
-            Await VerifyRecommendationsContainAsync(code, "From")
-        End Function
+            VerifyRecommendationsContain(code, "From")
+        End Sub
     End Class
 End Namespace

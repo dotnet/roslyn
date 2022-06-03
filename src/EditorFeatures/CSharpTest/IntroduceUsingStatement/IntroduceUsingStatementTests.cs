@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -139,6 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         using (var name = disposable)
         {
         }
+
         var ignore = disposable;
     }
 }");
@@ -163,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         using (var name = disposable)
         {
         }
+
         var ignore = disposable;
     }
 }");
@@ -413,6 +419,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
             M(null);
             M(x);
         }
+
         M(null);
     }
 }");
@@ -474,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                 {
                     M(x);
                 }
+
                 break;
         }
     }
@@ -545,6 +553,7 @@ class C
             var buffer = reader.GetBuffer();
             buffer.Clone();
         }
+
         var a = 1;
     }
 }");
@@ -588,6 +597,7 @@ class C
             var a = number;
             var b = a;
         }
+
         var c = 1;
     }
 }");
@@ -631,6 +641,7 @@ class C
             var a = number;
             var b = a;
         }
+
         var c = 1;
     }
 }");
@@ -666,6 +677,7 @@ class C
             int a = buffer[0], b = a;
             var c = b;
         }
+
         var d = 1;
     }
 }");

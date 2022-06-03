@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         protected class TypeParameterCollector : SymbolVisitor
         {
-            private readonly List<ITypeParameterSymbol> _typeParameters = new List<ITypeParameterSymbol>();
+            private readonly List<ITypeParameterSymbol> _typeParameters = new();
 
             public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
             {
@@ -21,23 +25,26 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override void DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
             {
             }
 
-            public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
+            public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
-                arrayTypeSymbol.ElementType.Accept(this);
+                symbol.Signature.ReturnType.Accept(this);
+                foreach (var param in symbol.Signature.Parameters)
+                {
+                    param.Type.Accept(this);
+                }
             }
 
+            public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
+                => arrayTypeSymbol.ElementType.Accept(this);
+
             public override void VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
-            {
-                pointerTypeSymbol.PointedAtType.Accept(this);
-            }
+                => pointerTypeSymbol.PointedAtType.Accept(this);
 
             public override void VisitNamedType(INamedTypeSymbol namedTypeSymbol)
             {
@@ -48,9 +55,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterTypeSymbol)
-            {
-                _typeParameters.Add(typeParameterTypeSymbol);
-            }
+                => _typeParameters.Add(typeParameterTypeSymbol);
         }
     }
 }

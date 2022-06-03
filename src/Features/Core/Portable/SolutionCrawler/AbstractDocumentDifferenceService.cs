@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceService
     {
-        public async Task<DocumentDifferenceResult> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             try
             {
@@ -60,9 +62,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     // explicitly parse them
-                    oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                    newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    Contract.ThrowIfNull(oldRoot);
+                    Contract.ThrowIfNull(newRoot);
                 }
+
                 // at this point, we must have these version already calculated
                 if (!oldDocument.TryGetTopLevelChangeTextVersion(out var oldTopLevelChangeVersion) ||
                     !newDocument.TryGetTopLevelChangeTextVersion(out var newTopLevelChangeVersion))
@@ -88,13 +94,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        private static SyntaxNode GetChangedMember(
+        private static SyntaxNode? GetChangedMember(
             ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
         {
             // if either old or new tree contains skipped text, re-analyze whole document
@@ -128,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return newMember;
         }
 
-        private static SyntaxNode GetBestGuessChangedMember(
+        private static SyntaxNode? GetBestGuessChangedMember(
             ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
         {
             // if either old or new tree contains skipped text, re-analyze whole document

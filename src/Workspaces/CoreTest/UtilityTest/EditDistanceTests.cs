@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Linq;
 using Roslyn.Utilities;
 using Xunit;
@@ -73,45 +76,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         public void EditDistance4()
-        {
-            VerifyEditDistance("XlmReade", "XmlReader", 2);
-        }
+            => VerifyEditDistance("XlmReade", "XmlReader", 2);
 
         [Fact]
         public void EditDistance5()
-        {
-            VerifyEditDistance("Zeil", "trials", 4);
-        }
+            => VerifyEditDistance("Zeil", "trials", 4);
 
         [Fact]
         public void EditDistance6()
-        {
-            VerifyEditDistance("barking", "corkliness", 6);
-        }
+            => VerifyEditDistance("barking", "corkliness", 6);
 
         [Fact]
         public void EditDistance7()
-        {
-            VerifyEditDistance("kitten", "sitting", 3);
-        }
+            => VerifyEditDistance("kitten", "sitting", 3);
 
         [Fact]
         public void EditDistance8()
-        {
-            VerifyEditDistance("sunday", "saturday", 3);
-        }
+            => VerifyEditDistance("sunday", "saturday", 3);
 
         [Fact]
         public void EditDistance9()
-        {
-            VerifyEditDistance("meilenstein", "levenshtein", 4);
-        }
+            => VerifyEditDistance("meilenstein", "levenshtein", 4);
 
         [Fact]
         public void EditDistance10()
-        {
-            VerifyEditDistance("rosettacode", "raisethysword", 8);
-        }
+            => VerifyEditDistance("rosettacode", "raisethysword", 8);
 
         [Fact]
         public void EditDistance11()
@@ -224,7 +213,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
             };
 
-
         [Fact]
         public void Top1000Test()
         {
@@ -258,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestSpecificMetric()
         {
             // If our edit distance is a metric then ED(CA,ABC) = 2 because CA -> AC -> ABC
-            // In this case.  This then satisifes the triangle inequality because 
+            // In this case.  This then satisfies the triangle inequality because 
             // ED(CA, AC) + ED(AC, ABC) >= ED(CA, ABC)   ...   1 + 1 >= 2
             //
             // If it's not implemented with a metric (like if we used the Optimal String Alignment

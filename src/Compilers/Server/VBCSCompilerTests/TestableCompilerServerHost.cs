@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
@@ -8,14 +12,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal sealed class TestableCompilerServerHost : ICompilerServerHost
     {
-        internal Func<RunRequest, CancellationToken, BuildResponse> RunCompilation;
+        internal Func<RunRequest, CancellationToken, BuildResponse> RunCompilation { get; }
+        public ICompilerServerLogger Logger { get; }
 
-        internal TestableCompilerServerHost(Func<RunRequest, CancellationToken, BuildResponse> runCompilation = null)
+        internal TestableCompilerServerHost(Func<RunRequest, CancellationToken, BuildResponse> runCompilation = null, ICompilerServerLogger logger = null)
         {
             RunCompilation = runCompilation;
+            Logger = logger ?? EmptyCompilerServerLogger.Instance;
         }
 
-        BuildResponse ICompilerServerHost.RunCompilation(RunRequest request, CancellationToken cancellationToken)
+        BuildResponse ICompilerServerHost.RunCompilation(in RunRequest request, CancellationToken cancellationToken)
         {
             return RunCompilation(request, cancellationToken);
         }

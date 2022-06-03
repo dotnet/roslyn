@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -8,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class GroupTypeInferenceLambda
+    Partial Friend Class GroupTypeInferenceLambda
 
         Public Function InferLambdaReturnType(delegateParams As ImmutableArray(Of ParameterSymbol)) As TypeSymbol
             ' Return type of the lambda must be an Anonymous Type corresponding to the following initializer:
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Return Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(
                                             New AnonymousTypeDescriptor(
-                                                ImmutableArray.Create(New AnonymousTypeField(StringConstants.ItAnonymous,
+                                                ImmutableArray.Create(New AnonymousTypeField(GeneratedNameConstants.ItAnonymous,
                                                                        delegateParams(1).Type,
                                                                        Syntax.QueryClauseKeywordOrRangeVariableIdentifier.GetLocation(),
                                                                        True)),

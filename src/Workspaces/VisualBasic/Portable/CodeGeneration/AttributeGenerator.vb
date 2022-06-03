@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -9,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module AttributeGenerator
 
-        Public Function GenerateAttributeBlocks(attributes As ImmutableArray(Of AttributeData), options As CodeGenerationOptions, Optional target As SyntaxToken? = Nothing) As SyntaxList(Of AttributeListSyntax)
+        Public Function GenerateAttributeBlocks(attributes As ImmutableArray(Of AttributeData), options As CodeGenerationContextInfo, Optional target As SyntaxToken? = Nothing) As SyntaxList(Of AttributeListSyntax)
             If Not attributes.Any() Then
                 Return Nothing
             End If
@@ -17,12 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.List(Of AttributeListSyntax)(attributes.OrderBy(Function(a) a.AttributeClass.Name).Select(Function(a) GenerateAttributeBlock(a, options, target)))
         End Function
 
-        Private Function GenerateAttributeBlock(attribute As AttributeData, options As CodeGenerationOptions, target As SyntaxToken?) As AttributeListSyntax
+        Private Function GenerateAttributeBlock(attribute As AttributeData, options As CodeGenerationContextInfo, target As SyntaxToken?) As AttributeListSyntax
             Return SyntaxFactory.AttributeList(
                 SyntaxFactory.SingletonSeparatedList(GenerateAttribute(attribute, options, target)))
         End Function
 
-        Private Function GenerateAttribute(attribute As AttributeData, options As CodeGenerationOptions, target As SyntaxToken?) As AttributeSyntax
+        Private Function GenerateAttribute(attribute As AttributeData, options As CodeGenerationContextInfo, target As SyntaxToken?) As AttributeSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForAttribute(Of AttributeSyntax)(attribute, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax

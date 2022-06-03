@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -23,12 +25,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Shared Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
             Dim visitor = New EntryPointFinder(findFormsOnly)
+            ' Attempt to only search source symbols
+            ' Some callers will give a symbol that is not part of a compilation
+            If symbol.ContainingCompilation IsNot Nothing Then
+                symbol = symbol.ContainingCompilation.SourceModule.GlobalNamespace
+            End If
+
             visitor.Visit(symbol)
             Return visitor.EntryPoints
         End Function
 
         Public Overrides Sub VisitNamedType(symbol As INamedTypeSymbol)
-            ' It's a form if it Inherits System.Windows.Forms.Form. 
+            ' It's a form if it Inherits System.Windows.Forms.Form.
             Dim baseType = symbol.BaseType
             While baseType IsNot Nothing
                 If baseType.ToDisplayString() = "System.Windows.Forms.Form" Then

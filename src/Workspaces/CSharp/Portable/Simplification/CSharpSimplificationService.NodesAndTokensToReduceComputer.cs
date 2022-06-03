@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,15 +14,12 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
-    internal partial class CSharpSimplificationService : AbstractSimplificationService<ExpressionSyntax, StatementSyntax, CrefSyntax>
+    internal partial class CSharpSimplificationService
     {
         private class NodesAndTokensToReduceComputer : CSharpSyntaxRewriter
         {
-            private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce;
+            private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce = new();
             private readonly Func<SyntaxNodeOrToken, bool> _isNodeOrTokenOutsideSimplifySpans;
-
-            private static readonly Func<SyntaxNode, bool> s_containsAnnotations = n => n.ContainsAnnotations;
-            private static readonly Func<SyntaxNodeOrToken, bool> s_hasSimplifierAnnotation = n => n.HasAnnotation(Simplifier.Annotation);
 
             private bool _simplifyAllDescendants;
             private bool _insideSpeculatedNode;
@@ -36,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private NodesAndTokensToReduceComputer(Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)
                 : base(visitIntoStructuredTrivia: true)
             {
-                _nodesAndTokensToReduce = new List<NodeOrTokenToReduce>();
                 _isNodeOrTokenOutsideSimplifySpans = isNodeOrTokenOutsideSimplifySpans;
                 _simplifyAllDescendants = false;
                 _insideSpeculatedNode = false;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 if (_simplifyAllDescendants && !_insideSpeculatedNode && !token.IsKind(SyntaxKind.None))
                 {
-                    _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, simplifyAllDescendants: true, originalNodeOrToken: token));
+                    _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, SimplifyAllDescendants: true, token));
                 }
 
                 if (token.ContainsAnnotations || savedSimplifyAllDescendants)

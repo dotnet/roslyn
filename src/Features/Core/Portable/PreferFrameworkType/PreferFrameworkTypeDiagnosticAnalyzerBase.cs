@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
@@ -15,27 +19,21 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
     {
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
+                   EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForDeclarationContext
-            => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
-
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext
-            => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
-
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(SimplifierOptions? options)
         {
-            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
-            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+            // analyzer is only active in C# and VB projects
+            Contract.ThrowIfNull(options);
 
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
+            return
+                !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                  options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -51,20 +49,12 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var semanticModel = context.SemanticModel;
-            var language = semanticModel.Language;
+            var options = context.GetAnalyzerOptions();
 
             // if the user never prefers this style, do not analyze at all.
             // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
-            if (!IsStylePreferred(optionSet, language))
+            if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration) &&
+                !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess))
             {
                 return;
             }
@@ -78,56 +68,27 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             }
 
             // check we have a symbol so that the fixer can generate the right type syntax from it.
-            if (!(semanticModel.GetSymbolInfo(predefinedTypeNode, cancellationToken).Symbol is ITypeSymbol typeSymbol))
+            if (context.SemanticModel.GetSymbolInfo(predefinedTypeNode, context.CancellationToken).Symbol is not ITypeSymbol)
             {
                 return;
             }
 
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language,
-                    out var diagnosticSeverity))
+            var optionValue = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode) ?
+                options.PreferPredefinedTypeKeywordInMemberAccess :
+                options.PreferPredefinedTypeKeywordInDeclaration;
+
+            if (IsFrameworkTypePreferred(optionValue))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor, predefinedTypeNode.GetLocation(),
-                    diagnosticSeverity, additionalLocations: null,
+                    optionValue.Notification.Severity, additionalLocations: null,
                     PreferFrameworkTypeConstants.Properties));
             }
+
+            static bool IsFrameworkTypePreferred(CodeStyleOption2<bool> optionValue)
+                => !optionValue.Value && optionValue.Notification.Severity != ReportDiagnostic.Suppress;
         }
-
-        /// <summary>
-        /// Detects the context of this occurrence of predefined type and determines if we should report it.
-        /// </summary>
-        private bool ShouldReportDiagnostic(
-            TPredefinedTypeSyntax predefinedTypeNode, OptionSet optionSet,
-            string language, out ReportDiagnostic severity)
-        {
-            // we have a predefined type syntax that is either in a member access context or a declaration context. 
-            // check the appropriate option and determine if we should report a diagnostic.
-            var isMemberAccessOrCref = IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode);
-
-            var option = isMemberAccessOrCref ? GetOptionForMemberAccessContext : GetOptionForDeclarationContext;
-            var optionValue = optionSet.GetOption(option, language);
-
-            severity = optionValue.Notification.Severity;
-            return OptionSettingPrefersFrameworkType(optionValue, severity);
-        }
-
-        private bool IsStylePreferred(OptionSet optionSet, string language)
-            => IsFrameworkTypePreferred(optionSet, GetOptionForDeclarationContext, language) ||
-               IsFrameworkTypePreferred(optionSet, GetOptionForMemberAccessContext, language);
-
-        private bool IsFrameworkTypePreferred(OptionSet optionSet, PerLanguageOption<CodeStyleOption<bool>> option, string language)
-        {
-            var optionValue = optionSet.GetOption(option, language);
-            return OptionSettingPrefersFrameworkType(optionValue, optionValue.Notification.Severity);
-        }
-
-        /// <summary>
-        /// checks if style is preferred and the enforcement is not None.
-        /// </summary>
-        /// <remarks>if predefined type is not preferred, it implies the preference is framework type.</remarks>
-        private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, ReportDiagnostic severity)
-            => !optionValue.Value && severity != ReportDiagnostic.Suppress;
     }
 }

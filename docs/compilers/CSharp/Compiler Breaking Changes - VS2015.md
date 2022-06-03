@@ -180,7 +180,7 @@ Prior to DevDiv #656739, Roslyn reported that || was ambiguous in the example ab
 
 Bug 9510: Error CS0182 (An attribute argument must be a constant expression) should not be issued for 'new' expressions of enum types
 
-As per the specification, new expressions of enum types cannot have a constant value. However native compiler violates this for paramterless value type constructors and Roslyn maintains compatibility by constant folding paramterless value type constructors. This applies also to enum types.
+As per the specification, new expressions of enum types cannot have a constant value. However native compiler violates this for parameterless value type constructors and Roslyn maintains compatibility by constant folding parameterless value type constructors. This applies also to enum types.
 
 ### C# spec deviation: New Int32() treated as constant 0
 

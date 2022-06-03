@@ -1,128 +1,235 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
+
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
-        private ITypeImportCompletionCacheService CacheService { get; }
+        private IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry> CacheService { get; }
 
         protected abstract string GenericTypeSuffix { get; }
 
         protected abstract bool IsCaseSensitive { get; }
 
+        protected abstract string Language { get; }
+
         internal AbstractTypeImportCompletionService(Workspace workspace)
         {
-            CacheService = workspace.Services.GetService<ITypeImportCompletionCacheService>();
+            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
         }
 
-        public async Task<ImmutableArray<CompletionItem>> GetTopLevelTypesAsync(
-            Project project,
+        public void QueueCacheWarmUpTask(Project project)
+        {
+            CacheService.WorkQueue.AddWork(project);
+        }
+
+        public async Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
+            Project currentProject,
             SyntaxContext syntaxContext,
-            bool isInternalsVisible,
+            bool forceCacheCreation,
+            CompletionOptions options,
             CancellationToken cancellationToken)
         {
-            if (!project.SupportsCompilation)
+            var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(currentProject, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
+
+            ImmutableArray<CompletionItem> GetItemsFromCacheResult(TypeImportCompletionCacheEntry cacheEntry)
+                => cacheEntry.GetItemsForContext(
+                    currentCompilation,
+                    Language,
+                    GenericTypeSuffix,
+                    syntaxContext.IsAttributeNameContext,
+                    IsCaseSensitive,
+                    options.HideAdvancedMembers);
+        }
+
+        private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
+        {
+            try
             {
-                throw new ArgumentException(nameof(project));
+                var isPartialResult = false;
+                using var _1 = ArrayBuilder<TypeImportCompletionCacheEntry>.GetInstance(out var resultBuilder);
+                using var _2 = ArrayBuilder<Project>.GetInstance(out var projectsBuilder);
+                using var _3 = PooledHashSet<ProjectId>.GetInstance(out var nonGlobalAliasedProjectReferencesSet);
+
+                var solution = currentProject.Solution;
+                var graph = solution.GetProjectDependencyGraph();
+                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
+
+                projectsBuilder.Add(currentProject);
+                projectsBuilder.AddRange(referencedProjects);
+                nonGlobalAliasedProjectReferencesSet.AddRange(currentProject.ProjectReferences.Where(pr => !HasGlobalAlias(pr.Aliases)).Select(pr => pr.ProjectId));
+
+                foreach (var project in projectsBuilder)
+                {
+                    var projectId = project.Id;
+                    if (nonGlobalAliasedProjectReferencesSet.Contains(projectId))
+                        continue;
+
+                    if (forceCacheCreation)
+                    {
+                        var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                        resultBuilder.Add(upToDateCacheEntry);
+                    }
+                    else if (CacheService.ProjectItemsCache.TryGetValue(projectId, out var cacheEntry))
+                    {
+                        resultBuilder.Add(cacheEntry);
+                    }
+                    else
+                    {
+                        isPartialResult = true;
+                    }
+                }
+
+                var originCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(originCompilation));
+                foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
+                {
+                    // Can't cache items for reference with null key. We don't want risk potential perf regression by 
+                    // making those items repeatedly, so simply not returning anything from this assembly, until 
+                    // we have a better understanding on this scenario.
+                    var peReferenceKey = GetPEReferenceCacheKey(peReference);
+                    if (peReferenceKey is null || !HasGlobalAlias(peReference.Properties.Aliases))
+                        continue;
+
+                    if (forceCacheCreation)
+                    {
+                        if (TryGetUpToDateCacheForPEReference(originCompilation, solution, editorBrowsableInfo.Value, peReference, cancellationToken, out var upToDateCacheEntry))
+                        {
+                            resultBuilder.Add(upToDateCacheEntry);
+                        }
+                    }
+                    else if (CacheService.PEItemsCache.TryGetValue(peReferenceKey, out var cacheEntry))
+                    {
+                        resultBuilder.Add(cacheEntry);
+                    }
+                    else
+                    {
+                        isPartialResult = true;
+                    }
+                }
+
+                return (resultBuilder.ToImmutable(), isPartialResult);
             }
+            finally
+            {
+                if (!forceCacheCreation)
+                    CacheService.WorkQueue.AddWork(currentProject);
+            }
+        }
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        public static async ValueTask BatchUpdateCacheAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
+        {
+            var latestProjects = CompletionUtilities.GetDistinctProjectsFromLatestSolutionSnapshot(projects);
+            foreach (var project in latestProjects)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var service = (AbstractTypeImportCompletionService)project.GetRequiredLanguageService<ITypeImportCompletionService>();
+                _ = await service.GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+            }
+        }
 
+        private static bool HasGlobalAlias(ImmutableArray<string> aliases)
+            => aliases.IsEmpty || aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
+
+        private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
+            => peReference.FilePath ?? peReference.Display;
+
+        /// <summary>
+        /// Get appropriate completion items for all the visible top level types from given project. 
+        /// This method is intended to be used for getting types from source only, so the project must support compilation. 
+        /// For getting types from PE, use <see cref="TryGetUpToDateCacheForPEReference"/>.
+        /// </summary>
+        private async Task<TypeImportCompletionCacheEntry> GetUpToDateCacheForProjectAsync(Project project, CancellationToken cancellationToken)
+        {
             // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            return GetAccessibleTopLevelTypesWorker(
+            return CreateCacheWorker(
                 project.Id,
                 compilation.Assembly,
                 checksum,
-                syntaxContext,
-                isInternalsVisible,
                 CacheService.ProjectItemsCache,
+                new EditorBrowsableInfo(compilation),
                 cancellationToken);
         }
 
-        public ImmutableArray<CompletionItem> GetTopLevelTypesFromPEReference(
+        /// <summary>
+        /// Get appropriate completion items for all the visible top level types from given PE reference.
+        /// </summary>
+        private bool TryGetUpToDateCacheForPEReference(
+            Compilation originCompilation,
             Solution solution,
-            Compilation compilation,
+            EditorBrowsableInfo editorBrowsableInfo,
             PortableExecutableReference peReference,
-            SyntaxContext syntaxContext,
-            bool isInternalsVisible,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            out TypeImportCompletionCacheEntry cacheEntry)
         {
-            var key = GetReferenceKey(peReference);
-            if (key == null)
+            if (originCompilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assemblySymbol)
             {
-                // Can't cache items for reference with null key. We don't want risk potential perf regression by 
-                // making those items repeatedly, so simply not returning anything from this assembly, until 
-                // we have a better understanding on this sceanrio.
-                // TODO: Add telemetry
-                return ImmutableArray<CompletionItem>.Empty;
+                cacheEntry = default;
+                return false;
             }
-
-            if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
+            else
             {
-                return ImmutableArray<CompletionItem>.Empty;
+                cacheEntry = CreateCacheWorker(
+                    GetPEReferenceCacheKey(peReference)!,
+                    assemblySymbol,
+                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken),
+                    CacheService.PEItemsCache,
+                    editorBrowsableInfo,
+                    cancellationToken);
+                return true;
             }
-
-            var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
-            return GetAccessibleTopLevelTypesWorker(
-                key,
-                assemblySymbol,
-                checksum,
-                syntaxContext,
-                isInternalsVisible,
-                CacheService.PEItemsCache,
-                cancellationToken);
-
-            static string GetReferenceKey(PortableExecutableReference reference)
-                => reference.FilePath ?? reference.Display;
         }
 
-        private ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesWorker<TKey>(
+        private TypeImportCompletionCacheEntry CreateCacheWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,
             Checksum checksum,
-            SyntaxContext syntaxContext,
-            bool isInternalsVisible,
-            IDictionary<TKey, ReferenceCacheEntry> cache,
+            IDictionary<TKey, TypeImportCompletionCacheEntry> cache,
+            EditorBrowsableInfo editorBrowsableInfo,
             CancellationToken cancellationToken)
+            where TKey : notnull
         {
-            var language = syntaxContext.SemanticModel.Language;
-
-            // Cache miss, create all requested items.
-            if (!cache.TryGetValue(key, out var cacheEntry) ||
-                cacheEntry.Checksum != checksum)
+            // Cache hit
+            if (cache.TryGetValue(key, out var cacheEntry) && cacheEntry.Checksum == checksum)
             {
-                var builder = new ReferenceCacheEntry.Builder(checksum, language, GenericTypeSuffix);
-                GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
-                cacheEntry = builder.ToReferenceCacheEntry();
-                cache[key] = cacheEntry;
+                return cacheEntry;
             }
 
-            return cacheEntry.GetItemsForContext(
-                language,
-                GenericTypeSuffix,
-                isInternalsVisible,
-                syntaxContext.IsAttributeNameContext,
-                IsCaseSensitive);
+            using var builder = new TypeImportCompletionCacheEntry.Builder(SymbolKey.Create(assembly, cancellationToken), checksum, Language, GenericTypeSuffix, editorBrowsableInfo);
+            GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
+            cacheEntry = builder.ToReferenceCacheEntry();
+            cache[key] = cacheEntry;
+
+            return cacheEntry;
         }
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
             INamespaceSymbol rootNamespaceSymbol,
-            ReferenceCacheEntry.Builder builder,
+            TypeImportCompletionCacheEntry.Builder builder,
             CancellationToken cancellationToken)
         {
             VisitNamespace(rootNamespaceSymbol, containingNamespace: null, builder, cancellationToken);
@@ -130,19 +237,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             static void VisitNamespace(
                 INamespaceSymbol symbol,
-                string containingNamespace,
-                ReferenceCacheEntry.Builder builder,
+                string? containingNamespace,
+                TypeImportCompletionCacheEntry.Builder builder,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
+                containingNamespace = CompletionHelper.ConcatNamespace(containingNamespace, symbol.Name);
 
                 foreach (var memberNamespace in symbol.GetNamespaceMembers())
                 {
                     VisitNamespace(memberNamespace, containingNamespace, builder, cancellationToken);
                 }
 
-                var overloads = PooledDictionary<string, TypeOverloadInfo>.GetInstance();
+                using var _ = PooledDictionary<string, TypeOverloadInfo>.GetInstance(out var overloads);
                 var types = symbol.GetTypeMembers();
 
                 // Iterate over all top level internal and public types, keep track of "type overloads".
@@ -181,20 +288,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                             overloadInfo.ContainsPublicGenericOverload);
                     }
                 }
-
-                overloads.Free();
             }
-        }
-
-        private static string ConcatNamespace(string containingNamespace, string name)
-        {
-            Debug.Assert(name != null);
-            if (string.IsNullOrEmpty(containingNamespace))
-            {
-                return name;
-            }
-
-            return containingNamespace + "." + name;
         }
 
         private readonly struct TypeOverloadInfo
@@ -228,158 +322,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 var newContainsPublicGenericOverload = type.DeclaredAccessibility >= Accessibility.Public || ContainsPublicGenericOverload;
 
                 return new TypeOverloadInfo(NonGenericOverload, newBestGenericOverload, newContainsPublicGenericOverload);
-            }
-        }
-
-        private readonly struct ReferenceCacheEntry
-        {
-            public class Builder
-            {
-                private readonly string _language;
-                private readonly string _genericTypeSuffix;
-                private readonly Checksum _checksum;
-
-                private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
-
-                public Builder(Checksum checksum, string language, string genericTypeSuffix)
-                {
-                    _checksum = checksum;
-                    _language = language;
-                    _genericTypeSuffix = genericTypeSuffix;
-
-                    _itemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
-                }
-
-                public ReferenceCacheEntry ToReferenceCacheEntry()
-                {
-                    return new ReferenceCacheEntry(
-                        _checksum,
-                        _language,
-                        _itemsBuilder.ToImmutableAndFree());
-                }
-
-                public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
-                {
-                    var isGeneric = symbol.Arity > 0;
-
-                    // Need to determine if a type is an attribute up front since we want to filter out 
-                    // non-attribute types when in attribute context. We can't do this lazily since we don't hold 
-                    // on to symbols. However, the cost of calling `IsAttribute` on every top-level type symbols 
-                    // is prohibitively high, so we opt for the heuristic that would do the simple textual "Attribute" 
-                    // suffix check first, then the more expensive symbolic check. As a result, all unimported
-                    // attribute types that don't have "Attribute" suffix would be filtered out when in attribute context.
-                    var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
-
-                    var item = TypeImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
-                    _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
-                }
-            }
-
-            private ReferenceCacheEntry(
-                Checksum checksum,
-                string language,
-                ImmutableArray<TypeImportCompletionItemInfo> items)
-            {
-                Checksum = checksum;
-                Language = language;
-
-                ItemInfos = items;
-            }
-
-            public string Language { get; }
-
-            public Checksum Checksum { get; }
-
-            private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
-
-            public ImmutableArray<CompletionItem> GetItemsForContext(
-                string language,
-                string genericTypeSuffix,
-                bool isInternalsVisible,
-                bool isAttributeContext,
-                bool isCaseSensitive)
-            {
-                var isSameLanguage = Language == language;
-                if (isSameLanguage && !isAttributeContext)
-                {
-                    return ItemInfos.Where(info => info.IsPublic || isInternalsVisible).SelectAsArray(info => info.Item);
-                }
-
-                var builder = ArrayBuilder<CompletionItem>.GetInstance();
-                foreach (var info in ItemInfos)
-                {
-                    if (info.IsPublic || isInternalsVisible)
-                    {
-                        var item = info.Item;
-                        if (isAttributeContext)
-                        {
-                            if (!info.IsAttribute)
-                            {
-                                continue;
-                            }
-
-                            item = GetAppropriateAttributeItem(info.Item, isCaseSensitive);
-                        }
-
-                        if (!isSameLanguage && info.IsGeneric)
-                        {
-                            // We don't want to cache this item.
-                            item = TypeImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
-                        }
-
-                        builder.Add(item);
-                    }
-                }
-
-                return builder.ToImmutableAndFree();
-
-                static CompletionItem GetAppropriateAttributeItem(CompletionItem attributeItem, bool isCaseSensitive)
-                {
-                    if (attributeItem.DisplayText.TryGetWithoutAttributeSuffix(isCaseSensitive: isCaseSensitive, out var attributeNameWithoutSuffix))
-                    {
-                        // We don't want to cache this item.
-                        return TypeImportCompletionItem.CreateAttributeItemWithoutSuffix(attributeItem, attributeNameWithoutSuffix);
-                    }
-
-                    return attributeItem;
-                }
-            }
-        }
-
-        private readonly struct TypeImportCompletionItemInfo
-        {
-            private readonly ItemPropertyKind _properties;
-
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute)
-            {
-                Item = item;
-                _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
-                            | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
-                            | (isAttribute ? ItemPropertyKind.IsAttribute : 0);
-            }
-
-            public CompletionItem Item { get; }
-
-            public bool IsPublic
-                => (_properties & ItemPropertyKind.IsPublic) != 0;
-
-            public bool IsGeneric
-                => (_properties & ItemPropertyKind.IsGeneric) != 0;
-
-            public bool IsAttribute
-                => (_properties & ItemPropertyKind.IsAttribute) != 0;
-
-            public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-            {
-                return new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute);
-            }
-
-            [Flags]
-            private enum ItemPropertyKind : byte
-            {
-                IsPublic = 0x1,
-                IsGeneric = 0x2,
-                IsAttribute = 0x4,
             }
         }
     }

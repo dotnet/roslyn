@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -56,22 +58,25 @@ namespace RunTests
             string executable,
             string arguments,
             bool lowPriority = false,
-            string workingDirectory = null,
+            string? workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            Dictionary<string, string> environmentVariables = null,
-            Action<Process> onProcessStartHandler = null,
+            Dictionary<string, string>? environmentVariables = null,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
             CancellationToken cancellationToken = default) =>
             CreateProcess(
                 CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
                 lowPriority: lowPriority,
                 onProcessStartHandler: onProcessStartHandler,
+                onOutputDataReceived: onOutputDataReceived,
                 cancellationToken: cancellationToken);
 
         public static ProcessInfo CreateProcess(
             ProcessStartInfo processStartInfo,
             bool lowPriority = false,
-            Action<Process> onProcessStartHandler = null,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
             CancellationToken cancellationToken = default)
         {
             var errorLines = new List<string>();
@@ -86,6 +91,7 @@ namespace RunTests
                 {
                     if (e.Data != null)
                     {
+                        onOutputDataReceived?.Invoke(e);
                         outputLines.Add(e.Data);
                     }
                 };
@@ -112,7 +118,7 @@ namespace RunTests
                             new ReadOnlyCollection<string>(outputLines),
                             new ReadOnlyCollection<string>(errorLines));
                         tcs.TrySetResult(result);
-                    });
+                    }, cancellationToken);
                 };
 
             var registration = cancellationToken.Register(() =>
@@ -158,10 +164,10 @@ namespace RunTests
         public static ProcessStartInfo CreateProcessStartInfo(
             string executable,
             string arguments,
-            string workingDirectory = null,
+            string? workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            Dictionary<string, string> environmentVariables = null)
+            Dictionary<string, string>? environmentVariables = null)
         {
             var processStartInfo = new ProcessStartInfo(executable, arguments);
 

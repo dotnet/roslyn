@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -243,7 +247,7 @@ class P // : IEnumerable
 //        // error CS0245: Destructors and object.Finalize cannot be called directly. Consider
 //        // calling IDisposable.Dispose if available.
 //        base.Finalize();
-//        // error CS0250: Do not directly call your base class Finalize method. It is called
+//        // error CS0250: Do not directly call your base type Finalize method. It is called
 //        // automatically from your destructor.
 //    }
     public void GenericConstrained<T>(T t) where T : class { }
@@ -703,7 +707,7 @@ class C
                 // (18,9): error CS1612: Cannot modify the return value of 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)' because it is not a variable
                 //         GetS(null, null).z = 123;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS(null, null)").WithArguments("C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(18, 9),
-                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (24,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         instance_readonly = 123;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "instance_readonly").WithLocation(24, 9),
                 // (31,18): error CS0029: Cannot implicitly convert type 'void' to 'int'

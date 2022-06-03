@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading.Tasks;
@@ -7,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,10 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
 {
     public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest
     {
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
@@ -94,10 +94,10 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:none
+dotnet_diagnostic.IDE0017.severity = none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -137,6 +137,7 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]    # Comment1
 dotnet_style_object_initializer = true:suggestion    ; Comment2
+dotnet_diagnostic.IDE0017.severity = suggestion    ;; Comment3
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -170,6 +171,7 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]    # Comment1
 dotnet_style_object_initializer = true:none    ; Comment2
+dotnet_diagnostic.IDE0017.severity = none    ;; Comment3
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -208,7 +210,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -241,12 +243,12 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:none
+dotnet_diagnostic.IDE0017.severity = none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -285,7 +287,8 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -318,7 +321,8 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:none
+dotnet_style_object_initializer = true:none
+dotnet_diagnostic.IDE0017.severity = none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -358,6 +362,7 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializerr = true:suggestion
+dotnet_diagnostic.IDE0017.severityyy = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -391,9 +396,10 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializerr = true:suggestion
+dotnet_diagnostic.IDE0017.severityyy = suggestion
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:none
+dotnet_diagnostic.IDE0017.severity = none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -467,10 +473,10 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:silent
+dotnet_diagnostic.IDE0017.severity = silent
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -509,7 +515,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -542,231 +548,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:silent
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_InvalidHeader_Silent()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
-
-[*.cs]
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:silent
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_MaintainOption_Silent()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = new Customer();
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:silent
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_InvalidRule_Silent()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializerr = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializerr = true:suggestion
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:silent
+dotnet_diagnostic.IDE0017.severity = silent
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -840,10 +622,10 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -883,6 +665,7 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -916,230 +699,7 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_InvalidHeader_Suggestion()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
-
-[*.cs]
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_MaintainOption_Suggestion()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = new Customer();
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_InvalidRule_Suggestion()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializerr = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializerr = true:warning
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1213,10 +773,10 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1255,7 +815,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1288,231 +848,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_InvalidHeader_Warning()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
-
-[*.cs]
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_MaintainOption_Warning()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = new Customer();
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_InvalidRule_Warning()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializerr = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializerr = true:warning
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1586,10 +922,10 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1597,8 +933,8 @@ dotnet_style_object_initializer = true:error
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_RuleExists_Error()
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RuleExists_CodeStyleBased_Error()
             {
                 var input = @"
 <Workspace>
@@ -1662,6 +998,155 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:error
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RuleExists_SeverityBased_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_diagnostic.IDE0017.severity = suggestion
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = new Customer();
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RuleExists_CodeStyleAndSeverityBased_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = new Customer();
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1700,7 +1185,7 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1733,84 +1218,12 @@ class Program1
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:error
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_MaintainOption_Error()
-            {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = [|new Customer()|];
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.cs"">
-class Program1
-{
-    static void Main()
-    {
-        // dotnet_style_object_initializer = true
-        var obj = new Customer() { _age = 21 };
-
-        // dotnet_style_object_initializer = false
-        Customer obj2 = new Customer();
-        obj2._age = 21;
-    }
-
-    internal class Customer
-    {
-        public int _age;
-
-        public Customer()
-        {
-
-        }
-    }
-}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
-dotnet_style_object_initializer = false:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1850,6 +1263,7 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializerr = true:warning
+dotnet_diagnostic.IDE0017.severityyy = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -1883,9 +1297,1113 @@ class Program1
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializerr = true:warning
+dotnet_diagnostic.IDE0017.severityyy = suggestion
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_ConcreteHeader_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_NestedDirectory_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_NestedDirectoryNestedHeader_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[ParentFolder/File.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = suggestion
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[ParentFolder/File.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_NestedDirectoryIncorrectHeader_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[ParentFolderr/File.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[ParentFolderr/File.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = warning
+
+[*.{cs,vb}]
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_IncorrectExtension_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.vb]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.vb]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+
+[*.{cs,vb}]
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_HeaderRegex_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[Parent*r/Fil*.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[Parent*r/Fil*.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_HeaderAllFiles_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = suggestion
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_MultipleHeaders_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.vb]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[File.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+
+[cs.vb]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[test.test]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[WrongName.cs]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[WrongName2.cs]
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/File.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[File.vb]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[File.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
+
+[cs.vb]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[test.test]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[WrongName.cs]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[WrongName2.cs]
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RegexPartialMatch_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[gram.cs]
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\ParentFolder/Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[gram.cs]
+dotnet_diagnostic.IDE0017.severity = warning
+
+[*.{cs,vb}]
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_VerifyCaseInsensitive_Warning()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\PARENTfoldeR/ProGRAM.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[PROgram.cs]
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\PARENTfoldeR/ProGRAM.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[PROgram.cs]
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_DuplicateRule_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+
+[Program.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+
+[Program.cs]
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+
+[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error
+
+[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+
+[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+
+[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+
+# IDE0017: Simplify object initialization
+dotnet_diagnostic.IDE0017.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_DotFileName_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program/Test.file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[Test.file.cs]
+
+# IDE0017: Simplify object initialization
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program/Test.file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[Test.file.cs]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";

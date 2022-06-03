@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     internal class CSharpPragmaWarningStateMap : AbstractWarningStateMap<PragmaWarningState>
     {
-        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree, bool isGeneratedCode) :
-            base(syntaxTree, isGeneratedCode)
+        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree) :
+            base(syntaxTree)
         {
         }
 
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             GetAllPragmaWarningDirectives(syntaxTree, directives);
 
             // Create the pragma warning map.
-            WarningStateMapEntry[] result = CreatePragmaWarningStateEntries(directives, _isGeneratedCode);
+            WarningStateMapEntry[] result = CreatePragmaWarningStateEntries(directives);
             directives.Free();
 
             return result;
@@ -72,10 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        // Given the ordered list of all pragma warning and nullable directives in the syntax tree, return a list of mapping entries, 
+        // Given the ordered list of all pragma warning and nullable directives in the syntax tree, return a list of mapping entries,
         // containing the cumulative set of warnings that are disabled for that point in the source.
         // This mapping also contains a global warning option, accumulated of all #pragma up to the current line position.
-        private static WarningStateMapEntry[] CreatePragmaWarningStateEntries(ArrayBuilder<DirectiveTriviaSyntax> directiveList, bool isGeneratedCode)
+        private static WarningStateMapEntry[] CreatePragmaWarningStateEntries(ArrayBuilder<DirectiveTriviaSyntax> directiveList)
         {
             var entries = new WarningStateMapEntry[directiveList.Count + 1];
             var index = 0;
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         if (currentErrorCode.Kind() == SyntaxKind.NumericLiteralExpression)
                         {
                             var token = ((LiteralExpressionSyntax)currentErrorCode).Token;
-                            errorId = MessageProvider.Instance.GetIdForErrorCode((int)token.Value);
+                            errorId = MessageProvider.Instance.GetIdForErrorCode((int)token.Value!);
                         }
                         else if (currentErrorCode.Kind() == SyntaxKind.IdentifierName)
                         {
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
 #if DEBUG
-            // Make sure the entries array is correctly sorted. 
+            // Make sure the entries array is correctly sorted.
             for (int i = 1; i < entries.Length - 1; ++i)
             {
                 Debug.Assert(entries[i].CompareTo(entries[i + 1]) < 0);

@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -286,6 +289,37 @@ class C
 </Workspace>
 
             Await TestStreamingFeature(test, host)
+        End Function
+
+        <WpfFact, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestInt32LiteralsUsedInSourceGeneratedDocument() As Task
+            Dim test =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+
+class C
+{
+    void M()
+    {
+        var i = [|$$0|];
+    }
+}
+        </Document>
+        <DocumentFromSourceGenerator>
+
+class D
+{
+    void M()
+    {
+        var i = [|0|];
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestStreamingFeature(test, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
         End Function
     End Class
 End Namespace

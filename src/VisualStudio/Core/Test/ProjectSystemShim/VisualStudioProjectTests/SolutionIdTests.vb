@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -10,29 +13,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class SolutionIdTests
         <WpfFact>
         <WorkItem(31686, "https://github.com/dotnet/roslyn/issues/31686")>
-        Public Sub RemovingAndAddingProjectCreatesNewSolutionId()
+        Public Async Function RemovingAndAddingProjectCreatesNewSolutionId() As Task
             Using environment = New TestEnvironment()
-                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("Project1", LanguageNames.CSharp)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project1", LanguageNames.CSharp, CancellationToken.None)
                 Dim solutionId = environment.Workspace.CurrentSolution.Id
 
                 project1.RemoveFromWorkspace()
 
-                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("Project2", LanguageNames.CSharp)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project2", LanguageNames.CSharp, CancellationToken.None)
 
                 ' A new ID should have been generated for the new solution
                 Assert.NotEqual(solutionId, environment.Workspace.CurrentSolution.Id)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub AddingASecondProjectLeavesSolutionIdUntouched()
+        Public Async Function AddingASecondProjectLeavesSolutionIdUntouched() As Task
             Using environment = New TestEnvironment()
-                Dim project1 = environment.ProjectFactory.CreateAndAddToWorkspace("Project1", LanguageNames.CSharp)
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project1", LanguageNames.CSharp, CancellationToken.None)
                 Dim solutionId = environment.Workspace.CurrentSolution.Id
-                Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("Project2", LanguageNames.CSharp)
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project2", LanguageNames.CSharp, CancellationToken.None)
 
                 Assert.Equal(solutionId, environment.Workspace.CurrentSolution.Id)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

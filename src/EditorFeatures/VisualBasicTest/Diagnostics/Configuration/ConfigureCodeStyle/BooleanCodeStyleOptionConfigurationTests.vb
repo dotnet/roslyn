@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
@@ -11,11 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
     Partial Public MustInherit Class BooleanCodeStyleOptionConfigurationTests
         Inherits AbstractSuppressionDiagnosticTest
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -90,17 +89,17 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
+dotnet_style_object_initializer = true
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
             Public Async Function ConfigureEditorconfig_RuleExists_True() As Task
                 Dim input = "
 <Workspace>
@@ -217,17 +216,17 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:none
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
+dotnet_style_object_initializer = true
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            <Fact(Skip:="https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
             Public Async Function ConfigureEditorconfig_MaintainCurrentSeverity_True() As Task
                 Dim input = "
 <Workspace>
@@ -345,7 +344,7 @@ End Class
 dotnet_style_object_initializer_error = true:none
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
+dotnet_style_object_initializer = true
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -413,10 +412,10 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = false
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -484,6 +483,67 @@ dotnet_style_object_initializer = false:silent
                 Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
             End Function
 
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            Public Async Function ConfigureEditorconfig_RuleExists_False_WithoutSeveritySuffix() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.vb"">
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+dotnet_style_object_initializer = true
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.vb"">
+Class Program1
+    Private Shared Sub Main()
+        ' dotnet_style_object_initializer = true
+        Dim obj = New Customer() With {
+            ._age = 21
+        }
+        ' dotnet_style_object_initializer = false
+        Dim obj2 As Customer = [|New Customer()|]
+        obj2._age = 21
+    End Sub
+
+    Friend Class Customer
+        Public _age As Integer
+
+        Public Sub New()
+        End Sub
+    End Class
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+dotnet_style_object_initializer = false
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
             <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
             Public Async Function ConfigureEditorconfig_InvalidHeader_False() As Task
                 Dim input = "
@@ -540,10 +600,10 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 dotnet_style_object_initializer = true:suggestion
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = false
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -668,7 +728,7 @@ End Class
 dotnet_style_object_initializer_error = true:suggestion
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = false
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"

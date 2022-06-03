@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Text
@@ -20,9 +22,14 @@ Friend Module Program
         outputText.AppendLine("Namespace Microsoft.CodeAnalysis.VisualBasic")
         outputText.AppendLine("    Friend Partial Module ErrorFacts")
 
-        Dim warningCodeNames, fatalCodeNames, infoCodeNames, hiddenCodeNames As New List(Of String)
+        Dim warningCodeNames As New List(Of String)
+        Dim fatalCodeNames As New List(Of String)
+        Dim infoCodeNames As New List(Of String)
+        Dim hiddenCodeNames As New List(Of String)
         For Each line In From l In File.ReadAllLines(inputPath) Select l.Trim
-            If line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase) Then
+            If (line.Contains("_NextAvailable", StringComparison.OrdinalIgnoreCase)) Then
+                Continue For
+            ElseIf line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase) Then
                 warningCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))
             ElseIf line.StartsWith("FTL_", StringComparison.OrdinalIgnoreCase) Then
                 fatalCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))

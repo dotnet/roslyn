@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // There is a use site diagnostic to report here, but it is not reported
             // just because this member was a candidate - only if it "wins".
             return !SuppressUseSiteDiagnosticsForKind(this.Kind) &&
-                (object)symbol != null && symbol.GetUseSiteDiagnostic() != null;
+                (object)symbol != null && symbol.GetUseSiteInfo().DiagnosticInfo != null;
         }
 
         private static bool SuppressUseSiteDiagnosticsForKind(MemberResolutionKind kind)
@@ -292,6 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static MemberAnalysisResult ConstraintFailure(ImmutableArray<TypeParameterDiagnosticInfo> constraintFailureDiagnostics)
         {
             return new MemberAnalysisResult(MemberResolutionKind.ConstraintFailure, constraintFailureDiagnosticsOpt: constraintFailureDiagnostics);
+        }
+
+        internal static MemberAnalysisResult WrongCallingConvention()
+        {
+            return new MemberAnalysisResult(MemberResolutionKind.WrongCallingConvention);
         }
     }
 }

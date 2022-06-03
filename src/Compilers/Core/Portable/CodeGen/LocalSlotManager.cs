@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Structure that represents a local signature (as in <a href="http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-335.pdf">ECMA-335</a>, Partition I, §8.6.1.3 Local signatures).
         /// </summary>
-        private struct LocalSignature : IEquatable<LocalSignature>
+        private readonly struct LocalSignature : IEquatable<LocalSignature>
         {
             private readonly Cci.ITypeReference _type;
             private readonly LocalSlotConstraints _constraints;
@@ -47,55 +50,50 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // Same type may be represented by multiple instances.
                 // Therefore the use of "Equals" here.
                 return _constraints == other._constraints &&
-                    (_type == other._type || _type.Equals(other._type));
+                    (Cci.SymbolEquivalentEqualityComparer.Instance.Equals(_type, other._type));
             }
 
             public override int GetHashCode()
-            {
-                var code = Hash.Combine(_type, (int)_constraints);
-                return code;
-            }
+                => Hash.Combine(Cci.SymbolEquivalentEqualityComparer.Instance.GetHashCode(_type), (int)_constraints);
 
-            public override bool Equals(object obj)
-            {
-                return this.Equals((LocalSignature)obj);
-            }
+            public override bool Equals(object? obj)
+                => obj is LocalSignature ls && Equals(ls);
         }
 
         // maps local identities to locals.
-        private Dictionary<ILocalSymbol, LocalDefinition> _localMap;
+        private Dictionary<ILocalSymbolInternal, LocalDefinition>? _localMap;
 
         // pool of free slots partitioned by their signature.
-        private KeyedStack<LocalSignature, LocalDefinition> _freeSlots;
+        private KeyedStack<LocalSignature, LocalDefinition>? _freeSlots;
 
         // all locals in order
-        private ArrayBuilder<Cci.ILocalDefinition> _lazyAllLocals;
+        private ArrayBuilder<Cci.ILocalDefinition>? _lazyAllLocals;
 
         // An optional allocator that provides slots for locals.
         // Used when emitting an update to a method body during EnC.
-        private readonly VariableSlotAllocator _slotAllocatorOpt;
+        private readonly VariableSlotAllocator? _slotAllocator;
 
-        public LocalSlotManager(VariableSlotAllocator slotAllocatorOpt)
+        public LocalSlotManager(VariableSlotAllocator? slotAllocator)
         {
-            _slotAllocatorOpt = slotAllocatorOpt;
+            _slotAllocator = slotAllocator;
 
             // Add placeholders for pre-allocated locals. 
             // The actual identities are populated if/when the locals are reused.
-            if (slotAllocatorOpt != null)
+            if (slotAllocator != null)
             {
                 _lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>();
-                slotAllocatorOpt.AddPreviousLocals(_lazyAllLocals);
+                slotAllocator.AddPreviousLocals(_lazyAllLocals);
             }
         }
 
-        private Dictionary<ILocalSymbol, LocalDefinition> LocalMap
+        private Dictionary<ILocalSymbolInternal, LocalDefinition> LocalMap
         {
             get
             {
                 var map = _localMap;
                 if (map == null)
                 {
-                    map = new Dictionary<ILocalSymbol, LocalDefinition>(ReferenceEqualityComparer.Instance);
+                    map = new Dictionary<ILocalSymbolInternal, LocalDefinition>(ReferenceEqualityComparer.Instance);
                     _localMap = map;
                 }
 
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<string> tupleElementNames,
             bool isSlotReusable)
         {
-            LocalDefinition local;
+            LocalDefinition? local;
 
             if (!isSlotReusable || !FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
             {
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Retrieve a local slot by its symbol.
         /// </summary>
-        internal LocalDefinition GetLocal(ILocalSymbol symbol)
+        internal LocalDefinition GetLocal(ILocalSymbolInternal symbol)
         {
             return LocalMap[symbol];
         }
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Release a local slot by its symbol.
         /// Slot is not associated with symbol after this.
         /// </summary>
-        internal void FreeLocal(ILocalSymbol symbol)
+        internal void FreeLocal(ILocalSymbolInternal symbol)
         {
             var slot = GetLocal(symbol);
             LocalMap.Remove(symbol);
@@ -166,16 +164,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal LocalDefinition AllocateSlot(
             Cci.ITypeReference type,
             LocalSlotConstraints constraints,
-            ImmutableArray<bool> dynamicTransformFlags = default(ImmutableArray<bool>),
-            ImmutableArray<string> tupleElementNames = default(ImmutableArray<string>))
+            ImmutableArray<bool> dynamicTransformFlags = default,
+            ImmutableArray<string> tupleElementNames = default)
         {
-            LocalDefinition local;
-            if (!FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
+            if (!FreeSlots.TryPop(new LocalSignature(type, constraints), out LocalDefinition? local))
             {
-                local = this.DeclareLocalImpl(
+                local = DeclareLocalImpl(
                     type: type,
-                    symbolOpt: null,
-                    nameOpt: null,
+                    symbol: null,
+                    name: null,
                     kind: SynthesizedLocalKind.EmitterTemp,
                     id: LocalDebugId.None,
                     pdbAttributes: LocalVariableAttributes.DebuggerHidden,
@@ -189,8 +186,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private LocalDefinition DeclareLocalImpl(
             Cci.ITypeReference type,
-            ILocalSymbolInternal symbolOpt,
-            string nameOpt,
+            ILocalSymbolInternal? symbol,
+            string? name,
             SynthesizedLocalKind kind,
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
@@ -203,20 +200,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>(1);
             }
 
-            LocalDefinition local;
+            LocalDefinition? local;
 
-            if (symbolOpt != null && _slotAllocatorOpt != null)
+            if (symbol != null && _slotAllocator != null)
             {
-                local = _slotAllocatorOpt.GetPreviousLocal(
+                local = _slotAllocator.GetPreviousLocal(
                     type,
-                    symbolOpt,
-                    nameOpt,
+                    symbol,
+                    name,
                     kind,
                     id,
                     pdbAttributes,
                     constraints,
                     dynamicTransformFlags: dynamicTransformFlags,
                     tupleElementNames: tupleElementNames);
+
                 if (local != null)
                 {
                     int slot = local.SlotIndex;
@@ -226,8 +224,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             local = new LocalDefinition(
-                symbolOpt: symbolOpt,
-                nameOpt: nameOpt,
+                symbolOpt: symbol,
+                nameOpt: name,
                 type: type,
                 slot: _lazyAllLocals.Count,
                 synthesizedKind: kind,

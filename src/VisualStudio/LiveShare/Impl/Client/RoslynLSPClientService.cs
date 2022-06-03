@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.ComponentModel.Composition;
@@ -6,11 +10,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare;
 using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
@@ -21,8 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         protected abstract RoslynLSPClientLifeTimeService LspClientLifeTimeService { get; }
 
         public LS.ILanguageServerClient ActiveLanguageServerClient { get; private set; }
-
-        public ServerCapabilities ServerCapabilities { get; private set; }
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
         {
@@ -81,35 +83,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         TextDocumentSync = null,
                     })));
 
-            languageServerGuestService.RegisterClientMetadata(
-                new string[] { StringConstants.CSharpLspContentTypeName, StringConstants.VBLspLanguageName },
-                new LS.LanguageServerClientMetadata(
-                    true,
-                    JObject.FromObject(new ServerCapabilities
-                    {
-                        // Uses Roslyn client.
-                        DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions(),
-                        DocumentRangeFormattingProvider = true,
-                        DocumentFormattingProvider = true,
-                        DocumentSymbolProvider = true,
-                        CodeActionProvider = true,
-                        ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        DocumentHighlightProvider = true,
-                        ReferencesProvider = true,
-                        DefinitionProvider = true,
-                        SignatureHelpProvider = new SignatureHelpOptions() { },
-                        CompletionProvider = new CompletionOptions(),
-                        ImplementationProvider = true,
-
-                        // Uses LSP SDK client.
-                        DocumentLinkProvider = null,
-                        RenameProvider = false,
-                        CodeLensProvider = null,
-                        WorkspaceSymbolProvider = false,
-                        HoverProvider = false,
-                        TextDocumentSync = null,
-                    })));
-
             var lifeTimeService = LspClientLifeTimeService;
             lifeTimeService.Disposed += (s, e) =>
             {
@@ -125,39 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             public event EventHandler Disposed;
 
             public void Dispose()
-            {
-                Disposed?.Invoke(this, null);
-            }
-        }
-
-        /// <summary>
-        /// Ensures the client has been fully initialized by making an initialize request
-        /// and retrieving the server capabilities.
-        /// TODO - This should be called in <see cref="CreateServiceAsync(CollaborationSession, CancellationToken)"/>
-        /// and made private once LiveShare fixes the race in client creation.
-        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
-        /// </summary>
-        public async Task EnsureInitializedAsync(CancellationToken cancellationToken)
-        {
-            if (ActiveLanguageServerClient == null)
-            {
-                return;
-            }
-
-            // Only request the server capabilities if we don't already have them.
-            if (ServerCapabilities == null)
-            {
-                var initializeRequest = new LS.LspRequest<InitializeParams, InitializeResult>(Methods.InitializeName);
-                var intializeResult = await ActiveLanguageServerClient.RequestAsync(initializeRequest, new InitializeParams(), cancellationToken).ConfigureAwait(false);
-
-                var serverCapabilities = intializeResult?.Capabilities;
-                if (serverCapabilities != null && LanguageServicesUtils.TryParseJson<RoslynExperimentalCapabilities>(serverCapabilities?.Experimental, out var roslynExperimentalCapabilities))
-                {
-                    serverCapabilities.Experimental = roslynExperimentalCapabilities;
-                }
-
-                ServerCapabilities = serverCapabilities;
-            }
+                => Disposed?.Invoke(this, null);
         }
     }
 
@@ -169,6 +110,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
     internal class CSharpLspClientServiceFactory : AbstractLspClientServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspClientServiceFactory()
+        {
+        }
+
         protected override string LanguageSpecificProviderName => StringConstants.CSharpProviderName;
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new CSharpLSPClientLifeTimeService();
@@ -186,6 +133,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
     internal class VisualBasicLspClientServiceFactory : AbstractLspClientServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicLspClientServiceFactory()
+        {
+        }
+
         protected override string LanguageSpecificProviderName => StringConstants.VisualBasicProviderName;
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new VisualBasicLSPClientLifeTimeService();
@@ -203,6 +156,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
     internal class TypeScriptLspClientServiceFactory : AbstractLspClientServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeScriptLspClientServiceFactory()
+        {
+        }
+
         protected override string LanguageSpecificProviderName => StringConstants.TypeScriptProviderName;
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new TypeScriptLSPClientLifeTimeService();

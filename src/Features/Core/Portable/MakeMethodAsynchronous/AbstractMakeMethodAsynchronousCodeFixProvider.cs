@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -56,23 +60,29 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name, context.Document);
 
             // Offer to convert to a Task return type.
+            var taskTitle = GetMakeAsyncTaskFunctionResource();
             context.RegisterCodeFix(
-                new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                    context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
+                CodeAction.Create(
+                    taskTitle,
+                    c => FixNodeAsync(context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c),
+                    taskTitle),
                 context.Diagnostics);
 
             // If it's a void returning method (and not an entry point), also offer to keep the void return type
             var isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
+                var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
                 context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
+                    CodeAction.Create(
+                        asyncVoidTitle,
+                        c => FixNodeAsync(context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c),
+                        asyncVoidTitle),
                     context.Diagnostics);
             }
         }
 
-        private bool IsLikelyEntryPointName(string name, Document document)
+        private static bool IsLikelyEntryPointName(string name, Document document)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.StringComparer.Equals(name, "Main");
@@ -94,7 +104,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
             // if it has the 'Async' suffix, and remove that suffix if so.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
+            var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var knownTypes = new KnownTypes(compilation);
 
@@ -164,7 +174,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var syntaxPath = new SyntaxPath(node);
 
             // Rename the method to add the 'Async' suffix, then add the 'async' keyword.
-            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, new SymbolRenameOptions(), newName, cancellationToken).ConfigureAwait(false);
 
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -202,6 +212,11 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 return true;
             }
 
+            if (returnType.Equals(knownTypes._valueTaskType))
+            {
+                return true;
+            }
+
             if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
             {
                 return true;
@@ -219,14 +234,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, equivalenceKey: title)
-            {
-            }
         }
     }
 }

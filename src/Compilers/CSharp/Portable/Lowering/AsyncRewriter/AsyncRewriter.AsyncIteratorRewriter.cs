@@ -1,7 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,18 +36,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol method,
                 int methodOrdinal,
                 AsyncStateMachine stateMachineType,
+                ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                DiagnosticBag diagnostics)
-                : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+                BindingDiagnosticBag diagnostics)
+                : base(body, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
 
-                _isEnumerable = method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation);
-                Debug.Assert(_isEnumerable != method.IsIAsyncEnumeratorReturningAsync(method.DeclaringCompilation));
+                _isEnumerable = method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation);
+                Debug.Assert(_isEnumerable != method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
 
@@ -132,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add a field: bool disposeMode
                 _disposeModeField = F.StateMachineField(boolType, GeneratedNames.MakeDisposeModeFieldName());
 
-                if (_isEnumerable && this.method.Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
+                if (_isEnumerable && this.method.Parameters.Any(p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
                 {
                     // Add a field: CancellationTokenSource combinedTokens
                     _combinedTokensField = F.StateMachineField(
@@ -146,15 +153,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Produces:
                 // .ctor(int state)
                 // {
+                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 //     this.state = state;
                 //     this.initialThreadId = {managedThreadId};
-                //     this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
                 // }
                 Debug.Assert(stateMachineType.Constructor is IteratorConstructor);
 
                 F.CurrentFunction = stateMachineType.Constructor;
                 var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 bodyBuilder.Add(F.BaseInitialization());
+
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
+
                 bodyBuilder.Add(F.Assignment(F.InstanceField(stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
 
                 var managedThreadId = MakeCurrentThreadId();
@@ -164,27 +175,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
-                // this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
-                AsyncMethodBuilderMemberCollection methodScopeAsyncMethodBuilderMemberCollection;
-                bool found = AsyncMethodBuilderMemberCollection.TryCreate(F, method, typeMap: null, out methodScopeAsyncMethodBuilderMemberCollection);
-                Debug.Assert(found);
-
-                bodyBuilder.Add(
-                    F.Assignment(
-                        F.InstanceField(_builderField),
-                        F.StaticCall(
-                            null,
-                            methodScopeAsyncMethodBuilderMemberCollection.CreateBuilder)));
 
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
                 bodyBuilder = null;
             }
 
+            private BoundExpressionStatement GenerateCreateAndAssignBuilder()
+            {
+                // Produce:
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                return F.Assignment(
+                    F.InstanceField(_builderField),
+                    F.StaticCall(
+                        null,
+                        _asyncMethodBuilderMemberCollection.CreateBuilder));
+            }
+
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.InitialAsyncIteratorStateMachine;
+                int initialState = _isEnumerable ? StateMachineStates.FinishedState : StateMachineStates.InitialAsyncIteratorState;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -195,9 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundStatement result;
                 if (_combinedTokensField is object &&
-                    parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true })
+                    parameter.IsSourceParameterWithEnumeratorCancellationAttribute() &&
+                    parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
                 {
-                    // For the parameter with [EnumeratorCancellation]
+                    // For a parameter of type CancellationToken with [EnumeratorCancellation]
                     // if (this.parameterProxy.Equals(default))
                     // {
                     //     result.parameter = token;
@@ -242,15 +254,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
             {
+                var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+                bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
+
                 // return local;
-                return F.Block(F.Return(F.Local(stateMachineVariable)));
+                bodyBuilder.Add(
+                    F.Return(
+                        F.Local(stateMachineVariable)));
+
+                return F.Block(bodyBuilder.ToImmutableAndFree());
             }
 
             /// <summary>
             /// Generates the `ValueTask&lt;bool> MoveNextAsync()` method.
             /// </summary>
+            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncEnumerator.MoveNextAsync'")]
             private void GenerateIAsyncEnumeratorImplementation_MoveNextAsync()
             {
                 // Produce:
@@ -302,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(moveNextAsyncReturnType)));
 
@@ -379,6 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Generates the `ValueTask IAsyncDisposable.DisposeAsync()` method.
             /// The DisposeAsync method should not be called from states -1 (running) or 0-and-up (awaits).
             /// </summary>
+            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncDisposable.DisposeAsync'")]
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
                 // Produce:
@@ -411,13 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifInvalidState = F.If(
                     // if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
-                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedOrRunningState)),
                     // throw new NotSupportedException();
                     thenClause: F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 
@@ -629,25 +651,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IAsyncEnumerableOfElementType);
 
                 BoundExpression managedThreadId = null;
-                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorStateMachine);
+                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorState);
             }
 
-            protected override BoundStatement GetExtraResetForIteratorGetEnumerator()
+            protected override void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
             {
-                // disposeMode = false;
-                return F.Assignment(F.InstanceField(_disposeModeField), F.Literal(false));
+                // this.state = {initialState};
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                // this.disposeMode = false;
+
+                builder.Add(
+                    // this.state = {initialState};
+                    F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
+
+                builder.Add(
+                    // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                    GenerateCreateAndAssignBuilder());
+
+                builder.Add(
+                    // disposeMode = false;
+                    F.Assignment(F.InstanceField(_disposeModeField), F.Literal(false)));
             }
 
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
             {
                 MethodSymbol setResultMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult, isOptional: true);
-                if ((object)setResultMethod != null)
+                if (setResultMethod is { })
                 {
                     setResultMethod = (MethodSymbol)setResultMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }
 
                 MethodSymbol setExceptionMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException, isOptional: true);
-                if ((object)setExceptionMethod != null)
+                if (setExceptionMethod is { })
                 {
                     setExceptionMethod = (MethodSymbol)setExceptionMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }
@@ -663,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hoistedVariables: hoistedVariables,
                     nonReusableLocalProxies: nonReusableLocalProxies,
                     synthesizedLocalOrdinals: synthesizedLocalOrdinals,
+                    stateMachineStateDebugInfoBuilder,
                     slotAllocatorOpt: slotAllocatorOpt,
                     nextFreeHoistedLocalSlot: nextFreeHoistedLocalSlot,
                     diagnostics: diagnostics);

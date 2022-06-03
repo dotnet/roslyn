@@ -1,14 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -32,23 +31,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ArrayType:
                     {
                         var array = (ArrayTypeSymbol)type;
-                        TypeWithAnnotations elementType = array.ElementTypeWithAnnotations;
-                        return elementType.CustomModifiers.Length + elementType.Type.CustomModifierCount();
+                        return customModifierCountForTypeWithAnnotations(array.ElementTypeWithAnnotations);
                     }
                 case SymbolKind.PointerType:
                     {
                         var pointer = (PointerTypeSymbol)type;
-                        TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
-                        return pointedAtType.CustomModifiers.Length + pointedAtType.Type.CustomModifierCount();
+                        return customModifierCountForTypeWithAnnotations(pointer.PointedAtTypeWithAnnotations);
+                    }
+                case SymbolKind.FunctionPointerType:
+                    {
+                        return ((FunctionPointerTypeSymbol)type).Signature.CustomModifierCount();
                     }
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     {
-                        if (type.IsTupleType)
-                        {
-                            return type.TupleUnderlyingType.CustomModifierCount();
-                        }
-
                         bool isDefinition = type.IsDefinition;
 
                         if (!isDefinition)
@@ -62,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 foreach (TypeWithAnnotations typeArg in typeArgs)
                                 {
-                                    count += typeArg.Type.CustomModifierCount() + typeArg.CustomModifiers.Length;
+                                    count += customModifierCountForTypeWithAnnotations(typeArg);
                                 }
 
                                 namedType = namedType.ContainingType;
@@ -75,6 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return 0;
+
+            static int customModifierCountForTypeWithAnnotations(TypeWithAnnotations typeWithAnnotations)
+                => typeWithAnnotations.CustomModifiers.Length + typeWithAnnotations.Type.CustomModifierCount();
         }
 
         /// <summary>
@@ -99,23 +98,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var array = (ArrayTypeSymbol)type;
                         TypeWithAnnotations elementType = array.ElementTypeWithAnnotations;
-                        return elementType.CustomModifiers.Any() || elementType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) ||
-                               (flagNonDefaultArraySizesOrLowerBounds && !array.HasDefaultSizesAndLowerBounds);
+                        return checkTypeWithAnnotations(elementType, flagNonDefaultArraySizesOrLowerBounds)
+                               || (flagNonDefaultArraySizesOrLowerBounds && !array.HasDefaultSizesAndLowerBounds);
                     }
                 case SymbolKind.PointerType:
                     {
                         var pointer = (PointerTypeSymbol)type;
                         TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
-                        return pointedAtType.CustomModifiers.Any() || pointedAtType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
+                        return checkTypeWithAnnotations(pointedAtType, flagNonDefaultArraySizesOrLowerBounds);
+                    }
+                case SymbolKind.FunctionPointerType:
+                    {
+                        var funcPtr = (FunctionPointerTypeSymbol)type;
+                        if (!funcPtr.Signature.RefCustomModifiers.IsEmpty || checkTypeWithAnnotations(funcPtr.Signature.ReturnTypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))
+                        {
+                            return true;
+                        }
+
+                        foreach (var param in funcPtr.Signature.Parameters)
+                        {
+                            if (!param.RefCustomModifiers.IsEmpty || checkTypeWithAnnotations(param.TypeWithAnnotations, flagNonDefaultArraySizesOrLowerBounds))
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
                     }
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     {
-                        if (type.IsTupleType)
-                        {
-                            return type.TupleUnderlyingType.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
-                        }
-
                         bool isDefinition = type.IsDefinition;
 
                         if (!isDefinition)
@@ -127,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 foreach (TypeWithAnnotations typeArg in typeArgs)
                                 {
-                                    if (!typeArg.CustomModifiers.IsEmpty || typeArg.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds))
+                                    if (checkTypeWithAnnotations(typeArg, flagNonDefaultArraySizesOrLowerBounds))
                                     {
                                         return true;
                                     }
@@ -141,6 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+
+            static bool checkTypeWithAnnotations(TypeWithAnnotations typeWithAnnotations, bool flagNonDefaultArraySizesOrLowerBounds)
+                => typeWithAnnotations.CustomModifiers.Any() || typeWithAnnotations.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
         }
 
         /// <summary>

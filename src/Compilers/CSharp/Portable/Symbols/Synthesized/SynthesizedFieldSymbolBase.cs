@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -55,14 +59,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.SuppressDynamicAttribute &&
                 type.ContainsDynamic() &&
-                compilation.HasDynamicEmitAttributes() &&
+                compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
+            if (compilation.ShouldEmitNativeIntegerAttributes(type))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type));
+            }
+
             if (type.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
+                compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
@@ -183,5 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal override bool IsRequired => false;
     }
 }

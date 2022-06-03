@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 {
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             if (!TryBuildConverter(forEachStatement, semanticModel, convertLocalDeclarations: true, cancellationToken, out var queryConverter))
             {
@@ -109,9 +113,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             //  select n1 + n2
             //
             context.RegisterRefactoring(
-                new ForEachToLinqQueryCodeAction(
+                CodeAction.Create(
                     FeaturesResources.Convert_to_linq,
-                    c => ApplyConversion(queryConverter, document, convertToQuery: true, c)),
+                    c => ApplyConversionAsync(queryConverter, document, convertToQuery: true, c),
+                    nameof(FeaturesResources.Convert_to_linq)),
                 forEachStatement.Span);
 
             // Offer refactoring to convert foreach to LINQ invocation expression. For example:
@@ -131,20 +136,21 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             if (TryBuildConverter(forEachStatement, semanticModel, convertLocalDeclarations: false, cancellationToken, out var linqConverter))
             {
                 context.RegisterRefactoring(
-                    new ForEachToLinqQueryCodeAction(
+                    CodeAction.Create(
                         FeaturesResources.Convert_to_linq_call_form,
-                        c => ApplyConversion(linqConverter, document, convertToQuery: false, c)),
+                        c => ApplyConversionAsync(linqConverter, document, convertToQuery: false, c),
+                        nameof(FeaturesResources.Convert_to_linq_call_form)),
                     forEachStatement.Span);
             }
         }
 
-        private Task<Document> ApplyConversion(
+        private Task<Document> ApplyConversionAsync(
             IConverter<TForEachStatement, TStatement> converter,
             Document document,
             bool convertToQuery,
             CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace.Services);
             converter.Convert(editor, convertToQuery, cancellationToken);
             var newRoot = editor.GetChangedRoot();
             var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);
@@ -159,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             SemanticModel semanticModel,
             bool convertLocalDeclarations,
             CancellationToken cancellationToken,
-            out IConverter<TForEachStatement, TStatement> converter)
+            [NotNullWhen(true)] out IConverter<TForEachStatement, TStatement>? converter)
         {
             var forEachInfo = CreateForEachInfo(forEachStatement, semanticModel, convertLocalDeclarations);
 
@@ -176,16 +182,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 return true;
             }
 
-            converter = default;
+            converter = null;
             return false;
-        }
-
-        private class ForEachToLinqQueryCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ForEachToLinqQueryCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

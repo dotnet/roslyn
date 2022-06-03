@@ -1,16 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -37,24 +39,13 @@ namespace AnalyzerRunner
                 return;
             }
 
-            CancellationTokenSource cts = new CancellationTokenSource();
+            var cts = new CancellationTokenSource();
             Console.CancelKeyPress +=
                 (sender, e) =>
                 {
                     e.Cancel = true;
                     cts.Cancel();
                 };
-
-            MSBuildLocator.RegisterDefaults();
-
-            var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(options);
-            var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(options);
-            if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers)
-            {
-                WriteLine("No analyzers found", ConsoleColor.Red);
-                PrintHelp();
-                return;
-            }
 
             var cancellationToken = cts.Token;
 
@@ -64,55 +55,139 @@ namespace AnalyzerRunner
                 ProfileOptimization.SetProfileRoot(options.ProfileRoot);
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            var properties = new Dictionary<string, string>
+            using var workspace = AnalyzerRunnerHelper.CreateWorkspace();
+
+            var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(workspace, options);
+            var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(workspace, options);
+            var codeRefactoringRunner = new CodeRefactoringRunner(workspace, options);
+
+            if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers && !codeRefactoringRunner.HasRefactorings)
             {
-                // Use the latest language version to force the full set of available analyzers to run on the project.
-                { "LangVersion", "latest" },
-            };
+                WriteLine("No analyzers found", ConsoleColor.Red);
+                PrintHelp();
+                return;
+            }
+
+            var stopwatch = PerformanceTracker.StartNew();
 
             if (!string.IsNullOrEmpty(options.ProfileRoot))
             {
                 ProfileOptimization.StartProfile(nameof(MSBuildWorkspace.OpenSolutionAsync));
             }
 
-            using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties, AnalyzerRunnerMefHostServices.DefaultServices))
+            await workspace.OpenSolutionAsync(options.SolutionPath, progress: null, cancellationToken).ConfigureAwait(false);
+
+            foreach (var workspaceDiagnostic in workspace.Diagnostics)
             {
-                Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var projectIds = solution.ProjectIds;
-
-                foreach (var projectId in projectIds)
+                if (workspaceDiagnostic.Kind == WorkspaceDiagnosticKind.Failure)
                 {
-                    solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
+                    Console.WriteLine(workspaceDiagnostic.Message);
                 }
-
-                Console.WriteLine($"Loaded solution in {stopwatch.ElapsedMilliseconds}ms");
-
-                if (options.ShowStats)
-                {
-                    List<Project> projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
-
-                    Console.WriteLine("Number of projects:\t\t" + projects.Count);
-                    Console.WriteLine("Number of documents:\t\t" + projects.Sum(x => x.DocumentIds.Count));
-
-                    var statistics = GetSolutionStatistics(projects, cancellationToken);
-
-                    Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
-                    Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
-                    Console.WriteLine("Number of syntax trivia:\t" + statistics.NumberOfTrivia);
-                }
-
-                Console.WriteLine("Pausing 5 seconds before starting analysis...");
-                await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-
-                await incrementalAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
-                await diagnosticAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
             }
+
+            Console.WriteLine($"Loaded solution in {stopwatch.GetSummary(preciseMemory: true)}");
+
+            if (options.ShowStats)
+            {
+                stopwatch = PerformanceTracker.StartNew();
+                ShowSolutionStatistics(workspace.CurrentSolution, cancellationToken);
+                Console.WriteLine($"Statistics gathered in {stopwatch.GetSummary(preciseMemory: true)}");
+            }
+
+            if (options.ShowCompilerDiagnostics)
+            {
+                await ShowCompilerDiagnosticsAsync(workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+            }
+
+            Console.WriteLine("Pausing 5 seconds before starting analysis...");
+            await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+
+            if (incrementalAnalyzerRunner.HasAnalyzers)
+            {
+                if (!string.IsNullOrEmpty(options.ProfileRoot))
+                {
+                    ProfileOptimization.StartProfile(nameof(Microsoft.CodeAnalysis.SolutionCrawler.IIncrementalAnalyzer));
+                }
+
+                await incrementalAnalyzerRunner.RunAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            if (diagnosticAnalyzerRunner.HasAnalyzers)
+            {
+                if (!string.IsNullOrEmpty(options.ProfileRoot))
+                {
+                    ProfileOptimization.StartProfile(nameof(DiagnosticAnalyzerRunner));
+                }
+
+                await diagnosticAnalyzerRunner.RunAllAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            if (codeRefactoringRunner.HasRefactorings)
+            {
+                if (!string.IsNullOrEmpty(options.ProfileRoot))
+                {
+                    ProfileOptimization.StartProfile(nameof(CodeRefactoringRunner));
+                }
+
+                await codeRefactoringRunner.RunAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task ShowCompilerDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var projectIds = solution.ProjectIds;
+
+            foreach (var projectId in projectIds)
+            {
+                solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
+            }
+
+            var projects = solution.Projects.Where(project => project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic).ToList();
+
+            var diagnosticStatistics = new Dictionary<string, (string description, DiagnosticSeverity severity, int count)>();
+            foreach (var project in projects)
+            {
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var diagnostic in compilation.GetDiagnostics(cancellationToken))
+                {
+                    diagnosticStatistics.TryGetValue(diagnostic.Id, out var existing);
+                    var description = existing.description;
+                    if (string.IsNullOrEmpty(description))
+                    {
+                        description = diagnostic.Descriptor?.Title.ToString();
+                        if (string.IsNullOrEmpty(description))
+                        {
+                            description = diagnostic.Descriptor?.MessageFormat.ToString();
+                        }
+                    }
+
+                    diagnosticStatistics[diagnostic.Id] = (description, diagnostic.Descriptor.DefaultSeverity, existing.count + 1);
+                }
+            }
+
+            foreach (var pair in diagnosticStatistics)
+            {
+                Console.WriteLine($"  {pair.Value.severity} {pair.Key}: {pair.Value.count} instances ({pair.Value.description})");
+            }
+        }
+
+        private static void ShowSolutionStatistics(Solution solution, CancellationToken cancellationToken)
+        {
+            var projects = solution.Projects.Where(project => project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic).ToList();
+
+            Console.WriteLine("Number of projects:\t\t" + projects.Count);
+            Console.WriteLine("Number of documents:\t\t" + projects.Sum(x => x.DocumentIds.Count));
+
+            var statistics = GetSolutionStatistics(projects, cancellationToken);
+
+            Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
+            Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
+            Console.WriteLine("Number of syntax trivia:\t" + statistics.NumberOfTrivia);
         }
 
         private static Statistic GetSolutionStatistics(IEnumerable<Project> projects, CancellationToken cancellationToken)
         {
-            ConcurrentBag<Statistic> sums = new ConcurrentBag<Statistic>();
+            var sums = new ConcurrentBag<Statistic>();
 
             Parallel.ForEach(projects.SelectMany(project => project.Documents), document =>
             {
@@ -120,7 +195,7 @@ namespace AnalyzerRunner
                 sums.Add(documentStatistics);
             });
 
-            Statistic sum = sums.Aggregate(new Statistic(0, 0, 0), (currentResult, value) => currentResult + value);
+            var sum = sums.Aggregate(new Statistic(0, 0, 0), (currentResult, value) => currentResult + value);
             return sum;
         }
 
@@ -128,15 +203,15 @@ namespace AnalyzerRunner
         // https://github.com/dotnet/roslyn/issues/23108
         private static async Task<Statistic> GetSolutionStatisticsAsync(Document document, CancellationToken cancellationToken)
         {
-            SyntaxTree tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            SyntaxNode root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var tokensAndNodes = root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true);
 
-            int numberOfNodes = tokensAndNodes.Count(x => x.IsNode);
-            int numberOfTokens = tokensAndNodes.Count(x => x.IsToken);
-            int numberOfTrivia = root.DescendantTrivia(descendIntoTrivia: true).Count();
+            var numberOfNodes = tokensAndNodes.Count(x => x.IsNode);
+            var numberOfTokens = tokensAndNodes.Count(x => x.IsToken);
+            var numberOfTrivia = root.DescendantTrivia(descendIntoTrivia: true).Count();
 
             return new Statistic(numberOfNodes, numberOfTokens, numberOfTrivia);
         }

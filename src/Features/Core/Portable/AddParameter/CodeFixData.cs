@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         public CodeFixData(
             IMethodSymbol method,
             Func<CancellationToken, Task<Solution>> createChangedSolutionNonCascading,
-            Func<CancellationToken, Task<Solution>> createChangedSolutionCascading)
+            Func<CancellationToken, Task<Solution>>? createChangedSolutionCascading)
         {
             Method = method ?? throw new ArgumentNullException(nameof(method));
             CreateChangedSolutionNonCascading = createChangedSolutionNonCascading ?? throw new ArgumentNullException(nameof(createChangedSolutionNonCascading));
@@ -31,6 +33,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// <summary>
         /// An optional fix for the overload with cascading.
         /// </summary>
-        public Func<CancellationToken, Task<Solution>> CreateChangedSolutionCascading { get; }
+        public Func<CancellationToken, Task<Solution>>? CreateChangedSolutionCascading { get; }
     }
 }

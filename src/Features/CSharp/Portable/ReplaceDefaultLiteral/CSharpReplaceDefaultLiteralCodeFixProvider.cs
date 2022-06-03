@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         private const string CS8505 = nameof(CS8505); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpReplaceDefaultLiteralCodeFixProvider()
         {
         }
@@ -43,9 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
             if (token.Span == context.Span &&
                 token.IsKind(SyntaxKind.DefaultKeyword) &&
-                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression))
+                token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression, out LiteralExpressionSyntax defaultLiteral))
             {
-                var defaultLiteral = (LiteralExpressionSyntax)token.Parent;
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
                 var (newExpression, displayText) = GetReplacementExpressionAndText(
@@ -54,9 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 if (newExpression != null)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(
+                        CodeAction.Create(
+                            string.Format(CSharpFeaturesResources.Use_0, displayText),
                             c => ReplaceAsync(context.Document, context.Span, newExpression, c),
-                            displayText),
+                            nameof(CSharpFeaturesResources.Use_0)),
                         context.Diagnostics);
                 }
             }
@@ -94,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
-                else if (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr)
+                else if (type.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr)
                 {
                     return GenerateMemberAccess(nameof(IntPtr.Zero));
                 }
@@ -141,14 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                     return true;
                 default:
                     return false;
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string literal)
-                : base(string.Format(CSharpFeaturesResources.Use_0, literal), createChangedDocument, CSharpFeaturesResources.Use_0)
-            {
             }
         }
     }

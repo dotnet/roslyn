@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
-using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
@@ -26,7 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private CodeModelProjectCache _codeModelCache;
 
-        public ProjectCodeModel(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider, ProjectCodeModelFactory projectCodeModelFactory)
+        public ProjectCodeModel(
+            IThreadingContext threadingContext,
+            ProjectId projectId,
+            ICodeModelInstanceFactory codeModelInstanceFactory,
+            VisualStudioWorkspace visualStudioWorkspace,
+            IServiceProvider serviceProvider,
+            ProjectCodeModelFactory projectCodeModelFactory)
         {
             _threadingContext = threadingContext;
             _projectId = projectId;
@@ -64,9 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         internal IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> GetCachedFileCodeModelInstances()
-        {
-            return GetCodeModelCache().GetFileCodeModelInstances();
-        }
+            => GetCodeModelCache().GetFileCodeModelInstances();
 
         internal bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
         {
@@ -84,19 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// a parent object, this will call back to the project system to provide us the parent object.
         /// </summary>
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath)
-        {
-            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
-        }
+            => GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
 
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
-        {
-            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath, parent);
-        }
+            => GetCodeModelCache().GetOrCreateFileCodeModel(filePath, parent);
 
         public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
-        {
-            return GetCodeModelCache().GetOrCreateRootCodeModel(parent);
-        }
+            => GetCodeModelCache().GetOrCreateRootCodeModel(parent);
 
         public void OnSourceFileRemoved(string fileName)
         {
@@ -113,8 +115,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath, object parent)
+            => this.GetOrCreateFileCodeModel(filePath, parent).Handle;
+
+        public EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument)
         {
-            return this.GetOrCreateFileCodeModel(filePath, parent).Handle;
+            // Unlike for "regular" documents, we make no effort to cache these between callers or hold them for longer lifetimes with
+            // events.
+            return FileCodeModel.Create(GetCodeModelCache().State, parent: null, sourceGeneratedDocument.Id, isSourceGeneratorOutput: true, new TextManagerAdapter()).Handle;
         }
     }
 }

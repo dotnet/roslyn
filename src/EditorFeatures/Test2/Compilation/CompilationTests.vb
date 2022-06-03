@@ -1,13 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
-
     <[UseExportProvider]>
     Public Class CompilationTests
-        Private Function GetProject(snapshot As Solution, assemblyName As String) As Project
+        Private Shared Function GetProject(snapshot As Solution, assemblyName As String) As Project
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
@@ -23,15 +25,16 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(NoCompilationContentTypeDefinitions))
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
                 Assert.Null(Await project.GetCompilationAsync())
 
                 Assert.Null(Await project.GetCompilationAsync())
-                Assert.False(Await project.ContainsSymbolsWithNameAsync(Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
-                Assert.Empty(Await project.GetDocumentsWithNameAsync(Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
             End Using
         End Function
     End Class
-
 End Namespace

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Roslyn.Utilities;
@@ -25,7 +27,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
             Column = column;
         }
 
-        public bool Equals(ErrorListItem other)
+        public bool Equals(ErrorListItem? other)
             => other != null
             && Comparison.AreStringValuesEqual(Severity, other.Severity)
             && Comparison.AreStringValuesEqual(Description, other.Description)
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
             && Line == other.Line
             && Column == other.Column;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => Equals(obj as ErrorListItem);
 
         public override int GetHashCode()

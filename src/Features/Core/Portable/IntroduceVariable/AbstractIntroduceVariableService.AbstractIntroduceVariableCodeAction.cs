@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -21,9 +26,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly SemanticDocument _semanticDocument;
             private readonly TService _service;
 
+            public readonly CodeCleanupOptions Options;
+
             internal AbstractIntroduceVariableCodeAction(
                 TService service,
                 SemanticDocument document,
+                CodeCleanupOptions options,
                 TExpressionSyntax expression,
                 bool allOccurrences,
                 bool isConstant,
@@ -32,6 +40,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 _service = service;
                 _semanticDocument = document;
+                Options = options;
                 _expression = expression;
                 _allOccurrences = allOccurrences;
                 _isConstant = isConstant;
@@ -45,7 +54,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var changedDocument = await GetChangedDocumentCoreAsync(cancellationToken).ConfigureAwait(false);
-                return await Simplifier.ReduceAsync(changedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var simplifierOptions = await changedDocument.GetSimplifierOptionsAsync(Options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+                return await Simplifier.ReduceAsync(changedDocument, simplifierOptions, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)
@@ -60,14 +70,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
                 else
                 {
-                    return await IntroduceFieldAsync(cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceFieldAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
                 }
-            }
-
-            private async Task<Document> IntroduceFieldAsync(CancellationToken cancellationToken)
-            {
-                var result = await _service.IntroduceFieldAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
-                return result.Item1;
             }
 
             private string CreateDisplayText(TExpressionSyntax expression)

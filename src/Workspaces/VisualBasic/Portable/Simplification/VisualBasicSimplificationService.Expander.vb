@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -58,9 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return AddCast(expression, targetType, semanticModel)
             End Function
 
-            Private Shared Function AddCast(expression As ExpressionSyntax, targetType As ITypeSymbol, semanticModel As SemanticModel) As ExpressionSyntax
+            Private Function AddCast(expression As ExpressionSyntax, targetType As ITypeSymbol, semanticModel As SemanticModel) As ExpressionSyntax
                 Dim wasCastAdded As Boolean = False
-                Dim result = expression.CastIfPossible(targetType, expression.SpanStart, semanticModel, wasCastAdded)
+                Dim result = expression.CastIfPossible(targetType, expression.SpanStart, semanticModel, wasCastAdded, _cancellationToken)
 
                 If wasCastAdded Then
                     result = result.Parenthesize()
@@ -222,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 reducedExtensionMethod As IMethodSymbol) As InvocationExpressionSyntax
 
                 Dim originalMemberAccess = DirectCast(originalNode.Expression, MemberAccessExpressionSyntax)
-                If originalMemberAccess.GetCorrespondingConditionalAccessExpression IsNot Nothing Then
+                If originalMemberAccess.GetRootConditionalAccessExpression() IsNot Nothing Then
                     ' Bail out on extension method invocations in conditional access expression.
                     ' Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
                     ' Issue https//github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
@@ -301,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         Dim inferredName = node.Expression.TryGetInferredMemberName()
                         If CanMakeNameExplicitInTuple(tuple, inferredName) Then
                             Dim identifier = SyntaxFactory.Identifier(inferredName)
-                            identifier = TryEscapeIdentifierToken(identifier, _semanticModel)
+                            identifier = TryEscapeIdentifierToken(identifier)
 
                             newSimpleArgument = newSimpleArgument.
                                 WithLeadingTrivia().
@@ -343,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return newSimpleArgument
             End Function
 
-            Private Function CanMakeNameExplicitInTuple(tuple As TupleExpressionSyntax, name As String) As Boolean
+            Private Shared Function CanMakeNameExplicitInTuple(tuple As TupleExpressionSyntax, name As String) As Boolean
                 If name Is Nothing OrElse SyntaxFacts.IsReservedTupleElementName(name) Then
                     Return False
                 End If
@@ -351,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim found = False
 
                 For Each argument In tuple.Arguments
-                    Dim elementName = Nothing
+                    Dim elementName As Object
                     If argument.NameColonEquals IsNot Nothing Then
                         elementName = argument.NameColonEquals.Name.Identifier.ValueText
                     Else
@@ -363,6 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             ' No duplicate names allowed
                             Return False
                         End If
+
                         found = True
                     End If
                 Next
@@ -376,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Dim inferredName = node.Expression.TryGetInferredMemberName()
                     If inferredName IsNot Nothing Then
                         Dim identifier = SyntaxFactory.Identifier(inferredName)
-                        identifier = TryEscapeIdentifierToken(identifier, _semanticModel)
+                        identifier = TryEscapeIdentifierToken(identifier)
 
                         Return SyntaxFactory.NamedFieldInitializer(SyntaxFactory.IdentifierName(identifier), newInitializer.Expression.WithoutLeadingTrivia()).
                             WithLeadingTrivia(node.GetLeadingTrivia()).
@@ -423,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                         ' <rewritten_left>.<module_name>.<rewritten_right>
                         Dim moduleIdentifierToken = SyntaxFactory.Identifier(symbolForQualifiedName.ContainingType.Name)
-                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken, _semanticModel)
+                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken)
 
                         Dim qualifiedNameWithModuleName = rewrittenQualifiedName.CopyAnnotationsTo(SyntaxFactory.QualifiedName(
                             SyntaxFactory.QualifiedName(DirectCast(rewrittenQualifiedName, QualifiedNameSyntax).Left, SyntaxFactory.IdentifierName(moduleIdentifierToken)) _
@@ -453,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                         ' <rewritten_left>.<module_name>.<rewritten_right>
                         Dim moduleIdentifierToken = SyntaxFactory.Identifier(symbolForMemberAccess.ContainingType.Name)
-                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken, _semanticModel)
+                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken)
 
                         Dim memberAccessWithModuleName = rewrittenMemberAccess.CopyAnnotationsTo(
                             SyntaxFactory.SimpleMemberAccessExpression(
@@ -594,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 '
                 ' 3. Always try to escape keyword identifiers
                 '
-                identifier = TryEscapeIdentifierToken(identifier, Me._semanticModel)
+                identifier = TryEscapeIdentifierToken(identifier)
                 If identifier <> rewrittenSimpleName.Identifier Then
                     Select Case newNode.Kind
                         Case SyntaxKind.IdentifierName,
@@ -676,7 +679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return newNode
             End Function
 
-            Private Function TryAddTypeArgumentToIdentifierName(
+            Private Shared Function TryAddTypeArgumentToIdentifierName(
                 newNode As ExpressionSyntax,
                 symbol As ISymbol) As ExpressionSyntax
                 If newNode.Kind = SyntaxKind.IdentifierName AndAlso symbol.Kind = SymbolKind.Method Then
@@ -750,8 +753,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                     Select Case parent.Kind
                         Case SyntaxKind.QualifiedName
-                            Dim qualifiedParent = DirectCast(parent, QualifiedNameSyntax)
-
                             result = rewrittenNode.CopyAnnotationsTo(
                                 SyntaxFactory.QualifiedName(
                                     DirectCast(left, NameSyntax),
@@ -812,7 +813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Dim newLabelStatement = DirectCast(MyBase.VisitLabelStatement(node), LabelStatementSyntax)
 
-                Dim escapedLabelToken = TryEscapeIdentifierToken(newLabelStatement.LabelToken, Me._semanticModel)
+                Dim escapedLabelToken = TryEscapeIdentifierToken(newLabelStatement.LabelToken)
                 If newLabelStatement.LabelToken <> escapedLabelToken Then
                     newLabelStatement = newLabelStatement.WithLabelToken(escapedLabelToken)
                 End If

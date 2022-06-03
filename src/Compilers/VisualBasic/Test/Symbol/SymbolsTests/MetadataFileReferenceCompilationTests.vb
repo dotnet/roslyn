@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -54,7 +56,7 @@ BC31007: Unable to load module file 'Goo.dll': PE image doesn't contain managed 
     <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>
     <Fact>
     Public Sub DuplicateReferences()
-        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib)
+        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib)
 
         Dim mscorlib1 = mscorlibMetadata.GetReference(filePath:="lib1.dll")
         Dim mscorlib2 = mscorlibMetadata.GetReference(filePath:="lib1.dll")

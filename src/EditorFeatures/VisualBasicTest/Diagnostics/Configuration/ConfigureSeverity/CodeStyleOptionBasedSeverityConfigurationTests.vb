@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
@@ -11,11 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
     Partial Public MustInherit Class CodeStyleOptionBasedSeverityConfigurationTests
         Inherits AbstractSuppressionDiagnosticTest
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -90,10 +89,10 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:none
+dotnet_diagnostic.IDE0017.severity = none
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -127,6 +126,7 @@ End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]    # Comment1
 dotnet_style_object_initializer = true:suggestion    ; Comment2
+dotnet_diagnostic.IDE0017.severity = warning   ;; Comment3
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -155,197 +155,7 @@ End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]    # Comment1
 dotnet_style_object_initializer = true:none    ; Comment2
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidHeader_None() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
-
-[*.vb]
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:none
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_MaintainCurrentOption_None() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:none
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidRule_None() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:suggestion
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:none
+dotnet_diagnostic.IDE0017.severity = none   ;; Comment3
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -413,10 +223,10 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:silent
+dotnet_diagnostic.IDE0017.severity = silent
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -449,7 +259,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -477,198 +287,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:silent
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidHeader_Silent() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
-
-[*.vb]
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:silent
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_MaintainCurrentOption_Silent() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:silent
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidRule_Silent() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:suggestion
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:silent
+dotnet_diagnostic.IDE0017.severity = silent
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -736,10 +355,10 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -772,7 +391,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -800,198 +419,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidHeader_Suggestion() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:warning
-
-[*.vb]
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_MaintainCurrentOption_Suggestion() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidRule_Suggestion() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:warning
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1059,10 +487,10 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1095,7 +523,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1123,198 +551,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializer = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidHeader_Warning() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
-
-[*.vb]
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_MaintainCurrentOption_Warning() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:warning
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
-            End Function
-
-            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
-            Public Async Function ConfigureEditorconfig_InvalidRule_Warning() As Task
-                Dim input = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:suggestion
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>"
-                Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-         <Document FilePath=""z:\\file.vb"">
-Class Program1
-    Private Shared Sub Main()
-        ' dotnet_style_object_initializer = true
-        Dim obj = New Customer() With {
-            ._age = 21
-        }
-        ' dotnet_style_object_initializer = false
-        Dim obj2 As Customer = [|New Customer()|]
-        obj2._age = 21
-    End Sub
-
-    Friend Class Customer
-        Public _age As Integer
-
-        Public Sub New()
-        End Sub
-    End Class
-End Class
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
-dotnet_style_object_initializerr = true:suggestion
-
-# IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1382,10 +619,10 @@ Class Program1
     End Class
 End Class
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1419,6 +656,7 @@ End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1447,6 +685,7 @@ End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1479,7 +718,7 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1507,12 +746,12 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = suggestion
 
-[*.vb]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1545,7 +784,8 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:suggestion
+dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1573,7 +813,8 @@ Class Program1
 End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
-dotnet_style_object_initializer = false:error
+dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1607,6 +848,7 @@ End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializerr = true:suggestion
+dotnet_diagnostic.IDE0017.severityyy = warning
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -1635,9 +877,10 @@ End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializerr = true:suggestion
+dotnet_diagnostic.IDE0017.severityyy = warning
 
 # IDE0017: Simplify object initialization
-dotnet_style_object_initializer = true:error
+dotnet_diagnostic.IDE0017.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"

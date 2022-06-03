@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -9,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EntryPointTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CompileConsoleApp(string source)
+        private CSharpCompilation CompileConsoleApp(string source, CSharpParseOptions parseOptions = null, string mainTypeName = null)
         {
-            return CreateCompilation(source, options: TestOptions.ReleaseExe);
+            return CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(5).WithMainTypeName(mainTypeName), parseOptions: parseOptions);
         }
 
         [Fact]
@@ -103,6 +107,160 @@ public class D
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("D.Main()"),
                 // (4,22): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"));
+        }
+
+        [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        public void WRN_SyncAndAsyncEntryPoints_CSharp71()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static async Task Main() { await Task.Delay(1); }
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+";
+            var compilation = CompileConsoleApp(source, parseOptions: TestOptions.Regular7_1);
+
+            compilation.VerifyDiagnostics(
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void SyncAndAsyncEntryPointsBeforeAsyncMainFeature_NoDiagnostics()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static async Task Main() { await Task.Delay(1); }
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+";
+            var compilation = CompileConsoleApp(source, parseOptions: TestOptions.Regular7);
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        public void WRN_SyncAndAsyncEntryPointsCSharpLatest_SyncAndAsync()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static async Task Main() { await Task.Delay(1); }
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+";
+            var compilation = CompileConsoleApp(source);
+
+            compilation.VerifyDiagnostics(
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28));
+        }
+
+        [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        public void ERR_And_WRN_MultipleEntryPointsCSharpLatest_TwoSyncAndOneAsync()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static async Task Main() { await Task.Delay(1); }
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+
+public class D
+{
+  public static void Main() { System.Console.WriteLine(3); }
+}
+";
+            var compilation = CompileConsoleApp(source);
+
+            compilation.VerifyDiagnostics(
+                // (7,22): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"),
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28));
+        }
+
+        [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        public void WRN_SyncAndAsyncEntryPointsCSharpLatest_TwoAsyncAndOneSync()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static async Task Main() { await Task.Delay(1); }
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+
+public class D
+{
+  public static async Task Main() { await Task.Delay(1); }
+}
+";
+            var compilation = CompileConsoleApp(source);
+
+            compilation.VerifyDiagnostics(
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28),
+                // (12,28): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main(string[])").WithLocation(12, 28));
+        }
+
+        [Fact]
+        public void MultipleEntryPointsWithTypeDefined_NoDiagnostic()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+
+public class D
+{
+  public static async Task Main() { await Task.Delay(1); }
+}
+";
+            var compilation = CompileConsoleApp(source, mainTypeName: "D");
+            compilation.VerifyDiagnostics();
+
+            var compilation2 = CompileConsoleApp(source, mainTypeName: "C");
+            compilation2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        public void WRN_SyncAndAsyncEntryPoints_WithTypeDefined()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+
+  public static async Task Main() { await Task.Delay(1); }
+}
+";
+            var compilation = CompileConsoleApp(source, mainTypeName: "C");
+            compilation.VerifyDiagnostics(
+                // (8,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(8, 28));
         }
 
         [Fact]
@@ -251,7 +409,7 @@ namespace N { namespace M { } }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("N.M"));
             compilation.VerifyDiagnostics(
-                // (2,25): error CS1556: 'N.M' specified for Main method must be a non-generic class, struct, or interface
+                // (2,25): error CS1556: 'N.M' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "M").WithArguments("N.M"));
         }
 
@@ -269,7 +427,7 @@ class C<T>
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C.D"));
             compilation.VerifyDiagnostics(
-                // (4,12): error CS1556: 'C<T>.D' specified for Main method must be a non-generic class, struct, or interface
+                // (4,12): error CS1556: 'C<T>.D' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "D").WithArguments("C<T>.D"));
         }
 
@@ -343,7 +501,7 @@ public static class E
             // Dev10 reports: CS1555: Could not find 'D.DD' specified for Main method
             compilation = CreateCompilation(cs, options: TestOptions.ReleaseExe.WithMainTypeName("D.DD"));
             compilation.VerifyDiagnostics(
-                // (18,25): error CS1556: 'D<T>.DD' specified for Main method must be a non-generic class, struct, or interface
+                // (18,25): error CS1556: 'D<T>.DD' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "DD").WithArguments("D<T>.DD"));
         }
 
@@ -420,7 +578,7 @@ public class A
 }";
             // Dev10 reports CS1555: Could not find 'A.B.C' specified for Main method
             CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("A.B.C")).VerifyDiagnostics(
-                // (14,11): error CS1556: 'A.B<T>.C' specified for Main method must be a non-generic class, struct, or interface
+                // (14,11): error CS1556: 'A.B<T>.C' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("A.B<T>.C"));
         }
 
@@ -465,7 +623,7 @@ class C<T>
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics(
-                // (7,7): error CS1556: 'C<T>' specified for Main method must be a non-generic class, struct, or interface
+                // (7,7): error CS1556: 'C<T>' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("C<T>"));
         }
 
@@ -1323,7 +1481,7 @@ class D
 class B
 {
 }
-static class extension
+static class @extension
 {
     public static void Main(this B x, string[] args)
     { }
@@ -1337,10 +1495,10 @@ static class extension
             CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe.WithMainTypeName("extension")).VerifyDiagnostics(
                 // (7,24): warning CS0028: 'extension.Main(B, string[])' has the wrong signature to be an entry point
                 //     public static void Main(this B x, string[] args)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("extension.Main(B, string[])"),
-                // (5,14): error CS1558: 'extension' does not have a suitable static Main method
-                // static class extension
-                Diagnostic(ErrorCode.ERR_NoMainInClass, "extension").WithArguments("extension"));
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("extension.Main(B, string[])").WithLocation(7, 24),
+                // (5,14): error CS1558: 'extension' does not have a suitable static 'Main' method
+                // static class @extension
+                Diagnostic(ErrorCode.ERR_NoMainInClass, "@extension").WithArguments("extension").WithLocation(5, 14));
         }
 
         [Fact()]

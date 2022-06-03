@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -54,7 +57,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             /// </returns>
             public bool? CodeActions(
                 IEnumerable<string> expectedItems,
-                string applyFix = null,
+                string? applyFix = null,
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
                 FixAllScope? fixAllScope = null,
@@ -87,7 +90,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     }
                 }
 
-                if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
+                if (fixAllScope.HasValue)
+                {
+                    Contract.ThrowIfNull(applyFix);
+                }
+
+                if (!RoslynString.IsNullOrEmpty(applyFix))
                 {
                     var result = _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -7,7 +11,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -17,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         private const string FileName = "Program.cs";
 
-        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -30,10 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new Project(ProjectName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ConsoleApplication, Microsoft.CodeAnalysis.LanguageNames.CSharp);
 
-            VisualStudio.SolutionExplorer.UpdateFile(
-                ProjectName,
-                FileName,
-                @"using System;
+            VisualStudio.Editor.SetText(@"using System;
 
  namespace TestProj
  {
@@ -61,8 +61,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
          }
      }
  }
-",
-                open: true);
+");
+            VisualStudio.Editor.Activate();
 
             VisualStudio.InteractiveWindow.SubmitText("using System;");
         }
@@ -236,10 +236,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
             // Waiting for a long operation: build + reset from project
-            int defaultTimeoutInMilliseconds = VisualStudio.InteractiveWindow.GetTimeoutInMilliseconds();
-            VisualStudio.InteractiveWindow.SetTimeout(120000);
             VisualStudio.InteractiveWindow.WaitForReplOutput("using TestProj;");
-            VisualStudio.InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
 
             VisualStudio.InteractiveWindow.SubmitText("x");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");

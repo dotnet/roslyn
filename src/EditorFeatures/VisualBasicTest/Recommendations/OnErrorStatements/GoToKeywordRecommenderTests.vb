@@ -1,20 +1,24 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class GoToKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GoToAfterOnErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>On Error |</MethodBody>, "GoTo")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GoToNotAfterOnErrorInLambdaTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>
+        Public Sub GoToAfterOnErrorTest()
+            VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "GoTo")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub GoToNotAfterOnErrorInLambdaTest()
+            VerifyRecommendationsAreExactly(<MethodBody>
 Dim x = Sub()
             On Error |
         End Sub</MethodBody>, Array.Empty(Of String)())
-        End Function
+        End Sub
     End Class
 End Namespace

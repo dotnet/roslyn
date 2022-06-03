@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     getSymbol As Boolean,
                                                     builder As ArrayBuilder(Of DeclarationInfo),
                                                     cancellationToken As CancellationToken)
-            ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(),
+            ComputeDeclarationsCore(model, model.SyntaxTree.GetRoot(cancellationToken),
                                     Function(node, level) Not node.Span.OverlapsWith(span) OrElse InvalidLevel(level),
                                     getSymbol, builder, Nothing, cancellationToken)
         End Sub

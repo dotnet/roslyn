@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
             }
-            while (currentBinary is object);
+            while (currentBinary is not null);
 
             Debug.Assert(stack.Count > 0);
             var leftChild = (BoundExpression)Visit(stack.Peek().Left);
@@ -47,15 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 currentBinary = stack.Pop();
 
-                bool foundInfo = _updatedNullabilities.TryGetValue(currentBinary, out (NullabilityInfo Info, TypeSymbol Type) infoAndType);
+                bool foundInfo = _updatedNullabilities.TryGetValue(currentBinary, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType);
                 var right = (BoundExpression)Visit(currentBinary.Right);
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
                 currentBinary = currentBinary switch
                 {
-                    BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, GetUpdatedSymbol(binary, binary.MethodOpt), binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    BoundBinaryOperator binary => binary.Update(
+                        binary.OperatorKind,
+                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
+                        binary.ResultKind,
+                        leftChild,
+                        right,
+                        type!),
                     // https://github.com/dotnet/roslyn/issues/35031: We'll need to update logical.LogicalOperator
-                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ConstrainedToTypeOpt, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type!),
                     _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
                 };
 
@@ -76,16 +83,106 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (sym is null) return sym;
 
-            if (_updatedSymbols.TryGetValue((expr, sym), out var updatedSymbol))
+            Symbol? updatedSymbol = null;
+            if (_snapshotManager?.TryGetUpdatedSymbol(expr, sym, out updatedSymbol) != true)
             {
-                Debug.Assert(updatedSymbol is object);
-                return (T)updatedSymbol;
+                updatedSymbol = sym;
+            }
+            RoslynDebug.Assert(updatedSymbol is object);
+
+            switch (updatedSymbol)
+            {
+                case LambdaSymbol lambda:
+                    return (T)remapLambda((BoundLambda)expr, lambda);
+
+                case SourceLocalSymbol local:
+                    return (T)remapLocal(local);
+
+                case ParameterSymbol param:
+                    if (_remappedSymbols.TryGetValue(param, out var updatedParam))
+                    {
+                        return (T)updatedParam;
+                    }
+                    break;
             }
 
-            return sym;
+            return (T)updatedSymbol;
+
+            Symbol remapLambda(BoundLambda boundLambda, LambdaSymbol lambda)
+            {
+                var updatedDelegateType = _snapshotManager?.GetUpdatedDelegateTypeForLambda(lambda);
+
+                if (!_remappedSymbols.TryGetValue(lambda.ContainingSymbol, out Symbol? updatedContaining) && updatedDelegateType is null)
+                {
+                    return lambda;
+                }
+
+                LambdaSymbol updatedLambda;
+                if (updatedDelegateType is null)
+                {
+                    Debug.Assert(updatedContaining is object);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind);
+                }
+                else
+                {
+                    Debug.Assert(updatedDelegateType is object);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedDelegateType, updatedContaining ?? lambda.ContainingSymbol);
+                }
+
+                _remappedSymbols.Add(lambda, updatedLambda);
+
+                Debug.Assert(lambda.ParameterCount == updatedLambda.ParameterCount);
+                for (int i = 0; i < lambda.ParameterCount; i++)
+                {
+                    _remappedSymbols.Add(lambda.Parameters[i], updatedLambda.Parameters[i]);
+                }
+
+                return updatedLambda;
+            }
+
+            Symbol remapLocal(SourceLocalSymbol local)
+            {
+                if (_remappedSymbols.TryGetValue(local, out var updatedLocal))
+                {
+                    return updatedLocal;
+                }
+
+                var updatedType = _snapshotManager?.GetUpdatedTypeForLocalSymbol(local);
+
+                if (!_remappedSymbols.TryGetValue(local.ContainingSymbol, out Symbol? updatedContaining) && !updatedType.HasValue)
+                {
+                    // Map the local to itself so we don't have to search again in the future
+                    _remappedSymbols.Add(local, local);
+                    return local;
+                }
+
+                updatedLocal = new UpdatedContainingSymbolAndNullableAnnotationLocal(local, updatedContaining ?? local.ContainingSymbol, updatedType ?? local.TypeWithAnnotations);
+                _remappedSymbols.Add(local, updatedLocal);
+                return updatedLocal;
+            }
         }
 
-        private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundExpression lengthOrCountAccess = node.LengthOrCountAccess;
+            BoundExpression indexerAccess = (BoundExpression)this.Visit(node.IndexerOrSliceAccess);
+            BoundImplicitIndexerAccess updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, node.Type);
+            }
+            return updatedNode;
+        }
+
+        private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol?
         {
             if (symbols.IsDefaultOrEmpty)
             {
@@ -96,15 +193,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool foundUpdate = false;
             foreach (var originalSymbol in symbols)
             {
-                if (_updatedSymbols.TryGetValue((expr, originalSymbol), out var updatedSymbol))
+                T updatedSymbol = null!;
+                if (originalSymbol is object)
                 {
-                    foundUpdate = true;
-                    builder.Add((T)updatedSymbol);
+                    updatedSymbol = GetUpdatedSymbol(expr, originalSymbol);
+                    Debug.Assert(updatedSymbol is object);
+                    if ((object)originalSymbol != updatedSymbol)
+                    {
+                        foundUpdate = true;
+                    }
                 }
-                else
-                {
-                    builder.Add(originalSymbol);
-                }
+
+                builder.Add(updatedSymbol);
             }
 
             if (foundUpdate)

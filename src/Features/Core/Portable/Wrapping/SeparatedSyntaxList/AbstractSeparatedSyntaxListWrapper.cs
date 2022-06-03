@@ -1,12 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 {
-    using Microsoft.CodeAnalysis.Indentation;
-
     /// <summary>
     /// Base type for all wrappers that involve wrapping a comma-separated list of items.
     /// </summary>
@@ -17,10 +20,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        //protected abstract string ListName { get; }
-        //protected abstract string ItemNamePlural { get; }
-        //protected abstract string ItemNameSingular { get; }
-
         protected abstract string Unwrap_list { get; }
         protected abstract string Wrap_long_list { get; }
 
@@ -32,30 +31,33 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
         protected abstract string Wrap_every_item { get; }
 
+        public abstract bool Supports_WrapEveryGroup_UnwrapFirst { get; }
+        public abstract bool Supports_UnwrapGroup_WrapFirst_IndentRest { get; }
+        public abstract bool Supports_WrapLongGroup_UnwrapFirst { get; }
+
         protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
         }
 
-        protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
+        protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
+        protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options);
+
+        protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
-            SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
+            SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, TListSyntax listSyntax);
 
-        public override async Task<ICodeActionComputer> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
+        public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
+            Document document, int position, SyntaxNode declaration, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
-            {
                 return null;
-            }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!PositionIsApplicable(root, position, declaration, listSyntax))
-            {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!PositionIsApplicable(root, position, declaration, containsSyntaxError, listSyntax))
                 return null;
-            }
 
             var listItems = GetListItems(listSyntax);
             if (listItems.Count <= 1)
@@ -70,11 +72,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 document, listItems.GetWithSeparators(), cancellationToken).ConfigureAwait(false);
 
             if (containsUnformattableContent)
-            {
                 return null;
-            }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new SeparatedSyntaxListCodeActionComputer(
                 this, document, sourceText, options, listSyntax, listItems, cancellationToken);

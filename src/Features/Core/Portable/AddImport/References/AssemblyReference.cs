@@ -1,7 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -23,10 +29,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
             {
-                var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                var textChanges = await GetTextChangesAsync(document, node, options, cancellationToken).ConfigureAwait(false);
 
                 var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
                 var fullyQualifiedTypeName = string.Join(
@@ -44,9 +49,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
-            }
+                => Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
         }
     }
 }

@@ -1,9 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.Tracing;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly ValueSource<TextAndVersion> TextSource;
             public readonly Encoding Encoding;
             public readonly int Length;
-            public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
+            public readonly bool ContainsDirectives;
 
             public SyntaxTreeInfo(
                 string filePath,
@@ -31,35 +30,31 @@ namespace Microsoft.CodeAnalysis.Host
                 ValueSource<TextAndVersion> textSource,
                 Encoding encoding,
                 int length,
-                ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+                bool containsDirectives)
             {
-                Debug.Assert(diagnosticOptions is object);
-
                 FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
                 Encoding = encoding;
                 Length = length;
-                DiagnosticOptions = diagnosticOptions;
+                ContainsDirectives = containsDirectives;
             }
 
-            internal bool TryGetText(out SourceText text)
+            internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
             {
-                if (this.TextSource.TryGetValue(out var textAndVersion))
+                if (TextSource.TryGetValue(out var textAndVersion))
                 {
                     text = textAndVersion.Text;
                     return true;
                 }
-                else
-                {
-                    text = null;
-                    return false;
-                }
+
+                text = null;
+                return false;
             }
 
             internal async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
             {
-                var textAndVersion = await this.TextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var textAndVersion = await TextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return textAndVersion.Text;
             }
 
@@ -71,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Host
                     TextSource,
                     Encoding,
                     Length,
-                    DiagnosticOptions);
+                    ContainsDirectives);
             }
 
             internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
@@ -82,26 +77,25 @@ namespace Microsoft.CodeAnalysis.Host
                     TextSource,
                     Encoding,
                     length,
-                    DiagnosticOptions);
+                    ContainsDirectives);
             }
 
-            internal SyntaxTreeInfo WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+            internal SyntaxTreeInfo WithOptions(ParseOptions options)
             {
-                Debug.Assert(options is object);
                 return new SyntaxTreeInfo(
                     FilePath,
-                    Options,
+                    options,
                     TextSource,
                     Encoding,
                     Length,
-                    options);
+                    ContainsDirectives);
             }
         }
 
-        internal sealed class RecoverableSyntaxRoot<TRoot> : RecoverableWeakValueSource<TRoot>
+        internal sealed class RecoverableSyntaxRoot<TRoot> : WeaklyCachedRecoverableValueSource<TRoot>
             where TRoot : SyntaxNode
         {
-            private ITemporaryStreamStorage _storage;
+            private ITemporaryStreamStorage? _storage;
 
             private readonly IRecoverableSyntaxTree<TRoot> _containingTree;
             private readonly AbstractSyntaxTreeFactoryService _service;
@@ -131,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Host
             public RecoverableSyntaxRoot<TRoot> WithSyntaxTree(IRecoverableSyntaxTree<TRoot> containingTree)
             {
                 // at this point, we should either have strongly held root or _storage should not be null
-                if (this.TryGetValue(out var root))
+                if (TryGetValue(out var root))
                 {
                     // we have strongly held root
                     return new RecoverableSyntaxRoot<TRoot>(_service, root, containingTree);
@@ -152,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Host
                 root.SerializeTo(stream, cancellationToken);
                 stream.Position = 0;
 
-                _storage = _service.LanguageServices.WorkspaceServices.GetService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);
+                _storage = _service.LanguageServices.WorkspaceServices.GetRequiredService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);
                 await _storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
             }
 
@@ -160,31 +154,10 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                var tickCount = Environment.TickCount;
-                try
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken))
                 {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        RoslynEventSource.Instance.BlockStart(_containingTree.FilePath, FunctionId.Workspace_Recoverable_RecoverRootAsync, blockId: 0);
-                    }
-
                     using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
                     return RecoverRoot(stream, cancellationToken);
-                }
-                finally
-                {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        var tick = Environment.TickCount - tickCount;
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            RoslynEventSource.Instance.BlockCanceled(FunctionId.Workspace_Recoverable_RecoverRootAsync, tick, blockId: 0);
-                        }
-                        else
-                        {
-                            RoslynEventSource.Instance.BlockStop(FunctionId.Workspace_Recoverable_RecoverRootAsync, tick, blockId: 0);
-                        }
-                    }
                 }
             }
 
@@ -192,45 +165,28 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                var tickCount = Environment.TickCount;
-                try
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken))
                 {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        RoslynEventSource.Instance.BlockStart(_containingTree.FilePath, FunctionId.Workspace_Recoverable_RecoverRoot, blockId: 0);
-                    }
-
                     using var stream = _storage.ReadStream(cancellationToken);
                     return RecoverRoot(stream, cancellationToken);
-                }
-                finally
-                {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        var tick = Environment.TickCount - tickCount;
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            RoslynEventSource.Instance.BlockCanceled(FunctionId.Workspace_Recoverable_RecoverRoot, tick, blockId: 0);
-                        }
-                        else
-                        {
-                            RoslynEventSource.Instance.BlockStop(FunctionId.Workspace_Recoverable_RecoverRoot, tick, blockId: 0);
-                        }
-                    }
                 }
             }
 
             private TRoot RecoverRoot(Stream stream, CancellationToken cancellationToken)
-            {
-                return _containingTree.CloneNodeAsRoot((TRoot)_service.DeserializeNodeFrom(stream, cancellationToken));
-            }
+                => _containingTree.CloneNodeAsRoot((TRoot)_service.DeserializeNodeFrom(stream, cancellationToken));
         }
     }
 
-    internal interface IRecoverableSyntaxTree<TRoot> where TRoot : SyntaxNode
+    internal interface IRecoverableSyntaxTree<TRoot> : IRecoverableSyntaxTree where TRoot : SyntaxNode
+    {
+        TRoot CloneNodeAsRoot(TRoot root);
+    }
+
+    internal interface IRecoverableSyntaxTree
     {
         string FilePath { get; }
 
-        TRoot CloneNodeAsRoot(TRoot root);
+        bool ContainsDirectives { get; }
+        SyntaxTree WithOptions(ParseOptions parseOptions);
     }
 }
