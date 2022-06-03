@@ -131,8 +131,11 @@ namespace Microsoft.CodeAnalysis.Host
             public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, CancellationToken cancellationToken)
                 => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
 
-            public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
-                => new TemporaryStreamStorage(this);
+            ITemporaryStreamStorage ITemporaryStorageService.CreateTemporaryStreamStorage(CancellationToken cancellationToken)
+                => CreateTemporaryStreamStorage();
+
+            internal TemporaryStreamStorage CreateTemporaryStreamStorage()
+                => new(this);
 
             public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken)
                 => new TemporaryStreamStorage(this, storageName, offset, size);
@@ -321,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            private class TemporaryStreamStorage : ITemporaryStreamStorage, ITemporaryStorageWithName
+            internal class TemporaryStreamStorage : ITemporaryStreamStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private MemoryMappedInfo? _memoryMappedInfo;
@@ -350,7 +353,10 @@ namespace Microsoft.CodeAnalysis.Host
                     _memoryMappedInfo = null;
                 }
 
-                public Stream ReadStream(CancellationToken cancellationToken)
+                Stream ITemporaryStreamStorage.ReadStream(CancellationToken cancellationToken)
+                    => ReadStream(cancellationToken);
+
+                public UnmanagedMemoryStream ReadStream(CancellationToken cancellationToken)
                 {
                     if (_memoryMappedInfo == null)
                     {
@@ -368,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Host
                 public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
-                    return Task.Factory.StartNew(() => ReadStream(cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+                    return Task.Factory.StartNew<Stream>(() => ReadStream(cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
 
                 public void WriteStream(Stream stream, CancellationToken cancellationToken = default)

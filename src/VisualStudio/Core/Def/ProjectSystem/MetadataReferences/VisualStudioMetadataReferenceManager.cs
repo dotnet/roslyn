@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
-        private readonly ITemporaryStorageService _temporaryStorageService;
+        private readonly TemporaryStorageServiceFactory.TemporaryStorageService _temporaryStorageService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(
             IServiceProvider serviceProvider,
-            ITemporaryStorageService temporaryStorageService)
+            TemporaryStorageServiceFactory.TemporaryStorageService temporaryStorageService)
         {
             _runtimeDirectories = GetRuntimeDirectories();
 
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private void GetStorageInfoFromTemporaryStorage(
-            FileKey moduleFileKey, out ITemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
+            FileKey moduleFileKey, out TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
         {
             int size;
             using (var copyStream = SerializableBytes.CreateWritableStream())
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // get stream that owns direct access memory.
             // In VS host, direct access should be supported through an UnmanagedMemoryStream
-            stream = (UnmanagedMemoryStream)storage.ReadStream(CancellationToken.None);
+            stream = storage.ReadStream(CancellationToken.None);
 
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
