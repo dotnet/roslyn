@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis
                 _module.Dispose();
 
                 if (_disposeOwner)
-                    _owner?.Dispose();
+                    _owner!.Dispose();
             }
         }
 
