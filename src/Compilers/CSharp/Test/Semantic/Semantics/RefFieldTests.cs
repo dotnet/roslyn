@@ -4483,7 +4483,9 @@ class Program
 {
     static void Main()
     {
-        var f = (scoped scoped R r) => { };
+        var f1 = (scoped scoped R r) => { };
+        var f2 = (ref scoped scoped R r) => { };
+        var f3 = (scoped scoped ref R r) => { };
     }
 }";
             var comp = CreateCompilation(source);
@@ -4493,47 +4495,6 @@ class Program
 
         [Fact]
         public void ParameterScope_09()
-        {
-            var source =
-@"ref struct R { }
-class Program
-{
-    static void Main()
-    {
-        var f = (ref scoped scoped int i) => { };
-    }
-}";
-            var comp = CreateCompilation(source);
-            // Duplicate scoped modifiers result are parse errors rather than binding errors.
-            comp.VerifyDiagnostics(
-                // (6,18): error CS1525: Invalid expression term 'ref'
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(6, 18),
-                // (6,18): error CS1073: Unexpected token 'ref'
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 18),
-                // (6,29): error CS1026: ) expected
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(6, 29),
-                // (6,29): error CS1002: ; expected
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(6, 29),
-                // (6,36): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "int").WithLocation(6, 36),
-                // (6,40): warning CS0168: The variable 'i' is declared but never used
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 40),
-                // (6,41): error CS1002: ; expected
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 41),
-                // (6,41): error CS1513: } expected
-                //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 41));
-        }
-
-        [Fact]
-        public void ParameterScope_10()
         {
             var source =
 @"ref struct scoped { }

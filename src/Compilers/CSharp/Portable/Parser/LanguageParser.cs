@@ -7241,15 +7241,6 @@ done:
             return ParseTypeCore(mode);
         }
 
-        private SyntaxToken EatScopedKeywordIfAny()
-        {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
-            {
-                return this.EatContextualToken(SyntaxKind.ScopedKeyword);
-            }
-            return null;
-        }
-
         private TypeSyntax ParseTypeCore(ParseTypeMode mode)
         {
             NameOptions nameOptions;
@@ -11846,32 +11837,20 @@ tryAgain:
 
                     _ = ParseAttributeDeclarations();
 
-                    _ = EatScopedKeywordIfAny();
-
-                    // Eat 'out', 'ref', and 'in'. Even though not allowed in a lambda,
-                    // we treat `params` similarly for better error recovery.
-                    switch (this.CurrentToken.Kind)
+                    bool hasModifier = IsParameterModifier(this.CurrentToken);
+                    if (hasModifier)
                     {
-                        case SyntaxKind.RefKeyword:
-                            this.EatToken();
-                            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
-                            {
-                                this.EatToken();
-                            }
-                            break;
-                        case SyntaxKind.OutKeyword:
-                        case SyntaxKind.InKeyword:
-                        case SyntaxKind.ParamsKeyword:
-                            this.EatToken();
-                            break;
+                        SyntaxListBuilder modifiers = _pool.Allocate();
+                        ParseParameterModifiers(modifiers);
+                        _pool.Free(modifiers);
                     }
 
-                    _ = EatScopedKeywordIfAny();
-
-                    // NOTE: advances CurrentToken
-                    if (this.ScanType() == ScanTypeFlags.NotType)
+                    if (hasModifier || ShouldParseLambdaParameterType())
                     {
-                        return false;
+                        if (this.ScanType() == ScanTypeFlags.NotType)
+                        {
+                            return false;
+                        }
                     }
 
                     // eat the parameter name.
@@ -13302,16 +13281,16 @@ tryAgain:
             // give the "params unexpected" error at semantic analysis time.
             bool hasModifier = IsParameterModifier(this.CurrentToken);
 
-            TypeSyntax paramType = null;
             SyntaxListBuilder modifiers = _pool.Allocate();
-
-            if (ShouldParseLambdaParameterType(hasModifier))
+            if (hasModifier)
             {
-                if (hasModifier)
-                {
-                    ParseParameterModifiers(modifiers);
-                }
+                ParseParameterModifiers(modifiers);
+            }
 
+            TypeSyntax paramType = null;
+            // If we have "ref/out/in/params" always try to parse out a type.
+            if (hasModifier || ShouldParseLambdaParameterType())
+            {
                 paramType = ParseType(ParseTypeMode.Parameter);
             }
 
@@ -13341,14 +13320,8 @@ tryAgain:
             return parameter;
         }
 
-        private bool ShouldParseLambdaParameterType(bool hasModifier)
+        private bool ShouldParseLambdaParameterType()
         {
-            // If we have "ref/out/in/params" always try to parse out a type.
-            if (hasModifier)
-            {
-                return true;
-            }
-
             // If we have "int/string/etc." always parse out a type.
             if (IsPredefinedType(this.CurrentToken.Kind))
             {

@@ -3107,10 +3107,21 @@ class C
     }
 }";
             ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_CloseParenExpected, "object"),
-Diagnostic(ErrorCode.ERR_SemicolonExpected, "object"),
-Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (6,16): error CS1026: ) expected
+                //         D d = (this object o) => null;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "this").WithLocation(6, 16),
+                // (6,16): error CS1003: Syntax error, '=>' expected
+                //         D d = (this object o) => null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments("=>", "this").WithLocation(6, 16),
+                // (6,21): error CS1002: ; expected
+                //         D d = (this object o) => null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 21),
+                // (6,29): error CS1002: ; expected
+                //         D d = (this object o) => null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 29),
+                // (6,29): error CS1513: } expected
+                //         D d = (this object o) => null;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 29));
         }
 
         // TODO: extra error CS1014
