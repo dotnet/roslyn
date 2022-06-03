@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -21,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly), Shared]
     internal class CSharpImplementExplicitlyCodeRefactoringProvider :
         AbstractChangeImplementionCodeRefactoringProvider
     {
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             //
             // This can save a lot of extra time spent finding callers, especially for methods with
             // high fan-out (like IDisposable.Dispose()).
-            var findRefsOptions = FindReferencesSearchOptions.Default.WithCascade(false);
+            var findRefsOptions = FindReferencesSearchOptions.Default with { Cascade = false };
             var references = await SymbolFinder.FindReferencesAsync(
                 implMember, solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
         }
 
-        private void UpdateLocation(
+        private static void UpdateLocation(
             SemanticModel semanticModel, INamedTypeSymbol interfaceType,
             SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             Location location, CancellationToken cancellationToken)
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (identifierName == null || !syntaxFacts.IsIdentifierName(identifierName))
                 return;
 
-            var node = syntaxFacts.IsNameOfMemberAccessExpression(identifierName) || syntaxFacts.IsMemberBindingExpression(identifierName.Parent)
+            var node = syntaxFacts.IsNameOfSimpleMemberAccessExpression(identifierName) || syntaxFacts.IsNameOfMemberBindingExpression(identifierName)
                 ? identifierName.Parent
                 : identifierName;
 
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (syntaxFacts.IsInvocationExpression(node.Parent))
                 node = node.Parent;
 
-            var operation = semanticModel.GetOperation(node);
+            var operation = semanticModel.GetOperation(node, cancellationToken);
             var instance = operation switch
             {
                 IMemberReferenceOperation memberReference => memberReference.Instance,
@@ -146,7 +145,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
         }
 
-        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol interfaceMember)
-            => generator.WithExplicitInterfaceImplementations(decl, ImmutableArray.Create(interfaceMember));
+        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol implMember, ISymbol interfaceMember)
+        {
+            // If these signatures match on default values, then remove the defaults when converting to explicit
+            // (they're not legal in C#). If they don't match on defaults, then keep them in so that the user gets a
+            // warning (from us and the compiler) and considers what to do about this.
+            var removeDefaults = AllDefaultValuesMatch(implMember, interfaceMember);
+            return generator.WithExplicitInterfaceImplementations(decl, ImmutableArray.Create(interfaceMember), removeDefaults);
+        }
+
+        private static bool AllDefaultValuesMatch(ISymbol implMember, ISymbol interfaceMember)
+        {
+            if (implMember is IMethodSymbol { Parameters: var implParameters } &&
+                interfaceMember is IMethodSymbol { Parameters: var interfaceParameters })
+            {
+                for (int i = 0, n = Math.Max(implParameters.Length, interfaceParameters.Length); i < n; i++)
+                {
+                    if (!DefaultValueMatches(implParameters[i], interfaceParameters[i]))
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool DefaultValueMatches(IParameterSymbol parameterSymbol1, IParameterSymbol parameterSymbol2)
+        {
+            if (parameterSymbol1.HasExplicitDefaultValue != parameterSymbol2.HasExplicitDefaultValue)
+                return false;
+
+            if (parameterSymbol1.HasExplicitDefaultValue)
+                return Equals(parameterSymbol1.ExplicitDefaultValue, parameterSymbol2.ExplicitDefaultValue);
+
+            return true;
+        }
     }
 }

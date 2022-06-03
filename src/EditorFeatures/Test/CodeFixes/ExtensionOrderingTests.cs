@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
@@ -19,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
     [UseExportProvider]
     public class ExtensionOrderingTests
     {
-        private ExportProvider ExportProvider => TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+        private static ExportProvider ExportProvider => EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
 
-        [ConditionalFact(typeof(x86))]
+        [Fact]
         public void TestNoCyclesInFixProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our code fix providers.
@@ -75,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 // break the cycle and the resulting order will end up being unpredictable.
                 var actualOrder = ExtensionOrderer.Order(providers).ToArray();
                 Assert.Equal(3, actualOrder.Length);
-                Assert.Equal(PredefinedCodeFixProviderNames.Suppression, actualOrder[0].Metadata.Name);
-                Assert.Equal(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, actualOrder[1].Metadata.Name);
-                Assert.Equal(PredefinedCodeFixProviderNames.ConfigureSeverity, actualOrder[2].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.Suppression, actualOrder[0].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.ConfigureCodeStyleOption, actualOrder[1].Metadata.Name);
+                Assert.Equal(PredefinedConfigurationFixProviderNames.ConfigureSeverity, actualOrder[2].Metadata.Name);
             }
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -75,13 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable; } }
 
-        public override bool IsOverride { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsOverride => false;
 
         public override bool IsAbstract { get { throw ExceptionUtilities.Unreachable; } }
 
         public override bool IsSealed { get { throw ExceptionUtilities.Unreachable; } }
 
         public override bool IsExtern { get { throw ExceptionUtilities.Unreachable; } }
+
+        internal override bool IsRequired => throw ExceptionUtilities.Unreachable;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData { get { throw ExceptionUtilities.Unreachable; } }
 

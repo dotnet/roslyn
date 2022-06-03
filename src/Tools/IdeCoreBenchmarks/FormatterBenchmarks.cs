@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -10,7 +12,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 namespace IdeCoreBenchmarks
@@ -21,7 +22,7 @@ namespace IdeCoreBenchmarks
         private readonly int _iterationCount = 5;
 
         private Document _document;
-        private OptionSet _options;
+        private SyntaxFormattingOptions _options;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -45,7 +46,7 @@ namespace IdeCoreBenchmarks
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
 
-            var solution = new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies)).CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp)
                 .AddDocument(documentId, "DocumentName", text);
 
@@ -54,10 +55,10 @@ namespace IdeCoreBenchmarks
             solution = solution.WithDocumentSyntaxRoot(documentId, root);
 
             _document = solution.GetDocument(documentId);
-            _options = _document.GetOptionsAsync().Result
-                .WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInTypes, true)
-                .WithChangedOption(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false)
-                .WithChangedOption(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
+            _options = new CSharpSyntaxFormattingOptions()
+            {
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInTypes
+            };
         }
 
         [Benchmark]

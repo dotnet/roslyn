@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using System;
-using System.Diagnostics;
+#nullable disable
+
 using System.Threading;
-using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -31,16 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.MembersCompleted:
                         {
+                            SingleNamespaceDeclaration targetDeclarationWithImports = null;
+
                             // ensure relevant imports are complete.
                             foreach (var declaration in _mergedDeclaration.Declarations)
                             {
                                 if (locationOpt == null || locationOpt.SourceTree == declaration.SyntaxReference.SyntaxTree)
                                 {
-                                    if (declaration.HasUsings || declaration.HasExternAliases)
+                                    if (declaration.HasGlobalUsings || declaration.HasUsings || declaration.HasExternAliases)
                                     {
-                                        this.DeclaringCompilation.GetImports(declaration).Complete(cancellationToken);
+                                        targetDeclarationWithImports = declaration;
+                                        _aliasesAndUsings[declaration].Complete(this, declaration.SyntaxReference, cancellationToken);
                                     }
                                 }
+                            }
+
+                            if (IsGlobalNamespace && (locationOpt is null || targetDeclarationWithImports is object))
+                            {
+                                GetMergedGlobalAliasesAndUsings(basesBeingResolved: null, cancellationToken).Complete(this, cancellationToken);
                             }
 
                             var members = this.GetMembers();
@@ -49,22 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (this.DeclaringCompilation.Options.ConcurrentBuild)
                             {
-                                var po = cancellationToken.CanBeCanceled
-                                    ? new ParallelOptions() { CancellationToken = cancellationToken }
-                                    : CSharpCompilation.DefaultParallelOptions;
-
-                                Parallel.For(0, members.Length, po, UICultureUtilities.WithCurrentUICulture<int>(i =>
-                                {
-                                    try
-                                    {
-                                        var member = members[i];
-                                        ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
-                                    }
-                                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                                    {
-                                        throw ExceptionUtilities.Unreachable;
-                                    }
-                                }));
+                                RoslynParallel.For(
+                                    0,
+                                    members.Length,
+                                    UICultureUtilities.WithCurrentUICulture<int>(i => ForceCompleteMemberByLocation(locationOpt, members[i], cancellationToken)),
+                                    cancellationToken);
 
                                 foreach (var member in members)
                                 {

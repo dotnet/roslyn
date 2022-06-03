@@ -2,9 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
@@ -27,10 +25,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 wszName,
                 pVbCompilerHost,
                 pProjHier,
+                TypeOf punkProject Is IVsIntellisenseProject,
                 Me,
-                ComponentModel.GetService(Of IThreadingContext),
-                hostDiagnosticUpdateSource,
-                commandLineParserServiceOpt:=Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService))
+                ComponentModel.GetService(Of IThreadingContext))
         End Function
 
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier

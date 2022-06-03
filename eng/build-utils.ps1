@@ -8,7 +8,7 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/master/eng/config/PublishData.json"
+$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -39,6 +39,20 @@ function GetBranchPublishData([string]$branchName) {
 
   if (Get-Member -InputObject $data.branches -Name $branchName) {
     return $data.branches.$branchName
+  } else {
+    return $null
+  }
+}
+
+function GetFeedPublishData() {
+  $data = GetPublishData
+  return $data.feeds
+}
+
+function GetPackagesPublishData([string]$packageFeeds) {
+  $data = GetPublishData
+  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
+    return $data.packages.$packageFeeds
   } else {
     return $null
   }
@@ -269,7 +283,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
   }
 
   if ($runAnalyzers) {
-    $args += " /p:UseRoslynAnalyzers=true"
+    $args += " /p:RunAnalyzersDuringBuild=true"
   }
 
   if ($binaryLog) {
@@ -314,15 +328,30 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   Create-Directory $dir
 
   $packageName = "Microsoft.Net.Compilers.Toolset"
-  $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
+  $projectPath = "src\NuGet\$packageName\AnyCpu\$packageName.Package.csproj"
   $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
 
-  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:UseRoslynAnalyzers=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
+  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
-  Unzip "$dir\$packageFile" $dir
+  Unzip (Join-Path $dir $packageFile.Name) $dir
 
   Write-Host "Cleaning Bootstrap compiler artifacts"
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
 
   return $dir
+}
+
+function Subst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: $TempDir"
+
+    $env:TEMP='T:\'
+    $env:TMP='T:\'
+  }
+}
+
+function Unsubst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: /d"
+  }
 }

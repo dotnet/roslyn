@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Position = position;
         }
 
-        internal TodoCommentData CreateSerializableData(
+        private TodoCommentData CreateSerializableData(
             Document document, SourceText text, SyntaxTree? tree)
         {
             // make sure given position is within valid text range.
@@ -42,18 +41,29 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var originalLineInfo = location.GetLineSpan();
             var mappedLineInfo = location.GetMappedLineSpan();
 
-            return new TodoCommentData
-            {
-                Priority = Descriptor.Priority,
-                Message = Message,
-                DocumentId = document.Id,
-                OriginalLine = originalLineInfo.StartLinePosition.Line,
-                OriginalColumn = originalLineInfo.StartLinePosition.Character,
-                OriginalFilePath = document.FilePath,
-                MappedLine = mappedLineInfo.StartLinePosition.Line,
-                MappedColumn = mappedLineInfo.StartLinePosition.Character,
-                MappedFilePath = mappedLineInfo.GetMappedFilePathIfExist(),
-            };
+            return new(
+                priority: Descriptor.Priority,
+                message: Message,
+                documentId: document.Id,
+                originalLine: originalLineInfo.StartLinePosition.Line,
+                originalColumn: originalLineInfo.StartLinePosition.Character,
+                originalFilePath: document.FilePath,
+                mappedLine: mappedLineInfo.StartLinePosition.Line,
+                mappedColumn: mappedLineInfo.StartLinePosition.Character,
+                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist());
+        }
+
+        public static async Task ConvertAsync(
+            Document document,
+            ImmutableArray<TodoComment> todoComments,
+            ArrayBuilder<TodoCommentData> converted,
+            CancellationToken cancellationToken)
+        {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var comment in todoComments)
+                converted.Add(comment.CreateSerializableData(document, sourceText, syntaxTree));
         }
     }
 

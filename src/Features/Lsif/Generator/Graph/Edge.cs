@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 
             // Note: this is ultimately just an array copy, but in a strongly-typed way. The JIT might see through this as a memory copy,
             // but might require some more explicit code if not.
-            for (int i = 0; i < inVertices.Count; i++)
+            for (var i = 0; i < inVertices.Count; i++)
             {
                 inVerticesArray[i] = inVertices[i].As<TInVertex, Vertex>();
             }

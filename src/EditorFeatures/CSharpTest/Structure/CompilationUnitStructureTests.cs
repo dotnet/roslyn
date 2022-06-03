@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -156,6 +158,22 @@ $${|hint:using|} {|textspan:|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("span", "/* / ...", autoCollapse: true));
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestUsingsShouldBeCollapsedByDefault(bool collapseUsingsByDefault)
+        {
+            const string code = @"
+$${|hint:using {|textspan:System;
+using System.Core;|}|}";
+
+            var options = GetDefaultOptions() with
+            {
+                CollapseImportsWhenFirstOpened = collapseUsingsByDefault
+            };
+
+            await VerifyBlockSpansAsync(code, options,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true, isDefaultCollapsed: collapseUsingsByDefault));
         }
     }
 }

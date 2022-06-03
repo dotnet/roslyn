@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return ((UndefDirectiveTriviaSyntax)this).UndefKeyword;
                     case SyntaxKind.LineDirectiveTrivia:
                         return ((LineDirectiveTriviaSyntax)this).LineKeyword;
+                    case SyntaxKind.LineSpanDirectiveTrivia:
+                        return ((LineSpanDirectiveTriviaSyntax)this).LineKeyword;
                     case SyntaxKind.PragmaWarningDirectiveTrivia:
                         return ((PragmaWarningDirectiveTriviaSyntax)this).PragmaKeyword;
                     case SyntaxKind.PragmaChecksumDirectiveTrivia:
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public DirectiveTriviaSyntax GetNextDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
+        public DirectiveTriviaSyntax? GetNextDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             var token = (SyntaxToken)this.ParentTrivia.Token;
             bool next = false;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         if (tr.IsDirective)
                         {
-                            var d = (DirectiveTriviaSyntax)tr.GetStructure();
+                            var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                             if (predicate == null || predicate(d))
                             {
                                 return d;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return null;
         }
 
-        public DirectiveTriviaSyntax GetPreviousDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
+        public DirectiveTriviaSyntax? GetPreviousDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             var token = (SyntaxToken)this.ParentTrivia.Token;
             bool next = false;
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         if (tr.IsDirective)
                         {
-                            var d = (DirectiveTriviaSyntax)tr.GetStructure();
+                            var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                             if (predicate == null || predicate(d))
                             {
                                 return d;
@@ -151,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private DirectiveTriviaSyntax GetNextRelatedDirective()
+        private DirectiveTriviaSyntax? GetNextRelatedDirective()
         {
-            DirectiveTriviaSyntax d = this;
+            DirectiveTriviaSyntax? d = this;
             switch (d.Kind())
             {
                 case SyntaxKind.IfDirectiveTrivia:
@@ -217,9 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return null;
         }
 
-        private DirectiveTriviaSyntax GetNextPossiblyRelatedDirective()
+        private DirectiveTriviaSyntax? GetNextPossiblyRelatedDirective()
         {
-            DirectiveTriviaSyntax d = this;
+            DirectiveTriviaSyntax? d = this;
             while (d != null)
             {
                 d = d.GetNextDirective();
@@ -251,9 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return null;
         }
 
-        private DirectiveTriviaSyntax GetPreviousRelatedDirective()
+        private DirectiveTriviaSyntax? GetPreviousRelatedDirective()
         {
-            DirectiveTriviaSyntax d = this;
+            DirectiveTriviaSyntax? d = this;
             switch (d.Kind())
             {
                 case SyntaxKind.EndIfDirectiveTrivia:
@@ -318,9 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return null;
         }
 
-        private DirectiveTriviaSyntax GetPreviousPossiblyRelatedDirective()
+        private DirectiveTriviaSyntax? GetPreviousPossiblyRelatedDirective()
         {
-            DirectiveTriviaSyntax d = this;
+            DirectiveTriviaSyntax? d = this;
             while (d != null)
             {
                 d = d.GetPreviousDirective();

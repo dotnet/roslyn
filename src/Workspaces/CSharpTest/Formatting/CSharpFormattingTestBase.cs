@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -20,6 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 
         protected override SyntaxNode ParseCompilation(string text, ParseOptions parseOptions)
             => SyntaxFactory.ParseCompilationUnit(text, options: (CSharpParseOptions)parseOptions);
+
+        private protected Task AssertNoFormattingChangesAsync(
+            string code,
+            bool debugMode = false,
+            OptionsCollection changedOptionSet = null,
+            bool testWithTransformation = true,
+            ParseOptions parseOptions = null)
+        {
+            return AssertFormatAsync(code, code, SpecializedCollections.SingletonEnumerable(new TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, parseOptions);
+        }
 
         private protected Task AssertFormatAsync(
             string expected,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -16,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Shared
         bool SupportsRename(Document document);
         bool SupportsNavigationToAnyPosition(Document document);
     }
-
 
     [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Default), Shared]
     internal class DefaultDocumentSupportsFeatureService : IDocumentSupportsFeatureService

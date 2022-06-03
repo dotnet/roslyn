@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class AnalyzerDependencyCheckerTests
         Inherits TestBase
 
-        Private Shared s_mscorlibDisplayName As String = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+        Private Shared ReadOnly s_mscorlibDisplayName As String = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
 
         Private Shared Function GetIgnorableAssemblyLists() As IEnumerable(Of IIgnorableAssemblyList)
             Dim mscorlib As AssemblyIdentity = Nothing
@@ -473,7 +473,6 @@ public class E
                 Dim analyzer1FileName As String = Path.GetFileName(conflicts(0).AnalyzerFilePath1)
                 Dim analyzer2FileName As String = Path.GetFileName(conflicts(0).AnalyzerFilePath2)
 
-
                 Assert.Equal(expected:="E.dll", actual:=analyzer1FileName)
                 Assert.Equal(expected:="E.dll", actual:=analyzer2FileName)
                 Assert.Equal(expected:=New AssemblyIdentity("E"), actual:=conflicts(0).Identity)
@@ -862,7 +861,7 @@ public class A
             Assert.False(ignorableAssemblyList.Includes(alpha))
         End Sub
 
-        Private Function BuildLibrary(directory As DisposableDirectory, fileContents As String, libraryName As String, ParamArray referenceNames As String()) As String
+        Private Shared Function BuildLibrary(directory As DisposableDirectory, fileContents As String, libraryName As String, ParamArray referenceNames As String()) As String
             Dim sourceFile = directory.CreateFile(libraryName + ".cs").WriteAllText(fileContents).Path
             Dim tempOut = Path.Combine(directory.Path, libraryName + ".out")
             Dim libraryOut = Path.Combine(directory.Path, libraryName + ".dll")
@@ -874,7 +873,7 @@ public class A
                 references.Add(PortableExecutableReference.CreateFromFile(Path.Combine(directory.Path, referenceName + ".dll")))
             Next
 
-            references.Add(TestReferences.NetFx.v4_0_30319.mscorlib)
+            references.Add(TestMetadata.Net451.mscorlib)
 
             Dim compilation = CSharpCompilation.Create(libraryName, syntaxTrees, references, New CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim emitResult = compilation.Emit(libraryOut)

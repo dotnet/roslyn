@@ -1060,7 +1060,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.PercentGreaterThanToken
 
                     Return True
-                    Return True
 
                 ' After an open curly brace ({) or before a closing curly brace (})
                 ' However, a line-continuation character is required before the closing curly brace of a string interpolation.

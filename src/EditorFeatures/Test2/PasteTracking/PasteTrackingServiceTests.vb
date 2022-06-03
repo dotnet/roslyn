@@ -210,7 +210,6 @@ $$
             End Using
         End Sub
 
-
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>
         Public Async Function PasteTracking_HasTextSpanForLinkedFile_AfterPasteThenCloseAllThenOpenThenPaste() As Task

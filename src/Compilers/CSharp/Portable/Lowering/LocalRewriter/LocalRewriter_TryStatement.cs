@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -90,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression? rewrittenExceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
+            BoundStatementList? rewrittenFilterPrologue = (BoundStatementList?)this.Visit(node.ExceptionFilterPrologueOpt);
             BoundExpression? rewrittenFilter = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
             BoundBlock? rewrittenBody = (BoundBlock?)this.Visit(node.Body);
             Debug.Assert(rewrittenBody is { });
@@ -106,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Locals,
                 rewrittenExceptionSourceOpt,
                 rewrittenExceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBody,
                 node.IsSynthesizedAsyncCatchAll);

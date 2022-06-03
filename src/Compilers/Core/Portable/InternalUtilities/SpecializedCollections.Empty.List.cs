@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +20,7 @@ namespace Roslyn.Utilities
 
             internal class List<T> : Collection<T>, IList<T>, IReadOnlyList<T>
             {
-                public static new readonly List<T> Instance = new List<T>();
+                public static new readonly List<T> Instance = new();
 
                 protected List()
                 {

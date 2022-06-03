@@ -17,10 +17,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
+        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, options As BlockStructureOptions, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
             Dim outliningService = document.GetLanguageService(Of BlockStructureService)()
 
-            Return (Await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans
+            Return (Await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>

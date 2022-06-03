@@ -3,8 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -12,14 +11,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class ConstructorDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of SubNewStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(constructorDeclaration As SubNewStatementSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
-                                                  isMetadataAsSource As Boolean,
-                                                  options As OptionSet,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  constructorDeclaration As SubNewStatementSyntax,
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            Dim regions As New List(Of BlockSpan)
 
-            CollectCommentsRegions(constructorDeclaration, spans, isMetadataAsSource)
+            CollectCommentsRegions(constructorDeclaration, spans, options)
 
             Dim block = TryCast(constructorDeclaration.Parent, ConstructorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Windows;
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return null;
         }
 
-        private string GetAdditionalText(string additional)
+        private static string GetAdditionalText(string additional)
         {
             if (additional == null)
             {
@@ -173,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return " [" + additional + "]";
         }
 
-        private string GetLanguage(string languageName)
+        private static string GetLanguage(string languageName)
         {
             if (languageName == null)
             {

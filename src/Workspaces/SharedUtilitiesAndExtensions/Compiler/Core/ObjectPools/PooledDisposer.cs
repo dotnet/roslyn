@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
+    [NonCopyable]
     internal readonly struct PooledDisposer<TPoolable> : IDisposable
         where TPoolable : class, IPooled
     {

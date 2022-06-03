@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -12,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IVariableDeclaration : SemanticModelTestBase
     {
         #region Variable Declarations
 
@@ -608,9 +610,9 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
-            Assert.Equal(2, declarator.Children.Count());
-            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
-            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(1).Kind);
+            Assert.Equal(2, declarator.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declarator.ChildOperations.First().Kind);
+            Assert.Equal(OperationKind.VariableInitializer, declarator.ChildOperations.ElementAt(1).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -630,8 +632,8 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
-            Assert.Equal(1, declarator.Children.Count());
-            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
+            Assert.Equal(1, declarator.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declarator.ChildOperations.First().Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -651,8 +653,8 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
-            Assert.Equal(1, declarator.Children.Count());
-            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(0).Kind);
+            Assert.Equal(1, declarator.ChildOperations.Count());
+            Assert.Equal(OperationKind.VariableInitializer, declarator.ChildOperations.ElementAt(0).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -671,7 +673,7 @@ class C
 
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -846,9 +848,9 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclarationSyntax>(compilation);
             var declaration = (IVariableDeclarationOperation)operation;
-            Assert.Equal(2, declaration.Children.Count());
-            Assert.Equal(OperationKind.Literal, declaration.Children.First().Kind);
-            Assert.Equal(OperationKind.VariableDeclarator, declaration.Children.ElementAt(1).Kind);
+            Assert.Equal(2, declaration.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declaration.ChildOperations.First().Kind);
+            Assert.Equal(OperationKind.VariableDeclarator, declaration.ChildOperations.ElementAt(1).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -868,9 +870,9 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclarationSyntax>(compilation);
             var declaration = (IVariableDeclarationOperation)operation;
-            Assert.Equal(2, declaration.Children.Count());
-            Assert.Equal(OperationKind.Literal, declaration.Children.First().Kind);
-            Assert.Equal(OperationKind.VariableDeclarator, declaration.Children.ElementAt(1).Kind);
+            Assert.Equal(2, declaration.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declaration.ChildOperations.First().Kind);
+            Assert.Equal(OperationKind.VariableDeclarator, declaration.ChildOperations.ElementAt(1).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1301,7 +1303,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
             Value: 
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
   Declarators:
       IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
         Initializer: 
@@ -1352,13 +1354,13 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'y switch { int z => 42 }')
-              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+              ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
                 Value: 
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
                 Arms(1):
                     ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                       Pattern: 
-                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                       Locals: Local_1: System.Int32 z
@@ -1420,7 +1422,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = &reference.i1')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i1')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                     Reference: 
@@ -1466,7 +1468,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i1')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                     Reference: 
@@ -1476,7 +1478,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &reference.i2')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i2')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i2')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i2')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i2')
                     Reference: 
@@ -1701,7 +1703,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void FixedStatementInvalidMulipleDeclarations()
+        public void FixedStatementInvalidMultipleDeclarations()
         {
             string source = @"
 class Program
@@ -1726,7 +1728,7 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
         Initializer: 
           IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+            IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: '&reference.i1')
               Children(1):
                   IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
                     Reference: 
@@ -1787,13 +1789,13 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
         Arguments(1):
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'y switch { int z => 42 }')
-              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+              ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
                 Value: 
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
                 Arms(1):
                     ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                       Pattern: 
-                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                       Locals: Local_1: System.Int32 z
@@ -2307,13 +2309,13 @@ class C
             string expectedOperationTree = @"
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
       Ignored Dimensions(1):
-          ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+          ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
             Value:
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2369,13 +2371,13 @@ class C
             string expectedOperationTree = @"
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
       Ignored Dimensions(1):
-          ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+          ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
             Value:
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2428,13 +2430,13 @@ class C
             string expectedOperationTree = @"
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
       Ignored Dimensions(1):
-          ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+          ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
             Value:
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2838,13 +2840,13 @@ class C
             string expectedOperationTree = @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
   Ignored Dimensions(1):
-      ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+      ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
         Value: 
           ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
         Arms(1):
             ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
               Pattern: 
-                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
               Value: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
               Locals: Local_1: System.Int32 z

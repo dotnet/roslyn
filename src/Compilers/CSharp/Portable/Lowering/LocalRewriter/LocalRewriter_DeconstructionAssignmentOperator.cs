@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -71,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true)!,
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
                     conditional.ConstantValue,
+                    leftType,
+                    wasTargetTyped: true,
                     leftType);
             }
 
@@ -125,18 +125,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
             ImmutableArray<BoundExpression> rightParts = GetRightParts(right, conversion, temps, effects, ref inInit);
 
-            ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
-            Debug.Assert(!underlyingConversions.IsDefault);
-            Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == conversion.UnderlyingConversions.Length);
+            ImmutableArray<(BoundValuePlaceholder?, BoundExpression?)> deconstructConversionInfo = conversion.DeconstructConversionInfo;
+            Debug.Assert(!deconstructConversionInfo.IsDefault);
+            Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == deconstructConversionInfo.Length);
 
             var builder = isUsed ? ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count) : null;
             for (int i = 0; i < leftTargets.Count; i++)
             {
                 BoundExpression? resultPart;
+                var (placeholder, nestedConversion) = deconstructConversionInfo[i];
+                Debug.Assert(placeholder is not null);
+                Debug.Assert(nestedConversion is not null);
+
                 if (leftTargets[i].NestedVariables is { } nested)
                 {
                     resultPart = ApplyDeconstructionConversion(nested, rightParts[i],
-                        underlyingConversions[i], temps, effects, isUsed, inInit);
+                        BoundNode.GetConversion(nestedConversion, placeholder), temps, effects, isUsed, inInit);
                 }
                 else
                 {
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression? leftTarget = leftTargets[i].Single;
                     Debug.Assert(leftTarget is { Type: { } });
 
-                    resultPart = EvaluateConversionToTemp(rightPart, underlyingConversions[i], leftTarget.Type, temps,
+                    resultPart = EvaluateConversionToTemp(rightPart, placeholder, nestedConversion, temps,
                         effects.conversions);
 
                     if (leftTarget.Kind != BoundKind.DiscardExpression)
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tupleType = NamedTypeSymbol.CreateTuple(locationOpt: null, elementTypesWithAnnotations: builder!.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                     elementLocations: default, elementNames: default,
-                    compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
+                    compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default, syntax: (CSharpSyntaxNode)right.Syntax, diagnostics: _diagnostics);
 
                 return new BoundConvertedTupleLiteral(
                     right.Syntax, sourceTuple: null, wasTargetTyped: false, arguments: builder!.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
@@ -269,15 +273,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private BoundExpression EvaluateConversionToTemp(BoundExpression expression, Conversion conversion,
-            TypeSymbol destinationType, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
+        private BoundExpression EvaluateConversionToTemp(BoundExpression expression, BoundValuePlaceholder placeholder, BoundExpression conversion,
+            ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
-            if (conversion.IsIdentity)
+            if (BoundNode.GetConversion(conversion, placeholder).IsIdentity)
             {
                 return expression;
             }
-            var evalConversion = MakeConversionNode(expression.Syntax, expression, conversion, destinationType, @checked: false);
-            return EvaluateSideEffectingArgumentToTemp(evalConversion, effects, temps);
+
+            return EvaluateSideEffectingArgumentToTemp(ApplyConversion(conversion, placeholder, expression), effects, temps);
         }
 
         private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructMethodInfo deconstruction, BoundExpression target,

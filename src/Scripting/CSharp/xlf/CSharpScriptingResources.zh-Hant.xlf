@@ -36,21 +36,28 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">使用方式: csi [option] ... [script-file.csx] [script-argument] ...
+        <target state="translated">用法: csi [選項] ... [script-file.csx] [指令碼引數] ...
 
-若有指定則執行 script-file.csx，否則會啟動互動式 REPL (Read Eval Print Loop)
+執行 script-file.csx (如有指定) ，否則啟動互動式 REPL (讀取、求值、輸出」迴圈)
 
 選項:
-  /help                          顯示這則使用訊息 (替代形式: /?)
+  /help                          顯示此用法訊息 (替代格式: /?)
   /version                       顯示版本並結束
-  /i                             在執行指定指令碼後，置放到 REPL。
-  /r:&lt;檔案&gt;                      從指定的組件檔參考中繼資料 (替代形式: /reference)
-  /r:&lt;檔案清單&gt;                 從指定的組件檔參考中繼資料 (替代形式: /reference)
-  /lib:&lt;路徑清單&gt;               目錄清單，用以從中尋找 #r 指示詞所指定的程式庫。 
-                                 (替代形式: /libPath /libPaths)
-  /u:&lt;命名空間&gt;                 定義全域命名空間的方式 (替代形式: /using、/usings、/import、/imports)
-  @&lt;檔案&gt;                        讀取回應檔以取得更多選項
-  --                             表示不應將剩餘引數視為選項。
+  /i                             在執行指定的指令碼之後，中斷進入 REPL。
+  /r:&lt;檔案&gt;                      參考指定之組件檔中的中繼資料 (替代格式: /reference)
+n  /r:&lt;檔案清單&gt;                 參考指定之組件檔中的中繼資料 (替代格式: /reference)
+  /lib:&lt;路徑清單&gt;               目錄清單，可從中尋找 #r 指示詞指定的程式庫。 
+                                 (替代格式: /libPath /libPaths)
+  /u:&lt;命名空間&gt;                 定義全域命名空間 (替代格式: /using、/usings、/import、/imports)
+  /langversion:?                 顯示允許的語言版本值並結束
+  /langversion:&lt;字串&gt;          指定語言版本，例如
+                                 'latest' (最新版本，包括次要版本)、
+                                 'default' (與 'latest' 相同)、
+                                 'latestmajor' (最新版本，不包括次要版本)、
+                                 'preview' (最新版本，包括不受支援之預覽版中的功能)，
+                                 或特定版本，例如 '6' 或 '7.1' 等版本
+  @&lt;檔案&gt;                        讀取回應檔，以查看更多選項
+  --                             指定不應將剩餘的引數視為選項。
 </target>
         <note />
       </trans-unit>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -1265,7 +1267,6 @@ class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task ReturnIEnumerablePartialMethod()
         {
@@ -1321,6 +1322,70 @@ partial class C
 partial class C
 {
     partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return nums.SelectMany(n1 => nums.Select(n2 => n1));
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ReturnIEnumerableExtendedPartialMethod()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                yield return n1;
+            }
+        }|]
+
+        yield break;
+    }
+}
+";
+            var queryOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return from int n1 in nums
+               from int n2 in nums
+               select n1;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
+
+            var linqInvocationOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
     {
         return nums.SelectMany(n1 => nums.Select(n2 => n1));
     }
@@ -3128,7 +3193,6 @@ class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task CountInMultipleDeclarationMergeToReturnLast()
         {
@@ -3964,9 +4028,9 @@ class C
             /* 10 */
         from/* 12 *//* 11 */int /* 13 */ y /* 14 */ in/* 15 */nums/* 16 *//* 17 */// 18
                                                                                   // 19
-    /*20 */
+            /*20 */
         where/* 21 *//* 22 */x > 2/* 23 */// 24
-/* 26 *//* 27 *//* 28 */
+        /* 26 *//* 27 *//* 28 */
         select x * y/* 29 *//* 31 */// 32
         /* 33 */// 34
         /* 35 *//* 36 */// 30
@@ -4257,10 +4321,10 @@ class C
         foreach (var n1 /* 4 */in
         /* 17 */// 18
         /* 1 */from/* 2 */int /* 3 */ n1 /* 4 */in/* 5 */nums/* 6 */// 7
-           /* 8*/// 9
-           /* 10 */
+                   /* 8*/// 9
+                   /* 10 */
                where/* 11 *//* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
-       select n1/* 4 *//* 21 */// 22
+               select n1/* 4 *//* 21 */// 22
         /*23*//*24*/
                     )
         {

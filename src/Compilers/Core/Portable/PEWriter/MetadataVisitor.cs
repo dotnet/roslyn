@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -467,6 +465,18 @@ namespace Microsoft.Cci
             this.Visit(pointerTypeReference.GetTargetType(Context));
         }
 
+        public virtual void Visit(IFunctionPointerTypeReference functionPointerTypeReference)
+        {
+            this.Visit(functionPointerTypeReference.Signature.RefCustomModifiers);
+            this.Visit(functionPointerTypeReference.Signature.ReturnValueCustomModifiers);
+            this.Visit(functionPointerTypeReference.Signature.GetType(Context));
+
+            foreach (var param in functionPointerTypeReference.Signature.GetParameters(Context))
+            {
+                this.Visit(param);
+            }
+        }
+
         public void Visit(IEnumerable<IPropertyDefinition> properties)
         {
             foreach (IPropertyDefinition property in properties)
@@ -623,6 +633,13 @@ namespace Microsoft.Cci
             if (pointerTypeReference != null)
             {
                 this.Visit(pointerTypeReference);
+                return;
+            }
+
+            IFunctionPointerTypeReference? functionPointerTypeReference = typeReference as IFunctionPointerTypeReference;
+            if (functionPointerTypeReference != null)
+            {
+                this.Visit(functionPointerTypeReference);
                 return;
             }
 

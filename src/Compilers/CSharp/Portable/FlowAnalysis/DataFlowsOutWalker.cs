@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = walker.Analyze(ref badRegion);
 #if DEBUG
                 // Assert that DataFlowsOut only contains variables that were assigned to inside the region
-                Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
+                // https://github.com/dotnet/roslyn/issues/41600 blocks some tests with local functions. 
+                // Enable the following assert once the issue is fixed.
+                //Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
 #endif
                 return badRegion ? new HashSet<Symbol>() : result;
             }
@@ -113,14 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (node.Kind)
                 {
+                    case BoundKind.ListPattern:
+                    case BoundKind.RecursivePattern:
                     case BoundKind.DeclarationPattern:
                         {
-                            return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
-                        }
-
-                    case BoundKind.RecursivePattern:
-                        {
-                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
+                            return ((BoundObjectPattern)node).Variable as LocalSymbol;
                         }
 
                     case BoundKind.FieldAccess:

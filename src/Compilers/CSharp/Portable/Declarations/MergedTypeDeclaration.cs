@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -44,13 +46,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        /// <summary>
+        /// Returns the original syntax nodes for this type declaration across all its parts.  If
+        /// <paramref name="quickAttributes"/> is provided, attributes will not be returned if it
+        /// is certain there are none that could match the request.  This prevents going back to 
+        /// source unnecessarily.
+        /// </summary>
+        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes? quickAttributes)
         {
             var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
             foreach (var decl in _declarations)
             {
                 if (!decl.HasAnyAttributes)
+                {
+                    continue;
+                }
+
+                if (quickAttributes != null && (decl.QuickAttributes & quickAttributes.Value) == 0)
                 {
                     continue;
                 }
@@ -63,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
+                    case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;
 
@@ -221,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyMemberNames == null)
                 {
-                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
+                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Keys);
                     Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 

@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
             // Local function
             void ReleaseToken(object sender, EventArgs e)
-                => Interlocked.Exchange(ref token, null)?.Dispose();
+                => Interlocked.Exchange<IAsyncToken?>(ref token, null)?.Dispose();
         }
     }
 }

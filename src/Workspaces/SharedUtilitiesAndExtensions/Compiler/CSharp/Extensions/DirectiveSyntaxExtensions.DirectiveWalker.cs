@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private readonly IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> _conditionalMap;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly Stack<DirectiveTriviaSyntax> _regionStack = new Stack<DirectiveTriviaSyntax>();
-            private readonly Stack<DirectiveTriviaSyntax> _ifStack = new Stack<DirectiveTriviaSyntax>();
+            private readonly Stack<DirectiveTriviaSyntax> _regionStack = new();
+            private readonly Stack<DirectiveTriviaSyntax> _ifStack = new();
 
             public DirectiveWalker(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,
@@ -128,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // #If should be the first one in sorted order
                 var ifDirective = condDirectives.First();
                 Debug.Assert(
-                    ifDirective.Kind() == SyntaxKind.IfDirectiveTrivia ||
-                    ifDirective.Kind() == SyntaxKind.ElifDirectiveTrivia ||
-                    ifDirective.Kind() == SyntaxKind.ElseDirectiveTrivia);
+                    ifDirective.Kind() is SyntaxKind.IfDirectiveTrivia or
+                    SyntaxKind.ElifDirectiveTrivia or
+                    SyntaxKind.ElseDirectiveTrivia);
 
                 if (directiveOpt != null)
                 {

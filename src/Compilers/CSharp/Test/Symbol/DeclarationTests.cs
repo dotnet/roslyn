@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -61,8 +63,8 @@ namespace NA
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
             Assert.NotNull(tree2);
-            var decl1 = DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
-            var decl2 = DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
+            var decl1 = DeclarationTreeBuilder.ForTree(tree1, TestOptions.DebugExe.ScriptClassName, isSubmission: false);
+            var decl2 = DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false);
             Assert.NotNull(decl1);
             Assert.NotNull(decl2);
             Assert.Equal(string.Empty, decl1.Name);
@@ -230,8 +232,8 @@ namespace NA
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
             Assert.NotNull(tree2);
-            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
-            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
+            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
+            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
 
             var table = DeclarationTable.Empty;
             table = table.AddRootDeclaration(decl1);
@@ -269,7 +271,7 @@ namespace NA
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
         public void OnlyOneParse()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
@@ -291,7 +293,7 @@ public class B
 
             var countedTree = new CountedSyntaxTree(foreignType);
 
-            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree }, skipUsesIsNullable: true);
+            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree }, skipUsesIsNullable: true, options: TestOptions.ReleaseDll);
 
             var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
             Assert.Equal(1, countedTree.AccessCount);   // parse once to build the decl table
@@ -316,6 +318,53 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
         }
 
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
+        public void OnlyOneParse_WithReservedTypeName()
+        {
+            var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+class c
+{
+    public b X(b b1) { return b1; }
+    c(){}
+}
+");
+            var foreignType = SyntaxFactory.ParseSyntaxTree(@"
+public class b
+{
+  public int member(string s) { return s.Length; }
+  b(){}
+}
+");
+
+            var countedTree = new CountedSyntaxTree(foreignType);
+
+            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree }, skipUsesIsNullable: true, options: TestOptions.ReleaseDll);
+
+            var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var memberNames = type.MemberNames;
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var interfaces = type.Interfaces();
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var method = (MethodSymbol)type.GetMembers().First();
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var returnType = method.ReturnTypeWithAnnotations;
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var parameterType = method.Parameters.Single();
+            Assert.Equal(1, countedTree.AccessCount);
+        }
+
+        /// <remarks>
+        /// When using this type, make sure to pass an explicit CompilationOptions to CreateCompilation, as the check
+        /// to see whether the syntax tree has top-level statements will increment the counter.
+        /// </remarks>
         private class CountedSyntaxTree : CSharpSyntaxTree
         {
             private class Reference : SyntaxReference
@@ -346,10 +395,9 @@ public class B
                 {
                     // Note: It's important for us to maintain identity of nodes/trees, so we find
                     // the equivalent node in our CountedSyntaxTree.
-                    _countedSyntaxTree.AccessCount++;
                     var nodeInUnderlying = _underlyingSyntaxReference.GetSyntax(cancellationToken);
 
-
+                    // Note: GetCompilationUnitRoot increments AccessCount
                     var token = _countedSyntaxTree.GetCompilationUnitRoot(cancellationToken).FindToken(nodeInUnderlying.SpanStart);
                     for (var node = token.Parent; node != null; node = node.Parent)
                     {
@@ -425,6 +473,7 @@ public class B
                 get { return _underlyingTree.Length; }
             }
 
+            [Obsolete]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => throw new NotImplementedException();
 
             public override SyntaxReference GetReference(SyntaxNode node)
@@ -443,11 +492,6 @@ public class B
             }
 
             public override SyntaxTree WithFilePath(string path)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
             {
                 throw new NotImplementedException();
             }

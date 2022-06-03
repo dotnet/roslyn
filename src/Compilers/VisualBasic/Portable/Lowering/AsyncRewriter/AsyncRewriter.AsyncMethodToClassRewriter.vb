@@ -66,13 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            builder As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            nonReusableLocalProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
-                           synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
-                           nextFreeHoistedLocalSlot As Integer,
                            owner As AsyncRewriter,
-                           diagnostics As DiagnosticBag)
+                           diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, diagnostics)
 
                 Me._method = method
                 Me._builder = builder
@@ -98,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' to find the previous awaiter field.
                 If Not Me._awaiterFields.TryGetValue(awaiterType, result) Then
                     Dim slotIndex As Integer = -1
-                    If Me.SlotAllocatorOpt Is Nothing OrElse Not Me.SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.CompilationState.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), F.Diagnostics, slotIndex) Then
+                    If Me.SlotAllocatorOpt Is Nothing OrElse Not Me.SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.CompilationState.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, slotIndex) Then
                         slotIndex = _nextAwaiterId
                         _nextAwaiterId = _nextAwaiterId + 1
                     End If

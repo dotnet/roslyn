@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -61,10 +61,9 @@ namespace Microsoft.CodeAnalysis.Options
             _getEditorConfigStringForValue = getEditorConfigStringForValue ?? throw new ArgumentNullException(nameof(getEditorConfigStringForValue));
         }
 
-        public bool TryGetOption(IReadOnlyDictionary<string, string?> rawOptions, Type type, out object? result)
+        public bool TryGetOption(StructuredAnalyzerConfigOptions options, Type type, out object? result)
         {
-            if (rawOptions.TryGetValue(KeyName, out var value)
-                && value is object)
+            if (options.TryGetValue(KeyName, out var value))
             {
                 var ret = TryGetOption(value, type, out var typedResult);
                 result = typedResult;
@@ -97,7 +96,6 @@ namespace Microsoft.CodeAnalysis.Options
         {
             var editorConfigStringForValue = _getEditorConfigStringForValue(value, optionSet);
             RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(editorConfigStringForValue));
-            Debug.Assert(editorConfigStringForValue.All(ch => !(char.IsWhiteSpace(ch) || char.IsUpper(ch))));
             return editorConfigStringForValue;
         }
 
@@ -113,10 +111,10 @@ namespace Microsoft.CodeAnalysis.Options
             }
             else
             {
-                typedValue = (T)value;
+                typedValue = (T)value!;
             }
 
-            return GetEditorConfigStringValue(typedValue!, optionSet);
+            return GetEditorConfigStringValue(typedValue, optionSet);
         }
     }
 }

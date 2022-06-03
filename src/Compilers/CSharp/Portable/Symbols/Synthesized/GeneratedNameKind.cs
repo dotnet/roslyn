@@ -33,11 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AnonymousType = 'f',
         TransparentIdentifier = 'h',
         AnonymousTypeField = 'i',
+        AnonymousTypeTypeParameter = 'j',
         AutoPropertyBackingField = 'k',
         IteratorCurrentThreadIdField = 'l',
         IteratorFinallyMethod = 'm',
         BaseMethodWrapper = 'n',
         AsyncBuilderField = 't',
+        DelegateCacheContainerType = 'O',
         DynamicCallSiteContainerType = 'o',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
@@ -53,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete]
         Deprecated_InitializerLocal = 'g',
         [Obsolete]
-        Deprecated_AnonymousTypeTypeParameter = 'j',
-        [Obsolete]
         Deprecated_DynamicDelegate = 'q',
         [Obsolete]
         Deprecated_ComrefCallLocal = 'r',
@@ -63,17 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class GeneratedNameKindExtensions
     {
         internal static bool IsTypeName(this GeneratedNameKind kind)
-        {
-            switch (kind)
-            {
-                case GeneratedNameKind.LambdaDisplayClass:
-                case GeneratedNameKind.StateMachineType:
-                case GeneratedNameKind.DynamicCallSiteContainerType:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => kind is GeneratedNameKind.LambdaDisplayClass
+                    or GeneratedNameKind.StateMachineType
+                    or GeneratedNameKind.DynamicCallSiteContainerType
+                    or GeneratedNameKind.DelegateCacheContainerType
+                    ;
     }
 }

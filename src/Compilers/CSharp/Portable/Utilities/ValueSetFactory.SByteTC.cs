@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -18,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             sbyte INumericTC<sbyte>.MinValue => sbyte.MinValue;
 
             sbyte INumericTC<sbyte>.MaxValue => sbyte.MaxValue;
+
+            sbyte INumericTC<sbyte>.Zero => 0;
 
             bool INumericTC<sbyte>.Related(BinaryOperatorKind relation, sbyte left, sbyte right)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (sbyte)(value - 1);
             }
 
-            sbyte INumericTC<sbyte>.FromConstantValue(ConstantValue constantValue) => constantValue.SByteValue;
+            sbyte INumericTC<sbyte>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (sbyte)0 : constantValue.SByteValue;
 
             public ConstantValue ToConstantValue(sbyte value) => ConstantValue.Create(value);
 

@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -13,17 +12,48 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// <summary>
     /// Serialization type used to pass information to/from OOP and VS.
     /// </summary>
-    internal struct TodoCommentData : IEquatable<TodoCommentData>
+    [DataContract]
+    internal readonly struct TodoCommentData : IEquatable<TodoCommentData>
     {
-        public int Priority;
-        public string Message;
-        public DocumentId DocumentId;
-        public string? MappedFilePath;
-        public string? OriginalFilePath;
-        public int MappedLine;
-        public int MappedColumn;
-        public int OriginalLine;
-        public int OriginalColumn;
+        [DataMember(Order = 0)]
+        public readonly int Priority;
+
+        [DataMember(Order = 1)]
+        public readonly string Message;
+
+        [DataMember(Order = 2)]
+        public readonly DocumentId DocumentId;
+
+        [DataMember(Order = 3)]
+        public readonly string? MappedFilePath;
+
+        [DataMember(Order = 4)]
+        public readonly string? OriginalFilePath;
+
+        [DataMember(Order = 5)]
+        public readonly int MappedLine;
+
+        [DataMember(Order = 6)]
+        public readonly int MappedColumn;
+
+        [DataMember(Order = 7)]
+        public readonly int OriginalLine;
+
+        [DataMember(Order = 8)]
+        public readonly int OriginalColumn;
+
+        public TodoCommentData(int priority, string message, DocumentId documentId, string? mappedFilePath, string? originalFilePath, int mappedLine, int mappedColumn, int originalLine, int originalColumn)
+        {
+            Priority = priority;
+            Message = message;
+            DocumentId = documentId;
+            MappedFilePath = mappedFilePath;
+            OriginalFilePath = originalFilePath;
+            MappedLine = mappedLine;
+            MappedColumn = mappedColumn;
+            OriginalLine = originalLine;
+            OriginalColumn = originalColumn;
+        }
 
         public override bool Equals(object? obj)
             => obj is TodoCommentData other && Equals(other);
@@ -32,16 +62,14 @@ namespace Microsoft.CodeAnalysis.TodoComments
             => GetHashCode(this);
 
         public override string ToString()
-            => $"{Priority} {Message} {MappedFilePath ?? ""} ({MappedLine.ToString()}, {MappedColumn.ToString()}) [original: {OriginalFilePath ?? ""} ({OriginalLine.ToString()}, {OriginalColumn.ToString()})";
+            => $"{Priority} {Message} {MappedFilePath ?? ""} ({MappedLine}, {MappedColumn}) [original: {OriginalFilePath ?? ""} ({OriginalLine}, {OriginalColumn})";
 
         public bool Equals(TodoCommentData right)
-        {
-            return DocumentId == right.DocumentId &&
-                   Priority == right.Priority &&
-                   Message == right.Message &&
-                   OriginalLine == right.OriginalLine &&
-                   OriginalColumn == right.OriginalColumn;
-        }
+            => DocumentId == right.DocumentId &&
+               Priority == right.Priority &&
+               Message == right.Message &&
+               OriginalLine == right.OriginalLine &&
+               OriginalColumn == right.OriginalColumn;
 
         public static int GetHashCode(TodoCommentData item)
             => Hash.Combine(item.DocumentId,
@@ -64,19 +92,14 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         internal static TodoCommentData ReadFrom(ObjectReader reader)
-        {
-            return new TodoCommentData
-            {
-                Priority = reader.ReadInt32(),
-                Message = reader.ReadString(),
-                DocumentId = DocumentId.ReadFrom(reader),
-                MappedFilePath = reader.ReadString(),
-                OriginalFilePath = reader.ReadString(),
-                MappedLine = reader.ReadInt32(),
-                MappedColumn = reader.ReadInt32(),
-                OriginalLine = reader.ReadInt32(),
-                OriginalColumn = reader.ReadInt32(),
-            };
-        }
+            => new(priority: reader.ReadInt32(),
+                   message: reader.ReadString(),
+                   documentId: DocumentId.ReadFrom(reader),
+                   mappedFilePath: reader.ReadString(),
+                   originalFilePath: reader.ReadString(),
+                   mappedLine: reader.ReadInt32(),
+                   mappedColumn: reader.ReadInt32(),
+                   originalLine: reader.ReadInt32(),
+                   originalColumn: reader.ReadInt32());
     }
 }

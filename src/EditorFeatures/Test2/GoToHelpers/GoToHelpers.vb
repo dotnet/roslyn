@@ -4,38 +4,40 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Friend Class GoToHelpers
     Friend Shared Async Function TestAsync(
             workspaceDefinition As XElement,
-            outOfProcess As Boolean,
+            testHost As TestHost,
             testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
             Optional shouldSucceed As Boolean = True,
             Optional metadataDefinitions As String() = Nothing) As Task
 
-        Using workspace = TestWorkspace.Create(workspaceDefinition)
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
-
+        Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
 
-            Dim document = workspace.CurrentSolution.GetDocument(documentWithCursor.Id)
+            Dim solution = workspace.CurrentSolution
+            Dim document = solution.GetDocument(documentWithCursor.Id)
 
-            Dim context = New SimpleFindUsagesContext(CancellationToken.None)
+            Dim context = New SimpleFindUsagesContext(workspace.GlobalOptions)
             Await testingMethod(document, position, context)
 
             If Not shouldSucceed Then
                 Assert.NotNull(context.Message)
             Else
-                Dim actualDefinitions = context.GetDefinitions().
-                                                SelectMany(Function(d) d.SourceSpans).
-                                                Select(Function(ss) New FilePathAndSpan(ss.Document.FilePath, ss.SourceSpan)).
-                                                ToList()
+                Dim actualDefinitions = New List(Of FilePathAndSpan)
+
+                For Each definition In context.GetDefinitions()
+                    For Each sourceSpan In definition.SourceSpans
+                        actualDefinitions.Add(New FilePathAndSpan(sourceSpan.Document.FilePath, sourceSpan.SourceSpan))
+                    Next
+                Next
                 actualDefinitions.Sort()
 
                 Dim expectedDefinitions = workspace.Documents.SelectMany(
@@ -67,7 +69,7 @@ Friend Class GoToHelpers
                     metadataDefinitions = {}
                 End If
 
-                Assert.Equal(actualDefintionsWithoutSpans, metadataDefinitions)
+                AssertEx.Equal(metadataDefinitions, actualDefintionsWithoutSpans)
             End If
         End Using
     End Function

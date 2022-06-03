@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,10 +39,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
         //
         // This value is only relevant if this code action is the only one in its group,
         // and it ends up getting inlined as a top-level-action that is offered.
-        internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
         public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
-            : base(title, createChangedDocument)
+            : base(title, createChangedDocument, title, CodeActionPriority.Low)
         {
             ParentTitle = parentTitle;
             SortTitle = parentTitle + "_" + title;

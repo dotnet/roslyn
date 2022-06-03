@@ -16,10 +16,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer(
             LocalizableResourceString message)
             : base(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseConditionalExpressionForAssignment,
                    message,
                    CodeStyleOptions2.PreferConditionalExpressionOverAssignment)
         {
         }
+
+        protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
+            => context.GetAnalyzerOptions().PreferConditionalExpressionOverAssignment;
 
         protected override bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
             => UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(

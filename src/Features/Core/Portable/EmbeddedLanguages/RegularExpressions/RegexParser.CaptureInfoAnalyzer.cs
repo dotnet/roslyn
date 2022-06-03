@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             private readonly ImmutableDictionary<string, TextSpan>.Builder _captureNameToSpan;
             private readonly ArrayBuilder<string> _captureNames;
             private int _autoNumber;
+            private int _recursionDepth;
 
             private CaptureInfoAnalyzer(VirtualCharSequence text)
             {
@@ -39,6 +42,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNameToSpan = ImmutableDictionary.CreateBuilder<string, TextSpan>();
                 _captureNames = ArrayBuilder<string>.GetInstance();
                 _autoNumber = 1;
+                _recursionDepth = 0;
 
                 _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
             }
@@ -61,6 +65,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             private void CollectCaptures(RegexNode node, RegexOptions options)
+            {
+                try
+                {
+                    _recursionDepth++;
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    CollectCapturesWorker(node, options);
+                }
+                finally
+                {
+                    _recursionDepth--;
+                }
+            }
+
+            private void CollectCapturesWorker(RegexNode node, RegexOptions options)
             {
                 switch (node.Kind)
                 {
@@ -143,10 +161,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 // this grouping.  So if we note this grouping we'll end up not causing that error
                 // to happen, bringing out behavior out of sync with the native system.
                 var expr = node.Expression;
-                while (expr is RegexAlternationNode alternation)
-                {
-                    expr = alternation.Left;
-                }
+                if (expr is RegexAlternationNode alternation)
+                    expr = alternation.SequenceList[0];
 
                 if (expr is RegexSequenceNode sequence &&
                     sequence.ChildCount > 0)

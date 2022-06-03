@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -14,8 +12,7 @@ namespace Microsoft.CodeAnalysis
     /* This is the static API on Workspace that lets you associate text containers with workspace instances */
     public abstract partial class Workspace
     {
-        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap =
-            new ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>();
+        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap = new();
 
         /// <summary>
         /// Gets the workspace associated with the specific text container.
@@ -69,11 +66,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)
-            => new WorkspaceRegistration();
-
-        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
-
         /// <summary>
         /// Returns a <see cref="WorkspaceRegistration" /> for a given text container.
         /// </summary>
@@ -84,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(textContainer));
             }
 
-            return s_bufferToWorkspaceRegistrationMap.GetValue(textContainer, s_createRegistration);
+            return s_bufferToWorkspaceRegistrationMap.GetValue(textContainer, static _ => new WorkspaceRegistration());
         }
     }
 }

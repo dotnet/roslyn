@@ -13,7 +13,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <GroupBox x:Uid="CompletionListsGroupBox"
-                      Header="{x:Static local:IntelliSenseOptionPageStrings.Option_CompletionLists}">
+                      Header="{x:Static local:IntelliSenseOptionPageStrings.Option_Completion}">
                 <StackPanel>
                     <CheckBox x:Uid="Show_completion_list_after_a_character_is_typed"
                               x:Name="Show_completion_list_after_a_character_is_typed"
@@ -30,11 +30,7 @@
 
                     <CheckBox x:Uid="Automatically_show_completion_list_in_argument_lists"
                                   x:Name="Automatically_show_completion_list_in_argument_lists"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Automatically_show_completion_list_in_argument_lists}" 
-                              Checked="Automatically_show_completion_list_in_argument_lists_CheckedChanged"       
-                              Unchecked="Automatically_show_completion_list_in_argument_lists_CheckedChanged"
-                              Indeterminate="Automatically_show_completion_list_in_argument_lists_CheckedChanged"
-                              IsThreeState="True"/>
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Automatically_show_completion_list_in_argument_lists}" />
 
                     <CheckBox x:Uid="Highlight_matching_portions_of_completion_list_items"
                                   x:Name="Highlight_matching_portions_of_completion_list_items"
@@ -42,6 +38,9 @@
                     <CheckBox x:Uid="Show_completion_item_filters"
                                   x:Name="Show_completion_item_filters"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_completion_item_filters}" />
+
+                    <CheckBox x:Name="Automatically_complete_statement_on_semicolon"
+                              Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Automatically_complete_statement_on_semicolon}" />
 
                     <Label Content="{x:Static local:IntelliSenseOptionPageStrings.Snippets_behavior}"/>
                     <StackPanel Margin="15, 0, 0, 0">
@@ -79,6 +78,14 @@
                               Checked="Show_items_from_unimported_namespaces_CheckedChanged"       
                               Unchecked="Show_items_from_unimported_namespaces_CheckedChanged"
                               Indeterminate="Show_items_from_unimported_namespaces_CheckedChanged"
+                              IsThreeState="True"/>
+
+                    <CheckBox x:Uid="Tab_twice_to_insert_arguments"
+                                  x:Name="Tab_twice_to_insert_arguments"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments}" 
+                              Checked="Tab_twice_to_insert_arguments_CheckedChanged"
+                              Unchecked="Tab_twice_to_insert_arguments_CheckedChanged"
+                              Indeterminate="Tab_twice_to_insert_arguments_CheckedChanged"
                               IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>

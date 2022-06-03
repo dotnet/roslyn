@@ -7,14 +7,23 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateType
     Public Class GenerateTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+
+        ' TODO Requires Wpf due to IInlineRenameService dependency (https: //github.com/dotnet/roslyn/issues/46153)
+        Protected Overrides Function GetComposition() As TestComposition
+            Return EditorTestCompositions.EditorFeaturesWpf _
+                .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+                .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateTypeCodeFixProvider())
@@ -146,10 +155,10 @@ End Class",
     Dim f = New Generated((1, 2))
 
     Private Class Generated
-        Private p As (Integer, Integer)
+        Private value As (Integer, Integer)
 
-        Public Sub New(p As (Integer, Integer))
-            Me.p = p
+        Public Sub New(value As (Integer, Integer))
+            Me.value = value
         End Sub
     End Class
 End Class",
@@ -166,10 +175,10 @@ End Class",
     Dim f = New Generated((a:=1, b:=2, 3))
 
     Private Class Generated
-        Private p As (a As Integer, b As Integer, Integer)
+        Private value As (a As Integer, b As Integer, Integer)
 
-        Public Sub New(p As (a As Integer, b As Integer, Integer))
-            Me.p = p
+        Public Sub New(value As (a As Integer, b As Integer, Integer))
+            Me.value = value
         End Sub
     End Class
 End Class",
@@ -1230,7 +1239,7 @@ Class Program
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo", "Program"), FeaturesResources.Generate_new_type})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo"), FeaturesResources.Generate_new_type})
         End Function
 
         <WorkItem(545363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545363")>
@@ -1249,8 +1258,8 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace),
-String.Format(FeaturesResources.Generate_0_1, "class", "Goo", FeaturesResources.Global_Namespace),
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"),
+String.Format(FeaturesResources.Generate_0_1, "class", "Goo"),
 String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo"), FeaturesResources.Generate_new_type})
         End Function
 
@@ -1308,10 +1317,10 @@ Module Program
 End Module
 
 Friend Class C
-    Private p As Func(Of Object)
+    Private value As Func(Of Object)
 
-    Public Sub New(p As Func(Of Object))
-        Me.p = p
+    Public Sub New(value As Func(Of Object))
+        Me.value = value
     End Sub
 End Class
 ",
@@ -1336,12 +1345,12 @@ Module Program
 End Module
 
 Friend Class C
-    Private p1 As Object
-    Private p2 As Object
+    Private value1 As Object
+    Private value2 As Object
 
-    Public Sub New(p1 As Object, p2 As Object)
-        Me.p1 = p1
-        Me.p2 = p2
+    Public Sub New(value1 As Object, value2 As Object)
+        Me.value1 = value1
+        Me.value2 = value2
     End Sub
 End Class
 ",
@@ -1868,6 +1877,34 @@ End Class",
     End Class
 End Class",
 index:=2)
+        End Function
+
+        <WorkItem(49924, "https://github.com/dotnet/roslyn/issues/49924")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function GenerateCorrectFieldNaming() As Task
+            Dim options = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
+
+            Await TestInRegularAndScriptAsync(
+"Public Class A
+    Public Sub M(i As Integer)
+        Dim d = New [|D|](i)
+    End Sub
+End Class",
+"Public Class A
+    Public Sub M(i As Integer)
+        Dim d = New [|D|](i)
+    End Sub
+End Class
+
+Friend Class D
+    Private _i As Integer
+
+    Public Sub New(i As Integer)
+        _i = i
+    End Sub
+End Class
+",
+    index:=1, options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

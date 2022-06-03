@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -53,6 +55,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var withLine = (_firstLine != null) ? $".WithFirstLine(\"{_firstLine}\")" : null;
 
             return $"Diagnostic(RudeEditKind.{_rudeEditKind}, {arguments}){withLine}";
+        }
+
+        internal void VerifyMessageFormat()
+        {
+            var descriptior = EditAndContinueDiagnosticDescriptors.GetDescriptor(_rudeEditKind);
+            var format = descriptior.MessageFormat.ToString();
+            try
+            {
+                string.Format(format, _arguments);
+            }
+            catch (FormatException)
+            {
+                Assert.True(false, $"Message format string was not supplied enough arguments.\nRudeEditKind: {_rudeEditKind}\nArguments supplied: {_arguments.Length}\nFormat string: {format}");
+            }
         }
     }
 }

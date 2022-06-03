@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -339,7 +341,8 @@ class c1
     static void Main(string[] args)
     {
         Suits S = (Suits)Enum.ToObject(typeof(Suits), 2);
-        Console.WriteLine(S.ToString()); // ValueE
+        Console.WriteLine(S == Suits.ValueB);
+        Console.WriteLine(S == Suits.ValueE);
         Suits S1 = (Suits)Enum.ToObject(typeof(Suits), -1);
         Console.WriteLine(S1.ToString()); // -1
     }
@@ -347,8 +350,8 @@ class c1
 ";
             VerifyEnumsValue(source, "c1.Suits", 1, 2, 4, 2, 2);
 
-            CompileAndVerify(source, expectedOutput: @"
-ValueE
+            CompileAndVerify(source, expectedOutput: @"True
+True
 -1
 ");
         }
@@ -731,7 +734,7 @@ enum Figure : C { One, Two, Three }
 @"
 partial class EnumPartial
 {
-    internal enum partial
+    internal enum @partial
     { }
     partial M;
 }

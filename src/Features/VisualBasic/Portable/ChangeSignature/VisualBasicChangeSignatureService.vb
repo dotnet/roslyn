@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
                 Dim objectCreation = DirectCast(matchingNode, ObjectCreationExpressionSyntax)
                 If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
-                    Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol
+                    Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol
                     If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, ITypeSymbol).TypeKind = TypeKind.Delegate Then
                         Return (typeSymbol, 0)
                     End If
@@ -138,22 +138,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
-        Protected Overrides Function GetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer
-            Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
-
-            If parameters Is Nothing Then
-                Throw New ArgumentException("Unexpected SyntaxNode", NameOf(matchingNode))
-            End If
-
-            Return parameters.CloseParenToken.SpanStart
-        End Function
-
-        Private Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
+        Private Shared Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
             Return If(parameters Is Nothing, 0, GetParameterIndex(parameters.Parameters, position))
         End Function
 
-        Private Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode
+        Private Shared Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode
             Dim current = node
             While current IsNot Nothing
                 If restrictToDeclarations Then
@@ -172,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return Nothing
         End Function
 
-        Private Function IsInSymbolHeader(matchingNode As SyntaxNode, position As Integer) As Boolean
+        Private Shared Function IsInSymbolHeader(matchingNode As SyntaxNode, position As Integer) As Boolean
             ' Caret has to be after the attributes if the symbol has any.
             Dim lastAttributes = matchingNode.ChildNodes().LastOrDefault(
                 Function(n) TypeOf n Is AttributeListSyntax)
@@ -199,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return True
         End Function
 
-        Private Function TryGetDeclaredSymbol(semanticModel As SemanticModel,
+        Private Shared Function TryGetDeclaredSymbol(semanticModel As SemanticModel,
                                               matchingNode As SyntaxNode,
                                               cancellationToken As CancellationToken) As ISymbol
             Select Case matchingNode.Kind()
@@ -239,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return GetNodeContainingTargetNode(node, matchingNode)
         End Function
 
-        Private Function GetNodeContainingTargetNode(originalNode As SyntaxNode, matchingNode As SyntaxNode) As SyntaxNode
+        Private Shared Function GetNodeContainingTargetNode(originalNode As SyntaxNode, matchingNode As SyntaxNode) As SyntaxNode
             If matchingNode.IsKind(SyntaxKind.InvocationExpression) Then
                 Return If(
                     originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, InvocationExpressionSyntax).Expression) OrElse
@@ -258,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         End Function
 
-        Private Function GetUpdatableNode(matchingNode As SyntaxNode) As SyntaxNode
+        Private Shared Function GetUpdatableNode(matchingNode As SyntaxNode) As SyntaxNode
             If _nodeKindsToIgnore.Contains(matchingNode.Kind()) Then
                 Return Nothing
             End If
@@ -326,15 +316,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
+                Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name, cancellationToken).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
 
-                Return raiseEventStatement.WithArgumentList(UpdateArgumentList(
+                Return raiseEventStatement.WithArgumentList(Await UpdateArgumentListAsync(
                     delegateInvokeMethod,
                     updatedSignature,
                     raiseEventStatement.ArgumentList,
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
-                    generateAttributeArguments:=False))
+                    generateAttributeArguments:=False,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
@@ -342,19 +335,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim isReducedExtensionMethod = False
-                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax), cancellationToken)
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
                 If methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.ReducedExtension Then
                     isReducedExtensionMethod = True
                 End If
 
-                Return invocation.WithArgumentList(UpdateArgumentList(
+                If invocation.ArgumentList Is Nothing
+                    ' If the invocation doesn't contain an argument list, we don't want to add one unless necessary.
+                    ' In the case an argument list isn't needed, we can return early as there will be no changes to the invocation.
+                    If updatedSignature.UpdatedConfiguration.ParametersWithoutDefaultValues.IsEmpty
+                        Return invocation
+                    Else
+                        ' The invocation requires an argument list - add one.
+                        Dim emptyArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(invocation.GetTrailingTrivia())
+                        invocation = invocation.WithoutTrailingTrivia().WithArgumentList(emptyArgumentList)
+                    End If
+                End If
+
+                Return invocation.WithArgumentList(Await UpdateArgumentListAsync(
                     declarationSymbol,
                     updatedSignature,
                     invocation.ArgumentList,
                     isReducedExtensionMethod,
                     IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
-                    generateAttributeArguments:=False))
+                    generateAttributeArguments:=False,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
@@ -367,34 +375,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim attribute = DirectCast(vbnode, AttributeSyntax)
 
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax))
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax), cancellationToken)
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
-                Return attribute.WithArgumentList(UpdateArgumentList(
+                Return attribute.WithArgumentList(Await UpdateArgumentListAsync(
                     declarationSymbol,
                     updatedSignature,
                     attribute.ArgumentList,
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
-                    generateAttributeArguments:=True))
+                    generateAttributeArguments:=True,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, ObjectCreationExpressionSyntax))
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, ObjectCreationExpressionSyntax), cancellationToken)
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
                 Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken)
 
-                Return objectCreation.WithArgumentList(UpdateArgumentList(
+                Return objectCreation.WithArgumentList(Await UpdateArgumentListAsync(
                     declarationSymbol,
                     updatedSignature,
                     objectCreation.ArgumentList,
                     isReducedExtensionMethod:=False,
                     IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken),
-                    generateAttributeArguments:=False))
+                    generateAttributeArguments:=False,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
@@ -453,13 +467,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return vbnode
         End Function
 
-        Private Function UpdateArgumentList(
+        Private Async Function UpdateArgumentListAsync(
             declarationSymbol As ISymbol,
             signaturePermutation As SignatureChange,
             argumentList As ArgumentListSyntax,
             isReducedExtensionMethod As Boolean,
             isParamsArrayExpanded As Boolean,
-            generateAttributeArguments As Boolean) As ArgumentListSyntax
+            generateAttributeArguments As Boolean,
+            document As Document,
+            position As Integer,
+            cancellationToken As CancellationToken) As Task(Of ArgumentListSyntax)
 
             Dim newArguments = PermuteArgumentList(
                 argumentList.Arguments,
@@ -467,20 +484,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 declarationSymbol,
                 isReducedExtensionMethod)
 
-            newArguments = AddNewArgumentsToList(
+            newArguments = Await AddNewArgumentsToListAsync(
                 declarationSymbol,
                 newArguments,
                 signaturePermutation,
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
-                generateAttributeArguments)
+                generateAttributeArguments,
+                document,
+                position,
+                cancellationToken).ConfigureAwait(False)
 
             Return argumentList.
                 WithArguments(newArguments).
                 WithAdditionalAnnotations(changeSignatureFormattingAnnotation)
         End Function
 
-        Private Function IsParamsArrayExpanded(semanticModel As SemanticModel, node As SyntaxNode, symbolInfo As SymbolInfo, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function IsParamsArrayExpanded(semanticModel As SemanticModel, node As SyntaxNode, symbolInfo As SymbolInfo, cancellationToken As CancellationToken) As Boolean
             If symbolInfo.Symbol Is Nothing Then
                 Return False
             End If
@@ -502,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return IsParamsArrayExpandedHelper(symbolInfo.Symbol, argumentCount, lastArgumentIsNamed, semanticModel, lastArgumentExpression, cancellationToken)
         End Function
 
-        Private Sub GetArgumentListDetailsRegardingParamsArrays(
+        Private Shared Sub GetArgumentListDetailsRegardingParamsArrays(
             argumentList As ArgumentListSyntax,
             ByRef argumentCount As Integer,
             ByRef lastArgumentIsNamed As Boolean,
@@ -590,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
-            Dim declaredParameters = declarationSymbol.GetParameters()
+            Dim declaredParameters = GetParameters(declarationSymbol)
             If paramNodes.Length <> declaredParameters.Length Then
                 Return ImmutableArray(Of SyntaxNode).Empty
             End If
@@ -650,17 +670,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             For Each n In nodes
                 If n.IsKind(SyntaxKind.AddressOfExpression) Then
                     Dim u = DirectCast(n, UnaryExpressionSyntax)
-                    Dim convertedType As ISymbol = semanticModel.GetTypeInfo(u).ConvertedType
+                    Dim convertedType As ISymbol = semanticModel.GetTypeInfo(u, cancellationToken).ConvertedType
                     If convertedType IsNot Nothing Then
                         convertedType = convertedType.OriginalDefinition
                     End If
 
                     If convertedType IsNot Nothing Then
-                        convertedType = If(Await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution).ConfigureAwait(False), convertedType)
+                        convertedType = If(Await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(False), convertedType)
                     End If
 
                     If Equals(convertedType, symbol.ContainingType) Then
-                        convertedType = semanticModel.GetSymbolInfo(u.Operand).Symbol
+                        convertedType = semanticModel.GetSymbolInfo(u.Operand, cancellationToken).Symbol
                         If convertedType IsNot Nothing Then
                             results.Add(convertedType)
                         End If
@@ -668,18 +688,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 ElseIf n.IsKind(SyntaxKind.EventStatement) Then
                     Dim cast = DirectCast(n, EventStatementSyntax)
                     If cast.AsClause IsNot Nothing Then
-                        Dim nodeType = semanticModel.GetSymbolInfo(cast.AsClause.Type).Symbol
+                        Dim nodeType = semanticModel.GetSymbolInfo(cast.AsClause.Type, cancellationToken).Symbol
 
                         If nodeType IsNot Nothing Then
                             nodeType = nodeType.OriginalDefinition
                         End If
 
                         If nodeType IsNot Nothing Then
-                            nodeType = If(Await SymbolFinder.FindSourceDefinitionAsync(nodeType, document.Project.Solution).ConfigureAwait(False), nodeType)
+                            nodeType = If(Await SymbolFinder.FindSourceDefinitionAsync(nodeType, document.Project.Solution, cancellationToken).ConfigureAwait(False), nodeType)
                         End If
 
                         If Equals(nodeType, symbol.ContainingType) Then
-                            results.Add(semanticModel.GetDeclaredSymbol(cast.Identifier.Parent))
+                            results.Add(semanticModel.GetDeclaredSymbol(cast.Identifier.Parent, cancellationToken))
                         End If
                     End If
                 End If
@@ -734,6 +754,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Protected Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
             Return Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace)
+        End Function
+
+        Protected Overrides Function TryGetRecordPrimaryConstructor(typeSymbol As INamedTypeSymbol, ByRef primaryConstructor As IMethodSymbol) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function GetParameters(declarationSymbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
+            Return declarationSymbol.GetParameters()
         End Function
     End Class
 End Namespace

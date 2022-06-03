@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -538,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 9),
                 // (1,12): error CS1003: Syntax error, ':' expected
                 // x as T??? y
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 12),
                 // (1,12): error CS1733: Expected expression
                 // x as T??? y
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 12));
@@ -669,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 25),
                 // (1,25): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":", "break").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":").WithLocation(1, 25));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -718,13 +721,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DeclarationPattern_NullableArray()
         {
-            UsingStatement("switch (e) { case T[]? t: break; }",
-                // (1,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement("switch (e) { case T[]? t: break; }", options: TestOptions.Regular8,
+                // (1,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T[]").WithArguments("type pattern").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "T[]").WithArguments("type pattern", "9.0").WithLocation(1, 19),
                 // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":", "?").WithLocation(1, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
                 // (1,22): error CS1513: } expected
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22));
@@ -1270,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17),
                 // (1,17): error CS1003: Syntax error, ':' expected
                 // new object[,][]?
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 17),
                 // (1,17): error CS1733: Expected expression
                 // new object[,][]?
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17)

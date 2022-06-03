@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -23,6 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoolValueSetFactory() { }
 
+            IValueSet IValueSetFactory.AllValues => BoolValueSet.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => BoolValueSet.None;
+
             public IValueSet<bool> Related(BinaryOperatorKind relation, bool value)
             {
                 switch (relation, value)
@@ -32,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case (Equal, false):
                         return BoolValueSet.OnlyFalse;
                     default:
-                        throw new ArgumentException("relation");
+                        // for error recovery
+                        return BoolValueSet.AllValues;
                 }
             }
 
@@ -49,14 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {
-                Debug.Assert(value.IsBoolean);
-                return Related(relation, value.BooleanValue);
+                return value.IsBad ? BoolValueSet.AllValues : Related(relation, value.BooleanValue);
             }
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
                 Debug.Assert(relation == BinaryOperatorKind.Equal);
-                return left.BooleanValue == right.BooleanValue;
+                return left.IsBad || right.IsBad || left.BooleanValue == right.BooleanValue;
             }
         }
     }

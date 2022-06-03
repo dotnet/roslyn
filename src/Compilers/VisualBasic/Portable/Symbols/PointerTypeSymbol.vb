@@ -53,13 +53,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Hash.Combine(last, indirections)
         End Function
 
-        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
             If Me Is obj Then
                 Return True
             End If
 
             Dim other = TryCast(obj, PointerTypeSymbol)
-            Return other IsNot Nothing AndAlso other._pointedAtType.Equals(_pointedAtType) AndAlso other._customModifiers.SequenceEqual(_customModifiers)
+            Return other IsNot Nothing AndAlso other._pointedAtType.Equals(_pointedAtType, comparison) AndAlso
+                   ((comparison And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 OrElse
+                    other._customModifiers.SequenceEqual(_customModifiers))
         End Function
 
     End Class

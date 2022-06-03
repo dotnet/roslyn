@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,17 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class DisabledTextTriviaStructureProvider : AbstractSyntaxTriviaStructureProvider
     {
         public override void CollectBlockSpans(
-            Document document,
             SyntaxTrivia trivia,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);
+            CollectBlockSpans(trivia.SyntaxTree, trivia, ref spans, cancellationToken);
         }
 
-        public void CollectBlockSpans(
+        public static void CollectBlockSpans(
             SyntaxTree syntaxTree, SyntaxTrivia trivia,
-            ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
+            ref TemporaryArray<BlockSpan> spans, CancellationToken cancellationToken)
         {
             // We'll always be leading trivia of some token.
             var startPos = trivia.FullSpan.Start;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                    endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1]) ? endPos - 1 : endPos;
         }
 
-        private SyntaxTrivia GetCorrespondingEndTrivia(
+        private static SyntaxTrivia GetCorrespondingEndTrivia(
             SyntaxTrivia trivia, SyntaxTriviaList triviaList, int index)
         {
             // Look through our parent token's trivia, to extend the span to the end of the last

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Roslyn.Test.Utilities;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var log = new TraceLog(5, "log");
 
-            var projectId = ProjectId.CreateFromSerialized(Guid.Parse("5E40F37C-5AB3-495E-A3F2-4A244D177674"));
+            var projectId = ProjectId.CreateFromSerialized(Guid.Parse("5E40F37C-5AB3-495E-A3F2-4A244D177674"), debugName: "MyProject");
             var diagnostic = Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile), Location.None, "file", "error");
 
             log.Write("a");
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                "f",
                "b 1 x 3",
                "c",
-               $"d str=<null> projectId=1324595798 summary=RudeEdits diagnostic=`{diagnostic.ToString()}`",
+               $"d str=<null> projectId=MyProject summary=RudeEdits diagnostic=`{diagnostic}`",
                "e"
             }, log.GetTestAccessor().Entries.Select(e => e.GetDebuggerDisplay()));
         }

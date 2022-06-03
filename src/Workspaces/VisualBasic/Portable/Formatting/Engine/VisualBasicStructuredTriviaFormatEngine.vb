@@ -5,6 +5,8 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicStructuredTriviaFormatEngine
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Shared Function FormatTrivia(trivia As SyntaxTrivia,
                                       initialColumn As Integer,
-                                      options As AnalyzerConfigOptions,
+                                      options As SyntaxFormattingOptions,
                                       formattingRules As ChainedFormattingRules,
                                       cancellationToken As CancellationToken) As IFormattingResult
             Dim root = trivia.GetStructure()
@@ -22,13 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Sub New(trivia As SyntaxTrivia,
                        initialColumn As Integer,
-                       options As AnalyzerConfigOptions,
+                       options As SyntaxFormattingOptions,
                        formattingRules As ChainedFormattingRules,
                        token1 As SyntaxToken,
                        token2 As SyntaxToken)
             MyBase.New(TreeData.Create(trivia, initialColumn),
                        options, formattingRules, token1, token2)
         End Sub
+
+        Friend Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
             Return New TriviaDataFactory(Me.TreeData, Me.Options)

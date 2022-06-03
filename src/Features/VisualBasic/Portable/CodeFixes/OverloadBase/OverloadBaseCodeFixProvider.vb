@@ -4,8 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
         Friend Const BC40004 As String = "BC40004" ' '{0} '{1}' overloads an overloadable member declared in the base class '{2}'.  If you want to shadow the base method, this method must be declared 'Shadows'.
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -44,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
             End If
 
             If diagnostic.Descriptor.Id = BC40003 Then
-                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Overloads, SyntaxKind.OverloadsKeyword), context.Diagnostics)
+                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Overloads, SyntaxKind.OverloadsKeyword, context.Options), context.Diagnostics)
             ElseIf diagnostic.Descriptor.Id = BC40004 Then
-                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Shadows, SyntaxKind.ShadowsKeyword), context.Diagnostics)
+                context.RegisterCodeFix(New AddKeywordAction(context.Document, token.Parent, VBFeaturesResources.Add_Shadows, SyntaxKind.ShadowsKeyword, context.Options), context.Diagnostics)
             End If
         End Function
     End Class

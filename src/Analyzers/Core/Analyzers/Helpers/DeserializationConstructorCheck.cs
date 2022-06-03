@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal readonly struct DeserializationConstructorCheck
     {
-        private readonly INamedTypeSymbol _iSerializableType;
-        private readonly INamedTypeSymbol _serializationInfoType;
-        private readonly INamedTypeSymbol _streamingContextType;
+        private readonly INamedTypeSymbol? _iSerializableType;
+        private readonly INamedTypeSymbol? _serializationInfoType;
+        private readonly INamedTypeSymbol? _streamingContextType;
 
         public DeserializationConstructorCheck(Compilation compilation)
         {

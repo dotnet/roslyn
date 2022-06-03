@@ -2,26 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public enum TestHost
-    {
-        InProcess,
-        OutOfProcess,
-    }
-
     [UseExportProvider]
     public class SymbolFinderTests : TestBase
     {
@@ -41,20 +40,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
         }
 
-        private static TestWorkspace GetWorkspace(TestHost host)
+        private static TestWorkspace CreateWorkspace(TestHost host)
         {
-            var workspace = TestWorkspace.CreateWorkspace(XElement.Parse("<Workspace></Workspace>"));
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host == TestHost.OutOfProcess)));
-
-            return workspace;
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(host);
+            return TestWorkspace.CreateWorkspace(XElement.Parse("<Workspace></Workspace>"), composition: composition);
         }
 
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
@@ -95,7 +90,7 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_CSharp(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
@@ -142,7 +137,7 @@ namespace M
         [Theory, CombinatorialData]
         public async Task ImmediatelyDerivedTypes_CSharp_AliasedNames(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
@@ -187,7 +182,7 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CSharp_PortableProfile7(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
@@ -228,7 +223,7 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_VisualBasic(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
@@ -270,7 +265,7 @@ End Namespace
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedTypes_CrossLanguage(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an abstract base class
@@ -312,7 +307,7 @@ End Namespace
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CSharp(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
@@ -352,7 +347,7 @@ namespace M
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedInterfaces_VisualBasic(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
@@ -393,7 +388,7 @@ End Namespace
         [Theory, CombinatorialData, WorkItem(4973, "https://github.com/dotnet/roslyn/issues/4973")]
         public async Task ImmediatelyDerivedAndImplementingInterfaces_CrossLanguage(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create portable assembly with an interface
@@ -433,7 +428,7 @@ namespace M
         [Theory, CombinatorialData]
         public async Task DerivedMetadataClasses(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
@@ -464,7 +459,7 @@ namespace M
         [Theory, CombinatorialData]
         public async Task DerivedSourceInterfaces(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
@@ -513,7 +508,7 @@ interface IOther { }
         [Theory, CombinatorialData]
         public async Task ImplementingSourceTypes(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
@@ -565,7 +560,7 @@ struct OtherStruct { }
         [Theory, CombinatorialData]
         public async Task ImplementingTypesDoesProduceDelegates(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
@@ -592,7 +587,7 @@ delegate void D();
         [Theory, CombinatorialData]
         public async Task ImplementingTypesDoesProduceEnums(TestHost host)
         {
-            using var workspace = GetWorkspace(host);
+            using var workspace = CreateWorkspace(host);
             var solution = workspace.CurrentSolution;
 
             // create a normal assembly with a type derived from the portable abstract base
@@ -617,6 +612,49 @@ enum E
             Assert.NotEmpty(enums); // We should find enums when looking for implementations
             Assert.True(enums.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata enum");
             Assert.Single(enums.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source type
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(1464142, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1464142")]
+        public async Task DependentTypeFinderSkipsNoCompilationLanguages(TestHost host)
+        {
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(host);
+
+            using var workspace = TestWorkspace.Create(
+@"
+<Workspace>
+    <Project Name=""TSProject"" Language=""TypeScript"">
+        <Document>
+            Dummy ts content
+        </Document>
+    </Project>
+    <Project Name=""CSProject"" Language=""C#"">
+        <Document>
+            public class Base { }
+            public class Derived : Base { } 
+        </Document>
+    </Project>
+</Workspace>", composition: composition);
+            var solution = workspace.CurrentSolution;
+
+            var csProject = solution.Projects.Single(p => p.Language == LanguageNames.CSharp);
+            var otherProject = solution.Projects.Single(p => p != csProject);
+            var csDoc = csProject.Documents.Single();
+
+            var semanticModel = await csDoc.GetSemanticModelAsync();
+            var csRoot = await csDoc.GetSyntaxRootAsync();
+
+            var firstDecl = csRoot.DescendantNodes().First(d => d is CSharp.Syntax.TypeDeclarationSyntax);
+            var firstType = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(firstDecl);
+
+            // Should find one result in the c# project.
+            var results = await SymbolFinder.FindDerivedClassesArrayAsync(firstType, solution, transitive: true, ImmutableHashSet.Create(csProject), CancellationToken.None);
+            Assert.Single(results);
+            Assert.Equal("Derived", results[0].Name);
+
+            // Should find zero results in the TS project (and should not crash).
+            results = await SymbolFinder.FindDerivedClassesArrayAsync(firstType, solution, transitive: true, ImmutableHashSet.Create(otherProject), CancellationToken.None);
+            Assert.Empty(results);
         }
     }
 }

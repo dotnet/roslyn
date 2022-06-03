@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                return GetClassificationForIdentifier(token);
+                return GetSyntacticClassificationForIdentifier(token);
             }
             else if (IsStringToken(token))
             {
@@ -143,11 +141,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private static bool IsStringToken(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.StringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8StringLiteralToken)
                 || token.IsKind(SyntaxKind.CharacterLiteralToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringEndToken);
+                || token.IsKind(SyntaxKind.InterpolatedStringEndToken)
+                || token.IsKind(SyntaxKind.InterpolatedRawStringEndToken)
+                || token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken)
+                || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+                || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken);
         }
 
         private static bool IsVerbatimStringToken(SyntaxToken token)
@@ -172,11 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        if (!(token.Parent is InterpolatedStringTextSyntax interpolatedStringText))
+                        if (token.Parent is not InterpolatedStringTextSyntax interpolatedStringText)
                         {
                             return false;
                         }
-
 
                         return interpolatedStringText.Parent is InterpolatedStringExpressionSyntax interpolatedString
                             && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        private static string? GetClassificationForIdentifier(SyntaxToken token)
+        public static string? GetSyntacticClassificationForIdentifier(SyntaxToken token)
         {
             if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
@@ -206,15 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
             {
-                return constructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
-                    ? ClassificationTypeNames.ClassName
-                    : ClassificationTypeNames.StructName;
+                return GetClassificationTypeForConstructorOrDestructorParent(constructorDeclaration.Parent!);
             }
             else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
             {
-                return destructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
-                    ? ClassificationTypeNames.ClassName
-                    : ClassificationTypeNames.StructName;
+                return GetClassificationTypeForConstructorOrDestructorParent(destructorDeclaration.Parent!);
             }
             else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
             {
@@ -302,21 +303,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
+        private static string? GetClassificationTypeForConstructorOrDestructorParent(SyntaxNode parentNode)
+            => parentNode.Kind() switch
+            {
+                SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
+                SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
+                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+                _ => null
+            };
+
         private static bool IsNamespaceName(IdentifierNameSyntax identifierSyntax)
         {
             var parent = identifierSyntax.Parent;
 
             while (parent is QualifiedNameSyntax)
-            {
                 parent = parent.Parent;
-            }
 
-            return parent is NamespaceDeclarationSyntax;
+            return parent is BaseNamespaceDeclarationSyntax;
         }
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
         {
-            SyntaxNode? parentNode = token.Parent;
+            var parentNode = token.Parent;
 
             if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
@@ -351,6 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
+                SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
                 _ => null,
             };
 
@@ -363,12 +375,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     case SyntaxKind.LessThanToken:
                     case SyntaxKind.GreaterThanToken:
-                        // the < and > tokens of a type parameter list should be classified as
-                        // punctuation; otherwise, they're operators.
+                        // the < and > tokens of a type parameter list or function pointer parameter
+                        // list should be classified as punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList)
+                            if (token.Parent.Kind() is SyntaxKind.TypeParameterList or
+                                SyntaxKind.TypeArgumentList or
+                                SyntaxKind.FunctionPointerParameterList)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -432,7 +445,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.SlashEqualsToken:
                 case SyntaxKind.AsteriskEqualsToken:
                 case SyntaxKind.BarEqualsToken:
@@ -441,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.MinusEqualsToken:
                 case SyntaxKind.CaretEqualsToken:
                 case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
                     return true;
 
                 default:

@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -219,12 +222,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        private async Task TestAsync(string input, string expected)
+        private static async Task TestAsync(string input, string expected)
         {
             using var workspace = TestWorkspace.CreateCSharp(input);
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            var formatted = await CSharpDecompiledSourceService.FormatDocumentAsync(document, CancellationToken.None);
+            var formatted = await CSharpDecompiledSourceService.FormatDocumentAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             var test = await formatted.GetTextAsync();
 
             AssertEx.Equal(expected, test.ToString());

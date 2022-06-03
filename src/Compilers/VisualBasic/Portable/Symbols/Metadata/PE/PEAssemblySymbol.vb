@@ -10,6 +10,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
+Imports System.Reflection.Metadata.Ecma335
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -63,6 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyMightContainExtensionMethods As Byte = ThreeState.Unknown
 
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+
+        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
@@ -131,6 +135,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_assembly.Handle)
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Modules As ImmutableArray(Of ModuleSymbol)
             Get
                 Return _modules
@@ -161,6 +171,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' Examine the type forwarders, but only from the primary module.
             Return PrimaryModule.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
+        End Function
+
+        Friend Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+            Return PrimaryModule.GetForwardedTypes()
         End Function
 
         Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
@@ -246,5 +260,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _assembly.GetNonDisposableMetadata()
         End Function
+
+        Friend Function GetCompilerFeatureRequiredDiagnosticInfo() As DiagnosticInfo
+            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is ErrorFactory.EmptyDiagnosticInfo Then
+                Interlocked.CompareExchange(
+                    _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, PrimaryModule, _assembly.Handle, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(PrimaryModule)),
+                    ErrorFactory.EmptyDiagnosticInfo)
+            End If
+
+            Return _lazyCachedCompilerFeatureRequiredDiagnosticInfo
+        End Function
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim info = GetCompilerFeatureRequiredDiagnosticInfo()
+                If info IsNot Nothing Then
+                    Return info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer) OrElse MyBase.HasUnsupportedMetadata
+                End If
+
+                Return MyBase.HasUnsupportedMetadata
+            End Get
+        End Property
     End Class
 End Namespace

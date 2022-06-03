@@ -2,48 +2,49 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class LibKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function LibAfterNameInSubTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub goo |</ClassDeclaration>, "Lib")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function LibAfterNameInFunctionTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Function goo |</ClassDeclaration>, "Lib")
-        End Function
+        Public Sub LibAfterNameInSubTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub goo |</ClassDeclaration>, "Lib")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function LibNotAfterLibKeywordTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare Sub goo Lib |</ClassDeclaration>, "Lib")
-        End Function
+        Public Sub LibAfterNameInFunctionTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Function goo |</ClassDeclaration>, "Lib")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub LibNotAfterLibKeywordTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Declare Sub goo Lib |</ClassDeclaration>, "Lib")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <ClassDeclaration>Declare Sub goo 
 |</ClassDeclaration>, "Lib")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <ClassDeclaration>Declare Sub goo _
 |</ClassDeclaration>, "Lib")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <ClassDeclaration>Declare Sub goo _ ' Test
 |</ClassDeclaration>, "Lib")
-        End Function
+        End Sub
     End Class
 End Namespace

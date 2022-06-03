@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 
@@ -44,6 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 return "Regex." + $"{type}(\"{Text}\")";
             }
 
+            if (ClassificationName.StartsWith("json"))
+            {
+                var remainder = ClassificationName.Substring("json - ".Length);
+                var parts = remainder.Split(' ');
+                var type = string.Join("", parts.Select(Capitalize));
+                return "Json." + $"{type}(\"{Text}\")";
+            }
+
             switch (ClassificationName)
             {
                 case "punctuation":
@@ -53,6 +63,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                             return "Punctuation.OpenParen";
                         case ")":
                             return "Punctuation.CloseParen";
+                        case "[":
+                            return "Punctuation.OpenBracket";
+                        case "]":
+                            return "Punctuation.CloseBracket";
                         case "{":
                             return "Punctuation.OpenCurly";
                         case "}":
@@ -63,7 +77,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                             return "Punctuation.Colon";
                         case ",":
                             return "Punctuation.Comma";
+                        case "..":
+                            return "Punctuation.DotDot";
                     }
+
                     goto default;
 
                 case "operator":
@@ -73,8 +90,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                             return "Operators.Equals";
                         case "++":
                             return "Operators.PlusPlus";
+                        case "=>":
+                            return "Operators.EqualsGreaterThan";
                     }
+
                     goto default;
+
+                case "keyword - control":
+                    return $"ControlKeyword(\"{Text}\")";
 
                 default:
                     return $"{Capitalize(ClassificationName)}(\"{Text}\")";

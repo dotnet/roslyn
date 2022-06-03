@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAnonymousTypeMemberName), Shared]
     internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider
         : AbstractAddAnonymousTypeMemberNameCodeFixProvider<
             ExpressionSyntax,
@@ -43,6 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
                     SyntaxFactory.IdentifierName(name)));
 
         protected override IEnumerable<string> GetAnonymousObjectMemberNames(AnonymousObjectCreationExpressionSyntax initializer)
-            => initializer.Initializers.Where(i => i.NameEquals != null).Select(i => i.NameEquals.Name.Identifier.ValueText);
+            => initializer.Initializers.Where(i => i.NameEquals != null).Select(i => i.NameEquals!.Name.Identifier.ValueText);
     }
 }

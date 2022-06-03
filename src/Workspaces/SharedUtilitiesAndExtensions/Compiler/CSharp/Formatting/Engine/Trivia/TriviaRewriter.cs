@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -24,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> _spans;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap;
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _leadingTriviaMap;
+        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap = new();
+        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _leadingTriviaMap = new();
 
         public TriviaRewriter(
             SyntaxNode node,
@@ -39,9 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             _node = node;
             _spans = spanToFormat;
             _cancellationToken = cancellationToken;
-
-            _trailingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
-            _leadingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
 
             PreprocessTriviaListMap(map, cancellationToken);
         }
@@ -116,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
         }
 
-        private int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
+        private static int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
         {
             for (var i = 0; i < triviaList.Count; i++)
             {

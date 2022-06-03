@@ -2,21 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -82,52 +82,33 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
+            // Documents in the VisualStudioWorkspace always have file paths since that's how we get files given
+            // to us from the project system.
+            Contract.ThrowIfNull(textDocument.FilePath);
+
             return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
-        private static bool TryResolveSymbol(
-            ISymbol symbol,
-            Project project,
-            CancellationToken cancellationToken,
-            [NotNullWhen(returnValue: true)] out ISymbol? resolvedSymbol,
-            [NotNullWhen(returnValue: true)] out Project? resolvedProject)
-        {
-            resolvedSymbol = null;
-            resolvedProject = null;
+        [Obsolete("Use TryGoToDefinitionAsync instead", error: true)]
+        public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
+            => _threadingContext.JoinableTaskFactory.Run(() => TryGoToDefinitionAsync(symbol, project, cancellationToken));
 
-            var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
-            if (currentProject == null)
-            {
-                return false;
-            }
-
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
-
-            if (symbolInfo.Symbol == null)
-            {
-                return false;
-            }
-
-            resolvedSymbol = symbolInfo.Symbol;
-            resolvedProject = currentProject;
-
-            return true;
-        }
-
-        public override bool TryGoToDefinition(
+        public override async Task<bool> TryGoToDefinitionAsync(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!TryResolveSymbol(symbol, project, cancellationToken,
-                    out var searchSymbol, out var searchProject))
-            {
+            var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
+            if (currentProject == null)
                 return false;
-            }
 
-            return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject.Solution,
-                _threadingContext, _streamingPresenter.Value, cancellationToken);
+            var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
+            if (symbolInfo.Symbol == null)
+                return false;
+
+            return await GoToDefinitionHelpers.TryNavigateToLocationAsync(
+                symbolInfo.Symbol, currentProject.Solution,
+                _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -188,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(vsFileCodeModel);
             if (fileCodeModel != null)
             {
-                SyntaxNode? syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
+                var syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
                 while (syntaxNode != null)
                 {
                     if (!codeModelService.TryGetNodeKey(syntaxNode).IsEmpty)

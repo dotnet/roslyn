@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IteratorFinallyFrame()
             {
-                this.finalizeState = StateMachineStates.NotStartedStateMachine;
+                this.finalizeState = StateMachineStates.NotStartedOrRunningState;
             }
 
             public bool IsRoot()

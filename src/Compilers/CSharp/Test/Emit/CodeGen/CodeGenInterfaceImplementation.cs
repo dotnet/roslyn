@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -769,7 +771,7 @@ Derived.Property",
                     Signature("Derived", "set_Property", ".method public hidebysig specialname instance System.Void set_Property(System.String value) cil managed"),
                 // Stubs in Derived3 "call" corresponding members in Derived above
                 Signature("Derived3", "Interface.Method", ".method private hidebysig newslot virtual final instance System.Void Interface.Method() cil managed"),
-                    Signature("Derived3", "Interface.set_Property", ".method private hidebysig newslot specialname virtual final instance System.Void Interface.set_Property(System.String value) cil managed"),
+                    Signature("Derived3", "Interface.set_Property", ".method private hidebysig newslot virtual final instance System.Void Interface.set_Property(System.String value) cil managed"),
                 });
 
             comp.VerifyDiagnostics(); // No errors
@@ -867,7 +869,7 @@ Derived.Property",
                     Signature("Derived", "set_Property", ".method public hidebysig specialname instance System.Void set_Property(System.String value) cil managed"),
                 // Stubs in Derived3 "call" corresponding members in Derived above
                 Signature("Derived3", "Interface.Method", ".method private hidebysig newslot virtual final instance System.Void Interface.Method() cil managed"),
-                    Signature("Derived3", "Interface.set_Property", ".method private hidebysig newslot specialname virtual final instance System.Void Interface.set_Property(System.String value) cil managed")
+                    Signature("Derived3", "Interface.set_Property", ".method private hidebysig newslot virtual final instance System.Void Interface.set_Property(System.String value) cil managed")
                 });
 
             comp.VerifyDiagnostics(); // No errors

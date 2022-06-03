@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundAttribute
+    Partial Friend Class BoundAttribute
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get

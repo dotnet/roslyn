@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public string Name { get; }
         public string Language { get; }
-        public string[] Roles { get; set; }
+        public string[]? Roles { get; set; }
 
         public ExportCompletionProviderAttribute(string name, string language)
             : base(typeof(CompletionProvider))

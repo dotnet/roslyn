@@ -4534,7 +4534,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
     End Class
 End Namespace
     ]]></file>
-</compilation>, {SystemCoreRef}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+</compilation>, {TestMetadata.Net40.SystemCore}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
 
             Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
 
@@ -4571,6 +4571,45 @@ End Module
             For Each interp In root.DescendantNodes().OfType(Of InterpolatedStringExpressionSyntax)
                 Assert.False(model.GetConstantValue(interp).HasValue)
             Next
+        End Sub
+
+        <Fact>
+        <WorkItem(49952, "https://github.com/dotnet/roslyn/issues/49952")>
+        Public Sub Issue49952()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Class CTest
+    Public ReadOnly Property P As MyStructure
+
+    Class CTest2
+        Function Test() As P.F
+            Return Nothing
+        End Function
+    End Class
+End Class
+
+Structure MyStructure
+    Public F As Integer
+End Structure
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim node = root.DescendantNodes().OfType(Of QualifiedNameSyntax).Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Equal("MyStructure.F As System.Int32", symbolInfo.CandidateSymbols.Single().ToTestDisplayString())
+            Assert.Equal(CandidateReason.NotATypeOrNamespace, symbolInfo.CandidateReason)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30002: Type 'P.F' is not defined.
+        Function Test() As P.F
+                           ~~~
+</expected>)
         End Sub
 
     End Class

@@ -175,27 +175,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim type = ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             ' WARN: We assume that if System_Object was not found we would never reach 
             '       this point because the error should have been/processed generated earlier
-            Debug.Assert(type.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(type.GetUseSiteInfo().DiagnosticInfo Is Nothing)
             Return type
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim type = ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             ' WARN: We assume that if System_Object was not found we would never reach 
             '       this point because the error should have been/processed generated earlier
-            Debug.Assert(type.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(type.GetUseSiteInfo().DiagnosticInfo Is Nothing)
             Return type
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 

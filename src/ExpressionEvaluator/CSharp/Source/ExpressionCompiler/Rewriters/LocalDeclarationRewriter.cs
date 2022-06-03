@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -129,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundObjectCreationExpression(
                 syntax,
                 guidConstructor,
-                null,
                 new BoundLiteral(syntax, value, guidConstructor.ContainingType));
         }
 
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create<BoundExpression>(lengthExpr),
-                new BoundArrayInitialization(syntax, initializerExprs.ToImmutableAndFree()),
+                new BoundArrayInitialization(syntax, isInferred: false, initializerExprs.ToImmutableAndFree()),
                 byteArrayType);
         }
     }

@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
+Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
@@ -26,11 +27,15 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         End Function
 
         Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace, jsonWriter As ILsifJsonWriter) As Task
-            Dim generator = New Generator(jsonWriter)
+            Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter)
 
             For Each project In workspace.CurrentSolution.Projects
                 Dim compilation = Await project.GetCompilationAsync()
-                generator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices)
+
+                ' Assert we don't have any errors to prevent any typos in the tests
+                Assert.Empty(compilation.GetDiagnostics().Where(Function(d) d.Severity = DiagnosticSeverity.Error))
+
+                Await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, GeneratorOptions.Default)
             Next
         End Function
 
@@ -59,11 +64,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
             For Each testDocument In _workspace.Documents
                 Dim documentVertex = _testLsifJsonWriter.Vertices _
-                                                        .OfType(Of Graph.Document) _
+                                                        .OfType(Of Graph.LsifDocument) _
                                                         .Where(Function(d) d.Uri.LocalPath = testDocument.FilePath) _
                                                         .Single()
                 Dim rangeVertices = GetLinkedVertices(Of Range)(documentVertex, "contains")
-
 
                 For Each selectedSpan In testDocument.SelectedSpans
                     Dim document = _workspace.CurrentSolution.GetDocument(testDocument.Id)
@@ -83,6 +87,15 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
         Public Async Function GetSelectedRangeAsync() As Task(Of Graph.Range)
             Return (Await GetSelectedRangesAsync()).Single()
+        End Function
+
+        Public Function GetFoldingRanges(document As Document) As LSP.FoldingRange()
+            Dim documentVertex = _testLsifJsonWriter.Vertices _
+                                                        .OfType(Of LsifDocument) _
+                                                        .Where(Function(d) d.Uri.LocalPath = document.FilePath) _
+                                                        .Single()
+            Dim foldingRangeVertex = GetLinkedVertices(Of FoldingRangeResult)(documentVertex, "textDocument/foldingRange").Single()
+            Return foldingRangeVertex.Result
         End Function
     End Class
 End Namespace

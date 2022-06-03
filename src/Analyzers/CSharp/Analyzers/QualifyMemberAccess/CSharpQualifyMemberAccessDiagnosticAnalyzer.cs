@@ -4,10 +4,12 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
     {
         protected override string GetLanguageName()
             => LanguageNames.CSharp;
+
+        protected override ISimplification Simplification
+            => CSharpSimplification.Instance;
 
         protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
             => node.IsKind(SyntaxKind.ThisExpression);
@@ -38,11 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
             }
 
             return !(node.IsKind(SyntaxKind.BaseExpression) ||
-                     node.Parent.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                     node.GetRequiredParent().GetRequiredParent().IsKind(SyntaxKind.ObjectInitializerExpression) ||
                      IsInPropertyOrFieldInitialization(containingSymbol, node));
         }
 
-        private bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
+        private static bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
         {
             return (containingSymbol.Kind == SymbolKind.Field || containingSymbol.Kind == SymbolKind.Property) &&
                 containingSymbol.DeclaringSyntaxReferences
@@ -50,10 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
                     .Any(declaringSyntax => IsInPropertyInitialization(declaringSyntax, node) || IsInFieldInitialization(declaringSyntax, node));
         }
 
-        private bool IsInPropertyInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
+        private static bool IsInPropertyInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
             => declarationSyntax.IsKind(SyntaxKind.PropertyDeclaration) && declarationSyntax.Contains(node);
 
-        private bool IsInFieldInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
+        private static bool IsInFieldInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
             => declarationSyntax.GetAncestorsOrThis(n => n.IsKind(SyntaxKind.FieldDeclaration) && n.Contains(node)).Any();
 
         protected override Location GetLocation(IOperation operation) => operation.Syntax.GetLocation();

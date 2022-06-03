@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private readonly bool _onlyRemaining;
             protected readonly ISymbol ThroughMember;
             protected readonly Document Document;
+            protected readonly ImplementTypeGenerationOptions Options;
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
             private readonly string _equivalenceKey;
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             internal ImplementInterfaceCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
@@ -46,6 +50,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Service = service;
                 Document = document;
                 State = state;
+                Options = options;
                 Abstractly = abstractly;
                 _onlyRemaining = onlyRemaining;
                 Explicitly = explicitly;
@@ -56,42 +61,47 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state,
                 ISymbol throughMember)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, options, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public override string Title
@@ -136,29 +146,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var assemblyName = interfaceType.ContainingAssembly.Name;
 
-                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, onlyRemaining, throughMember, codeActionTypeName);
-            }
-
-            private static string GetCodeActionEquivalenceKey(
-                string interfaceTypeAssemblyName,
-                string interfaceTypeFullyQualifiedName,
-                bool explicitly,
-                bool abstractly,
-                bool onlyRemaining,
-                ISymbol throughMember,
-                string codeActionTypeName)
-            {
-                if (throughMember != null)
-                {
-                    return null;
-                }
-
+                // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
+                // in the same manner.  Note: 'implement through member' means implementing the same interface through
+                // an applicable member with the same name in the destination.
                 return explicitly.ToString() + ";" +
-                    abstractly.ToString() + ";" +
-                    onlyRemaining.ToString() + ":" +
-                    interfaceTypeAssemblyName + ";" +
-                    interfaceTypeFullyQualifiedName + ";" +
-                    codeActionTypeName;
+                   abstractly.ToString() + ";" +
+                   onlyRemaining.ToString() + ":" +
+                   typeName + ";" +
+                   assemblyName + ";" +
+                   codeActionTypeName + ";" +
+                   throughMember?.Name;
             }
 
             public override string EquivalenceKey => _equivalenceKey;
@@ -200,26 +197,26 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var isComImport = unimplementedMembers.Any(t => t.type.IsComImport);
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
                 var memberDefinitions = GenerateMembers(
-                    compilation, unimplementedMembers, propertyGenerationBehavior);
+                    compilation, unimplementedMembers, Options.ImplementTypeOptions.PropertyGenerationBehavior);
 
                 // Only group the members in the destination if the user wants that *and* 
                 // it's not a ComImport interface.  Member ordering in ComImport interfaces 
                 // matters, so we don't want to much with them.
-                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
                 var groupMembers = !isComImport &&
-                    insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+                    Options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
                 return await CodeGenerator.AddMemberDeclarationsAsync(
-                    result.Project.Solution, classOrStructType,
+                    new CodeGenerationSolutionContext(
+                        result.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: classOrStructDecl.GetLocation(),
+                            autoInsertionLocation: groupMembers,
+                            sortMembers: groupMembers),
+                        Options.FallbackOptions),
+                classOrStructType,
                     memberDefinitions.Concat(extraMembers),
-                    new CodeGenerationOptions(
-                        contextLocation: classOrStructDecl.GetLocation(),
-                        autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -242,8 +239,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // That's because later members won't conflict with it even if they have the same
                 // signature otherwise.  i.e. if we chose to implement IGoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
-                var implementedVisibleMembers = new List<ISymbol>();
-                var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
+                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var implementedVisibleMembers);
+                using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var implementedMembers);
 
                 foreach (var (_, unimplementedInterfaceMembers) in unimplementedMembers)
                 {
@@ -264,7 +261,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return implementedMembers.ToImmutableAndFree();
+                return implementedMembers.ToImmutable();
             }
 
             private bool IsReservedName(string name)
@@ -274,7 +271,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     State.ClassOrStructType.TypeParameters.Any(t => IdentifiersMatch(t.Name, name));
             }
 
-            private string DetermineMemberName(ISymbol member, List<ISymbol> implementedVisibleMembers)
+            private string DetermineMemberName(ISymbol member, ArrayBuilder<ISymbol> implementedVisibleMembers)
             {
                 if (HasConflictingMember(member, implementedVisibleMembers))
                 {
@@ -293,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private ISymbol GenerateMember(
                 Compilation compilation,
                 ISymbol member,
-                List<ISymbol> implementedVisibleMembers,
+                ArrayBuilder<ISymbol> implementedVisibleMembers,
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // First check if we already generate a member that matches the member we want to
@@ -316,10 +313,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // See if we need to generate an invisible member.  If we do, then reset the name
                 // back to what then member wants it to be.
-                var generateInvisibleMember = GenerateInvisibleMember(member, memberName);
+                var generateInvisibleMember = ShouldGenerateInvisibleMember(member, memberName);
                 memberName = generateInvisibleMember ? member.Name : memberName;
 
-                var generateAbstractly = !generateInvisibleMember && Abstractly;
+                // The language doesn't allow static abstract implementations of interface methods. i.e,
+                // Only interface member is declared abstract static, but implementation should be only static.
+                var generateAbstractly = !member.IsStatic && !generateInvisibleMember && Abstractly;
 
                 // Check if we need to add 'new' to the signature we're adding.  We only need to do this
                 // if we're not generating something explicit and we have a naming conflict with
@@ -335,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     addNew, addUnsafe, propertyGenerationBehavior);
             }
 
-            private bool GenerateInvisibleMember(ISymbol member, string memberName)
+            private bool ShouldGenerateInvisibleMember(ISymbol member, string memberName)
             {
                 if (Service.HasHiddenExplicitImplementation)
                 {
@@ -358,13 +357,20 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     {
                         return true;
                     }
+
+                    // If the member is less accessible than type, for which we are implementing it,
+                    // then only explicit implementation is valid.
+                    if (AccessibilityHelper.IsLessAccessibleThan(member, State.ClassOrStructType))
+                    {
+                        return true;
+                    }
                 }
 
                 // Can't generate an invisible member if the language doesn't support it.
                 return false;
             }
 
-            private bool HasUnexpressibleConstraint(ISymbol member)
+            private static bool HasUnexpressibleConstraint(ISymbol member)
             {
                 // interface IGoo<T> { void Bar<U>() where U : T; }
                 //
@@ -403,7 +409,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
-                var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
+                var modifiers = new DeclarationModifiers(isStatic: member.IsStatic, isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
                 var accessibility = member.Name == memberName || generateAbstractly
@@ -502,7 +508,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            private bool HasMatchingMember(List<ISymbol> implementedVisibleMembers, ISymbol member)
+            private bool HasMatchingMember(ArrayBuilder<ISymbol> implementedVisibleMembers, ISymbol member)
             {
                 // If this is a language that doesn't support implicit implementation then no
                 // implemented members will ever match.  For example, if you have:

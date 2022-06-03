@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -10,67 +12,77 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeModifiersTests : AbstractOrganizerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestTypes1()
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestTypes1(string typeKind)
         {
             var initial =
-@"static public class C {
-}";
+$@"static public {typeKind} C {{
+}}";
             var final =
-@"public static class C {
-}";
+$@"public static {typeKind} C {{
+}}";
 
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestTypes2()
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestTypes2(string typeKind)
         {
             var initial =
-@"public static class D {
-}";
+$@"public static {typeKind} D {{
+}}";
             var final =
-@"public static class D {
-}";
+$@"public static {typeKind} D {{
+}}";
 
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestTypes3()
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestTypes3(string typeKind)
         {
             var initial =
-@"public static partial class E {
-}";
+$@"public static partial {typeKind} E {{
+}}";
             var final =
-@"public static partial class E {
-}";
+$@"public static partial {typeKind} E {{
+}}";
 
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestTypes4()
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestTypes4(string typeKind)
         {
             var initial =
-@"static public partial class F {
-}";
+$@"static public partial {typeKind} F {{
+}}";
             var final =
-@"public static partial class F {
-}";
+$@"public static partial {typeKind} F {{
+}}";
 
             await CheckAsync(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public async Task TestTypes5()
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("class")]
+        [InlineData("record")]
+        public async Task TestTypes5(string typeKind)
         {
             var initial =
-@"unsafe public static class F {
-}";
+$@"unsafe public static {typeKind} F {{
+}}";
             var final =
-@"public static unsafe class F {
-}";
+$@"public static unsafe {typeKind} F {{
+}}";
 
             await CheckAsync(initial, final);
         }

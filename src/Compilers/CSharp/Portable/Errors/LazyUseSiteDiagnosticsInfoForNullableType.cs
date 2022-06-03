@@ -8,25 +8,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class LazyUseSiteDiagnosticsInfoForNullableType : LazyDiagnosticInfo
     {
+        private readonly LanguageVersion _languageVersion;
         private readonly TypeWithAnnotations _possiblyNullableTypeSymbol;
 
-        internal LazyUseSiteDiagnosticsInfoForNullableType(TypeWithAnnotations possiblyNullableTypeSymbol)
+        internal LazyUseSiteDiagnosticsInfoForNullableType(LanguageVersion languageVersion, TypeWithAnnotations possiblyNullableTypeSymbol)
         {
+            _languageVersion = languageVersion;
             _possiblyNullableTypeSymbol = possiblyNullableTypeSymbol;
         }
 
-        protected override DiagnosticInfo ResolveInfo()
+        protected override DiagnosticInfo? ResolveInfo()
         {
             if (_possiblyNullableTypeSymbol.IsNullableType())
             {
-                return _possiblyNullableTypeSymbol.Type.OriginalDefinition.GetUseSiteDiagnostic();
+                return _possiblyNullableTypeSymbol.Type.OriginalDefinition.GetUseSiteInfo().DiagnosticInfo;
             }
-            else if (_possiblyNullableTypeSymbol.Type.IsTypeParameterDisallowingAnnotation())
-            {
-                return new CSDiagnosticInfo(ErrorCode.ERR_NullableUnconstrainedTypeParameter);
-            }
-
-            return null;
+            return Binder.GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(_languageVersion, _possiblyNullableTypeSymbol);
         }
     }
 }

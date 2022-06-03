@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -57,9 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 if (newExpression != null)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(
+                        CodeAction.Create(
+                            string.Format(CSharpFeaturesResources.Use_0, displayText),
                             c => ReplaceAsync(context.Document, context.Span, newExpression, c),
-                            displayText),
+                            nameof(CSharpFeaturesResources.Use_0)),
                         context.Diagnostics);
                 }
             }
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
-                else if (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr)
+                else if (type.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr)
                 {
                     return GenerateMemberAccess(nameof(IntPtr.Zero));
                 }
@@ -144,14 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                     return true;
                 default:
                     return false;
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string literal)
-                : base(string.Format(CSharpFeaturesResources.Use_0, literal), createChangedDocument, CSharpFeaturesResources.Use_0)
-            {
             }
         }
     }

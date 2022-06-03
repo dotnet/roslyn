@@ -36,20 +36,27 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">Uso: csi [option] ... [script-file.csx] [script-argument] ...
+        <target state="translated">Uso: csi [option] ... [script-file.csx] [script-argument] ...
 
-Executa script-file.csx, se especificado. Caso contrário, inicia um REPL (Read Eval Print Loop) interativo.
+Executa script-file.csx se especificado; caso contrário, iniciará um interativo REPL (Read Eval Print Loop).
 
 Opções:
-  /help                          Exibir essa mensagem de uso (forma alternativa: /?)
+  /help                          Exibir esta mensagem de uso (formato alternativo: /?)
   /version                       Exibir a versão e sair
-  /i                             Remover para REPL depois de executar o script especificado. 
-  /r:&lt;file&gt;                      Os metadados de referência de um arquivo do assembly especificado (forma alternativa: /reference) 
-  /r:&lt;file list&gt;                 Os metadados de referência de arquivos do assembly especificados (forma alternativa: /reference): 
+  /i                             Solte para REPL depois de executar o script especificado.
+  /r:&lt;file&gt;                      Metadados de referência do arquivo do assembly especificado (formato alternativo: /reference)
+  /r:&lt;file list&gt;                 Metadados de referência dos arquivos do assembly especificados (formato alternativo: /reference)
   /lib:&lt;path list&gt;               Lista de diretórios nos quais procurar bibliotecas especificadas pela diretiva #r. 
-                                 (formas alternativas: /libPath /libPaths)
-  /u:&lt;namespace&gt;                 Definir namespace global usando (formas alternativas: /using, /usings, /import, /imports)
-  @&lt;file&gt;                        Ler arquivo de resposta para mais opções
+                                 (formatos alternativos: /libPath /libPaths)
+  /u:&lt;namespace&gt;                 Definir o namespace global usando (formatos alternativos: /using, /usings, /import, /imports)
+  /langversion:?                 Exibir os valores permitidos para versão do idioma e sair
+  /langversion:&lt;string&gt;          Especificar a versão do idioma, como
+                                 'latest' (versão mais recente, incluindo versões secundárias),
+                                 'default' (igual a 'latest'),
+                                 'latestmajor' (versão mais recente, excluindo versões secundárias),
+                                 'preview' (versão mais recente, incluindo recursos de versão prévia sem suporte),
+                                 ou versões específicas como '6' ou '7.1'
+  @&lt;file&gt;                        Leia o arquivo de resposta para obter mais opções
   --                             Indica que os argumentos restantes não devem ser tratados como opções.
 </target>
         <note />

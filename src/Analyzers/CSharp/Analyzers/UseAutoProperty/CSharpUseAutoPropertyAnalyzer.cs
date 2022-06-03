@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
@@ -18,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
         protected override bool SupportsPropertyInitializer(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
         protected override bool CanExplicitInterfaceImplementationsBeFixed()
             => false;
@@ -46,17 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             MemberDeclarationSyntax member,
             List<AnalysisResult> analysisResults)
         {
-            if (member.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax namespaceDeclaration))
+            if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
             }
-            else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
-                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration))
+            else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
+                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
+                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
+                member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
             {
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
             }
-            else if (member.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDeclaration))
+            else if (member.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDeclaration))
             {
                 AnalyzeProperty(context, propertyDeclaration, analysisResults);
             }
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
             Compilation compilation, CancellationToken cancellationToken)
         {
-            var groups = analysisResults.Select(r => (typeDeclaration: (TypeDeclarationSyntax)r.PropertyDeclaration.Parent, r.SemanticModel))
+            var groups = analysisResults.Select(r => (typeDeclaration: (TypeDeclarationSyntax)r.PropertyDeclaration.Parent!, r.SemanticModel))
                                         .Distinct()
                                         .GroupBy(n => n.typeDeclaration.SyntaxTree);
 
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
         }
 
-        protected override ExpressionSyntax GetFieldInitializer(
+        protected override ExpressionSyntax? GetFieldInitializer(
             VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         {
             return variable.Initializer?.Value;
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 AddIneligibleField(symbol);
             }
 
-            void AddIneligibleField(ISymbol symbol)
+            void AddIneligibleField(ISymbol? symbol)
             {
                 if (symbol is IFieldSymbol field)
                 {
@@ -118,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
         }
 
-        private bool CheckExpressionSyntactically(ExpressionSyntax expression)
+        private static bool CheckExpressionSyntactically(ExpressionSyntax expression)
         {
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccessExpression))
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccessExpression))
             {
                 return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
                     memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return false;
         }
 
-        protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
+        protected override ExpressionSyntax? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             // Getter has to be of the form:
             // 1. Getter can be defined as accessor or expression bodied lambda
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return CheckExpressionSyntactically(expr) ? expr : null;
         }
 
-        private ExpressionSyntax GetGetterExpressionFromSymbol(IMethodSymbol getMethod, CancellationToken cancellationToken)
+        private static ExpressionSyntax? GetGetterExpressionFromSymbol(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             var declaration = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
             switch (declaration)
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
         }
 
-        private T GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax accessorDeclaration) where T : StatementSyntax
+        private static T? GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax? accessorDeclaration) where T : StatementSyntax
         {
             var statements = accessorDeclaration?.Body?.Statements;
             if (statements?.Count == 1)
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return null;
         }
 
-        protected override ExpressionSyntax GetSetterExpression(
+        protected override ExpressionSyntax? GetSetterExpression(
             IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // Setter has to be of the form:
@@ -203,16 +206,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return null;
         }
 
-        private ExpressionSyntax GetExpressionFromSetter(AccessorDeclarationSyntax setAccessor)
+        private static ExpressionSyntax? GetExpressionFromSetter(AccessorDeclarationSyntax? setAccessor)
             => setAccessor?.ExpressionBody?.Expression ??
                GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 
-        protected override SyntaxNode GetNodeToFade(
+        protected override SyntaxNode GetFieldNode(
             FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
         {
             return fieldDeclaration.Declaration.Variables.Count == 1
                 ? fieldDeclaration
-                : (SyntaxNode)variableDeclarator;
+                : variableDeclarator;
         }
     }
 }

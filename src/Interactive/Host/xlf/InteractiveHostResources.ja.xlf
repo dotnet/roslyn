@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">対話型コードの実行のリモート プロセスを作成できませんでした。</target>
+        <source>Failed to create a remote process for interactive code execution: '{0}'</source>
+        <target state="translated">対話型コード実行のリモート プロセスを作成できませんでした: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_initialize_remote_interactive_process">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
         <source>Loading context from '{0}'.</source>
-        <target state="translated">{0}' からコンテキストを読み込んでいます。</target>
+        <target state="translated">'{0}' からコンテキストを読み込んでいます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Searched_in_directories_colon">

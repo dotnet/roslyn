@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,6 +30,11 @@ namespace Microsoft.CodeAnalysis
         /// True if this is a write-only property; that is, a property with no get accessor.
         /// </summary>
         bool IsWriteOnly { get; }
+
+        /// <summary>
+        /// True if this property is required to be set in an object initializer during construction.
+        /// </summary>
+        bool IsRequired { get; }
 
         /// <summary>
         /// Returns true if this property is an auto-created WithEvents property that takes place of

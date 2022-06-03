@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation _compilation;
         private readonly SyntaxTree _filterTree; //if not null, limit analysis to types residing in this tree
         private readonly TextSpan? _filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
-        private readonly ConcurrentQueue<Diagnostic> _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly CancellationToken _cancellationToken;
 
         private readonly ConcurrentDictionary<Symbol, Compliance> _declaredOrInheritedCompliance;
@@ -35,9 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SyntaxTree filterTree,
             TextSpan? filterSpanWithinTree,
-            ConcurrentQueue<Diagnostic> diagnostics,
+            BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(diagnostics.DependenciesBag is null || diagnostics.DependenciesBag is ConcurrentSet<AssemblySymbol>);
+
             _compilation = compilation;
             _filterTree = filterTree;
             _filterSpanWithinTree = filterSpanWithinTree;
@@ -65,17 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void CheckCompliance(CSharpCompilation compilation, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+        public static void CheckCompliance(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
-            var queue = new ConcurrentQueue<Diagnostic>();
+            var queue = new BindingDiagnosticBag(diagnostics.DiagnosticBag, diagnostics.AccumulatesDependencies ? new ConcurrentSet<AssemblySymbol>() : null);
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
             checker.Visit(compilation.Assembly);
             checker.WaitForWorkers();
-
-            foreach (Diagnostic diag in queue)
-            {
-                diagnostics.Add(diag);
-            }
+            diagnostics.AddDependencies(queue);
         }
 
         public override void VisitAssembly(AssemblySymbol symbol)
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Visit(m);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -982,6 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // but that's way too much work in the 99.9% case.
                     return true;
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return false;
                 case TypeKind.Error:
                 case TypeKind.TypeParameter:
@@ -1183,15 +1185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol attributeClass = data.AttributeClass;
                     if ((object)attributeClass != null)
                     {
-                        DiagnosticInfo info = attributeClass.GetUseSiteDiagnostic();
-                        if (info != null)
+                        if (_diagnostics.ReportUseSite(attributeClass, symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.Locations[0]))
                         {
-                            Location location = symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.Locations[0];
-                            _diagnostics.Enqueue(new CSDiagnostic(info, location));
-                            if (info.Severity >= DiagnosticSeverity.Error)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
                     }
 
@@ -1251,14 +1247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var info = new CSDiagnosticInfo(code);
             var diag = new CSDiagnostic(info, location);
-            _diagnostics.Enqueue(diag);
+            _diagnostics.Add(diag);
         }
 
         private void AddDiagnostic(ErrorCode code, Location location, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args);
             var diag = new CSDiagnostic(info, location);
-            _diagnostics.Enqueue(diag);
+            _diagnostics.Add(diag);
         }
 
         private static bool IsImplicitClass(Symbol symbol)

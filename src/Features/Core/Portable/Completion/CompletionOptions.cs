@@ -2,80 +2,50 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Recommendations;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal static class CompletionOptions
+    internal sealed record class CompletionOptions
     {
-        // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(HideAdvancedMembers), defaultValue: false);
+        public bool TriggerOnTyping { get; init; } = true;
+        public bool TriggerOnTypingLetters { get; init; } = true;
+        public bool? TriggerOnDeletion { get; init; } = null;
+        public bool TriggerInArgumentLists { get; init; } = true;
+        public EnterKeyRule EnterKeyBehavior { get; init; } = EnterKeyRule.Default;
+        public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
+        public bool HideAdvancedMembers { get; init; } = false;
+        public bool ShowNameSuggestions { get; init; } = true;
+        public bool? ShowItemsFromUnimportedNamespaces { get; init; } = null;
+        public bool UnnamedSymbolCompletionDisabled { get; init; } = false;
+        public bool TargetTypedCompletionFilter { get; init; } = false;
+        public bool TypeImportCompletion { get; init; } = false;
+        public bool ProvideDateAndTimeCompletions { get; init; } = true;
+        public bool ProvideRegexCompletions { get; init; } = true;
+        public bool ForceExpandedCompletionIndexCreation { get; init; } = false;
+        public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
+        public bool FilterOutOfScopeLocals { get; init; } = true;
+        public bool ShowXmlDocCommentCompletion { get; init; } = true;
+        public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
+        public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
-        // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static readonly PerLanguageOption2<bool> TriggerOnTyping = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(TriggerOnTyping), defaultValue: true);
+        public static readonly CompletionOptions Default = new();
 
-        public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters2 = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
+        public RecommendationServiceOptions ToRecommendationServiceOptions()
+            => new(
+                FilterOutOfScopeLocals: FilterOutOfScopeLocals,
+                HideAdvancedMembers: HideAdvancedMembers);
 
-#pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
-        public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = (PerLanguageOption<bool>)TriggerOnTypingLetters2!;
-#pragma warning restore RS0030 // Do not used banned APIs
-
-        public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new PerLanguageOption2<bool?>(nameof(CompletionOptions), nameof(TriggerOnDeletion), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
-
-        public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior =
-            new PerLanguageOption2<EnterKeyRule>(nameof(CompletionOptions), nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
-
-        public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior =
-            new PerLanguageOption2<SnippetsRule>(nameof(CompletionOptions), nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
-
-        // Dev15 options
-        public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(ShowCompletionItemFilters), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
-
-        public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
-
-        public static readonly PerLanguageOption2<bool> BlockForCompletionItems2 = new PerLanguageOption2<bool>(
-            nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
-
-#pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
-        public static readonly PerLanguageOption<bool> BlockForCompletionItems = (PerLanguageOption<bool>)BlockForCompletionItems2!;
-#pragma warning restore RS0030 // Do not used banned APIs
-
-        public static readonly PerLanguageOption2<bool> ShowNameSuggestions =
-            new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
-
-        //Dev16 options
-
-        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces =
-            new PerLanguageOption2<bool?>(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
-
-        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> TriggerInArgumentLists =
-            new PerLanguageOption2<bool?>(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
-
-        public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
+        /// <summary>
+        /// Whether items from unimported namespaces should be included in the completion list.
+        /// This takes into consideration the experiment we are running in addition to the value
+        /// from user facing options.
+        /// </summary>
+        public bool ShouldShowItemsFromUnimportNamspaces()
         {
-            yield return ShowCompletionItemFilters;
-            yield return HighlightMatchingPortionsOfCompletionListItems;
+            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+            return ShowItemsFromUnimportedNamespaces ?? TypeImportCompletion;
         }
-    }
-
-    internal static class CompletionControllerOptions
-    {
-        public static readonly Option2<bool> FilterOutOfScopeLocals = new Option2<bool>(nameof(CompletionControllerOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
-        public static readonly Option2<bool> ShowXmlDocCommentCompletion = new Option2<bool>(nameof(CompletionControllerOptions), nameof(ShowXmlDocCommentCompletion), defaultValue: true);
     }
 }

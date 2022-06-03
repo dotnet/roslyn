@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
 
         Public Overrides Function VisitXmlComment(node As BoundXmlComment) As BoundNode
             Return Visit(node.ObjectCreation)

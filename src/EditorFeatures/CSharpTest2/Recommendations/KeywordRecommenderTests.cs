@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Xunit;
@@ -25,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     try
                     {
                         var recommender = Activator.CreateInstance(recommenderType);
-                        var prop = recommenderType.GetProperty("KeywordKind", BindingFlags.NonPublic | BindingFlags.Instance);
-                        var kind = (SyntaxKind)prop.GetValue(recommender, null);
+                        var field = recommenderType.GetField(nameof(AbstractSyntacticSingleKeywordRecommender.KeywordKind), BindingFlags.Public | BindingFlags.Instance);
+                        var kind = (SyntaxKind)field.GetValue(recommender);
 
                         s_recommenderMap.Add(kind, (AbstractSyntacticSingleKeywordRecommender)recommender);
                     }
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             s_recommenderMap.TryGetValue(kind, out var recommender);
             Assert.NotNull(recommender);
 
-            this.RecommendKeywordsAsync = (position, context) => recommender.GetTestAccessor().RecommendKeywordsAsync(position, context);
+            this.RecommendKeywordsAsync = (position, context) => Task.FromResult(recommender.GetTestAccessor().RecommendKeywords(position, context));
         }
     }
 }

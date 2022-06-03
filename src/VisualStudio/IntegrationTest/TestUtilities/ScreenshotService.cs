@@ -54,10 +54,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// A <see cref="Bitmap"/> containing the screen capture of the desktop, or null if a screen
         /// capture can't be created.
         /// </returns>
-        private static BitmapSource TryCaptureFullScreen()
+        private static BitmapSource? TryCaptureFullScreen()
         {
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
+            var width = Screen.PrimaryScreen.Bounds.Width;
+            var height = Screen.PrimaryScreen.Bounds.Height;
 
             if (width <= 0 || height <= 0)
             {

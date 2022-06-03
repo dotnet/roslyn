@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             For Each k In kinds
                 If k = kind Then Return True
             Next
+
             Return False
         End Function
 
@@ -37,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             For i = start To kinds.Length - 1
                 If kinds(i) = kind Then Return i
             Next
+
             Return -1
         End Function
 

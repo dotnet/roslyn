@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
         {
         }
 
-        internal override List<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+        internal override List<DirectiveTriviaSyntax>? GetMatchingConditionalDirectives(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
                 => directive.GetMatchingConditionalDirectives(cancellationToken)?.ToList();
 
         internal override DirectiveTriviaSyntax GetMatchingDirective(DirectiveTriviaSyntax directive, CancellationToken cancellationToken)

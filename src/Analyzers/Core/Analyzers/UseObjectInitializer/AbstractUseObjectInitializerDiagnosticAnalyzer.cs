@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -35,31 +33,41 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+                   EnforceOnBuildValues.UseObjectInitializer,
                    CodeStyleOptions2.PreferObjectInitializer,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
+        protected abstract ISyntaxFacts GetSyntaxFacts();
+
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-            context.RegisterSyntaxNodeAction(
-                AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+            context.RegisterCompilationStartAction(context =>
+            {
+                if (!AreObjectInitializersSupported(context.Compilation))
+                    return;
+
+                var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+                using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
+                matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                if (syntaxKinds.ImplicitObjectCreationExpression != null)
+                    matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+
+                context.RegisterSyntaxNodeAction(AnalyzeNode, matchKinds.ToImmutableAndClear());
+            });
         }
 
-        protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
+        protected abstract bool AreObjectInitializersSupported(Compilation compilation);
+
+        protected abstract bool IsValidContainingStatement(TStatementSyntax node);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (!AreObjectInitializersSupported(context))
-            {
-                return;
-            }
-
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var option = context.GetOption(CodeStyleOptions2.PreferObjectInitializer, language);
+            var option = context.GetAnalyzerOptions().PreferObjectInitializer;
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -67,34 +75,30 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var syntaxFacts = GetSyntaxFacts();
-            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+            var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
-            {
                 return;
-            }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
-            {
                 return;
-            }
+
+            if (!IsValidContainingStatement(containingStatement))
+                return;
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, context.CancellationToken))
-            {
                 return;
-            }
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Severity;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                objectCreationExpression.GetLocation(),
-                severity,
-                additionalLocations: locations,
+                objectCreationExpression.GetFirstToken().GetLocation(),
+                option.Notification.Severity,
+                locations,
                 properties: null));
 
             FadeOutCode(context, matches.Value, locations);
@@ -107,12 +111,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = context.GetOption(
-                CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, context.Node.Language);
+            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexObjectInitialization;
             if (!fadeOutCode)
-            {
                 return;
-            }
 
             var syntaxFacts = GetSyntaxFacts();
 
@@ -120,29 +121,28 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             {
                 var end = FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
-                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
+                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression)!.Span.End;
 
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                     match.MemberAccessExpression.SpanStart, end));
 
-                RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
-
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
-                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
+                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        Descriptor,
+                        location1,
+                        ReportDiagnostic.Default,
+                        additionalLocations: locations,
+                        additionalUnnecessaryLocations: ImmutableArray.Create(
+                            syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));
+                }
+                else
+                {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            match.Initializer.FullSpan.End,
-                            match.Statement.Span.End)),
-                        additionalLocations: locations));
+                        Descriptor, location1, additionalLocations: locations));
                 }
             }
         }
-
-        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

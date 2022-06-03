@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -17,33 +16,38 @@ namespace Microsoft.CodeAnalysis
         public enum PositionState : byte
         {
             /// <summary>
-            /// Used in VB when the position is not hidden, but it's not known yet that there is a (nonempty) #ExternalSource
+            /// Used in VB when the position is not hidden, but it's not known yet that there is a (nonempty) <c>#ExternalSource</c>
             /// following.
             /// </summary>
             Unknown,
 
             /// <summary>
-            /// Used in C# for spans outside of #line directives
+            /// Used in C# for spans preceding the first <c>#line</c> directive (if any) and for <c>#line default</c> spans
             /// </summary>
             Unmapped,
 
             /// <summary>
-            /// Used in C# for spans inside of "#line linenumber" directive
+            /// Used in C# for spans inside of <c>#line linenumber</c> directive
             /// </summary>
             Remapped,
 
             /// <summary>
-            /// Used in VB for spans inside of a "#ExternalSource" directive that followed an unknown span
+            /// Used in C# for spans inside of <c>#line (startLine, startChar) - (endLine, endChar) charOffset</c> directive
+            /// </summary>
+            RemappedSpan,
+
+            /// <summary>
+            /// Used in VB for spans inside of a <c>#ExternalSource</c> directive that followed an unknown span
             /// </summary>
             RemappedAfterUnknown,
 
             /// <summary>
-            /// Used in VB for spans inside of a "#ExternalSource" directive that followed a hidden span
+            /// Used in VB for spans inside of a <c>#ExternalSource</c> directive that followed a hidden span
             /// </summary>
             RemappedAfterHidden,
 
             /// <summary>
-            /// Used in C# and VB for spans that are inside of #line hidden (C#) or outside of #ExternalSource (VB) 
+            /// Used in C# and VB for spans that are inside of <c>#line hidden</c> (C#) or outside of <c>#ExternalSource</c> (VB) 
             /// directives
             /// </summary>
             Hidden
@@ -51,13 +55,19 @@ namespace Microsoft.CodeAnalysis
 
         // Struct that represents an entry in the line mapping table. Entries sort by the unmapped
         // line.
-        protected readonly struct LineMappingEntry : IComparable<LineMappingEntry>
+        internal readonly struct LineMappingEntry : IComparable<LineMappingEntry>
         {
             // 0-based line in this tree
             public readonly int UnmappedLine;
 
             // 0-based line it maps to.
             public readonly int MappedLine;
+
+            // 0-based mapped span from enhanced #line directive.
+            public readonly LinePositionSpan MappedSpan;
+
+            // optional 0-based character offset from enhanced #line directive.
+            public readonly int? UnmappedCharacterOffset;
 
             // raw value from #line or #ExternalDirective, may be null
             public readonly string? MappedPathOpt;
@@ -69,6 +79,8 @@ namespace Microsoft.CodeAnalysis
             {
                 this.UnmappedLine = unmappedLine;
                 this.MappedLine = unmappedLine;
+                this.MappedSpan = default;
+                this.UnmappedCharacterOffset = null;
                 this.MappedPathOpt = null;
                 this.State = PositionState.Unmapped;
             }
@@ -76,19 +88,38 @@ namespace Microsoft.CodeAnalysis
             public LineMappingEntry(
                 int unmappedLine,
                 int mappedLine,
-                string mappedPathOpt,
+                string? mappedPathOpt,
                 PositionState state)
             {
+                Debug.Assert(state != PositionState.RemappedSpan);
+
                 this.UnmappedLine = unmappedLine;
                 this.MappedLine = mappedLine;
+                this.MappedSpan = default;
+                this.UnmappedCharacterOffset = null;
                 this.MappedPathOpt = mappedPathOpt;
                 this.State = state;
             }
 
-            public int CompareTo(LineMappingEntry other)
+            public LineMappingEntry(
+                int unmappedLine,
+                LinePositionSpan mappedSpan,
+                int? unmappedCharacterOffset,
+                string? mappedPathOpt)
             {
-                return this.UnmappedLine.CompareTo(other.UnmappedLine);
+                this.UnmappedLine = unmappedLine;
+                this.MappedLine = -1;
+                this.MappedSpan = mappedSpan;
+                this.UnmappedCharacterOffset = unmappedCharacterOffset;
+                this.MappedPathOpt = mappedPathOpt;
+                this.State = PositionState.RemappedSpan;
             }
+
+            public int CompareTo(LineMappingEntry other)
+                => UnmappedLine.CompareTo(other.UnmappedLine);
+
+            public bool IsHidden
+                => State == PositionState.Hidden;
         }
     }
 }

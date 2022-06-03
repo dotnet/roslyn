@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataIdToInfo = metadataIdToInfo;
             }
 
-            public async Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(
+            public async ValueTask<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(
                 Solution solution,
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)

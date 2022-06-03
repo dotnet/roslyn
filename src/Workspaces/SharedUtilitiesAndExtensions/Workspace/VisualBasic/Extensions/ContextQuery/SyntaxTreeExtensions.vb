@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If targetToken.Parent.IsKind(SyntaxKind.ArgumentList) AndAlso
                TypeOf targetToken.Parent.Parent Is NewExpressionSyntax Then
 
-                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(targetToken.Parent.Parent, NewExpressionSyntax).Type())
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(targetToken.Parent.Parent, NewExpressionSyntax).Type(), cancellationToken)
                 Dim objectCreationType = TryCast(symbolInfo.Symbol, ITypeSymbol)
                 If objectCreationType IsNot Nothing AndAlso
                    objectCreationType.TypeKind = TypeKind.Delegate Then
@@ -351,6 +351,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             PositionOutsideTupleIfApplicable(syntaxTree, position, targetToken, cancellationToken)
 
             If targetToken.FollowsEndOfStatement(position) OrElse targetToken.Kind = SyntaxKind.None Then
+                Return False
+            End If
+
+            Dim directive As DirectiveTriviaSyntax = Nothing
+            If IsInPreprocessorDirectiveContext(syntaxTree, position, cancellationToken, directive) AndAlso
+               directive.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
                 Return False
             End If
 
@@ -782,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Dim leftHandBinding = semanticModel.GetSymbolInfo(leftExpression)
+            Dim leftHandBinding = semanticModel.GetSymbolInfo(leftExpression, cancellationToken)
             Dim symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault()
 
             If symbol Is Nothing Then
@@ -1079,5 +1085,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType)
         End Function
 
+        <Extension()>
+        Public Function IsInPreprocessorExpressionContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim directive As DirectiveTriviaSyntax = Nothing
+            If Not IsInPreprocessorDirectiveContext(syntaxTree, position, cancellationToken, directive) Then
+                Return False
+            End If
+
+            If TypeOf directive IsNot IfDirectiveTriviaSyntax Then
+                Return False
+            End If
+
+            Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
+
+            ' #if $$
+            '
+            ' #elseif $$
+            '
+            ' #if not $$
+            '
+            ' #if ( $$
+            '
+            ' #if x or $$
+            ' #if x orelse $$
+            '
+            ' #if x and $$
+            ' #if x andalso $$
+
+            Select Case targetToken.Kind()
+                Case SyntaxKind.IfKeyword,
+                     SyntaxKind.ElseIfKeyword,
+                     SyntaxKind.NotKeyword,
+                     SyntaxKind.OpenParenToken,
+                     SyntaxKind.OrKeyword,
+                     SyntaxKind.OrElseKeyword,
+                     SyntaxKind.AndKeyword,
+                     SyntaxKind.AndAlsoKeyword
+                    Return True
+            End Select
+
+            Return False
+        End Function
     End Module
 End Namespace

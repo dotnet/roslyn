@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -85,6 +84,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? HideModuleNameAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
 
+        public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+
         public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
 
@@ -117,6 +119,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+        public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);
 
         public static INamedTypeSymbol? IEnumerableOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
@@ -210,5 +215,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? DisallowNullAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName!);
+
+        public static INamedTypeSymbol? DataMemberAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName!);
+
+        public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
+
+        public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
     }
 }

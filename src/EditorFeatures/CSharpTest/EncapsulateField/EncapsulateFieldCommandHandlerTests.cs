@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulatePrivateField()
+        public async Task EncapsulatePrivateField()
         {
             var text = @"
 class C
@@ -59,11 +59,11 @@ class C
 }";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertEncapsulateAs(expected);
+            await state.AssertEncapsulateAsAsync(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateNonPrivateField()
+        public async Task EncapsulateNonPrivateField()
         {
             var text = @"
 class C
@@ -100,11 +100,11 @@ class C
 }";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertEncapsulateAs(expected);
+            await state.AssertEncapsulateAsAsync(expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void DialogShownIfNotFieldsFound()
+        public async Task DialogShownIfNotFieldsFound()
         {
             var text = @"
 class$$ C
@@ -118,12 +118,12 @@ class$$ C
 }";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertError();
+            await state.AssertErrorAsync();
         }
 
         [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void EncapsulateTwoFields()
+        public async Task EncapsulateTwoFields()
         {
             var text = @"
 class Program
@@ -179,7 +179,7 @@ class Program
 ";
 
             using var state = EncapsulateFieldTestState.Create(text);
-            state.AssertEncapsulateAs(expected);
+            await state.AssertEncapsulateAsAsync(expected);
         }
 
         [WpfFact]
@@ -187,11 +187,6 @@ class Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void EncapsulateFieldCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
-                .CreateExportProvider();
-
             using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
@@ -202,16 +197,13 @@ class Program
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider);
+                composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
             workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new EncapsulateFieldCommandHandler(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ITextBufferUndoManagerProvider>(),
-                workspace.GetService<IAsynchronousOperationListenerProvider>());
+            var handler = workspace.ExportProvider.GetCommandHandler<EncapsulateFieldCommandHandler>(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
@@ -32,33 +36,30 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             // Check pasted text span for missing imports
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
-            var hasMissingImports = await addMissingImportsService.HasMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            if (!hasMissingImports)
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            var options = new AddMissingImportsOptions(
+                cleanupOptions,
+                context.Options.GetOptions(document.Project.LanguageServices).HideAdvancedMembers);
+
+            var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            if (!analysis.CanAddMissingImports)
             {
                 return;
             }
 
-            var addImportsCodeAction = new AddMissingImportsCodeAction(
+            var addImportsCodeAction = CodeAction.Create(
                 CodeActionTitle,
-                cancellationToken => AddMissingImportsAsync(document, textSpan, cancellationToken));
+                cancellationToken => AddMissingImportsAsync(document, addMissingImportsService, analysis, options.CleanupOptions.FormattingOptions, cancellationToken),
+                CodeActionTitle);
+
             context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
 
-        private async Task<Solution> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<Solution> AddMissingImportsAsync(Document document, IAddMissingImportsFeatureService addMissingImportsService, AddMissingImportsAnalysisResult analysis, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
-            // Add missing imports for the pasted text span.
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
-            var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return newProject.Solution;
-        }
-
-        private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
-        {
-            public AddMissingImportsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
-            {
-            }
+            var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(document, analysis, formattingOptions, cancellationToken).ConfigureAwait(false);
+            return modifiedDocument.Project.Solution;
         }
     }
 }

@@ -51,7 +51,8 @@ End Namespace
             Assert.Equal(c2.ObjectType, implicitClass.BaseType)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub ScriptClassSymbol()
             Dim c = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">

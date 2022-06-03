@@ -716,11 +716,11 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
     IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
       Children(2):
           IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
-          IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
+          IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'Mid(str, st ... ngth) = str')
             Children(4):
                 IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, start, length)')
                   Operand: 
-                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
+                    IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'str')
                 IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'start')
                 IParameterReferenceOperation: length (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'length')
                 IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
@@ -854,7 +854,9 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public S
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40679: The test hook is blocked by this issue.
+        <WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <WorkItem(40679, "https://github.com/dotnet/roslyn/issues/40679")>
         Public Sub ParameterReference_LateAddressOfOperator()
             Dim source = <![CDATA[
 Option Strict Off
@@ -869,7 +871,7 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'AddressOf x.Method')
+IOperation:  (OperationKind.None, Type: System.Object) (Syntax: 'AddressOf x.Method')
   Children(1):
       IDynamicMemberReferenceOperation (Member Name: "Method", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'x.Method')
         Type Arguments(0)
