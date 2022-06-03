@@ -8,7 +8,7 @@ When the `#line` span directive was introduced in C# 10, it required no particul
 For example, this would be valid: `#line(1,2)-(3,4)5"file.cs"`.
 
 In Visual Studio 17.3, the compiler requires spaces before the first parenthesis, the character
-offset and the file name.  
+offset, and the file name.  
 So the above example fails to parse unless spaces are added: `#line (1,2)-(3,4) 5 "file.cs"`.
 
 ## Checked operators on System.IntPtr and System.UIntPtr
