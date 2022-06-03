@@ -406,11 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
-            if (isActive)
-            {
-                lineKeyword = CheckFeatureAvailability(lineKeyword, MessageID.IDS_FeatureLineSpanDirective);
-            }
-
             bool reportError = isActive;
             var start = ParseLineDirectivePosition(ref reportError, out int startLine, out int startCharacter);
             if (noTriviaBetween(lineKeyword, start.GetFirstToken()))

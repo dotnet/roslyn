@@ -43,10 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, TestOptions.Regular9);
             verify();
 
-            UsingLineDirective(source, TestOptions.Regular9.WithPreprocessorSymbols("IsActive"),
-                // (2,2): error CS8773: Feature 'line span directive' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // #line (1, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "line").WithArguments("line span directive", "10.0").WithLocation(2, 2));
+            UsingLineDirective(source, TestOptions.Regular9.WithPreprocessorSymbols("IsActive"));
             verify();
 
             void verify()
@@ -84,10 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = @"#line (1, 2) - (3, 4) ""file.cs""";
 
-            UsingLineDirective(source, TestOptions.Regular9,
-                // (1,2): error CS8773: Feature 'line span directive' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // #line (1, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "line").WithArguments("line span directive", "10.0").WithLocation(1, 2));
+            UsingLineDirective(source, TestOptions.Regular9);
             verify();
 
             UsingLineDirective(source, TestOptions.Regular10);
@@ -128,10 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = @"#line (1, 2) - (3, 4) 5 ""file.cs""";
 
-            UsingLineDirective(source, TestOptions.Regular9,
-                // (1,2): error CS8773: Feature 'line span directive' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // #line (1, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "line").WithArguments("line span directive", "10.0").WithLocation(1, 2));
+            UsingLineDirective(source, TestOptions.Regular9);
             verify();
 
             UsingLineDirective(source, TestOptions.Regular10);
