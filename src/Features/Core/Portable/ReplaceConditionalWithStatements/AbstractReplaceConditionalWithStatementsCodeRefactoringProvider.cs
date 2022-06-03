@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,8 +35,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     where TVariableSyntax : SyntaxNode
     where TVariableDeclaratorSyntax : SyntaxNode
 {
-    protected abstract bool HasSingleVariable(TLocalDeclarationStatementSyntax localDeclarationStatement, out TVariableSyntax variable);
-    protected abstract TLocalDeclarationStatementSyntax GetUpdatedLocalDeclarationStatement(TLocalDeclarationStatementSyntax localDeclarationStatement);
+    protected abstract bool HasSingleVariable(TLocalDeclarationStatementSyntax localDeclarationStatement, [NotNullWhen(true)] out TVariableSyntax? variable);
+    protected abstract TLocalDeclarationStatementSyntax GetUpdatedLocalDeclarationStatement(SyntaxGenerator generator, TLocalDeclarationStatementSyntax localDeclarationStatement, ILocalSymbol symbol);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -164,7 +165,7 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
         var identifier = generator.IdentifierName(symbol.Name);
 
-        var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(localDeclarationStatement);
+        var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(generator, localDeclarationStatement, symbol);
         var ifStatement = generator.IfStatement(
             condition,
             new[] { generator.AssignmentStatement(identifier, TryCast(generator, whenTrue, conditionalType)) },
