@@ -190,14 +190,16 @@ using System;
             step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.Single()));
     }
 
-    [Fact]
-    public void FindAssemblyAttribute2()
+    [Theory]
+    [InlineData("")]
+    [InlineData("class WithoutAttributes { }")]
+    public void FindAssemblyAttribute2(string source2)
     {
         var source1 = @"
 using System;
 [assembly: CLSCompliant(true)]
 ";
-        var source2 = "";
+
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
 
@@ -215,14 +217,16 @@ using System;
             step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()));
     }
 
-    [Fact]
-    public void FindAssemblyAttribute3()
+    [Theory]
+    [InlineData("")]
+    [InlineData("class WithoutAttributes { }")]
+    public void FindAssemblyAttribute3(string source1)
     {
         var source2 = @"
 using System;
 [assembly: CLSCompliant(true)]
 ";
-        var source1 = "";
+
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
 
