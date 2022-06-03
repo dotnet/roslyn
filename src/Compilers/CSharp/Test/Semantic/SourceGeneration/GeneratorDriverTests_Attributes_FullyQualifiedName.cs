@@ -81,8 +81,12 @@ namespace N2
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
     }
 
-    [Fact]
-    public void DoNotFindAttributeOnTopLevelClass_WhenSearchingSimpleName1()
+    [Theory]
+    [InlineData("XAttribute")]
+    [InlineData("X")]
+    [InlineData("N1.xAttribute")]
+    [InlineData("N1.x")]
+    public void DoNotFindAttributeOnTopLevelClass_WhenSearchingSimpleName1(string name)
     {
         var source = @"
 [N1.X]
@@ -107,44 +111,7 @@ namespace N2
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
-    }
-
-    [Fact]
-    public void DoNotFindAttributeOnTopLevelClass_WhenSearchingSimpleName2()
-    {
-        var source = @"
-[N1.X]
-class C1 { }
-[N2.X]
-class C2 { }
-
-namespace N1
-{
-    class XAttribute : System.Attribute { }
-}
-
-namespace N2
-{
-    class XAttribute : System.Attribute { }
-}
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("X");
+            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>(name);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
