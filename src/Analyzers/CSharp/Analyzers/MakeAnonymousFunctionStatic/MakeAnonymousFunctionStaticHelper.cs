@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MakeAnonymousFunctionStatic
     internal static class MakeAnonymousFunctionStaticHelper
     {
         public static bool IsStaticAnonymousFunctionSupported(SyntaxTree tree)
-            => tree.Options is CSharpParseOptions csharpOption && csharpOption.LanguageVersion >= LanguageVersion.CSharp8;
+            => tree.Options.LanguageVersion() >= LanguageVersion.CSharp8;
 
         public static bool TryGetCaputuredSymbols(AnonymousFunctionExpressionSyntax anonymousFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
         {
