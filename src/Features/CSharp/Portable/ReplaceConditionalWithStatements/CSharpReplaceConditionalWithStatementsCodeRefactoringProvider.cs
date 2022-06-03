@@ -3,16 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReplaceConditionalWithStatements;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplaceConditionalWithStatements;
 
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ReplaceConditionalWithStatements), Shared]
 internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
     AbstractReplaceConditionalWithStatementsCodeRefactoringProvider<
         ExpressionSyntax,
@@ -22,8 +24,15 @@ internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
-        VariableDeclaratorSyntax>
+        VariableDeclaratorSyntax,
+        EqualsValueClauseSyntax>
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpReplaceConditionalWithStatementsCodeRefactoringProvider()
+    {
+    }
+
     protected override bool HasSingleVariable(
         LocalDeclarationStatementSyntax localDeclarationStatement,
         [NotNullWhen(true)] out VariableDeclaratorSyntax? variable)
@@ -43,19 +52,18 @@ internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
         LocalDeclarationStatementSyntax localDeclarationStatement,
         ILocalSymbol symbol)
     {
-        var type = 
-        if (localDeclarationStatement.Declaration.Type.IsVar)
+        // If we have `var x = a ? b : c;`
+        // then we have to replace `var` with the actual type of the local when breaking this into multiple statements.
+        var type = localDeclarationStatement.Declaration.Type;
+        if (type.IsVar)
         {
-            editor.ReplaceNode(
-                localDeclarationStatement.Declaration.Type,
-                symbol.Type.GenerateTypeSyntax(allowVar: false).WithTriviaFrom(localDeclarationStatement.Declaration.Type));
+            localDeclarationStatement = localDeclarationStatement.ReplaceNode(
+                type, symbol.Type.GenerateTypeSyntax(allowVar: false).WithTriviaFrom(type));
         }
 
         var variable = localDeclarationStatement.Declaration.Variables[0];
-        editor.ReplaceNode(
+        return localDeclarationStatement.ReplaceNode(
             variable,
-            variable.WithInitializer(null).WithIdentifier(variable.Identifier.WithoutTrailingTrivia()));
-
-        return (localDeclarationStatement)editor.GetChangedRoot();
+            variable.WithInitializer(null).WithIdentifier(variable.Identifier.WithTrailingTrivia()));
     }
 }

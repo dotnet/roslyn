@@ -24,7 +24,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableSyntax,
-    TVariableDeclaratorSyntax>
+    TVariableDeclaratorSyntax,
+    TEqualsValueClauseSyntax>
     : CodeRefactoringProvider
     where TExpressionSyntax : SyntaxNode
     where TConditionalExpressionSyntax : TExpressionSyntax
@@ -34,6 +35,7 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableSyntax : SyntaxNode
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TEqualsValueClauseSyntax : SyntaxNode
 {
     protected abstract bool HasSingleVariable(TLocalDeclarationStatementSyntax localDeclarationStatement, [NotNullWhen(true)] out TVariableSyntax? variable);
     protected abstract TLocalDeclarationStatementSyntax GetUpdatedLocalDeclarationStatement(SyntaxGenerator generator, TLocalDeclarationStatementSyntax localDeclarationStatement, ILocalSymbol symbol);
@@ -67,10 +69,11 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
             }
         }
 
-        if (topExpression.Parent is TVariableDeclaratorSyntax variableDeclarator &&
+        if (topExpression.Parent is TEqualsValueClauseSyntax equalsValue &&
+            equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator &&
             conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>() is { } localDeclarationStatement &&
             HasSingleVariable(localDeclarationStatement, out var variable) &&
-            syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(topExpression.Parent, localDeclarationStatement))
+            syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(variableDeclarator, localDeclarationStatement))
         {
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Replace_conditional_expression_with_statements,
