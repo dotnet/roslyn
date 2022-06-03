@@ -24,24 +24,37 @@ internal readonly struct GeneratorAttributeSyntaxContext
     /// The syntax node the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would
     /// the class declaration node.
     /// </summary>
-    public SyntaxNode AttributeTarget { get; }
+    public SyntaxNode TargetNode { get; }
 
     /// <summary>
-    /// Semantic model for the file that <see cref="AttributeTarget"/> is contained within.
+    /// The symbol that the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would be
+    /// the <see cref="INamedTypeSymbol"/> for <c>"C"</c>.
+    /// </summary>
+    public ISymbol TargetSymbol { get; }
+
+    /// <summary>
+    /// Semantic model for the file that <see cref="TargetNode"/> is contained within.
     /// </summary>
     public SemanticModel SemanticModel { get; }
 
     /// <summary>
-    /// <see cref="AttributeData"/>s for any matching attributes on <see cref="AttributeTarget"/>.  Always non-empty.
+    /// <see cref="AttributeData"/>s for any matching attributes on <see cref="TargetSymbol"/>.  Always non-empty.  All
+    /// these attributes will have an <see cref="AttributeData.AttributeClass"/> whose fully qualified name metadata
+    /// name matches the name requested in <see cref="IncrementalGeneratorInitializationContext.ForAttributeWithMetadataName{T}"/>.
+    /// <para>
+    /// To get the entire list of attributes, use <see cref="ISymbol.GetAttributes"/> on <see cref="TargetSymbol"/>.
+    /// </para>
     /// </summary>
     public ImmutableArray<AttributeData> Attributes { get; }
 
     internal GeneratorAttributeSyntaxContext(
-        SyntaxNode attribueTarget,
+        SyntaxNode targetNode,
+        ISymbol targetSymbol,
         SemanticModel semanticModel,
         ImmutableArray<AttributeData> attributes)
     {
-        AttributeTarget = attribueTarget;
+        TargetNode = targetNode;
+        TargetSymbol = targetSymbol;
         SemanticModel = semanticModel;
         Attributes = attributes;
     }
@@ -62,10 +75,10 @@ public partial struct IncrementalGeneratorInitializationContext
     /// cref="System.CLSCompliantAttribute"/>.
     /// </summary>
     /// <param name="predicate">A function that determines if the given <see cref="SyntaxNode"/> attribute target (<see
-    /// cref="GeneratorAttributeSyntaxContext.AttributeTarget"/>) should be transformed.  Nodes that do not pass this
+    /// cref="GeneratorAttributeSyntaxContext.TargetNode"/>) should be transformed.  Nodes that do not pass this
     /// predicate will not have their attributes looked at at all.</param>
     /// <param name="transform">A function that performs the transform. This will only be passed nodes that return <see
-    /// langword="true"/> for <paramref name="predicate"/> and which have a matchin <see cref="AttributeData"/> whose
+    /// langword="true"/> for <paramref name="predicate"/> and which have a matching <see cref="AttributeData"/> whose
     /// <see cref="AttributeData.AttributeClass"/> has the same fully qualified, metadata name as <paramref
     /// name="fullyQualifiedMetadataName"/>.</param>
     internal IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
@@ -107,20 +120,22 @@ public partial struct IncrementalGeneratorInitializationContext
                 var syntaxTree = grouping.SyntaxTree;
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                foreach (var attributeTarget in grouping.SyntaxNodes)
+                foreach (var targetNode in grouping.SyntaxNodes)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol =
-                        attributeTarget is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
-                        syntaxHelper.IsLambdaExpression(attributeTarget) ? semanticModel.GetSymbolInfo(attributeTarget, cancellationToken).Symbol :
-                        semanticModel.GetDeclaredSymbol(attributeTarget, cancellationToken);
+                    var targetSymbol =
+                        targetNode is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
+                        syntaxHelper.IsLambdaExpression(targetNode) ? semanticModel.GetSymbolInfo(targetNode, cancellationToken).Symbol :
+                        semanticModel.GetDeclaredSymbol(targetNode, cancellationToken);
+                    if (targetSymbol is null)
+                        continue;
 
-                    var attributes = getMatchingAttributes(attributeTarget, symbol, fullyQualifiedMetadataName);
+                    var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
                     if (attributes.Length > 0)
                     {
                         result.Add(transform(
-                            new GeneratorAttributeSyntaxContext(attributeTarget, semanticModel, attributes),
+                            new GeneratorAttributeSyntaxContext(targetNode, targetSymbol, semanticModel, attributes),
                             cancellationToken));
                     }
                 }
@@ -137,13 +152,13 @@ public partial struct IncrementalGeneratorInitializationContext
 
         static ImmutableArray<AttributeData> getMatchingAttributes(
             SyntaxNode attributeTarget,
-            ISymbol? symbol,
+            ISymbol symbol,
             string fullyQualifiedMetadataName)
         {
             var targetSyntaxTree = attributeTarget.SyntaxTree;
             var result = ArrayBuilder<AttributeData>.GetInstance();
 
-            addMatchingAttributes(symbol?.GetAttributes());
+            addMatchingAttributes(symbol.GetAttributes());
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
 
             return result.ToImmutableAndFree();
