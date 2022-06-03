@@ -1,29 +1,43 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
-    internal class ExtractInterfaceOptionsResult
+    internal sealed class ExtractInterfaceOptionsResult
     {
-        public static readonly ExtractInterfaceOptionsResult Cancelled = new ExtractInterfaceOptionsResult(isCancelled: true);
+        public enum ExtractLocation
+        {
+            SameFile,
+            NewFile
+        }
+
+        public static readonly ExtractInterfaceOptionsResult Cancelled = new(isCancelled: true);
 
         public bool IsCancelled { get; }
-        public IEnumerable<ISymbol> IncludedMembers { get; }
+        public ImmutableArray<ISymbol> IncludedMembers { get; }
         public string InterfaceName { get; }
         public string FileName { get; }
+        public ExtractLocation Location { get; }
+        public CleanCodeGenerationOptionsProvider FallbackOptions { get; }
 
-        public ExtractInterfaceOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName, string fileName)
+        public ExtractInterfaceOptionsResult(bool isCancelled, ImmutableArray<ISymbol> includedMembers, string interfaceName, string fileName, ExtractLocation location, CleanCodeGenerationOptionsProvider fallbackOptions)
         {
-            this.IsCancelled = isCancelled;
-            this.IncludedMembers = includedMembers;
-            this.InterfaceName = interfaceName;
-            this.FileName = fileName;
+            IsCancelled = isCancelled;
+            IncludedMembers = includedMembers;
+            InterfaceName = interfaceName;
+            Location = location;
+            FallbackOptions = fallbackOptions;
+            FileName = fileName;
         }
 
         private ExtractInterfaceOptionsResult(bool isCancelled)
-        {
-            IsCancelled = isCancelled;
-        }
+            => IsCancelled = isCancelled;
     }
 }

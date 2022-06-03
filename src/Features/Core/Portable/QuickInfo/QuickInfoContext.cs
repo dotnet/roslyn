@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
@@ -20,6 +23,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         public int Position { get; }
 
+        public SymbolDescriptionOptions Options { get; }
+
         /// <summary>
         /// The cancellation token to use for this operation.
         /// </summary>
@@ -31,11 +36,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public QuickInfoContext(
             Document document,
             int position,
+            SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
-            this.Document = document ?? throw new ArgumentNullException(nameof(document));
-            this.Position = position;
-            this.CancellationToken = cancellationToken;
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Position = position;
+            Options = options;
+            CancellationToken = cancellationToken;
         }
     }
 }

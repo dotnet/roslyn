@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
@@ -36,22 +39,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 _newfolders = newFolders;
             }
 
-            internal override bool PerformFinalApplicabilityCheck => true;
-
-            internal override bool IsApplicable(Workspace workspace)
-            {
-                // Due to some existing issue, move file action is not available for CPS projects.
-                return workspace.CanRenameFilesDuringCodeActions(workspace.CurrentSolution.GetDocument(_state.OriginalDocumentId).Project);
-            }
-
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var id = _state.OriginalDocumentId;
-                var solution = _state.Solution;
-                var document = solution.GetDocument(id);
+                var document = _state.Document;
+                var solution = _state.Document.Project.Solution;
                 var newDocumentId = DocumentId.CreateNewId(document.Project.Id, document.Name);
 
-                solution = solution.RemoveDocument(id);
+                solution = solution.RemoveDocument(document.Id);
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
@@ -66,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 Debug.Assert(state.RelativeDeclaredNamespace != null);
 
                 // Since all documents have identical folder structure, we can do the computation on any of them.
-                var document = state.Solution.GetDocument(state.OriginalDocumentId);
+                var document = state.Document;
                 // In case the relative namespace is "", the file should be moved to project root,
                 // set `parts` to empty to indicate that.
                 var parts = state.RelativeDeclaredNamespace.Length == 0
@@ -136,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private class FolderInfo
             {
-                private Dictionary<string, FolderInfo> _childFolders;
+                private readonly Dictionary<string, FolderInfo> _childFolders;
 
                 public string Name { get; }
 
@@ -182,6 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                             rootFolderInfo.AddFolder(folders);
                         }
                     }
+
                     return rootFolderInfo;
                 }
             }

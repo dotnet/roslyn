@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Log;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -19,8 +25,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_InsertionAndTabCompleting()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_InsertionAndTabCompleting(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
@@ -28,6 +34,8 @@ class C {
         $$
     }
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("if (true) {");
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { $$}", assertCaretPosition: true);
@@ -36,8 +44,8 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_Overtyping()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
@@ -45,6 +53,8 @@ class C {
         $$
     }
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("if (true) {");
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { $$}", assertCaretPosition: true);
@@ -53,8 +63,105 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
+        public void Braces_Overtyping_Method()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
+
+            VisualStudio.Editor.SendKeys("public void A()");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping_Property()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
+
+            VisualStudio.Editor.SendKeys("public int X");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping_CollectionInitializer()
+        {
+            SetUpEditor(@"
+using System.Collections.Generic;
+class C {
+    void Method() {
+        $$
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("var x = new List<string>()");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping_ObjectInitializer()
+        {
+            SetUpEditor(@"
+class C {
+    void Method() {
+        $$
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("var x = new object()");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
+        }
+
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
@@ -62,6 +169,8 @@ class C {
         $$
     }
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "if (true) {",
@@ -80,8 +189,8 @@ class C {
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_OnReturnOvertypingTheClosingBrace()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_OnReturnOvertypingTheClosingBrace(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
@@ -89,6 +198,8 @@ class C {
         $$
     }
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "if (true) {",
@@ -109,9 +220,11 @@ assertCaretPosition: true);
         }
 
         [WorkItem(653540, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Braces_OnReturnWithNonWhitespaceSpanInside()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_OnReturnWithNonWhitespaceSpanInside(bool showCompletionInArgumentLists)
         {
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys(
                 "class A { int i;",
                 VirtualKey.Enter);
@@ -121,13 +234,15 @@ $$}",
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Paren_InsertionAndTabCompleting()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Paren_InsertionAndTabCompleting(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     $$
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("void Goo(");
             VisualStudio.Editor.Verify.CurrentLineText("void Goo($$)", assertCaretPosition: true);
@@ -136,13 +251,15 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("void Goo(int x)$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Paren_Overtyping()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Paren_Overtyping(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     $$
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "void Goo(",
@@ -152,56 +269,65 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("void Goo()$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void SquareBracket_Insertion()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SquareBracket_Insertion(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     $$
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("int [");
-            VisualStudio.Editor.Verify.CurrentLineText("int [$$]", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("int[$$]", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void SquareBracket_Overtyping()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SquareBracket_Overtyping(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     $$
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("int [", ']');
-            VisualStudio.Editor.Verify.CurrentLineText("int []$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("    int[]$$ ", assertCaretPosition: true, trimWhitespace: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void DoubleQuote_InsertionAndTabCompletion()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoubleQuote_InsertionAndTabCompletion(bool showCompletionInArgumentLists)
+
         {
             SetUpEditor(@"
 class C {
     $$
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("string str = \"", VirtualKey.Tab);
             VisualStudio.Editor.Verify.CurrentLineText("string str = \"\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void DoubleQuote_InsertionAndOvertyping()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoubleQuote_InsertionAndOvertyping(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     $$
 }");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("string str = \"Hi Roslyn!", '"');
             VisualStudio.Editor.Verify.CurrentLineText("string str = \"Hi Roslyn!\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void DoubleQuote_FixedInterpolatedVerbatimString()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoubleQuote_FixedInterpolatedVerbatimString(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C
@@ -212,6 +338,8 @@ class C
     }
 }");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("var v = @$\"");
             VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"$$\"", assertCaretPosition: true);
 
@@ -221,25 +349,29 @@ class C
 
             // Undo puts them back
             VisualStudio.Editor.Undo();
-            VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"$$\"", assertCaretPosition: true);
+            // Incorrect assertion: https://github.com/dotnet/roslyn/issues/33672
+            VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"\"$$", assertCaretPosition: true);
 
             // First, the FixInterpolatedVerbatimString action is undone (@$ reordering)
             VisualStudio.Editor.Undo();
-            VisualStudio.Editor.Verify.CurrentLineText("var v = @$\"$$\"", assertCaretPosition: true);
+            // Incorrect assertion: https://github.com/dotnet/roslyn/issues/33672
+            VisualStudio.Editor.Verify.CurrentLineText("var v = @$\"\"$$", assertCaretPosition: true);
 
             // Then the automatic quote completion is undone
             VisualStudio.Editor.Undo();
             VisualStudio.Editor.Verify.CurrentLineText("var v = @$\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void AngleBracket_PossibleGenerics_InsertionAndCompletion()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AngleBracket_PossibleGenerics_InsertionAndCompletion(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     //field
     $$
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("System.Action<", VirtualKey.Tab);
             VisualStudio.Editor.Verify.CurrentLineText("System.Action<>$$", assertCaretPosition: true);
@@ -279,13 +411,15 @@ $$
             VisualStudio.Editor.Verify.CurrentLineText("class GenericClass<>$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void SingleQuote_InsertionAndCompletion()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SingleQuote_InsertionAndCompletion(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     $$
 }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("char c = '");
             VisualStudio.Editor.Verify.CurrentLineText("char c = '$$'", assertCaretPosition: true);
@@ -296,8 +430,8 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("char c = '\u6666'$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Nested_AllKinds()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Nested_AllKinds(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class Bar<U>
@@ -309,8 +443,17 @@ class Bar<U>
     }
 }");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys(
-                "var arr=new object[,]{{Goo(0",
+                "var arr=new object[,]{{Goo(0");
+
+            if (showCompletionInArgumentLists)
+            {
+                Assert.False(VisualStudio.Editor.IsCompletionActive());
+            }
+
+            VisualStudio.Editor.SendKeys(
                 VirtualKey.Tab,
                 VirtualKey.Tab,
                 ",{Goo(Goo(\"hello",
@@ -324,20 +467,22 @@ class Bar<U>
             VisualStudio.Editor.Verify.CurrentLineText("var arr = new object[,] { { Goo(0) }, { Goo(Goo(\"hello\")) } };$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInSingleLineComments()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInSingleLineComments(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     // $$
 }");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("{([\"'");
             VisualStudio.Editor.Verify.CurrentLineText("// {([\"'$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInMultiLineComments()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInMultiLineComments(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
@@ -346,38 +491,44 @@ class C {
     */
 }");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("{([\"'");
             VisualStudio.Editor.Verify.CurrentLineText("{([\"'$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionStringVerbatimStringOrCharLiterals()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionStringVerbatimStringOrCharLiterals(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
     $$
 }");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("string s = \"{([<'");
-            VisualStudio.Editor.Verify.CurrentLineText("string s = \"{([<'\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("string s = \"{([<'$$\"", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
             VisualStudio.Editor.SendKeys("string y = @\"{([<'");
-            VisualStudio.Editor.Verify.CurrentLineText("string y = @\"{([<'\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("string y = @\"{([<'$$\"", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
             VisualStudio.Editor.SendKeys("char ch = '{([<\"");
-            VisualStudio.Editor.Verify.CurrentLineText("char ch = '{([<\"'$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("char ch = '{([<\"$$'", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInXmlDocComments()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInXmlDocComments(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 $$
 class C { }");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys(
                 "///",
@@ -386,8 +537,8 @@ class C { }");
             VisualStudio.Editor.Verify.CurrentLineText("/// {([<\"'$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionInDisabledPreprocesser()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInDisabledPreprocesser(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C {
@@ -396,12 +547,14 @@ $$
 #endif
 }");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("void Goo(");
             VisualStudio.Editor.Verify.CurrentLineText("void Goo($$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionAfterRegionPreprocesser()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterRegionPreprocesser(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 #region $$
@@ -409,12 +562,14 @@ $$
 #endregion
 ");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#region {([<\"'$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionAfterEndregionPreprocesser()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterEndregionPreprocesser(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 #region
@@ -422,35 +577,41 @@ $$
 #endregion $$
 ");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#endregion {([<\"'$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionAfterIfPreprocesser()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterIfPreprocesser(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 #if $$
 ");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#if {([<\"'$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Negative_NoCompletionAfterPragmaPreprocesser()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterPragmaPreprocesser(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 #pragma $$
 ");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("{([<\"'");
             VisualStudio.Editor.Verify.CurrentLineText("#pragma {([<\"'$$", assertCaretPosition: true);
         }
 
         [WorkItem(651954, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void InteractionWithOverrideStubGeneration()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void InteractionWithOverrideStubGeneration(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class A
@@ -464,7 +625,12 @@ class B : A
 }
 ");
 
-            VisualStudio.Editor.SendKeys("override Goo(");
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
+            VisualStudio.Editor.SendKeys("override ");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            VisualStudio.Editor.SendKeys("Goo(");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class B : A
@@ -478,8 +644,9 @@ class B : A
         }
 
         [WorkItem(531107, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void InteractionWithCompletionList()
+        [WpfTheory, CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void InteractionWithCompletionList(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 using System.Collections.Generic;
@@ -492,13 +659,26 @@ class C
 }
 ");
 
-            VisualStudio.Editor.SendKeys("new Li(", VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>($$)", assertCaretPosition: true);
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
+            VisualStudio.Editor.SendKeys("new Li");
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+
+            if (showCompletionInArgumentLists)
+            {
+                VisualStudio.Editor.SendKeys("(", ")");
+            }
+            else
+            {
+                VisualStudio.Editor.SendKeys("(", VirtualKey.Tab);
+            }
+
+            VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>()$$", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void AutoBraceCompleteDoesNotFormatBracePairInInitializers()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AutoBraceCompleteDoesNotFormatBracePairInInitializers(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C 
@@ -509,14 +689,16 @@ class C
     }
 }
 ");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("new int[]{");
             VisualStudio.Editor.Verify.CurrentLineText("var x = new int[] {$$}", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void AutoBraceCompleteDoesNotFormatBracePairInObjectCreationExpression()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AutoBraceCompleteDoesNotFormatBracePairInObjectCreationExpression(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class C 
@@ -528,17 +710,21 @@ class C
 }
 ");
 
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
             VisualStudio.Editor.SendKeys("new {");
             VisualStudio.Editor.Verify.CurrentLineText("var x = new {$$}", assertCaretPosition: true);
         }
 
         [WorkItem(823958, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void AutoBraceCompleteFormatsBracePairInClassDeclarationAndAutoProperty()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AutoBraceCompleteFormatsBracePairInClassDeclarationAndAutoProperty(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
 class $$
 ");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("C{");
             VisualStudio.Editor.Verify.CurrentLineText("class C { $$}", assertCaretPosition: true);
@@ -552,6 +738,73 @@ class C
     int Prop { $$}
 }",
 assertCaretPosition: true);
+        }
+
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")]
+        public void CompleteStatementTriggersCompletion(bool showCompletionInArgumentLists)
+        {
+            SetUpEditor(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main$$
+    }
+}");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
+            VisualStudio.Editor.SendKeys("(ar");
+            VisualStudio.Editor.Verify.CurrentLineText("Main(ar$$)", assertCaretPosition: true);
+
+            if (showCompletionInArgumentLists)
+            {
+                Assert.True(VisualStudio.Editor.IsCompletionActive());
+            }
+
+            VisualStudio.Editor.SendKeys(";");
+            VisualStudio.Editor.Verify.CurrentLineText("Main(args);$$", assertCaretPosition: true);
+        }
+
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_InsertionOnNewLine(bool showCompletionInArgumentLists)
+        {
+            SetUpEditor(@"
+class C {
+    void Goo() {
+        $$
+    }
+}");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
+            VisualStudio.Editor.SendKeys("if (true)",
+                VirtualKey.Enter,
+                "{");
+            VisualStudio.Editor.Verify.CurrentLineText("{ $$}", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
+class C {
+    void Goo() {
+        if (true)
+        {
+
+        }
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("}");
+            VisualStudio.Editor.Verify.TextContains(@"
+class C {
+    void Goo() {
+        if (true)
+        {
+        }$$
+    }
+}", assertCaretPosition: true);
         }
     }
 }

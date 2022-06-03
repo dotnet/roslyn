@@ -1,25 +1,45 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports System.Composition
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(NamedParameterCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(EnumCompletionProvider))>
+    <[Shared]>
     Partial Friend Class NamedParameterCompletionProvider
-        Inherits CommonCompletionProvider
+        Inherits LSPCompletionProvider
 
         Friend Const s_colonEquals As String = ":="
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
+
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Try
@@ -53,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     End If
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(False)
                 Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
                 If parameterLists Is Nothing Then
                     Return
@@ -76,27 +96,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         contextPosition:=position,
                         rules:=s_itemRules))
                 Next
-            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
                 ' nop
             End Try
         End Function
 
         ' Typing : or = should not filter the list, but they should commit the list.
-        Private Shared s_itemRules As CompletionItemRules = CompletionItemRules.Default.
+        Private Shared ReadOnly s_itemRules As CompletionItemRules = CompletionItemRules.Default.
             WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c, "="c)).
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, ":"c, "="c))
 
-        Protected Overrides Function GetDescriptionWorkerAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
-            Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
+        Friend Overrides Function GetDescriptionWorkerAsync(document As Document, item As CompletionItem, options As CompletionOptions, displayOptions As SymbolDescriptionOptions, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+            Return SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken)
         End Function
 
-        Private Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean
+        Private Shared Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean
             ' A parameter list is valid if it has parameters that match in name all the existing ;
             ' named parameters that have been provided.
             Return existingNamedParameters.Except(parameterList.Select(Function(p) p.Name)).IsEmpty()
         End Function
 
-        Private Function GetExistingNamedParameters(argumentList As ArgumentListSyntax, position As Integer) As ISet(Of String)
+        Private Shared Function GetExistingNamedParameters(argumentList As ArgumentListSyntax, position As Integer) As ISet(Of String)
             Dim existingArguments =
                 argumentList.Arguments.OfType(Of SimpleArgumentSyntax).
                                        Where(Function(n) n.IsNamed AndAlso Not n.NameColonEquals.ColonEqualsToken.IsMissing AndAlso n.NameColonEquals.Span.End <= position).
@@ -106,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return existingArguments.ToSet()
         End Function
 
-        Private Function GetParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetParameterLists(semanticModel As SemanticModel,
                                            position As Integer,
                                            invocableNode As SyntaxNode,
                                            cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -116,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Function(objectCreationExpression As ObjectCreationExpressionSyntax) GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken))
         End Function
 
-        Private Function GetObjectCreationExpressionParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetObjectCreationExpressionParameterLists(semanticModel As SemanticModel,
                                                                    position As Integer,
                                                                    objectCreationExpression As ObjectCreationExpressionSyntax,
                                                                    cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -131,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Private Function GetAttributeParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetAttributeParameterLists(semanticModel As SemanticModel,
                                                     position As Integer,
                                                     attribute As AttributeSyntax,
                                                     cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -143,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 ImmutableArray.CreateRange(namedParameters))
         End Function
 
-        Private Function GetInvocationExpressionParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetInvocationExpressionParameterLists(semanticModel As SemanticModel,
                                                                position As Integer,
                                                                invocationExpression As InvocationExpressionSyntax,
                                                                cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))
@@ -165,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Dim delegateType = DirectCast(expressionType, INamedTypeSymbol)
                     Return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod.Parameters.As(Of ISymbol)())
                 ElseIf indexers.Count > 0 Then
-                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughTypeOpt:=expressionType)).
+                    Return indexers.Where(Function(i) i.IsAccessibleWithin(within, throughType:=expressionType)).
                                     Select(Function(i) i.Parameters.As(Of ISymbol)())
                 End If
             End If
@@ -173,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Private Sub GetInvocableNode(token As SyntaxToken, ByRef invocableNode As SyntaxNode, ByRef argumentList As ArgumentListSyntax)
+        Private Shared Sub GetInvocableNode(token As SyntaxToken, ByRef invocableNode As SyntaxNode, ByRef argumentList As ArgumentListSyntax)
             Dim current = token.Parent
 
             While current IsNot Nothing
@@ -217,6 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Else
                 change = New TextChange(symbolItem.Span, insertionText)
             End If
+
             Return Task.FromResult(Of TextChange?)(change)
         End Function
     End Class

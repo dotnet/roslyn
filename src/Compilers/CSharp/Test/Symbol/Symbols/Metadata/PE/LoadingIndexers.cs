@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -710,22 +714,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var parameterTypesIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterTypes");
                 Assert.True(parameterTypesIndexer.IsIndexer);
                 Assert.True(parameterTypesIndexer.MustCallMethodsDirectly);
-                Assert.NotEqual(parameterTypesIndexer.Parameters.Last().Type.TypeSymbol, parameterTypesIndexer.GetMethod.Parameters.Last().Type.TypeSymbol);
+                Assert.NotEqual(parameterTypesIndexer.Parameters.Last().Type, parameterTypesIndexer.GetMethod.Parameters.Last().Type);
 
                 var returnTypeIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnType");
                 Assert.True(returnTypeIndexer.IsIndexer);
                 Assert.True(returnTypeIndexer.MustCallMethodsDirectly);
-                Assert.NotEqual(returnTypeIndexer.Type.TypeSymbol, returnTypeIndexer.GetMethod.ReturnType.TypeSymbol);
+                Assert.NotEqual(returnTypeIndexer.Type, returnTypeIndexer.GetMethod.ReturnType);
 
                 var parameterModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterModopt");
                 Assert.True(parameterModoptIndexer.IsIndexer);
                 Assert.False(parameterModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in parameter type)
-                Assert.NotEqual(parameterModoptIndexer.Parameters.Last().Type.CustomModifiers.Length, parameterModoptIndexer.GetMethod.Parameters.Last().Type.CustomModifiers.Length);
+                Assert.NotEqual(parameterModoptIndexer.Parameters.Last().TypeWithAnnotations.CustomModifiers.Length, parameterModoptIndexer.GetMethod.Parameters.Last().TypeWithAnnotations.CustomModifiers.Length);
 
                 var returnTypeModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnTypeModopt");
                 Assert.True(returnTypeModoptIndexer.IsIndexer);
                 Assert.False(returnTypeModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in return type)
-                Assert.NotEqual(returnTypeModoptIndexer.Type.CustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnType.CustomModifiers.Length);
+                Assert.NotEqual(returnTypeModoptIndexer.TypeWithAnnotations.CustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnTypeWithAnnotations.CustomModifiers.Length);
             });
         }
 
@@ -1062,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 Assert.Equal(propertyIsIndexer ? MethodKind.PropertyGet : MethodKind.Ordinary, accessor.MethodKind);
 
-                Assert.Equal(property.Type.TypeSymbol, accessor.ReturnType.TypeSymbol);
+                Assert.Equal(property.Type, accessor.ReturnType);
                 Assert.Equal(property.ParameterCount, accessor.ParameterCount);
             }
             else
@@ -1070,14 +1074,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.Equal(propertyIsIndexer ? MethodKind.PropertySet : MethodKind.Ordinary, accessor.MethodKind);
 
                 Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
-                Assert.Equal(property.Type.TypeSymbol, accessor.Parameters.Last().Type.TypeSymbol);
+                Assert.Equal(property.Type, accessor.Parameters.Last().Type);
                 Assert.Equal(property.ParameterCount + 1, accessor.ParameterCount);
             }
 
             // NOTE: won't check last param of setter - that was handled above.
             for (int i = 0; i < property.ParameterCount; i++)
             {
-                Assert.Equal(property.Parameters[i].Type.TypeSymbol, accessor.Parameters[i].Type.TypeSymbol);
+                Assert.Equal(property.Parameters[i].Type, accessor.Parameters[i].Type);
             }
 
             Assert.Equal(property.IsAbstract, accessor.IsAbstract);

@@ -1,10 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Friend Partial Class CharacterLiteralTokenSyntax
+    Partial Friend Class CharacterLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Friend Partial Class DateLiteralTokenSyntax
+    Partial Friend Class DateLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -20,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Friend Partial Class DecimalLiteralTokenSyntax
+    Partial Friend Class DecimalLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Friend Partial Class StringLiteralTokenSyntax
+    Partial Friend Class StringLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -164,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an floating literal token.
+    ''' Represents a floating literal token.
     ''' </summary>
     Friend NotInheritable Class FloatingLiteralTokenSyntax(Of T)
         Inherits FloatingLiteralTokenSyntax
@@ -234,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an floating literal token.
+    ''' Represents a floating literal token.
     ''' </summary>
     Friend MustInherit Class FloatingLiteralTokenSyntax
         Inherits SyntaxToken

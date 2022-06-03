@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -896,7 +898,6 @@ class Test
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncInFinally003()
         {
@@ -972,14 +973,18 @@ class Test
           <slot kind=""28"" offset=""156"" />
           <slot kind=""28"" offset=""156"" ordinal=""1"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""65"" />
+          <state number=""1"" offset=""156"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
 </symbols>
 ");
 
-            v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
+            v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"{
   // Code size      461 (0x1cd)
   .maxstack  3
   .locals init (int V_0,
@@ -1788,7 +1793,6 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
         }
-
 
         [Fact]
         public void AsyncInCatchFilter()

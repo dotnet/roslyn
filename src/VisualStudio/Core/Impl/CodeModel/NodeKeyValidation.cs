@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -8,17 +12,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal sealed class NodeKeyValidation
     {
-        private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap;
+        private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap =
+            new Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>>();
 
         public NodeKeyValidation()
         {
-            _nodeKeysMap = new Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>>();
         }
 
-        public void AddProject(Project project)
+        public NodeKeyValidation(ProjectCodeModelFactory projectCodeModelFactory)
         {
-            /*
-            if (project.ProjectCodeModel is ProjectCodeModel projectCodeModel)
+            foreach (var projectCodeModel in projectCodeModelFactory.GetAllProjectCodeModels())
             {
                 var fcms = projectCodeModel.GetCachedFileCodeModelInstances();
 
@@ -29,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     _nodeKeysMap.Add(fcm, globalNodeKeys);
                 }
             }
-            */
         }
 
         public void AddFileCodeModel(FileCodeModel fileCodeModel)

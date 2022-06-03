@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -15,7 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Protected Sub New(manager As AnonymousTypeManager, typeDescr As AnonymousTypeDescriptor)
                 typeDescr.AssertGood()
-                Debug.Assert(TypeKind = TypeKind.Class OrElse TypeKind = TypeKind.Delegate)
+                Debug.Assert((TypeKind = TypeKind.Class AndAlso TypeOf Me Is AnonymousTypePublicSymbol) OrElse
+                             (TypeKind = TypeKind.Delegate AndAlso TypeOf Me Is AnonymousDelegatePublicSymbol))
 
                 Me.Manager = manager
                 Me.TypeDescriptor = typeDescr
@@ -113,11 +116,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+            Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                 Return MakeAcyclicBaseType(diagnostics)
             End Function
 
-            Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                 Return MakeAcyclicInterfaces(diagnostics)
             End Function
 
@@ -308,6 +311,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
                 Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+            End Function
+
+            Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+                Return Equals(TryCast(other, AnonymousTypeOrDelegatePublicSymbol), comparison)
+            End Function
+
+            Public Overloads Function Equals(other As AnonymousTypeOrDelegatePublicSymbol, comparison As TypeCompareKind) As Boolean
+                If Me Is other Then
+                    Return True
+                End If
+
+                Return other IsNot Nothing AndAlso Me.TypeKind = other.TypeKind AndAlso Me.TypeDescriptor.Equals(other.TypeDescriptor, comparison)
+            End Function
+
+            Public NotOverridable Overrides Function GetHashCode() As Integer
+                Return Hash.Combine(Me.TypeDescriptor.GetHashCode(), TypeKind)
             End Function
         End Class
 

@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
     internal struct SyntaxListBuilder<TNode> where TNode : SyntaxNode
     {
-        private readonly SyntaxListBuilder _builder;
+        private readonly SyntaxListBuilder? _builder;
 
         public SyntaxListBuilder(int size)
             : this(new SyntaxListBuilder(size))
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return new SyntaxListBuilder<TNode>(8);
         }
 
-        internal SyntaxListBuilder(SyntaxListBuilder builder)
+        internal SyntaxListBuilder(SyntaxListBuilder? builder)
         {
             _builder = builder;
         }
@@ -33,39 +35,39 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             get
             {
-                return _builder.Count;
+                return _builder!.Count;
             }
         }
 
         public void Clear()
         {
-            _builder.Clear();
+            _builder!.Clear();
         }
 
         public SyntaxListBuilder<TNode> Add(TNode node)
         {
-            _builder.Add(node);
+            _builder!.Add(node);
             return this;
         }
 
         public void AddRange(TNode[] items, int offset, int length)
         {
-            _builder.AddRange(items, offset, length);
+            _builder!.AddRange(items, offset, length);
         }
 
         public void AddRange(SyntaxList<TNode> nodes)
         {
-            _builder.AddRange(nodes);
+            _builder!.AddRange(nodes);
         }
 
         public void AddRange(SyntaxList<TNode> nodes, int offset, int length)
         {
-            _builder.AddRange(nodes, offset, length);
+            _builder!.AddRange(nodes, offset, length);
         }
 
         public bool Any(int kind)
         {
-            return _builder.Any(kind);
+            return _builder!.Any(kind);
         }
 
         public SyntaxList<TNode> ToList()
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             return _builder.ToList();
         }
 
-        public static implicit operator SyntaxListBuilder(SyntaxListBuilder<TNode> builder)
+        public static implicit operator SyntaxListBuilder?(SyntaxListBuilder<TNode> builder)
         {
             return builder._builder;
         }
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                 return builder.ToList();
             }
 
-            return default(SyntaxList<TNode>);
+            return default;
         }
     }
 }

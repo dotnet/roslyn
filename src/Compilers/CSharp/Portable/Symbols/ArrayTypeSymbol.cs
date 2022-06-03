@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -13,37 +16,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// An ArrayTypeSymbol represents an array type, such as int[] or object[,].
     /// </summary>
-    internal abstract partial class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
+    internal abstract partial class ArrayTypeSymbol : TypeSymbol
     {
-        private readonly TypeSymbolWithAnnotations _elementType;
+        private readonly TypeWithAnnotations _elementTypeWithAnnotations;
         private readonly NamedTypeSymbol _baseType;
 
         private ArrayTypeSymbol(
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementTypeWithAnnotations,
             NamedTypeSymbol array)
         {
-            Debug.Assert(!elementType.IsNull);
-            Debug.Assert((object)array != null);
+            Debug.Assert(elementTypeWithAnnotations.HasType);
+            RoslynDebug.Assert((object)array != null);
 
-            _elementType = elementType;
+            _elementTypeWithAnnotations = elementTypeWithAnnotations;
             _baseType = array;
         }
 
         internal static ArrayTypeSymbol CreateCSharpArray(
             AssemblySymbol declaringAssembly,
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementTypeWithAnnotations,
             int rank = 1)
         {
             if (rank == 1)
             {
-                return CreateSZArray(declaringAssembly, elementType);
+                return CreateSZArray(declaringAssembly, elementTypeWithAnnotations);
             }
 
-            return CreateMDArray(declaringAssembly, elementType, rank, default(ImmutableArray<int>), default(ImmutableArray<int>));
+            return CreateMDArray(declaringAssembly, elementTypeWithAnnotations, rank, default(ImmutableArray<int>), default(ImmutableArray<int>));
         }
 
         internal static ArrayTypeSymbol CreateMDArray(
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementTypeWithAnnotations,
             int rank,
             ImmutableArray<int> sizes,
             ImmutableArray<int> lowerBounds,
@@ -52,15 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Optimize for most common case - no sizes and all dimensions are zero lower bound.
             if (sizes.IsDefaultOrEmpty && lowerBounds.IsDefault)
             {
-                return new MDArrayNoSizesOrBounds(elementType, rank, array);
+                return new MDArrayNoSizesOrBounds(elementTypeWithAnnotations, rank, array);
             }
 
-            return new MDArrayWithSizesAndBounds(elementType, rank, sizes, lowerBounds, array);
+            return new MDArrayWithSizesAndBounds(elementTypeWithAnnotations, rank, sizes, lowerBounds, array);
         }
 
         internal static ArrayTypeSymbol CreateMDArray(
             AssemblySymbol declaringAssembly,
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementType,
             int rank,
             ImmutableArray<int> sizes,
             ImmutableArray<int> lowerBounds)
@@ -69,36 +72,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static ArrayTypeSymbol CreateSZArray(
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementTypeWithAnnotations,
             NamedTypeSymbol array)
         {
-            return new SZArray(elementType, array, GetSZArrayInterfaces(elementType, array.ContainingAssembly));
+            return new SZArray(elementTypeWithAnnotations, array, GetSZArrayInterfaces(elementTypeWithAnnotations, array.ContainingAssembly));
         }
 
         internal static ArrayTypeSymbol CreateSZArray(
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementTypeWithAnnotations,
             NamedTypeSymbol array,
             ImmutableArray<NamedTypeSymbol> constructedInterfaces)
         {
-            return new SZArray(elementType, array, constructedInterfaces);
+            return new SZArray(elementTypeWithAnnotations, array, constructedInterfaces);
         }
 
         internal static ArrayTypeSymbol CreateSZArray(
             AssemblySymbol declaringAssembly,
-            TypeSymbolWithAnnotations elementType)
+            TypeWithAnnotations elementType)
         {
             return CreateSZArray(elementType, declaringAssembly.GetSpecialType(SpecialType.System_Array), GetSZArrayInterfaces(elementType, declaringAssembly));
         }
 
-        internal ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations elementType)
+        internal ArrayTypeSymbol WithElementType(TypeWithAnnotations elementTypeWithAnnotations)
         {
-            return ElementType.IsSameAs(elementType) ? this : WithElementTypeCore(elementType);
+            return ElementTypeWithAnnotations.IsSameAs(elementTypeWithAnnotations) ? this : WithElementTypeCore(elementTypeWithAnnotations);
         }
 
-        protected abstract ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations elementType);
+        protected abstract ArrayTypeSymbol WithElementTypeCore(TypeWithAnnotations elementTypeWithAnnotations);
 
         private static ImmutableArray<NamedTypeSymbol> GetSZArrayInterfaces(
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementTypeWithAnnotations,
             AssemblySymbol declaringAssembly)
         {
             var constructedInterfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
@@ -108,14 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var iListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
             if (!iListOfT.IsErrorType())
             {
-                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iListOfT, ImmutableArray.Create(elementType)));
+                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iListOfT, ImmutableArray.Create(elementTypeWithAnnotations)));
             }
 
             var iReadOnlyListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T);
 
             if (!iReadOnlyListOfT.IsErrorType())
             {
-                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iReadOnlyListOfT, ImmutableArray.Create(elementType)));
+                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iReadOnlyListOfT, ImmutableArray.Create(elementTypeWithAnnotations)));
             }
 
             return constructedInterfaces.ToImmutableAndFree();
@@ -192,13 +195,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasDefaultSizesAndLowerBounds { get; }
 
         /// <summary>
-        /// Gets the type of the elements stored in the array.
+        /// Gets the type of the elements stored in the array along with its annotations.
         /// </summary>
-        public TypeSymbolWithAnnotations ElementType
+        public TypeWithAnnotations ElementTypeWithAnnotations
         {
             get
             {
-                return _elementType;
+                return _elementTypeWithAnnotations;
+            }
+        }
+
+        /// <summary>
+        /// Gets the type of the elements stored in the array.
+        /// </summary>
+        public TypeSymbol ElementType
+        {
+            get
+            {
+                return _elementTypeWithAnnotations.Type;
             }
         }
 
@@ -220,15 +234,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return true;
-            }
-        }
+        internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -236,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get
             {
@@ -244,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -290,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -329,25 +337,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison)
         {
             return this.Equals(t2 as ArrayTypeSymbol, comparison);
         }
 
-        internal bool Equals(ArrayTypeSymbol other)
-        {
-            return Equals(other, TypeCompareKind.ConsiderEverything);
-        }
-
-        private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison)
+        private bool Equals(ArrayTypeSymbol? other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other.HasSameShapeAs(this) ||
-                !other.ElementType.Equals(ElementType, comparison))
+            if ((object?)other == null || !other.HasSameShapeAs(this) ||
+                !other.ElementTypeWithAnnotations.Equals(ElementTypeWithAnnotations, comparison))
             {
                 return false;
             }
@@ -373,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var cur = (ArrayTypeSymbol)current;
                 hash = Hash.Combine(cur.Rank, hash);
-                current = cur.ElementType.TypeSymbol;
+                current = cur.ElementType;
             }
 
             return Hash.Combine(current, hash);
@@ -381,13 +384,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            ElementType.AddNullableTransforms(transforms);
+            ElementTypeWithAnnotations.AddNullableTransforms(transforms);
         }
 
         internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
-            TypeSymbolWithAnnotations oldElementType = ElementType;
-            TypeSymbolWithAnnotations newElementType;
+            TypeWithAnnotations oldElementType = ElementTypeWithAnnotations;
+            TypeWithAnnotations newElementType;
 
             if (!oldElementType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newElementType))
             {
@@ -399,15 +402,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
-            return WithElementType(ElementType.SetUnknownNullabilityForReferenceTypes());
+            return WithElementType(transform(ElementTypeWithAnnotations));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeSymbolWithAnnotations elementType = ElementType.MergeNullability(((ArrayTypeSymbol)other).ElementType, VarianceKind.None, out hadNullabilityMismatch);
+            TypeWithAnnotations elementType = ElementTypeWithAnnotations.MergeEquivalentTypes(((ArrayTypeSymbol)other).ElementTypeWithAnnotations, variance);
             return WithElementType(elementType);
         }
 
@@ -445,61 +448,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo result = null;
+            UseSiteInfo<AssemblySymbol> result = default;
 
             // check element type
             // check custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementType))
-            {
-                return result;
-            }
+            DeriveUseSiteInfoFromType(ref result, this.ElementTypeWithAnnotations, AllowedRequiredModifierType.None);
 
             return result;
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            return _elementType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+            return _elementTypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
                    ((object)_baseType != null && _baseType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes)) ||
                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.InterfacesNoUseSiteDiagnostics(), owner, ref checkedTypes);
         }
 
         #endregion
 
-        #region IArrayTypeSymbol Members
-
-        ITypeSymbol IArrayTypeSymbol.ElementType
+        protected sealed override ISymbol CreateISymbol()
         {
-            get { return this.ElementType.TypeSymbol; }
+            return new PublicModel.ArrayTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get { return this.ElementType.CustomModifiers; }
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.ArrayTypeSymbol(this, nullableAnnotation);
         }
 
-        bool IArrayTypeSymbol.Equals(IArrayTypeSymbol symbol)
+        internal override bool IsRecord => false;
+
+        internal override bool IsRecordStruct => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
-            return this.Equals(symbol as ArrayTypeSymbol);
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitArrayType(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitArrayType(this);
-        }
-
-        #endregion
 
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 
@@ -509,18 +496,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
 
             internal SZArray(
-                TypeSymbolWithAnnotations elementType,
+                TypeWithAnnotations elementTypeWithAnnotations,
                 NamedTypeSymbol array,
                 ImmutableArray<NamedTypeSymbol> constructedInterfaces)
-                : base(elementType, array)
+                : base(elementTypeWithAnnotations, array)
             {
                 Debug.Assert(constructedInterfaces.Length <= 2);
                 _interfaces = constructedInterfaces;
             }
 
-            protected override ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations newElementType)
+            protected override ArrayTypeSymbol WithElementTypeCore(TypeWithAnnotations newElementType)
             {
-                var newInterfaces = _interfaces.SelectAsArray((i, t) => i.OriginalDefinition.Construct(t), newElementType.TypeSymbol);
+                var newInterfaces = _interfaces.SelectAsArray((i, t) => i.OriginalDefinition.Construct(t), newElementType.Type);
                 return new SZArray(newElementType, BaseTypeNoUseSiteDiagnostics, newInterfaces);
             }
 
@@ -545,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null)
             {
                 return _interfaces;
             }
@@ -567,10 +554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly int _rank;
 
             internal MDArray(
-                TypeSymbolWithAnnotations elementType,
+                TypeWithAnnotations elementTypeWithAnnotations,
                 int rank,
                 NamedTypeSymbol array)
-                : base(elementType, array)
+                : base(elementTypeWithAnnotations, array)
             {
                 Debug.Assert(rank >= 1);
                 _rank = rank;
@@ -592,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+            internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
@@ -601,16 +588,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class MDArrayNoSizesOrBounds : MDArray
         {
             internal MDArrayNoSizesOrBounds(
-                TypeSymbolWithAnnotations elementType,
+                TypeWithAnnotations elementTypeWithAnnotations,
                 int rank,
                 NamedTypeSymbol array)
-                : base(elementType, rank, array)
+                : base(elementTypeWithAnnotations, rank, array)
             {
             }
 
-            protected override ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations elementType)
+            protected override ArrayTypeSymbol WithElementTypeCore(TypeWithAnnotations elementTypeWithAnnotations)
             {
-                return new MDArrayNoSizesOrBounds(elementType, Rank, BaseTypeNoUseSiteDiagnostics);
+                return new MDArrayNoSizesOrBounds(elementTypeWithAnnotations, Rank, BaseTypeNoUseSiteDiagnostics);
             }
 
             internal override bool HasDefaultSizesAndLowerBounds
@@ -628,12 +615,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<int> _lowerBounds;
 
             internal MDArrayWithSizesAndBounds(
-                TypeSymbolWithAnnotations elementType,
+                TypeWithAnnotations elementTypeWithAnnotations,
                 int rank,
                 ImmutableArray<int> sizes,
                 ImmutableArray<int> lowerBounds,
                 NamedTypeSymbol array)
-                : base(elementType, rank, array)
+                : base(elementTypeWithAnnotations, rank, array)
             {
                 Debug.Assert(!sizes.IsDefaultOrEmpty || !lowerBounds.IsDefault);
                 Debug.Assert(lowerBounds.IsDefaultOrEmpty || (!lowerBounds.IsEmpty && (lowerBounds.Length != rank || !lowerBounds.All(b => b == 0))));
@@ -641,9 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lowerBounds = lowerBounds;
             }
 
-            protected override ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations elementType)
+            protected override ArrayTypeSymbol WithElementTypeCore(TypeWithAnnotations elementTypeWithAnnotations)
             {
-                return new MDArrayWithSizesAndBounds(elementType, Rank, _sizes, _lowerBounds, BaseTypeNoUseSiteDiagnostics);
+                return new MDArrayWithSizesAndBounds(elementTypeWithAnnotations, Rank, _sizes, _lowerBounds, BaseTypeNoUseSiteDiagnostics);
             }
 
             public override ImmutableArray<int> Sizes

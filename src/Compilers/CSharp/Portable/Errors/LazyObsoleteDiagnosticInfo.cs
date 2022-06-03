@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 using System.Threading;
@@ -17,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LazyObsoleteDiagnosticInfo(object symbol, Symbol containingSymbol, BinderFlags binderFlags)
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
-            Debug.Assert(symbol is Symbol || symbol is TypeSymbolWithAnnotations);
+            Debug.Assert(symbol is Symbol || symbol is TypeWithAnnotations);
             _symbolOrSymbolWithAnnotations = symbol;
             _containingSymbol = containingSymbol;
             _binderFlags = binderFlags;
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming
                 // from a different compilation's source. In that case, force completion of attributes.
-                var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((TypeSymbolWithAnnotations)_symbolOrSymbolWithAnnotations).TypeSymbol;
+                var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((TypeWithAnnotations)_symbolOrSymbolWithAnnotations).Type;
                 symbol.ForceCompleteObsoleteAttribute();
 
                 var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, _containingSymbol, forceComplete: true);

@@ -1,30 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal abstract class AbstractTodoCommentService : ITodoCommentService
     {
-        // we hold onto workspace to make sure given input (Document) belong to right workspace.
-        // since remote host is from workspace service, different workspace can have different expectation
-        // on remote host, so we need to make sure given input always belong to right workspace where
-        // the session belong to.
-        private readonly Workspace _workspace;
-
-        protected AbstractTodoCommentService(Workspace workspace)
-        {
-            _workspace = workspace;
-        }
-
         protected abstract bool PreprocessorHasComment(SyntaxTrivia trivia);
         protected abstract bool IsSingleLineComment(SyntaxTrivia trivia);
         protected abstract bool IsMultilineComment(SyntaxTrivia trivia);
@@ -32,71 +22,44 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected abstract string GetNormalizedText(string message);
         protected abstract int GetCommentStartingIndex(string message);
-        protected abstract void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
+        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, ArrayBuilder<TodoComment> todoList);
 
-        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<TodoComment>> GetTodoCommentsAsync(
+            Document document,
+            ImmutableArray<TodoCommentDescriptor> commentDescriptors,
+            CancellationToken cancellationToken)
         {
-            // make sure given input is right one
-            Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
+            if (commentDescriptors.IsEmpty)
+                return ImmutableArray<TodoComment>.Empty;
 
-            // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
-            // so inproc one will always run
-            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client != null && !document.IsOpen())
-            {
-                // run todo scanner on remote host. 
-                // we only run closed files to make open document to have better responsiveness. 
-                // also we cache everything related to open files anyway, no saving by running
-                // them in remote host
-                return await GetTodoCommentsInRemoteHostAsync(client, document, commentDescriptors, cancellationToken).ConfigureAwait(false);
-            }
-
-            return await GetTodoCommentsInCurrentProcessAsync(document, commentDescriptors, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
-            RemoteHostClient client, Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-        {
-            var result = await client.TryRunCodeAnalysisRemoteAsync<IList<TodoComment>>(
-                document.Project.Solution,
-                nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
-
-            return result ?? SpecializedCollections.EmptyList<TodoComment>();
-        }
-
-        private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(
-            Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
-        {
             cancellationToken.ThrowIfCancellationRequested();
 
             // strongly hold onto text and tree
             var syntaxDoc = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             // reuse list
-            var todoList = new List<TodoComment>();
+            using var _ = ArrayBuilder<TodoComment>.GetInstance(out var todoList);
 
             foreach (var trivia in syntaxDoc.Root.DescendantTrivia())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!ContainsComments(trivia))
-                {
                     continue;
-                }
 
                 AppendTodoComments(commentDescriptors, syntaxDoc, trivia, todoList);
             }
 
-            return todoList;
+            return todoList.ToImmutable();
         }
 
         private bool ContainsComments(SyntaxTrivia trivia)
-        {
-            return PreprocessorHasComment(trivia) || IsSingleLineComment(trivia) || IsMultilineComment(trivia);
-        }
+            => PreprocessorHasComment(trivia) || IsSingleLineComment(trivia) || IsMultilineComment(trivia);
 
-        protected void AppendTodoCommentInfoFromSingleLine(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
+        protected void AppendTodoCommentInfoFromSingleLine(
+            ImmutableArray<TodoCommentDescriptor> commentDescriptors,
+            string message, int start,
+            ArrayBuilder<TodoComment> todoList)
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
@@ -124,11 +87,15 @@ namespace Microsoft.CodeAnalysis.TodoComments
                     continue;
                 }
 
-                todoList.Add(new TodoComment(commentDescriptor, message.Substring(index), start + index));
+                todoList.Add(new TodoComment(commentDescriptor, message[index..], start + index));
             }
         }
 
-        protected void ProcessMultilineComment(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
+        protected void ProcessMultilineComment(
+            ImmutableArray<TodoCommentDescriptor> commentDescriptors,
+            SyntacticDocument document,
+            SyntaxTrivia trivia, int postfixLength,
+            ArrayBuilder<TodoComment> todoList)
         {
             // this is okay since we know it is already alive
             var text = document.Text;
@@ -143,20 +110,20 @@ namespace Microsoft.CodeAnalysis.TodoComments
             if (startLine.LineNumber == endLine.LineNumber)
             {
                 var message = postfixLength == 0 ? fullString : fullString.Substring(0, fullSpan.Length - postfixLength);
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message, fullSpan.Start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message, fullSpan.Start, todoList);
                 return;
             }
 
             // multiline 
             var startMessage = text.ToString(TextSpan.FromBounds(fullSpan.Start, startLine.End));
-            AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, startMessage, fullSpan.Start, todoList);
+            AppendTodoCommentInfoFromSingleLine(commentDescriptors, startMessage, fullSpan.Start, todoList);
 
             for (var lineNumber = startLine.LineNumber + 1; lineNumber < endLine.LineNumber; lineNumber++)
             {
                 var line = text.Lines[lineNumber];
                 var message = line.ToString();
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message, line.Start, todoList);
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message, line.Start, todoList);
             }
 
             var length = fullSpan.End - endLine.Start;
@@ -166,7 +133,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
 
             var endMessage = text.ToString(new TextSpan(endLine.Start, length));
-            AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, endMessage, endLine.Start, todoList);
+            AppendTodoCommentInfoFromSingleLine(commentDescriptors, endMessage, endLine.Start, todoList);
         }
     }
 }

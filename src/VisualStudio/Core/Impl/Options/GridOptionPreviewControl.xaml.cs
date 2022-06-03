@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,10 +14,13 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -22,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private const string UseEditorConfigUrl = "https://go.microsoft.com/fwlink/?linkid=866541";
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
-        private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
+        private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
         private readonly ImmutableArray<(string feature, ImmutableArray<IOption> options)> _groupedEditorConfigOptions;
         private readonly string _language;
 
@@ -35,11 +42,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public static string GenerateEditorConfigFileFromSettingsText => ServicesVSResources.Generate_dot_editorconfig_file_from_settings;
 
         internal GridOptionPreviewControl(IServiceProvider serviceProvider,
-            Func<OptionSet, IServiceProvider,
+            OptionStore optionStore,
+            Func<OptionStore, IServiceProvider,
             AbstractOptionPreviewViewModel> createViewModel,
             ImmutableArray<(string feature, ImmutableArray<IOption> options)> groupedEditorConfigOptions,
             string language)
-            : base(serviceProvider)
+            : base(optionStore)
         {
             InitializeComponent();
 
@@ -51,8 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
         {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions.AllOptions);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, CodeStyleOptions.AllOptions);
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
+            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -62,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return;
             }
 
-            BrowserHelper.StartBrowser(e.Uri);
+            VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
         }
 
@@ -85,18 +93,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        internal override void SaveSettings()
+        internal override void OnLoad()
         {
-            var optionSet = this.OptionService.GetOptions();
-            var changedOptions = this.ViewModel.ApplyChangedOptions(optionSet);
-
-            this.OptionService.SetOptions(changedOptions);
-            OptionLogger.Log(optionSet, changedOptions);
-        }
-
-        internal override void LoadSettings()
-        {
-            this.ViewModel = _createViewModel(this.OptionService.GetOptions(), _serviceProvider);
+            this.ViewModel = _createViewModel(OptionStore, _serviceProvider);
 
             var firstItem = this.ViewModel.CodeStyleItems.OfType<AbstractCodeStyleOptionViewModel>().First();
             this.ViewModel.SetOptionAndUpdatePreview(firstItem.SelectedPreference.IsChecked, firstItem.Option, firstItem.GetPreview());
@@ -116,13 +115,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal void Generate_Save_EditorConfig(object sender, System.Windows.RoutedEventArgs e)
         {
-            var optionSet = this.ViewModel.ApplyChangedOptions(this.OptionService.GetOptions());
+            Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
+
+            var optionSet = this.OptionStore.GetOptions();
             var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, optionSet, _language);
             using (var sfd = new System.Windows.Forms.SaveFileDialog
             {
                 Filter = "All files (*.*)|",
                 FileName = ".editorconfig",
-                Title = ServicesVSResources.Save_dot_editorconfig_file
+                Title = ServicesVSResources.Save_dot_editorconfig_file,
+                InitialDirectory = GetInitialDirectory()
             })
             {
                 if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -133,7 +135,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         File.WriteAllText(filePath, editorconfig.ToString());
                     });
                 }
-            };
+            }
+        }
+
+        private static string GetInitialDirectory()
+        {
+            var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+            if (solution is object)
+            {
+                if (!ErrorHandler.Failed(solution.GetSolutionInfo(out _, out var solutionFilePath, out _)))
+                {
+                    return Path.GetDirectoryName(solutionFilePath);
+                }
+            }
+
+            // returning an empty string will cause SaveFileDialog to use the directory from which 
+            // the user last selected a file
+            return string.Empty;
         }
     }
 }

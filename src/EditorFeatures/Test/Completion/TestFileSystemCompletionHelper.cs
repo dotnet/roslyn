@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected override IEnumerable<string> EnumerateFiles(string fullDirectoryPath) =>
             Enumerate(_files, fullDirectoryPath);
 
-        private IEnumerable<string> Enumerate(ImmutableArray<string> entries, string fullDirectoryPath)
+        private static IEnumerable<string> Enumerate(ImmutableArray<string> entries, string fullDirectoryPath)
         {
             var withTrailingSeparator = fullDirectoryPath.TrimEnd(PathUtilities.DirectorySeparatorChar) + PathUtilities.DirectorySeparatorChar;
             return from d in entries

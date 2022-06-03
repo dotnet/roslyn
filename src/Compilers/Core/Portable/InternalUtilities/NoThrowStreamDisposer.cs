@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
@@ -26,13 +27,13 @@ namespace Roslyn.Utilities
         public Stream Stream { get; }
 
         /// <summary>
-        /// True iff an exception was thrown during a call to <see cref="Dispose"/>
+        /// True if and only if an exception was thrown during a call to <see cref="Dispose"/>
         /// </summary>
         public bool HasFailedToDispose
         {
             get
             {
-                Debug.Assert(_failed != null);
+                RoslynDebug.Assert(_failed != null);
                 return _failed.GetValueOrDefault();
             }
         }
@@ -52,7 +53,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            Debug.Assert(_failed == null);
+            RoslynDebug.Assert(_failed == null);
             try
             {
                 Stream.Dispose();

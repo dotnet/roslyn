@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Binder used to place the parameters of a method, property, indexer, or delegate
-    /// in scope when binding &lt;param&gt; tags inside of XML documentation comments.
+    /// in scope when binding &lt;param&gt; tags inside of XML documentation comments
+    /// and `nameof` in certain attribute positions.
     /// </summary>
     internal sealed class WithParametersBinder : Binder
     {
@@ -23,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameters = parameters;
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderLocals())
             {
@@ -38,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember)) != 0)
             {
@@ -51,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (parameter.Name == name)
                 {
-                    result.MergeEqual(originalBinder.CheckViability(parameter, arity, options, null, diagnose, ref useSiteDiagnostics));
+                    result.MergeEqual(originalBinder.CheckViability(parameter, arity, options, null, diagnose, ref useSiteInfo));
                 }
             }
         }

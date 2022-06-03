@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading;
@@ -7,14 +11,15 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
     {
-        protected readonly string ProjectName = "TestProj";
-        protected readonly string SolutionName = "TestSolution";
+        protected const string ProjectName = "TestProj";
+        protected const string SolutionName = "TestSolution";
 
         private readonly MessageFilter _messageFilter;
         private readonly VisualStudioInstanceFactory _instanceFactory;
@@ -47,6 +52,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             try
             {
                 _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(false);
+                _visualStudioContext.Instance.ActivateMainWindow();
             }
             catch
             {
@@ -62,14 +68,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
         /// </summary>
         public virtual Task DisposeAsync()
         {
+            if (VisualStudio?.Editor.IsCompletionActive() ?? false)
+            {
+                // Make sure completion isn't visible.
+                // 🐛 Only needed as a workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/801435
+                VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            }
+
             _visualStudioContext.Dispose();
             return Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         protected virtual MessageFilter RegisterMessageFilter()
@@ -82,17 +89,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         /// <summary>
-        /// This method provides the implementation for <see cref="IDisposable.Dispose"/>. This method via the
-        /// <see cref="IDisposable"/> interface (i.e. <paramref name="disposing"/> is <see langword="true"/>) if the
-        /// constructor completes successfully. The <see cref="InitializeAsync"/> may or may not have completed
-        /// successfully.
+        /// This method provides the implementation for <see cref="IDisposable.Dispose"/>.
+        /// This method is called via the <see cref="IDisposable"/> interface if the constructor completes successfully.
+        /// The <see cref="InitializeAsync"/> may or may not have completed successfully.
         /// </summary>
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose()
         {
-            if (disposing)
-            {
-                _messageFilter.Dispose();
-            }
+            _messageFilter.Dispose();
         }
 
         protected KeyPress Ctrl(VirtualKey virtualKey)

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,7 +46,7 @@ public class Vec
     public Vec(int x) {}
 }
 ";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i1 = 0b001010; // binary literals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7.0").WithLocation(7, 18),
@@ -68,7 +71,7 @@ public class Vec
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
@@ -107,7 +110,7 @@ public class X
 4. 12
 5. 
 7. True";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // warning CS0184: The given expression is never of the provided ('bool') type
                 //         Console.WriteLine("7. {0}", (x is bool is bool));
@@ -136,11 +139,11 @@ public class X
         if (x is Nullable<int> y) Console.WriteLine($""expression {x} is Nullable<int> y"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (11,18): error CS8105: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-    //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
-    Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int?", "int").WithLocation(11, 18)
+                // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int").WithLocation(11, 18)
                 );
         }
 
@@ -170,7 +173,7 @@ public class X
             Console.WriteLine($""expression {x} is not {typeof(T).Name}"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             using (new EnsureInvariantCulture())
@@ -201,24 +204,21 @@ public class X
         var s = nameof(Main);
         byte b = 1;
         if (s is string t) { } else Console.WriteLine(t); 
-        if (null is dynamic t) { } // null not allowed
+        if (null is dynamic t2) { } // null not allowed
         if (s is NullableInt x) { } // error: cannot use nullable type
         if (s is long l) { } // error: cannot convert string to long
         if (b is 1000) { } // error: cannot convert 1000 to byte
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
-                //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
-                // (10,29): error CS0128: A local variable named 't' is already defined in this scope
-                //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "t").WithArguments("t").WithLocation(10, 29),
+                //         if (null is dynamic t2) { } // null not allowed
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
-                // (12,18): error CS8121: An expression of type string cannot be handled by a pattern of type long.
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int").WithLocation(11, 18),
+                // (12,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'long'.
                 //         if (s is long l) { } // error: cannot convert string to long
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(12, 18),
                 // (13,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
@@ -290,7 +290,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -361,7 +361,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -397,7 +397,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -435,7 +435,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -463,7 +463,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
     // (2,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
     // [Obsolete("" is string s ? s : "")]
@@ -509,7 +509,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -562,7 +562,7 @@ public struct X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -604,7 +604,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,45): error CS0165: Use of unassigned local variable 'x2'
                 //         if (!(o is X x2)) Console.WriteLine(x2);
@@ -638,7 +638,7 @@ public class X
     public static void M2(out int x) { x = 1; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -679,7 +679,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 true
@@ -697,7 +697,7 @@ false
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(4, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -729,7 +729,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -741,8 +741,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -770,7 +770,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -779,7 +779,7 @@ True");
 
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
@@ -848,7 +848,7 @@ public class X
                 var id = "y" + i;
                 var yDecl = GetPatternDeclarations(tree, id).Single();
                 var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
-                VerifyModelForDeclarationPattern(model, yDecl, yRef);
+                VerifyModelForDeclarationOrVarSimplePattern(model, yDecl, yRef);
             }
         }
 
@@ -881,7 +881,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
@@ -892,7 +892,7 @@ public class X
 
             var yDecl = GetPatternDeclaration(tree, "y1");
             var yRef = GetReferences(tree, "y1").Single();
-            VerifyModelForDeclarationPattern(model, yDecl, yRef);
+            VerifyModelForDeclarationOrVarSimplePattern(model, yDecl, yRef);
         }
 
         [Fact]
@@ -916,7 +916,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -945,7 +945,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 True
 1
@@ -978,9 +978,9 @@ public class X
 True");
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (9,30): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (9,34): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 = 1 is int x1 && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 34)
                 );
         }
 
@@ -1040,7 +1040,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1071,9 +1071,9 @@ public class X
 True");
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (9,37): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (9,41): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 {get;} = 1 is int x1 && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 41)
                 );
         }
 
@@ -1099,7 +1099,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1156,18 +1156,18 @@ True");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).Type.ToTestDisplayString());
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (12,36): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (12,40): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public D(object o) : base(2 is var x1 && Dummy(x1)) 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "var x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 36),
-                // (17,28): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 40),
+                // (17,32): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public D() : this(1 is int x1 && Dummy(x1)) 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 32)
                 );
         }
 
@@ -1211,7 +1211,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"2
 True
@@ -1225,8 +1225,8 @@ True");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1261,7 +1261,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1 case 0
 Test1 {0}
@@ -1275,7 +1275,7 @@ Test1 {0}");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1307,7 +1307,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -1319,8 +1319,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1370,7 +1370,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"a
 b
@@ -1420,7 +1420,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1434,7 +1434,7 @@ b");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1474,7 +1474,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
             var tree = compilation.SyntaxTrees.Single();
@@ -1484,7 +1484,7 @@ class C
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1526,8 +1526,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1542,7 +1541,7 @@ b");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1583,8 +1582,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
 
@@ -1595,7 +1593,7 @@ class C
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1641,8 +1639,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1661,19 +1658,19 @@ f");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -1719,8 +1716,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1739,19 +1735,19 @@ f");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -1779,7 +1775,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
@@ -1792,7 +1788,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1824,7 +1820,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -1836,8 +1832,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1873,7 +1869,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1890,7 +1886,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1926,7 +1922,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1944,7 +1940,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1981,7 +1977,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -2001,7 +1997,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2029,7 +2025,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2039,7 +2035,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2073,7 +2069,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -2085,8 +2081,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2123,7 +2119,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 2
 3
@@ -2139,7 +2135,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2170,7 +2166,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2186,17 +2182,17 @@ public class X
             var x0Decl = GetPatternDeclarations(tree, "x0").Single();
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl, x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -2226,7 +2222,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2242,17 +2238,17 @@ public class X
             var x0Decl = GetPatternDeclarations(tree, "x0").Single();
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl, x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -2286,7 +2282,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2303,13 +2299,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2343,7 +2339,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2361,13 +2357,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2402,7 +2398,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2422,13 +2418,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(5, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2455,7 +2451,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
@@ -2466,7 +2462,7 @@ public class X
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2493,7 +2489,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"lock
 lock
@@ -2506,7 +2502,7 @@ lock");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2538,7 +2534,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -2550,8 +2546,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2576,7 +2572,7 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
@@ -2609,7 +2605,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2
@@ -2622,7 +2618,7 @@ yield1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2658,7 +2654,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2");
@@ -2670,8 +2666,8 @@ yield2");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2698,7 +2694,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"return");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2708,7 +2704,7 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2753,8 +2749,8 @@ public class Cls
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2787,7 +2783,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"throw");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2797,7 +2793,7 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2837,7 +2833,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"throw 1
 throw 2");
@@ -2849,8 +2845,8 @@ throw 2");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2879,7 +2875,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
@@ -2890,7 +2886,7 @@ System.InvalidOperationException");
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2925,7 +2921,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -2966,7 +2962,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3007,7 +3003,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3046,7 +3042,7 @@ a:      Test1(2 is var x1);
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -3093,7 +3089,7 @@ a:          Test2(2 is var x1, x1);
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact, WorkItem(10465, "https://github.com/dotnet/roslyn/issues/10465")]
@@ -3114,7 +3110,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,27): warning CS0184: The given expression is never of the provided ('string') type
                 //         Console.WriteLine(1L is string); // warning: type mismatch
@@ -3122,10 +3118,10 @@ public class X
                 // (8,27): warning CS0184: The given expression is never of the provided ('int[]') type
                 //         Console.WriteLine(1 is int[]); // warning: expression is never of the provided type
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is int[]").WithArguments("int[]").WithLocation(8, 27),
-                // (10,33): error CS8121: An expression of type long cannot be handled by a pattern of type string.
+                // (10,33): error CS8121: An expression of type 'long' cannot be handled by a pattern of type 'string'.
                 //         Console.WriteLine(1L is string s); // error: type mismatch
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("long", "string").WithLocation(10, 33),
-                // (11,32): error CS8121: An expression of type int cannot be handled by a pattern of type int[].
+                // (11,32): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'int[]'.
                 //         Console.WriteLine(1 is int[] a); // error: expression is never of the provided type
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int[]").WithArguments("int", "int[]").WithLocation(11, 32)
                 );
@@ -3164,11 +3160,26 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+                // (7,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(1 is 1); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "1 is 1").WithLocation(7, 27),
+                // (8,27): warning CS8416: The given expression never matches the provided pattern.
+                //         Console.WriteLine(1L is int.MaxValue); // OK, but false
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1L is int.MaxValue").WithLocation(8, 27),
+                // (9,27): warning CS8416: The given expression never matches the provided pattern.
+                //         Console.WriteLine(1 is int.MaxValue); // false
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is int.MaxValue").WithLocation(9, 27),
+                // (10,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(int.MaxValue is int.MaxValue); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "int.MaxValue is int.MaxValue").WithLocation(10, 27),
                 // (11,27): warning CS0183: The given expression is always of the provided ('string') type
                 //         Console.WriteLine("goo" is System.String); // true
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27)
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27),
+                // (12,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "Int32.MaxValue is Int32.MaxValue").WithLocation(12, 27)
                 );
             CompileAndVerify(compilation, expectedOutput:
 @"True
@@ -3209,20 +3220,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case typeof(string):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine("string");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(10, 17),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine("string[]");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
                 );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
@@ -3247,7 +3252,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,22): error CS1001: Identifier expected
                 //             if (obj. is var o) { }
@@ -3322,7 +3327,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"null
@@ -3353,7 +3358,7 @@ other 6");
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case 1 when true:
@@ -3381,7 +3386,7 @@ public static class StaticType
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0723: Cannot declare a variable of static type 'StaticType'
                 //             case StaticType t:
@@ -3406,7 +3411,7 @@ public static class StaticType
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
@@ -3432,7 +3437,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var tree = compilation.SyntaxTrees[0];
@@ -3469,20 +3474,20 @@ unsafe struct S
 }
 ";
             var compilation = CreateCompilation(text,
-                                                            options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
-                                                            parseOptions: TestOptions.Regular);
+                                                options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
+                                                parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
+            Assert.True(((ITypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
             VerifyModelNotSupported(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelNotSupported(model, x2Decl, x2Ref);
-            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
+            Assert.True(((ITypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (5,17): error CS7092: A fixed buffer may only have one dimension.
@@ -3514,7 +3519,7 @@ unsafe struct S
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (8,17): error CS0119: 'T1' is a type, which is not valid in the given context
                 //             if (T1 is object i)
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T1").WithArguments("CS7.T1", "type").WithLocation(8, 17)
@@ -3538,7 +3543,7 @@ unsafe struct S
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (M is T)
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "M is T").WithLocation(8, 17)
@@ -3561,13 +3566,7 @@ unsafe struct S
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,29): error CS1525: Invalid expression term ')'
-                //             if (o.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 29),
-                // (8,34): error CS1525: Invalid expression term ')'
-                //             if (object.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 34),
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (7,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "o.Equals is()").WithLocation(7, 17),
@@ -3581,21 +3580,18 @@ unsafe struct S
 
             Assert.Equal("o.Equals is()", node.ToString());
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
-@"
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
-  Expression: 
-    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
-      Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
-            Children(1):
-                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-  Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '()')
-      Value: 
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-          Children(0)
-");
+            // https://github.com/dotnet/roslyn/issues/27749 : This syntax corresponds to a deconstruction pattern with zero elements, which is not yet supported in IOperation.
+            //            compilation.VerifyOperationTree(node, expectedOperationTree:
+            //@"
+            //IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
+            //  Expression: 
+            //    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
+            //      Children(1):
+            //          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
+            //            Children(1):
+            //                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+            //  Pattern: 
+            //");
         }
 
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
@@ -3613,19 +3609,10 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,25): error CS1525: Invalid expression term ')'
-                //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 25),
-                // (8,39): error CS1525: Invalid expression term ')'
-                //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 39),
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
-                // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
                 // (8,17): error CS0023: Operator 'is' cannot be applied to operand of type '(int, method group)'
                 //             if ((1, object.Equals) is()) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, object.Equals) is()").WithArguments("is", "(int, method group)").WithLocation(8, 17)
@@ -3653,34 +3640,34 @@ public class Vec
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is 1) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
                 // (7,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (Main is 2) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is 2").WithLocation(7, 13),
                 // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is 3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
-                // (9,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is 4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(9, 13),
+                // (8,25): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         if (delegate {} is 3) {}
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(8, 25),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is var x1) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (11,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (Main is var x2) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is var x2").WithLocation(11, 13),
                 // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is var x3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
-                // (13,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is var x4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(13, 13),
+                // (12,25): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         if (delegate {} is var x3) {}
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(12, 25),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)
@@ -3701,10 +3688,7 @@ public class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (6,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is Program) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 13),
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is Program) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
@@ -3860,7 +3844,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -3893,7 +3877,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -3926,7 +3910,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4005,7 +3989,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4042,7 +4026,7 @@ class MyException : Exception
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4080,14 +4064,20 @@ class B
     public static int operator +(bool left, B right) => 8;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7.0").WithLocation(15, 27),
                 // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27),
+                // (15,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "3 is One + 2").WithLocation(15, 27),
+                // (16,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
                 );
             var expectedOutput =
 @"5
@@ -4095,8 +4085,15 @@ class B
 7
 True
 True";
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (15,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "3 is One + 2").WithLocation(15, 27),
+                // (16,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -4142,7 +4139,7 @@ class D {}
 no
 True
 yes";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4173,7 +4170,7 @@ class D {}
             var expectedOutput =
 @"True
 B";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
@@ -4213,7 +4210,7 @@ class Program
         Console.WriteLine(a is nameof);
     }
 }
-class nameof { }
+class @nameof { }
 ";
             var expectedOutput =
 @"True
@@ -4224,7 +4221,7 @@ False
 False
 False
 True";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4256,7 +4253,7 @@ public class C
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
         }
 
@@ -4289,7 +4286,8 @@ public class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                );
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4298,31 +4296,27 @@ public class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationPatternSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            Assert.Null(model.GetTypeInfo(declaration1).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1.Type).Type.ToTestDisplayString());
 
             var discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
-            var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
+            var declaration2 = (VarPatternSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            Assert.Null(model.GetTypeInfo(declaration2).Type);
-            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardDesignations(tree).Skip(2).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));
             var declaration3 = (DeclarationPatternSyntax)discard3.Parent;
             Assert.Equal("int _", declaration3.ToString());
-            Assert.Null(model.GetTypeInfo(declaration3).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration3).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration3.Type).Type.ToTestDisplayString());
 
             var discard4 = GetDiscardDesignations(tree).Skip(3).First();
             Assert.Null(model.GetDeclaredSymbol(discard4));
-            var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
+            var declaration4 = (VarPatternSyntax)discard4.Parent;
             Assert.Equal("var _", declaration4.ToString());
-            Assert.Null(model.GetTypeInfo(declaration4).Type);
-            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4.Type).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -4346,17 +4340,21 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            compilation.VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
                 // (11,18): error CS0103: The name '_' does not exist in the current context
                 //             case _:
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 Write("case _");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
+                );
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
                 );
         }
 
@@ -4384,15 +4382,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (9,29): error CS0150: A constant value is expected
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
-                // (12,18): error CS0150: A constant value is expected
-                //             case _:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Write("case _");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                    // (9,29): error CS0118: '_' is a variable but is used like a type
+                    //         Write($"is _: {i is _}, ");
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
+                    // (12,18): error CS0150: A constant value is expected
+                    //             case _:
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
                 );
         }
 
@@ -4450,7 +4445,7 @@ public class C
             // pattern)
             var source =
 @"
-public class var {}
+public class @var {}
 unsafe public class Typ
 {
     public static void Main(int* a, var* c, Typ* e)
@@ -4476,12 +4471,12 @@ unsafe public class Typ
                 // (13,31): error CS1525: Invalid expression term 'int'
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
-                // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                // (5,42): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
-                // (5,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("var").WithLocation(5, 42),
+                // (5,50): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Typ*").WithArguments("Typ").WithLocation(5, 45),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "e").WithArguments("Typ").WithLocation(5, 50),
                 // (8,27): error CS0103: The name 'b' does not exist in the current context
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
@@ -4511,16 +4506,7 @@ unsafe public class Typ
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(15, 31),
                 // (15,36): error CS0103: The name 'f' does not exist in the current context
                 //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36),
-                // (13,39): warning CS0162: Unreachable code detected
-                //             switch (a) { case int* b: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 39),
-                // (14,39): warning CS0162: Unreachable code detected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 39),
-                // (15,39): warning CS0162: Unreachable code detected
-                //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 39)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36)
                 );
         }
 
@@ -4551,7 +4537,7 @@ class C
     override public int GetHashCode() => 0;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: @"False
 False
@@ -4578,7 +4564,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
@@ -4608,7 +4594,7 @@ public class Color
     public const string Constant = ""abc"";
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
@@ -4637,7 +4623,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
                 // (6,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(null is Missing x);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 38),
@@ -4652,10 +4638,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
                 // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //             case Missing y:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
                 );
         }
 
@@ -4680,19 +4663,16 @@ public class Program46
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (10,18): error CS0150: A constant value is expected
                 //             case M:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
-                // (11,18): error CS0150: A constant value is expected
+                // (11,19): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int)M()").WithLocation(11, 19)
                 );
         }
 
@@ -4713,16 +4693,13 @@ public class Program46
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+            CreateCompilation(program).VerifyDiagnostics(
+                // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (8,18): error CS0150: A constant value is expected
                 //             case M:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(8, 18)
                 );
         }
 
@@ -4739,10 +4716,10 @@ public class Program401
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is M) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
                 // (6,21): error CS0150: A constant value is expected
                 //         if (null is M) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(6, 21)
@@ -4772,16 +4749,13 @@ public class Program1717
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (10,18): error CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
                 //             case double.NaN:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?").WithLocation(10, 18),
                 // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'string'.
                 //             case string _:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18)
                 );
         }
 
@@ -4802,13 +4776,13 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (9,32): error CS1525: Invalid expression term 'break'
                 //             case Color? Color2:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
                 // (9,32): error CS1003: Syntax error, ':' expected
                 //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "break").WithLocation(9, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(9, 32),
                 // (8,18): error CS0118: 'Color' is a variable but is used like a type
                 //             case Color Color:
                 Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(8, 18),
@@ -4824,7 +4798,7 @@ public class Program5815
             Assert.Equal(1, colorDecl.Length);
             Assert.Equal(2, colorRef.Length);
             Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
-            VerifyModelForDeclarationPattern(model, colorDecl[0], colorRef[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, colorDecl[0], colorRef[1]);
         }
 
         [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
@@ -4844,10 +4818,13 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case true ? x3 : 4:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18),
+                // (9,25): error CS0165: Use of unassigned local variable 'x3'
+                //             case true ? x3 : 4:
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(9, 25)
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4856,18 +4833,103 @@ public class Program5815
             var x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(1, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
+        }
+
+        [Fact]
+        public void Fuzz_Conjunction_01()
+        {
+            var program = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        if (((int?)1) is {} and 1) { }
+    }
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Fuzz_738490379()
+        {
+            var program = @"
+public class Program738490379
+{
+    public static void Main(string[] args)
+    {
+        if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+    }
+    private static object M() => null;
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (6,13): error CS0841: Cannot use local variable 'NotFound' before it is declared
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "NotFound").WithArguments("NotFound").WithLocation(6, 13),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int _ ").WithLocation(6, 37),
+                    // (6,41): warning CS0168: The variable '_' is declared but never used
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(6, 41),
+                    // (6,43): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "or").WithLocation(6, 43),
+                    // (6,43): error CS0246: The type or namespace name 'or' could not be found (are you missing a using directive or an assembly reference?)
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "or").WithArguments("or").WithLocation(6, 43),
+                    // (6,55): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "_").WithLocation(6, 55),
+                    // (6,55): error CS0103: The name '_' does not exist in the current context
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(6, 55),
+                    // (6,56): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 56),
+                    // (6,56): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 56),
+                    // (6,62): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 62)
+                );
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void Fuzz()
         {
-            const int numTests = 1000000;
+            const int numTests = 1200000;
             int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
             for (int i = 1; i < numTests; i++)
             {
                 PatternMatchingFuzz(i + dt);
             }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
+        public void MultiFuzz()
+        {
+            // Just like Fuzz(), but take advantage of concurrency on the test host.
+            const int numTasks = 300;
+            const int numTestsPerTask = 4000;
+            int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
+            var tasks = Enumerable.Range(0, numTasks).Select(t => Task.Run(() =>
+            {
+                int k = dt + t * numTestsPerTask;
+                for (int i = 1; i < numTestsPerTask; i++)
+                {
+                    PatternMatchingFuzz(i + k);
+                }
+            }));
+            Task.WaitAll(tasks.ToArray());
         }
 
         private static void PatternMatchingFuzz(int dt)
@@ -4905,18 +4967,56 @@ public class Program5815
                 "NotFound"
             };
             string Type() => types[r.Next(types.Length)];
-            string Pattern()
+            string Pattern(int d = 5)
             {
-                switch (r.Next(3))
+                switch (r.Next(d <= 1 ? 9 : 13))
                 {
-                    case 0:
-                        return Expression(); // a "constant" pattern
-                    case 1:
-                        return Type() + " x" + r.Next(10);
-                    case 2:
-                        return Type() + " _";
                     default:
-                        throw null;
+                        return Expression(); // a "constant" pattern
+                    case 3:
+                    case 4:
+                        return Type();
+                    case 5:
+                        return Type() + " _";
+                    case 6:
+                        return Type() + " x" + r.Next(10);
+                    case 7:
+                        return "not " + Pattern(d - 1);
+                    case 8:
+                        return "(" + Pattern(d - 1) + ")";
+                    case 9:
+                        return r.Next(2) == 0 ? makeRecursivePattern(d) : makeListPattern(d);
+                    case 10:
+                        return Pattern(d - 1) + " and " + Pattern(d - 1);
+                    case 11:
+                        return Pattern(d - 1) + " or " + Pattern(d - 1);
+                    case 12:
+                        return ".." + (r.Next(2) == 0 ? Pattern(d - 1) : null);
+                }
+
+                string makeRecursivePattern(int d)
+                {
+                    while (true)
+                    {
+                        bool haveParens = r.Next(2) == 0;
+                        bool haveCurlies = r.Next(2) == 0;
+                        if (!haveParens && !haveCurlies)
+                            continue;
+                        bool haveType = r.Next(2) == 0;
+                        bool haveIdentifier = r.Next(2) == 0;
+                        return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
+                    }
+                }
+
+                string makeListPattern(int d)
+                {
+                    bool haveIdentifier = r.Next(2) == 0;
+                    return $"[{makePatternList(d - 1, false)}]{(haveIdentifier ? " x" + r.Next(10) : null)}";
+                }
+
+                string makePatternList(int d, bool propNames)
+                {
+                    return string.Join(", ", Enumerable.Range(0, r.Next(3)).Select(i => $"{(propNames ? $"P{r.Next(10)}: " : null)}{Pattern(d)}"));
                 }
             }
             string body = @"
@@ -4954,7 +5054,7 @@ public class Program{0}
                     throw null;
             }
             var program = string.Format(body, dt, statement);
-            CreateCompilationWithMscorlib45(program).GetDiagnostics();
+            CreateCompilation(program).GetDiagnostics();
         }
 
         [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
@@ -4999,7 +5099,7 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
 TDerived
@@ -5042,13 +5142,10 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case TDerived td:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine(nameof(TDerived));
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
                 );
         }
 
@@ -5071,13 +5168,10 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case IEnumerable<object> s:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<object> s").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
                 );
         }
 
@@ -5126,7 +5220,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"1
@@ -5161,18 +5255,12 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "U").WithArguments("string", "U", "7.0", "7.1").WithLocation(8, 18),
                 // (10,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18)
                 );
             CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "T tt").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "T tt").WithLocation(10, 18)
                 );
         }
 
@@ -5208,7 +5296,7 @@ True
 False
 True
 False";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5228,11 +5316,11 @@ public class Program
         Console.WriteLine(1 is null);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         Console.WriteLine(b is 12L);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte").WithLocation(7, 32),
                 // (8,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         Console.WriteLine(1 is null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 32)
@@ -5507,7 +5595,7 @@ M13b
 M14a
 M15a
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5525,7 +5613,7 @@ M15a
     {
         switch (o)
         {
-            case 1.1F: break;
+            case 0f/0f: break;
         }
     }
 }
@@ -5545,6 +5633,7 @@ namespace System
     {
         private Single m_value;
         public /*note bad return type*/ void Equals(Single other) { m_value = m_value + 1; }
+        public /*note bad return type*/ void IsNaN(Single other) { }
     }
 }
 ";
@@ -5552,12 +5641,9 @@ namespace System
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
-                // (5,9): error CS0407: 'void float.Equals(float)' has the wrong return type
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_BadRetType, @"switch (o)
-        {
-            case 1.1F: break;
-        }").WithArguments("float.Equals(float)", "void").WithLocation(5, 9)
+                // (7,18): error CS0656: Missing compiler required member 'System.Single.IsNaN'
+                //             case 0f/0f: break;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "0f/0f").WithArguments("System.Single", "IsNaN").WithLocation(7, 18)
                 );
         }
 
@@ -5581,7 +5667,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:
@@ -5603,7 +5689,7 @@ namespace System
         {
             case 1:
             case int _:
-            case 2:
+            case 2:     // subsumed
                 break;
         }
     }
@@ -5613,20 +5699,20 @@ namespace System
         {
             case 1:
             case int _:
-            case int _:
+            case int _:  // subsumed
                 break;
         }
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case 2:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(9, 13),
-                // (19,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case int _:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case 2:     // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(9, 18),
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int _:  // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int _").WithLocation(19, 18)
                 );
         }
 
@@ -5681,7 +5767,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, references: new MetadataReference[] { CSharpRef }, options: TestOptions.ReleaseExe);
             var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
 
@@ -5714,7 +5800,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived b0);
@@ -5723,7 +5809,7 @@ public class Program
                 //             case Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(16, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5757,7 +5843,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS8413: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is T b0);
@@ -5766,7 +5852,7 @@ public class Program
                 //             case T b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1")
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5800,7 +5886,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived<T> b0);
@@ -5809,7 +5895,7 @@ public class Program
                 //             case Derived<T> b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(16, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5846,7 +5932,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (16,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived b0);
@@ -5855,7 +5941,7 @@ public class Program
                 //             case Container<T>.Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(19, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5892,7 +5978,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
                 // (16,28): error CS8413: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived[] b0);
@@ -5901,7 +5987,7 @@ public class Program
                 //             case Container<T>.Derived[] b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(19, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5934,9 +6020,9 @@ public class Program
                 // (8,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) { }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(8, 13),
-                // (9,13): warning CS0184: The given expression is never of the provided ('string') type
+                // (9,13): warning CS8416: The given expression never matches the provided pattern.
                 //         if (s is string s2) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string s2").WithArguments("string").WithLocation(9, 13),
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string s2").WithLocation(9, 13),
                 // (14,13): warning CS0184: The given expression is never of the provided ('long') type
                 //         if (i is long) { }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(14, 13),
@@ -5945,10 +6031,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(15, 18),
                 // (16,17): error CS0103: The name 'b' does not exist in the current context
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17),
-                // (16,35): warning CS0162: Unreachable code detected
-                //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 35)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17)
                 );
         }
 
@@ -6073,25 +6156,31 @@ unsafe public class C {
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
                 // (7,23): error CS1525: Invalid expression term 'ref'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(7, 23),
-                // (7,23): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref int").WithArguments("ref").WithLocation(7, 23),
+                // (7,27): error CS1525: Invalid expression term 'int'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 27),
+                // (7,31): error CS1002: ; expected
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "z0").WithLocation(7, 31),
                 // (6,28): error CS0103: The name 'p0' does not exist in the current context
                 //         var p1 = p is int* p0;           // syntax error 1
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p0").WithArguments("p0").WithLocation(6, 28),
-                // (7,31): error CS8174: A declaration of a by-reference variable must have an initializer
+                // (7,23): error CS1073: Unexpected token 'ref'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "z0").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 23),
+                // (7,31): error CS0103: The name 'z0' does not exist in the current context
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z0").WithArguments("z0").WithLocation(7, 31),
+                // (7,31): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "z0").WithLocation(7, 31),
                 // (9,23): error CS8121: An expression of type 'TypedReference' cannot be handled by a pattern of type 'object'.
                 //         var b1 = x is object o1;         // not allowed 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.TypedReference", "object").WithLocation(9, 23),
-                // (10,23): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                // (10,23): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         var b2 = p is object o2;         // not allowed 2
-                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "object o2").WithLocation(10, 23),
-                // (7,31): warning CS0168: The variable 'z0' is declared but never used
-                //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "z0").WithArguments("z0").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "object").WithLocation(10, 23)
                 );
         }
 
@@ -6128,7 +6217,7 @@ unsafe public class C {
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
+            var comp = CompileAndVerify(compilation, expectedOutput: "ok", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -6273,7 +6362,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var x) { }
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
                 );
         }
 
@@ -6294,7 +6383,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var _) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
                 );
         }
 
@@ -6324,7 +6413,7 @@ class Program
         }
 
         [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
-        public void TestNullInInPattern()
+        public void TestNullInIsPattern()
         {
             var source =
 @"using System;
@@ -6344,9 +6433,9 @@ class Program
                 // (7,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) {} else { Console.Write("Hello "); }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(7, 13),
-                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                // (8,13): warning CS8416: The given expression never matches the provided pattern.
                 //         if (s is string t) {} else { Console.WriteLine("World"); }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string t").WithLocation(8, 13)
                 );
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -6378,8 +6467,9 @@ internal class Program
 }
 ";
             var expectedOutput = @"Exception";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6423,7 +6513,10 @@ False
 False";
             var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
+            // PEVerify:
+            // [ : Program::Main][mdToken=0x6000001][offset 0x00000002] Unmanaged pointers are not a verifiable type.
+            // [ : Program::Main][mdToken= 0x6000001][offset 0x00000002] Unable to resolve token.
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -6446,28 +6539,35 @@ False";
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(6, 18),
-                // (7,19): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
+                // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(7, 19),
-                // (8,21): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
+                // (8,21): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (((default)))) {} // error 3
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(8, 21),
-                // (9,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 21),
+                // (9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default: break; } // error 4
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(9, 27),
-                // (10,28): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
+                // (10,28): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case (default): break; } // error 5
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(10, 28),
-                // (11,27): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 28),
+                // (11,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 6
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(11, 27),
-                // (12,28): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(11, 27),
+                // (12,28): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case (default) when true: break; } // error 7
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 28)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var caseDefault = tree.GetRoot().DescendantNodes().OfType<CasePatternSwitchLabelSyntax>().First();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal("System.Int32", model.GetTypeInfo(caseDefault.Pattern).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(caseDefault.Pattern).ConvertedType.ToTestDisplayString());
+            Assert.False(model.GetConstantValue(caseDefault.Pattern).HasValue);
         }
 
         [Fact]
@@ -6498,15 +6598,122 @@ public class X
 True");
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (9,61): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (9,65): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static event System.Func<bool> Test1 = GetDelegate(1 is int x1 && Dummy(x1)); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 61)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 65)
                 );
         }
 
         [Fact]
+        public void ExhaustiveBoolSwitch00()
+        {
+            // Note that the switches in this code are exhaustive. The idea of a switch
+            // being exhaustive is new with the addition of pattern-matching; this code
+            // used to give errors that are no longer applicable due to the spec change.
+            var source =
+@"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        M(true);
+        M(false);
+        Console.WriteLine(M2(true));
+        Console.WriteLine(M2(false));
+    }
+    public static void M(bool e)
+    {
+        bool b;
+        switch (e)
+        {
+            case true:
+                b = true;
+                break;
+            case false:
+                b = false;
+                break;
+        }
+
+        Console.WriteLine(b); // no more error CS0165: Use of unassigned local variable 'b'
+    }
+
+    public static bool M2(bool e) // no more error CS0161: not all code paths return a value
+    {
+        switch (e)
+        {
+            case true: return true;
+            case false: return false;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"True
+False
+True
+False");
+        }
+
+        [Fact, WorkItem(24865, "https://github.com/dotnet/roslyn/issues/24865")]
+        public void ExhaustiveBoolSwitch01()
+        {
+            var source =
+@"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        M(true);
+        M(false);
+        Console.WriteLine(M2(true));
+        Console.WriteLine(M2(false));
+    }
+    public static void M(bool e)
+    {
+        bool b;
+        switch (e)
+        {
+            case true when true:
+                b = true;
+                break;
+            case false:
+                b = false;
+                break;
+        }
+
+        Console.WriteLine(b);
+    }
+
+    public static bool M2(bool e)
+    {
+        switch (e)
+        {
+            case true when true: return true;
+            case false: return false;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"True
+False
+True
+False");
+        }
+
+        [Fact]
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
-        public void IsPatternMatchingDoesNotCopyEscapeScopes()
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_01()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -6530,7 +6737,36 @@ public class C
 
         [Fact]
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
-        public void CasePatternMatchingDoesNotCopyEscapeScopes()
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_03()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators,
+                text: @"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        if (outer is ({} and var x) and Span<int> inner)
+        {
+            return ref inner[5];
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (8,13): warning CS8794: An expression of type 'Span<int>' always matches the provided pattern.
+                //         if (outer is ({} and var x) and Span<int> inner)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is ({} and var x) and Span<int> inner").WithArguments("System.Span<int>").WithLocation(8, 13),
+                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_01()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -6553,6 +6789,4905 @@ public class C
                 // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_03()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        switch (outer)
+        {
+            case {} and Span<int> inner:
+            {
+                return ref inner[5];
+            }
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //                 return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (var x, var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (R x, R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (_, _) x: return x; // error 7
+        }
+    }
+}
+").VerifyDiagnostics(
+                // (16,42): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 42),
+                // (24,40): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 40),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (var x, var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (40,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (R x, R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 37),
+                // (48,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 37),
+                // (56,32): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 32),
+                // (64,35): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (_, _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_04()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
+        }
+    }
+}
+").VerifyDiagnostics(
+                // (16,76): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 76),
+                // (24,74): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 74),
+                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (40,88): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 88),
+                // (48,54): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 54),
+                // (56,49): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 49),
+                // (64,86): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 86)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: var x }) return x; // error 1
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: R x }) return x; // error 2
+        throw null;
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (var x, var y)) return x; // error 3
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (R x, R y)) return x; // error 4
+        throw null;
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var (x, y)) return x; // error 5
+        throw null;
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { } x) return x; // error 6
+        throw null;
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (_, _) x) return x; // error 7
+        throw null;
+    }
+}
+").VerifyDiagnostics(
+                // (14,46): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: var x }) return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 46),
+                // (20,44): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: R x }) return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 44),
+                // (26,45): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (var x, var y)) return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 45),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (R x, R y)) return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (38,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 41),
+                // (44,36): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { } x) return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 36),
+                // (50,39): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 39)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_04()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+        throw null;
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+        throw null;
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and var (x, y)) return x; // error 5
+        throw null;
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { } x) return x; // error 6
+        throw null;
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (_, _) x) return x; // error 7
+        throw null;
+    }
+}
+").VerifyDiagnostics(
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and var x }").WithArguments("R").WithLocation(14, 13),
+                // (14,80): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 80),
+                // (20,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and R x }").WithArguments("R").WithLocation(20, 13),
+                // (20,78): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 78),
+                // (26,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)").WithArguments("R").WithLocation(26, 13),
+                // (26,96): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 96),
+                // (32,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)").WithArguments("R").WithLocation(32, 13),
+                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (38,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and var (x, y)").WithArguments("R").WithLocation(38, 13),
+                // (38,58): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 58),
+                // (44,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { } x").WithArguments("R").WithLocation(44, 13),
+                // (44,53): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 53),
+                // (50,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (_, _) x").WithArguments("R").WithLocation(50, 13),
+                // (50,56): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)
+                );
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_05()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public ref struct R
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+    public static implicit operator R(Span<int> span) => throw null;
+}
+public struct S
+{
+    public R RProp => throw null;
+    public S SProp => throw null;
+}
+public class C
+{
+    public void M1(ref R r, ref S s)
+    {
+        R outer = stackalloc int[100];
+        if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+        if (outer is { SProp.RProp: var sr0 }) r = sr0; // OK
+        if (outer is { SProp.SProp: var ss0 }) s = ss0; // OK
+        if (outer is { RProp.SProp: var rs0 }) s = rs0; // OK
+        if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+        if (outer is { SProp: { RProp: var sr1 }}) r = sr1; // OK
+        if (outer is { SProp: { SProp: var ss1 }}) s = ss1; // OK
+        if (outer is { RProp: { SProp: var rs1 }}) s = rs1; // OK
+    }
+}").VerifyDiagnostics(
+                // (19,52): error CS8352: Cannot use local 'rr0' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr0").WithArguments("rr0").WithLocation(19, 52),
+                // (23,56): error CS8352: Cannot use local 'rr1' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rr1").WithArguments("rr1").WithLocation(23, 56));
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void EscapeScopeInSubpatternOfNonRefType()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R RProp => this;
+    public S SProp => new S();
+    public void Deconstruct(out S X, out S Y) => X = Y = new S();
+    public static implicit operator R(Span<int> span) => new R();
+}
+public struct S
+{
+    public R RProp => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { SProp: { RProp: var x }}) return x; // OK
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { SProp: { RProp: var x }}: return x; // OK
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is ({ RProp: var x }, _)) return x; // OK
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case ({ RProp: var x }, _): return x; // OK
+        }
+    }
+}
+").VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(39960, "https://github.com/dotnet/roslyn/issues/39960")]
+        public void MissingExceptionType()
+        {
+            var source = @"
+class C
+{
+    void M(bool b, dynamic d)
+    {
+        _ = b
+            ? throw new System.NullReferenceException()
+            : throw null;
+        L();
+        throw null;
+        void L() => throw d;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new System.NullReferenceException()").WithArguments("System.Exception").WithLocation(7, 21),
+                // (8,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             : throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(8, 21),
+                // (10,15): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(10, 15),
+                // (11,27): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Exception").WithLocation(11, 27)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0155: The type caught or thrown must be derived from System.Exception
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "new System.NullReferenceException()").WithLocation(7, 21),
+                // (11,27): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "d").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void MissingExceptionType_In7()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            Test();
+        }
+        catch
+        {
+            System.Console.WriteLine(""in catch"");
+        }
+    }
+
+    static void Test()
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp, expectedOutput: "in catch");
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""test string"");
+        Test(""test string? I think not!"");
+        Test(""WrongString"");
+    }
+    static void Test(ReadOnlySpan<char> chars) => Console.WriteLine(chars is ""test string"");
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"False
+True
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""test string""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  call       ""void System.Console.WriteLine(bool)""
+  IL_0015:  nop
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""String 1"");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""STRING 2"");
+        Test(""string 3"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""STRING 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+3
+1
+3
+2
+3")
+                .VerifyIL("C.Test", @"
+ {
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarg.0
+  IL_000a:  ldstr      ""string 1""
+  IL_000f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0014:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0019:  brtrue.s   IL_0033
+  IL_001b:  ldarg.0
+  IL_001c:  ldstr      ""STRING 2""
+  IL_0021:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0026:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_002b:  brtrue.s   IL_0037
+  IL_002d:  br.s       IL_003b
+  IL_002f:  ldc.i4.0
+  IL_0030:  stloc.0
+  IL_0031:  br.s       IL_003d
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.0
+  IL_0035:  br.s       IL_003d
+  IL_0037:  ldc.i4.2
+  IL_0038:  stloc.0
+  IL_0039:  br.s       IL_003d
+  IL_003b:  ldc.i4.3
+  IL_003c:  stloc.0
+  IL_003d:  ldloc.0
+  IL_003e:  call       ""void System.Console.WriteLine(int)""
+  IL_0043:  ret
+}");
+        }
+
+        // Similar to above but switching on a local value rather than a parameter.
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanChar_Local()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        ReadOnlySpan<char> chars = ""string 2"";
+        var number = chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"2")
+                .VerifyIL("C.Main",
+@"{
+  // Code size       79 (0x4f)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<char> V_0, //chars
+                int V_1)
+  IL_0000:  ldstr      ""string 2""
+  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0012:  brfalse.s  IL_003a
+  IL_0014:  ldloc.0
+  IL_0015:  ldstr      ""string 1""
+  IL_001a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0024:  brtrue.s   IL_003e
+  IL_0026:  ldloc.0
+  IL_0027:  ldstr      ""string 2""
+  IL_002c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0031:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0036:  brtrue.s   IL_0042
+  IL_0038:  br.s       IL_0046
+  IL_003a:  ldc.i4.0
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_0048
+  IL_003e:  ldc.i4.1
+  IL_003f:  stloc.1
+  IL_0040:  br.s       IL_0048
+  IL_0042:  ldc.i4.2
+  IL_0043:  stloc.1
+  IL_0044:  br.s       IL_0048
+  IL_0046:  ldc.i4.3
+  IL_0047:  stloc.1
+  IL_0048:  ldloc.1
+  IL_0049:  call       ""void System.Console.WriteLine(int)""
+  IL_004e:  ret
+}");
+        }
+
+        // Similar to above but switching on a field of a ref struct.
+        [Fact]
+        public void SwitchReadOnlySpanChar_RefStructField()
+        {
+            var source =
+@"using System;
+ref struct S
+{
+    public ReadOnlySpan<char> Chars;
+}
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(string str)
+    {
+        var s = new S() { Chars = str };
+        Test(ref s);
+    }
+    static void Test(ref S s)
+    {
+        var number = s.Chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test(ref S)",
+@"{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (int V_0,
+                System.ReadOnlySpan<char> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""System.ReadOnlySpan<char> S.Chars""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_000e:  brfalse.s  IL_0036
+  IL_0010:  ldloc.1
+  IL_0011:  ldstr      ""string 1""
+  IL_0016:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0020:  brtrue.s   IL_003a
+  IL_0022:  ldloc.1
+  IL_0023:  ldstr      ""string 2""
+  IL_0028:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0032:  brtrue.s   IL_003e
+  IL_0034:  br.s       IL_0042
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0044
+  IL_003a:  ldc.i4.1
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0044
+  IL_003e:  ldc.i4.2
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0044
+  IL_0042:  ldc.i4.3
+  IL_0043:  stloc.0
+  IL_0044:  ldloc.0
+  IL_0045:  call       ""void System.Console.WriteLine(int)""
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+        Test(""string 4"");
+        Test(""string 5"");
+        Test(""string 6"");
+        Test(""string 7"");
+        Test(""string 8"");
+        Test(""string 9"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            ""string 3"" => 3,
+            ""string 4"" => 4,
+            ""string 5"" => 5,
+            ""string 6"" => 6,
+            ""string 7"" => 7,
+            ""string 8"" => 8,
+            _ => 9,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      377 (0x179)
+  .maxstack  2
+  .locals init (int V_0,
+                uint V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeReadOnlySpanHash""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0137
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_016f
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.1
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_016f
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e7
+  IL_005a:  ldloc.1
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00fb
+  IL_0065:  br         IL_016f
+  IL_006a:  ldloc.1
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010f
+  IL_0075:  ldloc.1
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0123
+  IL_0080:  ldloc.1
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_016f
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0092:  brfalse    IL_014b
+  IL_0097:  br         IL_016f
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014f
+  IL_00b1:  br         IL_016f
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_0153
+  IL_00cb:  br         IL_016f
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_0157
+  IL_00e2:  br         IL_016f
+  IL_00e7:  ldarg.0
+  IL_00e8:  ldstr      ""string 4""
+  IL_00ed:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00f2:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00f7:  brtrue.s   IL_015b
+  IL_00f9:  br.s       IL_016f
+  IL_00fb:  ldarg.0
+  IL_00fc:  ldstr      ""string 5""
+  IL_0101:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0106:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_010b:  brtrue.s   IL_015f
+  IL_010d:  br.s       IL_016f
+  IL_010f:  ldarg.0
+  IL_0110:  ldstr      ""string 6""
+  IL_0115:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_011a:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_011f:  brtrue.s   IL_0163
+  IL_0121:  br.s       IL_016f
+  IL_0123:  ldarg.0
+  IL_0124:  ldstr      ""string 7""
+  IL_0129:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0133:  brtrue.s   IL_0167
+  IL_0135:  br.s       IL_016f
+  IL_0137:  ldarg.0
+  IL_0138:  ldstr      ""string 8""
+  IL_013d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0142:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0147:  brtrue.s   IL_016b
+  IL_0149:  br.s       IL_016f
+  IL_014b:  ldc.i4.0
+  IL_014c:  stloc.0
+  IL_014d:  br.s       IL_0172
+  IL_014f:  ldc.i4.1
+  IL_0150:  stloc.0
+  IL_0151:  br.s       IL_0172
+  IL_0153:  ldc.i4.2
+  IL_0154:  stloc.0
+  IL_0155:  br.s       IL_0172
+  IL_0157:  ldc.i4.3
+  IL_0158:  stloc.0
+  IL_0159:  br.s       IL_0172
+  IL_015b:  ldc.i4.4
+  IL_015c:  stloc.0
+  IL_015d:  br.s       IL_0172
+  IL_015f:  ldc.i4.5
+  IL_0160:  stloc.0
+  IL_0161:  br.s       IL_0172
+  IL_0163:  ldc.i4.6
+  IL_0164:  stloc.0
+  IL_0165:  br.s       IL_0172
+  IL_0167:  ldc.i4.7
+  IL_0168:  stloc.0
+  IL_0169:  br.s       IL_0172
+  IL_016b:  ldc.i4.8
+  IL_016c:  stloc.0
+  IL_016d:  br.s       IL_0172
+  IL_016f:  ldc.i4.s   9
+  IL_0171:  stloc.0
+  IL_0172:  ldloc.0
+  IL_0173:  call       ""void System.Console.WriteLine(int)""
+  IL_0178:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchStatementReadOnlySpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+        Test(""string 4"");
+        Test(""string 5"");
+        Test(""string 6"");
+        Test(""string 7"");
+        Test(""string 8"");
+        Test(""string 9"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        Console.WriteLine(GetResult(chars));
+    }
+    static int GetResult(ReadOnlySpan<char> chars) 
+    {
+        switch (chars)
+        {
+            case """": return 0;
+            case ""string 1"": return 1;
+            case ""string 2"": return 2;
+            case ""string 3"": return 3;
+            case ""string 4"": return 4;
+            case ""string 5"": return 5;
+            case ""string 6"": return 6;
+            case ""string 7"": return 7;
+            case ""string 8"": return 8;
+            default: return 9;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.GetResult", @"
+    {
+  // Code size      349 (0x15d)
+  .maxstack  2
+  .locals init (uint V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeReadOnlySpanHash""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0134
+  IL_0022:  ldloc.0
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_015a
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.0
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_015a
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.0
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e4
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00f8
+  IL_0065:  br         IL_015a
+  IL_006a:  ldloc.0
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010c
+  IL_0075:  ldloc.0
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0120
+  IL_0080:  ldloc.0
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_015a
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0092:  brfalse    IL_0148
+  IL_0097:  br         IL_015a
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014a
+  IL_00b1:  br         IL_015a
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_014c
+  IL_00cb:  br         IL_015a
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_014e
+  IL_00e2:  br.s       IL_015a
+  IL_00e4:  ldarg.0
+  IL_00e5:  ldstr      ""string 4""
+  IL_00ea:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00ef:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00f4:  brtrue.s   IL_0150
+  IL_00f6:  br.s       IL_015a
+  IL_00f8:  ldarg.0
+  IL_00f9:  ldstr      ""string 5""
+  IL_00fe:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0103:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0108:  brtrue.s   IL_0152
+  IL_010a:  br.s       IL_015a
+  IL_010c:  ldarg.0
+  IL_010d:  ldstr      ""string 6""
+  IL_0112:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0117:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_011c:  brtrue.s   IL_0154
+  IL_011e:  br.s       IL_015a
+  IL_0120:  ldarg.0
+  IL_0121:  ldstr      ""string 7""
+  IL_0126:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0130:  brtrue.s   IL_0156
+  IL_0132:  br.s       IL_015a
+  IL_0134:  ldarg.0
+  IL_0135:  ldstr      ""string 8""
+  IL_013a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_013f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0144:  brtrue.s   IL_0158
+  IL_0146:  br.s       IL_015a
+  IL_0148:  ldc.i4.0
+  IL_0149:  ret
+  IL_014a:  ldc.i4.1
+  IL_014b:  ret
+  IL_014c:  ldc.i4.2
+  IL_014d:  ret
+  IL_014e:  ldc.i4.3
+  IL_014f:  ret
+  IL_0150:  ldc.i4.4
+  IL_0151:  ret
+  IL_0152:  ldc.i4.5
+  IL_0153:  ret
+  IL_0154:  ldc.i4.6
+  IL_0155:  ret
+  IL_0156:  ldc.i4.7
+  IL_0157:  ret
+  IL_0158:  ldc.i4.8
+  IL_0159:  ret
+  IL_015a:  ldc.i4.s   9
+  IL_015c:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanCharOnConstantStringAndOtherPatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        var number = chars switch {
+            { Length: 0 } => 0,
+            ""string 1"" and [..,'1'] => 1,
+            { Length: 8 } and ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  brfalse.s  IL_0046
+  IL_000b:  ldarg.0
+  IL_000c:  ldstr      ""string 1""
+  IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_001b:  brfalse.s  IL_002e
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  sub
+  IL_0022:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0027:  ldind.u2
+  IL_0028:  ldc.i4.s   49
+  IL_002a:  beq.s      IL_004a
+  IL_002c:  br.s       IL_0052
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.8
+  IL_0030:  bne.un.s   IL_0052
+  IL_0032:  ldarg.0
+  IL_0033:  ldstr      ""string 2""
+  IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0042:  brtrue.s   IL_004e
+  IL_0044:  br.s       IL_0052
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0054
+  IL_004a:  ldc.i4.1
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  ldc.i4.2
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0054
+  IL_0052:  ldc.i4.3
+  IL_0053:  stloc.0
+  IL_0054:  ldloc.0
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantStringInOrAndAndNot()
+        {
+            var source =
+    @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(ReadOnlySpan<char> chars)
+    {
+        Console.WriteLine(""or: "" + (chars is ""string 1"" or ""string 2""));
+        Console.WriteLine(""and: "" + (chars is ""string 1"" and { Length: 7 }));
+        Console.WriteLine(""not: "" + (chars is not ""string 1""));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"or: False
+and: False
+not: True
+or: True
+and: False
+not: False
+or: True
+and: False
+not: True
+or: False
+and: False
+not: True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      161 (0xa1)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""or: ""
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      ""string 1""
+  IL_000c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0011:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0016:  brtrue.s   IL_002a
+  IL_0018:  ldarg.0
+  IL_0019:  ldstr      ""string 2""
+  IL_001e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0023:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.0
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  call       ""string bool.ToString()""
+  IL_0033:  call       ""string string.Concat(string, string)""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  nop
+  IL_003e:  ldstr      ""and: ""
+  IL_0043:  ldarg.0
+  IL_0044:  ldstr      ""string 1""
+  IL_0049:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_004e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0053:  brfalse.s  IL_0061
+  IL_0055:  ldarga.s   V_0
+  IL_0057:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_005c:  ldc.i4.7
+  IL_005d:  ceq
+  IL_005f:  br.s       IL_0062
+  IL_0061:  ldc.i4.0
+  IL_0062:  stloc.0
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  call       ""string bool.ToString()""
+  IL_006a:  call       ""string string.Concat(string, string)""
+  IL_006f:  call       ""void System.Console.WriteLine(string)""
+  IL_0074:  nop
+  IL_0075:  ldstr      ""not: ""
+  IL_007a:  ldarg.0
+  IL_007b:  ldstr      ""string 1""
+  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_008a:  ldc.i4.0
+  IL_008b:  ceq
+  IL_008d:  stloc.0
+  IL_008e:  ldloca.s   V_0
+  IL_0090:  call       ""string bool.ToString()""
+  IL_0095:  call       ""string string.Concat(string, string)""
+  IL_009a:  call       ""void System.Console.WriteLine(string)""
+  IL_009f:  nop
+  IL_00a0:  ret
+}");
+        }
+
+        [Fact]
+        public void RecursivePatternMatchReadOnlySpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test(new S { Span = ""string 1"", Prop = true });
+        Test(new S { Span = ""string 1"", Prop = false });
+        Test(new S { Span = ""string 2"", Prop = true });
+        Test(new S { Span = ""string 2"", Prop = false });
+    }
+    static void Test(S s) => Console.WriteLine(s is { Prop: true, Span: ""string 1"" and { Length: 8 } });
+}
+
+ref struct S
+{
+    public ReadOnlySpan<char> Span { get; set; }
+    public bool Prop { get; set; }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"True
+False
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<char> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""readonly bool S.Prop.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""readonly System.ReadOnlySpan<char> S.Span.get""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ldstr      ""string 1""
+  IL_0017:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0021:  brfalse.s  IL_002f
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_002a:  ldc.i4.8
+  IL_002b:  ceq
+  IL_002d:  br.s       IL_0030
+  IL_002f:  ldc.i4.0
+  IL_0030:  call       ""void System.Console.WriteLine(bool)""
+  IL_0035:  nop
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars is """";
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //     static bool M(ReadOnlySpan<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 57),
+                    // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //     static bool M(ReadOnlySpan<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(5, 57));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static int M(ReadOnlySpan<char> chars) 
+    {
+        return chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+    }
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(8, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(9, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(9, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(10, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void PatternOrSwitchReadOnlySpanChar_MissingLengthAndIndexer()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+        public ReadOnlySpan(T[] array) { }
+    }
+    public static class MemoryExtensions
+    {
+        public static ReadOnlySpan<char> AsSpan(string s) => default;
+        public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b) => false;
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var s = new ReadOnlySpan<char>(new char[0]);
+        _ = s is ""str"";
+        _ = s is { Length: 0 } and """";
+        _ = s switch { ""str"" => 1, _ => 0 };
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                //         _ = s is "str";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(7, 18),
+                // (8,20): error CS0117: 'ReadOnlySpan<char>' does not contain a definition for 'Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("System.ReadOnlySpan<char>", "Length").WithLocation(8, 20),
+                // (8,36): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(8, 36),
+                // (9,24): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                //         _ = s switch { "str" => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars is """";
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(ReadOnlySpan<char> chars) => chars is "";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { """" => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatchReadOnlySpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M1(ReadOnlySpan<char> chars) => chars is null;
+    static bool M2(ReadOnlySpan<char> chars) => chars is default;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,58): error CS0150: A constant value is expected
+                //     static bool M1(ReadOnlySpan<char> chars) => chars is null;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 58),
+                // (6,58): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //     static bool M2(ReadOnlySpan<char> chars) => chars is default;
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 58));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,57): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 57));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M1(ReadOnlySpan<char> chars) => chars is (string)null;
+    static bool M2(ReadOnlySpan<char> chars) => chars is default(string);
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,58): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M1(ReadOnlySpan<char> chars) => chars is (string)null;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 58),
+                // (5,58): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M2(ReadOnlySpan<char> chars) => chars is default(string);
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "default(string)").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 58));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(ReadOnlySpan<char> chars) => chars is NullString;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,57): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars is NullString;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 57));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (5,63): error CS0150: A constant value is expected
+                    //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 63));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,63): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 63));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,63): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 63));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(ReadOnlySpan<char> chars) => chars switch { NullString => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,63): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { NullString => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 63));
+        }
+
+        [Fact]
+        public void MatchReadOnlySpanCharOnImpossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void M(ReadOnlySpan<char> chars)
+    {
+        _ = chars is """" and "" "";
+        _ = chars is """" and not """";
+        _ = chars is """" and ("" "" or not """");
+    }
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and " ";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and "" """).WithArguments("System.ReadOnlySpan<char>").WithLocation(7, 13),
+                    // (8,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and not "";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(8, 13),
+                    // (9,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and (" " or not "");
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and ("" "" or not """")").WithArguments("System.ReadOnlySpan<char>").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnPossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test("" "");
+        Test(""  "");
+    }
+    static void Test(ReadOnlySpan<char> chars)
+    {
+        Console.WriteLine(""1."" + (chars is """" and not "" ""));
+        Console.WriteLine(""2."" + (chars is """" and ("" "" or """")));
+        Console.WriteLine(""3."" + (chars is """" or """"));
+        Console.WriteLine(""4."" + (chars is """" or not """"));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (16,35): warning CS8794: An expression of type 'ReadOnlySpan<char>' always matches the provided pattern.
+                    //         Console.WriteLine("4." + (chars is "" or not ""));
+                    Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(16, 35));
+            CompileAndVerify(compilation, expectedOutput: @"1.True
+2.True
+3.True
+4.True
+1.False
+2.False
+3.False
+4.True
+1.False
+2.False
+3.False
+4.True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      159 (0x9f)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  ldstr      ""1.""
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0010:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string bool.ToString()""
+  IL_001d:  call       ""string string.Concat(string, string)""
+  IL_0022:  call       ""void System.Console.WriteLine(string)""
+  IL_0027:  ldstr      ""2.""
+  IL_002c:  ldarg.0
+  IL_002d:  ldstr      """"
+  IL_0032:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0037:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_003c:  stloc.0
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  call       ""string bool.ToString()""
+  IL_0044:  call       ""string string.Concat(string, string)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ldstr      ""3.""
+  IL_0053:  ldarg.0
+  IL_0054:  ldstr      """"
+  IL_0059:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_005e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0063:  stloc.0
+  IL_0064:  ldloca.s   V_0
+  IL_0066:  call       ""string bool.ToString()""
+  IL_006b:  call       ""string string.Concat(string, string)""
+  IL_0070:  call       ""void System.Console.WriteLine(string)""
+  IL_0075:  ldarg.0
+  IL_0076:  ldstr      """"
+  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0085:  pop
+  IL_0086:  ldc.i4.1
+  IL_0087:  stloc.0
+  IL_0088:  ldstr      ""4.""
+  IL_008d:  ldloca.s   V_0
+  IL_008f:  call       ""string bool.ToString()""
+  IL_0094:  call       ""string string.Concat(string, string)""
+  IL_0099:  call       ""void System.Console.WriteLine(string)""
+  IL_009e:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnDuplicateString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch {
+        """" => true,
+        """" => false,
+        _ => false,
+    };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                    //         "" => false,
+                    Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""test string"".ToArray());
+        Test(""test string? I think not!"".ToArray());
+        Test(""WrongString"".ToArray());
+    }
+    static void Test(Span<char> chars) => Console.WriteLine(chars is ""test string"");
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"False
+True
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""test string""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  call       ""void System.Console.WriteLine(bool)""
+  IL_0015:  nop
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""String 1"".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""STRING 2"".ToArray());
+        Test(""string 3"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""STRING 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+3
+1
+3
+2
+3")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<char>.Length.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarg.0
+  IL_000a:  ldstr      ""string 1""
+  IL_000f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0014:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0019:  brtrue.s   IL_0033
+  IL_001b:  ldarg.0
+  IL_001c:  ldstr      ""STRING 2""
+  IL_0021:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0026:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_002b:  brtrue.s   IL_0037
+  IL_002d:  br.s       IL_003b
+  IL_002f:  ldc.i4.0
+  IL_0030:  stloc.0
+  IL_0031:  br.s       IL_003d
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.0
+  IL_0035:  br.s       IL_003d
+  IL_0037:  ldc.i4.2
+  IL_0038:  stloc.0
+  IL_0039:  br.s       IL_003d
+  IL_003b:  ldc.i4.3
+  IL_003c:  stloc.0
+  IL_003d:  ldloc.0
+  IL_003e:  call       ""void System.Console.WriteLine(int)""
+  IL_0043:  ret
+}");
+        }
+
+        // Similar to above but switching on a local value rather than a parameter.
+        [Fact]
+        public void SwitchSpanChar_Local()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static void Main()
+    {
+        Span<char> chars = ""string 2"".ToArray();
+        var number = chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"2")
+                .VerifyIL("C.Main",
+@"{
+  // Code size       84 (0x54)
+  .maxstack  2
+  .locals init (System.Span<char> V_0, //chars
+                int V_1)
+  IL_0000:  ldstr      ""string 2""
+  IL_0005:  call       ""char[] System.Linq.Enumerable.ToArray<char>(System.Collections.Generic.IEnumerable<char>)""
+  IL_000a:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.Span<char>.Length.get""
+  IL_0017:  brfalse.s  IL_003f
+  IL_0019:  ldloc.0
+  IL_001a:  ldstr      ""string 1""
+  IL_001f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0024:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0029:  brtrue.s   IL_0043
+  IL_002b:  ldloc.0
+  IL_002c:  ldstr      ""string 2""
+  IL_0031:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0036:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_003b:  brtrue.s   IL_0047
+  IL_003d:  br.s       IL_004b
+  IL_003f:  ldc.i4.0
+  IL_0040:  stloc.1
+  IL_0041:  br.s       IL_004d
+  IL_0043:  ldc.i4.1
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_004d
+  IL_0047:  ldc.i4.2
+  IL_0048:  stloc.1
+  IL_0049:  br.s       IL_004d
+  IL_004b:  ldc.i4.3
+  IL_004c:  stloc.1
+  IL_004d:  ldloc.1
+  IL_004e:  call       ""void System.Console.WriteLine(int)""
+  IL_0053:  ret
+}");
+        }
+
+        // Similar to above but switching on a field of a ref struct.
+        [Fact]
+        public void SwitchSpanChar_RefStructField()
+        {
+            var source =
+@"using System;
+using System.Linq;
+ref struct S
+{
+    public Span<char> Chars;
+}
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(string str)
+    {
+        var s = new S() { Chars = str.ToArray() };
+        Test(ref s);
+    }
+    static void Test(ref S s)
+    {
+        var number = s.Chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test(ref S)",
+@"{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (int V_0,
+                System.Span<char> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""System.Span<char> S.Chars""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""int System.Span<char>.Length.get""
+  IL_000e:  brfalse.s  IL_0036
+  IL_0010:  ldloc.1
+  IL_0011:  ldstr      ""string 1""
+  IL_0016:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0020:  brtrue.s   IL_003a
+  IL_0022:  ldloc.1
+  IL_0023:  ldstr      ""string 2""
+  IL_0028:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0032:  brtrue.s   IL_003e
+  IL_0034:  br.s       IL_0042
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0044
+  IL_003a:  ldc.i4.1
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0044
+  IL_003e:  ldc.i4.2
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0044
+  IL_0042:  ldc.i4.3
+  IL_0043:  stloc.0
+  IL_0044:  ldloc.0
+  IL_0045:  call       ""void System.Console.WriteLine(int)""
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+        Test(""string 4"".ToArray());
+        Test(""string 5"".ToArray());
+        Test(""string 6"".ToArray());
+        Test(""string 7"".ToArray());
+        Test(""string 8"".ToArray());
+        Test(""string 9"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            ""string 3"" => 3,
+            ""string 4"" => 4,
+            ""string 5"" => 5,
+            ""string 6"" => 6,
+            ""string 7"" => 7,
+            ""string 8"" => 8,
+            _ => 9,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      377 (0x179)
+  .maxstack  2
+  .locals init (int V_0,
+                uint V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeSpanHash""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0137
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_016f
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.1
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_016f
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e7
+  IL_005a:  ldloc.1
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00fb
+  IL_0065:  br         IL_016f
+  IL_006a:  ldloc.1
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010f
+  IL_0075:  ldloc.1
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0123
+  IL_0080:  ldloc.1
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_016f
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.Span<char>.Length.get""
+  IL_0092:  brfalse    IL_014b
+  IL_0097:  br         IL_016f
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014f
+  IL_00b1:  br         IL_016f
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_0153
+  IL_00cb:  br         IL_016f
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_0157
+  IL_00e2:  br         IL_016f
+  IL_00e7:  ldarg.0
+  IL_00e8:  ldstr      ""string 4""
+  IL_00ed:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00f2:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00f7:  brtrue.s   IL_015b
+  IL_00f9:  br.s       IL_016f
+  IL_00fb:  ldarg.0
+  IL_00fc:  ldstr      ""string 5""
+  IL_0101:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0106:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_010b:  brtrue.s   IL_015f
+  IL_010d:  br.s       IL_016f
+  IL_010f:  ldarg.0
+  IL_0110:  ldstr      ""string 6""
+  IL_0115:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_011a:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_011f:  brtrue.s   IL_0163
+  IL_0121:  br.s       IL_016f
+  IL_0123:  ldarg.0
+  IL_0124:  ldstr      ""string 7""
+  IL_0129:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0133:  brtrue.s   IL_0167
+  IL_0135:  br.s       IL_016f
+  IL_0137:  ldarg.0
+  IL_0138:  ldstr      ""string 8""
+  IL_013d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0142:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0147:  brtrue.s   IL_016b
+  IL_0149:  br.s       IL_016f
+  IL_014b:  ldc.i4.0
+  IL_014c:  stloc.0
+  IL_014d:  br.s       IL_0172
+  IL_014f:  ldc.i4.1
+  IL_0150:  stloc.0
+  IL_0151:  br.s       IL_0172
+  IL_0153:  ldc.i4.2
+  IL_0154:  stloc.0
+  IL_0155:  br.s       IL_0172
+  IL_0157:  ldc.i4.3
+  IL_0158:  stloc.0
+  IL_0159:  br.s       IL_0172
+  IL_015b:  ldc.i4.4
+  IL_015c:  stloc.0
+  IL_015d:  br.s       IL_0172
+  IL_015f:  ldc.i4.5
+  IL_0160:  stloc.0
+  IL_0161:  br.s       IL_0172
+  IL_0163:  ldc.i4.6
+  IL_0164:  stloc.0
+  IL_0165:  br.s       IL_0172
+  IL_0167:  ldc.i4.7
+  IL_0168:  stloc.0
+  IL_0169:  br.s       IL_0172
+  IL_016b:  ldc.i4.8
+  IL_016c:  stloc.0
+  IL_016d:  br.s       IL_0172
+  IL_016f:  ldc.i4.s   9
+  IL_0171:  stloc.0
+  IL_0172:  ldloc.0
+  IL_0173:  call       ""void System.Console.WriteLine(int)""
+  IL_0178:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchStatementSpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+        Test(""string 4"".ToArray());
+        Test(""string 5"".ToArray());
+        Test(""string 6"".ToArray());
+        Test(""string 7"".ToArray());
+        Test(""string 8"".ToArray());
+        Test(""string 9"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        Console.WriteLine(GetResult(chars));
+    }
+    static int GetResult(Span<char> chars) 
+    {
+        switch (chars)
+        {
+            case """": return 0;
+            case ""string 1"": return 1;
+            case ""string 2"": return 2;
+            case ""string 3"": return 3;
+            case ""string 4"": return 4;
+            case ""string 5"": return 5;
+            case ""string 6"": return 6;
+            case ""string 7"": return 7;
+            case ""string 8"": return 8;
+            default: return 9;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.GetResult", @"
+    {
+  // Code size      349 (0x15d)
+  .maxstack  2
+  .locals init (uint V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeSpanHash""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0134
+  IL_0022:  ldloc.0
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_015a
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.0
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_015a
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.0
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e4
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00f8
+  IL_0065:  br         IL_015a
+  IL_006a:  ldloc.0
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010c
+  IL_0075:  ldloc.0
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0120
+  IL_0080:  ldloc.0
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_015a
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.Span<char>.Length.get""
+  IL_0092:  brfalse    IL_0148
+  IL_0097:  br         IL_015a
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014a
+  IL_00b1:  br         IL_015a
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_014c
+  IL_00cb:  br         IL_015a
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_014e
+  IL_00e2:  br.s       IL_015a
+  IL_00e4:  ldarg.0
+  IL_00e5:  ldstr      ""string 4""
+  IL_00ea:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00ef:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00f4:  brtrue.s   IL_0150
+  IL_00f6:  br.s       IL_015a
+  IL_00f8:  ldarg.0
+  IL_00f9:  ldstr      ""string 5""
+  IL_00fe:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0103:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0108:  brtrue.s   IL_0152
+  IL_010a:  br.s       IL_015a
+  IL_010c:  ldarg.0
+  IL_010d:  ldstr      ""string 6""
+  IL_0112:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0117:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_011c:  brtrue.s   IL_0154
+  IL_011e:  br.s       IL_015a
+  IL_0120:  ldarg.0
+  IL_0121:  ldstr      ""string 7""
+  IL_0126:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0130:  brtrue.s   IL_0156
+  IL_0132:  br.s       IL_015a
+  IL_0134:  ldarg.0
+  IL_0135:  ldstr      ""string 8""
+  IL_013a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_013f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0144:  brtrue.s   IL_0158
+  IL_0146:  br.s       IL_015a
+  IL_0148:  ldc.i4.0
+  IL_0149:  ret
+  IL_014a:  ldc.i4.1
+  IL_014b:  ret
+  IL_014c:  ldc.i4.2
+  IL_014d:  ret
+  IL_014e:  ldc.i4.3
+  IL_014f:  ret
+  IL_0150:  ldc.i4.4
+  IL_0151:  ret
+  IL_0152:  ldc.i4.5
+  IL_0153:  ret
+  IL_0154:  ldc.i4.6
+  IL_0155:  ret
+  IL_0156:  ldc.i4.7
+  IL_0157:  ret
+  IL_0158:  ldc.i4.8
+  IL_0159:  ret
+  IL_015a:  ldc.i4.s   9
+  IL_015c:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharOnConstantStringAndOtherPatterns()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        var number = chars switch {
+            { Length: 0 } => 0,
+            ""string 1"" and [..,'1'] => 1,
+            { Length: 8 } and ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<char>.Length.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  brfalse.s  IL_0046
+  IL_000b:  ldarg.0
+  IL_000c:  ldstr      ""string 1""
+  IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_001b:  brfalse.s  IL_002e
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  sub
+  IL_0022:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0027:  ldind.u2
+  IL_0028:  ldc.i4.s   49
+  IL_002a:  beq.s      IL_004a
+  IL_002c:  br.s       IL_0052
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.8
+  IL_0030:  bne.un.s   IL_0052
+  IL_0032:  ldarg.0
+  IL_0033:  ldstr      ""string 2""
+  IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0042:  brtrue.s   IL_004e
+  IL_0044:  br.s       IL_0052
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0054
+  IL_004a:  ldc.i4.1
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  ldc.i4.2
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0054
+  IL_0052:  ldc.i4.3
+  IL_0053:  stloc.0
+  IL_0054:  ldloc.0
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantStringInOrAndAndNot()
+        {
+            var source =
+    @"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+    }
+    static void Test(Span<char> chars)
+    {
+        Console.WriteLine(""or: "" + (chars is ""string 1"" or ""string 2""));
+        Console.WriteLine(""and: "" + (chars is ""string 1"" and { Length: 7 }));
+        Console.WriteLine(""not: "" + (chars is not ""string 1""));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"or: True
+and: False
+not: False
+or: True
+and: False
+not: True
+or: False
+and: False
+not: True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      161 (0xa1)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""or: ""
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      ""string 1""
+  IL_000c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0011:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0016:  brtrue.s   IL_002a
+  IL_0018:  ldarg.0
+  IL_0019:  ldstr      ""string 2""
+  IL_001e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0023:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.0
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  call       ""string bool.ToString()""
+  IL_0033:  call       ""string string.Concat(string, string)""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  nop
+  IL_003e:  ldstr      ""and: ""
+  IL_0043:  ldarg.0
+  IL_0044:  ldstr      ""string 1""
+  IL_0049:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_004e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0053:  brfalse.s  IL_0061
+  IL_0055:  ldarga.s   V_0
+  IL_0057:  call       ""int System.Span<char>.Length.get""
+  IL_005c:  ldc.i4.7
+  IL_005d:  ceq
+  IL_005f:  br.s       IL_0062
+  IL_0061:  ldc.i4.0
+  IL_0062:  stloc.0
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  call       ""string bool.ToString()""
+  IL_006a:  call       ""string string.Concat(string, string)""
+  IL_006f:  call       ""void System.Console.WriteLine(string)""
+  IL_0074:  nop
+  IL_0075:  ldstr      ""not: ""
+  IL_007a:  ldarg.0
+  IL_007b:  ldstr      ""string 1""
+  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_008a:  ldc.i4.0
+  IL_008b:  ceq
+  IL_008d:  stloc.0
+  IL_008e:  ldloca.s   V_0
+  IL_0090:  call       ""string bool.ToString()""
+  IL_0095:  call       ""string string.Concat(string, string)""
+  IL_009a:  call       ""void System.Console.WriteLine(string)""
+  IL_009f:  nop
+  IL_00a0:  ret
+}");
+        }
+
+        [Fact]
+        public void RecursivePatternMatchSpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test(new S { Span = ""string 1"".ToArray(), Prop = true });
+        Test(new S { Span = ""string 1"".ToArray(), Prop = false });
+        Test(new S { Span = ""string 2"".ToArray(), Prop = true });
+        Test(new S { Span = ""string 2"".ToArray(), Prop = false });
+    }
+    static void Test(S s) => Console.WriteLine(s is { Prop: true, Span: ""string 1"" and { Length: 8 } });
+}
+
+ref struct S
+{
+    public Span<char> Span { get; set; }
+    public bool Prop { get; set; }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"True
+False
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Span<char> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""readonly bool S.Prop.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""readonly System.Span<char> S.Span.get""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ldstr      ""string 1""
+  IL_0017:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0021:  brfalse.s  IL_002f
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""int System.Span<char>.Length.get""
+  IL_002a:  ldc.i4.8
+  IL_002b:  ceq
+  IL_002d:  br.s       IL_0030
+  IL_002f:  ldc.i4.0
+  IL_0030:  call       ""void System.Console.WriteLine(bool)""
+  IL_0035:  nop
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(Span<char> chars) => chars is """";
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //     static bool M(Span<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 49),
+                    // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //     static bool M(Span<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(5, 49));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static int M(Span<char> chars) 
+    {
+        return chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+    }
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(8, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(9, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(9, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(10, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void PatternOrSwitchSpanChar_MissingLengthAndIndexer()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        public Span(T[] array) { }
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        public ReadOnlySpan(T[] array) { }
+    }
+    public static class MemoryExtensions
+    {
+        public static ReadOnlySpan<char> AsSpan(string s) => default;
+        public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b) => false;
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var s = new Span<char>(new char[0]);
+        _ = s is ""str"";
+        _ = s is { Length: 0 } and """";
+        _ = s switch { ""str"" => 1, _ => 0 };
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                //         _ = s is "str";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(7, 18),
+                // (8,20): error CS0117: 'Span<char>' does not contain a definition for 'Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("System.Span<char>", "Length").WithLocation(8, 20),
+                // (8,36): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.Span`1", "get_Length").WithLocation(8, 36),
+                // (9,24): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                //         _ = s switch { "str" => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static bool M(Span<char> chars) => chars is """";
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(Span<char> chars) => chars is "";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { """" => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M1(Span<char> chars) => chars is null;
+    static bool M2(Span<char> chars) => chars is default;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,50): error CS0150: A constant value is expected
+                //     static bool M1(Span<char> chars) => chars is null;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 50),
+                // (6,50): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //     static bool M2(Span<char> chars) => chars is default;
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 50));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatchSpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(Span<char> chars) => chars is (object)null;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(Span<char> chars) => chars is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 49));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M1(Span<char> chars) => chars is (string)null;
+    static bool M2(Span<char> chars) => chars is default(string);
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,50): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M1(Span<char> chars) => chars is (string)null;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.Span<char>").WithLocation(4, 50),
+                // (5,50): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M2(Span<char> chars) => chars is default(string);
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "default(string)").WithArguments("System.Span<char>").WithLocation(5, 50));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(Span<char> chars) => chars is NullString;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,49): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars is NullString;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.Span<char>").WithLocation(5, 49));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { null => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (5,55): error CS0150: A constant value is expected
+                    //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 55));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,55): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 55));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,55): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.Span<char>").WithLocation(4, 55));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,55): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.Span<char>").WithLocation(5, 55));
+        }
+
+        [Fact]
+        public void MatchSpanCharOnImpossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void M(Span<char> chars)
+    {
+        _ = chars is """" and "" "";
+        _ = chars is """" and not """";
+        _ = chars is """" and ("" "" or not """");
+    }
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
+                    //         _ = chars is "" and " ";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and "" """).WithArguments("System.Span<char>").WithLocation(7, 13),
+                    // (8,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
+                    //         _ = chars is "" and not "";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and not """"").WithArguments("System.Span<char>").WithLocation(8, 13),
+                    // (9,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
+                    //         _ = chars is "" and (" " or not "");
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and ("" "" or not """")").WithArguments("System.Span<char>").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnPossiblePatterns()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test("" "".ToArray());
+        Test(""  "".ToArray());
+    }
+    static void Test(Span<char> chars)
+    {
+        Console.WriteLine(""1."" + (chars is """" and not "" ""));
+        Console.WriteLine(""2."" + (chars is """" and ("" "" or """")));
+        Console.WriteLine(""3."" + (chars is """" or """"));
+        Console.WriteLine(""4."" + (chars is """" or not """"));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (18,35): warning CS8794: An expression of type 'Span<char>' always matches the provided pattern.
+                    //         Console.WriteLine("4." + (chars is "" or not ""));
+                    Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.Span<char>").WithLocation(18, 35));
+            CompileAndVerify(compilation, expectedOutput: @"1.True
+2.True
+3.True
+4.True
+1.False
+2.False
+3.False
+4.True
+1.False
+2.False
+3.False
+4.True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      159 (0x9f)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  ldstr      ""1.""
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0010:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string bool.ToString()""
+  IL_001d:  call       ""string string.Concat(string, string)""
+  IL_0022:  call       ""void System.Console.WriteLine(string)""
+  IL_0027:  ldstr      ""2.""
+  IL_002c:  ldarg.0
+  IL_002d:  ldstr      """"
+  IL_0032:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0037:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_003c:  stloc.0
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  call       ""string bool.ToString()""
+  IL_0044:  call       ""string string.Concat(string, string)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ldstr      ""3.""
+  IL_0053:  ldarg.0
+  IL_0054:  ldstr      """"
+  IL_0059:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_005e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0063:  stloc.0
+  IL_0064:  ldloca.s   V_0
+  IL_0066:  call       ""string bool.ToString()""
+  IL_006b:  call       ""string string.Concat(string, string)""
+  IL_0070:  call       ""void System.Console.WriteLine(string)""
+  IL_0075:  ldarg.0
+  IL_0076:  ldstr      """"
+  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0085:  pop
+  IL_0086:  ldc.i4.1
+  IL_0087:  stloc.0
+  IL_0088:  ldstr      ""4.""
+  IL_008d:  ldloca.s   V_0
+  IL_008f:  call       ""string bool.ToString()""
+  IL_0094:  call       ""string string.Concat(string, string)""
+  IL_0099:  call       ""void System.Console.WriteLine(string)""
+  IL_009e:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnDuplicateString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch {
+        """" => true,
+        """" => false,
+        _ => false,
+    };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                    //         "" => false,
+                    Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void PatternMatchSpanOfT_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(ReadOnlySpan<T> span) => span is """";
+    static bool F2<T>(Span<T> span) => span is """";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'string'.
+                //     static bool F1<T>(ReadOnlySpan<T> span) => span is "";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("System.ReadOnlySpan<T>", "string").WithLocation(4, 56),
+                // (5,48): error CS8121: An expression of type 'Span<T>' cannot be handled by a pattern of type 'string'.
+                //     static bool F2<T>(Span<T> span) => span is "";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("System.Span<T>", "string").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanOfT_02()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class Program
+{
+    static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> _;
+    static bool F2<T>(Span<T> span) => span is Span<char> _;
+    static void F<T>(Span<T> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<T>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F<char>("""".ToArray());
+        F(new Span<char>(new char[] { '1', '2', '3' }));
+        F(new Span<int>(new int[] { '1', '2', '3' }));
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (5,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ReadOnlySpan<T>", "System.ReadOnlySpan<char>").WithLocation(5, 56),
+                // (6,48): error CS8121: An expression of type 'Span<T>' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(Span<T> span) => span is Span<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.Span<T>", "System.Span<char>").WithLocation(6, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanOfT_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and ""ABC"";
+    static bool F2<T>(Span<T> span) => span is Span<char> and ""123"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and "ABC";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ReadOnlySpan<T>", "System.ReadOnlySpan<char>").WithLocation(4, 56),
+                // (5,48): error CS8121: An expression of type 'Span<T>' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(Span<T> span) => span is Span<char> and "123";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.Span<T>", "System.Span<char>").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_BaseType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(object o) => o is ReadOnlySpan<char> _;
+    static bool F2<T>(object o) => o is Span<char> _;
+    static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> _;
+    static bool F4<T>(ValueType v) => v is Span<char> _;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(object o) => o is ReadOnlySpan<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 41),
+                // (5,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(object o) => o is Span<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("object", "System.Span<char>").WithLocation(5, 41),
+                // (6,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ValueType", "System.ReadOnlySpan<char>").WithLocation(6, 44),
+                // (7,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F4<T>(ValueType v) => v is Span<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.ValueType", "System.Span<char>").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_BaseType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(object o) => o is ReadOnlySpan<char> and ""ABC"";
+    static bool F2<T>(object o) => o is Span<char> and ""123"";
+    static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> and ""ABC"";
+    static bool F4<T>(ValueType v) => v is Span<char> and ""123"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(object o) => o is ReadOnlySpan<char> and "ABC";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 41),
+                // (5,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(object o) => o is Span<char> and "123";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("object", "System.Span<char>").WithLocation(5, 41),
+                // (6,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> and "ABC";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ValueType", "System.ReadOnlySpan<char>").WithLocation(6, 44),
+                // (7,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F4<T>(ValueType v) => v is Span<char> and "123";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.ValueType", "System.Span<char>").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_InterpolatedString_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    const int n = 123;
+    static bool F1(ReadOnlySpan<char> span) => span is $""{123}"";
+    static bool F2(Span<char> span) => span is $""{n}"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (5,56): error CS0150: A constant value is expected
+                //     static bool F1(ReadOnlySpan<char> span) => span is $"{123}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"$""{123}""").WithLocation(5, 56),
+                // (6,48): error CS0150: A constant value is expected
+                //     static bool F2(Span<char> span) => span is $"{n}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"$""{n}""").WithLocation(6, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_InterpolatedString_02()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class Program
+{
+    const string s = ""123"";
+    static bool F1(ReadOnlySpan<char> span) => span is $"""";
+    static bool F2(Span<char> span) => span is $""{s}"";
+    static void F(Span<char> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<char>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F("""".ToArray());
+        F(""123"".ToArray());
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"(True, False)
+(False, True)
+");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_Conditional_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? """" : ""ABC"");
+    static bool F2(Span<char> span, bool b) => span is (b ? """" : ""123"");
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,65): error CS0150: A constant value is expected
+                //     static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? "" : "ABC");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b ? """" : ""ABC""").WithLocation(4, 65),
+                // (5,57): error CS0150: A constant value is expected
+                //     static bool F2(Span<char> span, bool b) => span is (b ? "" : "123");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b ? """" : ""123""").WithLocation(5, 57));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_Conditional_02()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is (true ? """" : ""ABC"");
+    static bool F2(Span<char> span) => span is (false ? """" : ""123"");
+    static void F(Span<char> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<char>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F("""".ToArray());
+        F(""123"".ToArray());
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"(True, False)
+(False, True)
+");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_SwitchExpression()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => """", false => ""ABC"" };
+    static bool F2(Span<char> span, bool b) => span is b switch { false => """", true => ""123"" };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,64): error CS0150: A constant value is expected
+                //     static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => "", false => "ABC" };
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b switch { true => """", false => ""ABC"" }").WithLocation(4, 64),
+                // (5,56): error CS0150: A constant value is expected
+                //     static bool F2(Span<char> span, bool b) => span is b switch { false => "", true => "123" };
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b switch { false => """", true => ""123"" }").WithLocation(5, 56));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_ExpressionTree_01()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is ""123"";
+        Expression<Func<bool>> e2 = () => new Span<char>(null) is ""ABC"";
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (7,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is "123";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, @"new ReadOnlySpan<char>(null) is ""123""").WithLocation(7, 43),
+                // (7,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is "123";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new ReadOnlySpan<char>(null)").WithArguments("ReadOnlySpan").WithLocation(7, 43),
+                // (8,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) is "ABC";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, @"new Span<char>(null) is ""ABC""").WithLocation(8, 43),
+                // (8,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) is "ABC";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Span<char>(null)").WithArguments("Span").WithLocation(8, 43));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_ExpressionTree_02()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { ""123"" => true, _ => false };
+        Expression<Func<bool>> e2 = () => new Span<char>(null) switch { ""ABC"" => true, _ => false };
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (7,43): error CS8514: An expression tree may not contain a switch expression.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { "123" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, @"new ReadOnlySpan<char>(null) switch { ""123"" => true, _ => false }").WithLocation(7, 43),
+                // (7,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { "123" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new ReadOnlySpan<char>(null)").WithArguments("ReadOnlySpan").WithLocation(7, 43),
+                // (8,43): error CS8514: An expression tree may not contain a switch expression.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) switch { "ABC" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, @"new Span<char>(null) switch { ""ABC"" => true, _ => false }").WithLocation(8, 43),
+                // (8,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) switch { "ABC" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Span<char>(null)").WithArguments("Span").WithLocation(8, 43));
+        }
+
+        /// <summary>
+        /// Ensure that the synthesized switch hash method can handle a null
+        /// value if null is supported as a constant pattern in the future.
+        /// </summary>
+        [Fact]
+        public void PatternMatchSpanChar_SwitchHashWithNull()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int F1(ReadOnlySpan<char> span)
+    {
+        return span switch
+        {
+            (string)null => 0,
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            _ => 7,
+        };
+    }
+    static int F2(Span<char> span)
+    {
+        return span switch
+        {
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            default(string) => 7,
+            _ => 0,
+        };
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (8,13): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //             (string)null => 0,
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(8, 13),
+                // (28,13): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //             default(string) => 7,
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "default(string)").WithArguments("System.Span<char>").WithLocation(28, 13));
+        }
+
+        /// <summary>
+        /// DecisionDagRewriter.EnsureStringHashFunction() does not generate
+        /// a hash function if the span indexer is missing.
+        /// </summary>
+        [Fact]
+        public void PatternMatchSpanChar_MissingIndexer()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        internal T Get(int index) => _array[index];
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        internal T Get(int index) => _array[index];
+    }
+    public static class MemoryExtensions
+    {
+        public static ReadOnlySpan<char> AsSpan(string s)
+        {
+            var array = new char[s.Length];
+            for (int i = 0; i < s.Length; i++) array[i] = s[i];
+            return new ReadOnlySpan<char>(array);
+        }
+        public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b)
+        {
+            if (a.Length != b.Length) return false;
+            for (int i = 0; i < a.Length; i++)
+                if (!object.Equals(a.Get(i), b.Get(i))) return false;
+            return true;
+        }
+        public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b)
+        {
+            return SequenceEqual((ReadOnlySpan<T>)a, b);
+        }
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var r = new ReadOnlySpan<char>(new [] { '3' });
+        var s = new Span<char>(new [] { '6' });
+        Console.WriteLine((F1(r), F2(s)));
+    }
+    static int F1(ReadOnlySpan<char> s)
+    {
+        return s switch
+        {
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            ""7"" => 7,
+            _ => 0
+        };
+    }
+    static int F2(Span<char> s)
+    {
+        return s switch
+        {
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            ""7"" => 7,
+            _ => 0
+        };
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(3, 6)");
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size      160 (0xa0)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""1""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brtrue.s   IL_0080
+  IL_0012:  ldarg.0
+  IL_0013:  ldstr      ""2""
+  IL_0018:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0022:  brtrue.s   IL_0084
+  IL_0024:  ldarg.0
+  IL_0025:  ldstr      ""3""
+  IL_002a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0034:  brtrue.s   IL_0088
+  IL_0036:  ldarg.0
+  IL_0037:  ldstr      ""4""
+  IL_003c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0041:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0046:  brtrue.s   IL_008c
+  IL_0048:  ldarg.0
+  IL_0049:  ldstr      ""5""
+  IL_004e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0053:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0058:  brtrue.s   IL_0090
+  IL_005a:  ldarg.0
+  IL_005b:  ldstr      ""6""
+  IL_0060:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0065:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_006a:  brtrue.s   IL_0094
+  IL_006c:  ldarg.0
+  IL_006d:  ldstr      ""7""
+  IL_0072:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0077:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_007c:  brtrue.s   IL_0098
+  IL_007e:  br.s       IL_009c
+  IL_0080:  ldc.i4.1
+  IL_0081:  stloc.0
+  IL_0082:  br.s       IL_009e
+  IL_0084:  ldc.i4.2
+  IL_0085:  stloc.0
+  IL_0086:  br.s       IL_009e
+  IL_0088:  ldc.i4.3
+  IL_0089:  stloc.0
+  IL_008a:  br.s       IL_009e
+  IL_008c:  ldc.i4.4
+  IL_008d:  stloc.0
+  IL_008e:  br.s       IL_009e
+  IL_0090:  ldc.i4.5
+  IL_0091:  stloc.0
+  IL_0092:  br.s       IL_009e
+  IL_0094:  ldc.i4.6
+  IL_0095:  stloc.0
+  IL_0096:  br.s       IL_009e
+  IL_0098:  ldc.i4.7
+  IL_0099:  stloc.0
+  IL_009a:  br.s       IL_009e
+  IL_009c:  ldc.i4.0
+  IL_009d:  stloc.0
+  IL_009e:  ldloc.0
+  IL_009f:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size      160 (0xa0)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""1""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brtrue.s   IL_0080
+  IL_0012:  ldarg.0
+  IL_0013:  ldstr      ""2""
+  IL_0018:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0022:  brtrue.s   IL_0084
+  IL_0024:  ldarg.0
+  IL_0025:  ldstr      ""3""
+  IL_002a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0034:  brtrue.s   IL_0088
+  IL_0036:  ldarg.0
+  IL_0037:  ldstr      ""4""
+  IL_003c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0041:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0046:  brtrue.s   IL_008c
+  IL_0048:  ldarg.0
+  IL_0049:  ldstr      ""5""
+  IL_004e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0053:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0058:  brtrue.s   IL_0090
+  IL_005a:  ldarg.0
+  IL_005b:  ldstr      ""6""
+  IL_0060:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0065:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_006a:  brtrue.s   IL_0094
+  IL_006c:  ldarg.0
+  IL_006d:  ldstr      ""7""
+  IL_0072:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0077:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_007c:  brtrue.s   IL_0098
+  IL_007e:  br.s       IL_009c
+  IL_0080:  ldc.i4.1
+  IL_0081:  stloc.0
+  IL_0082:  br.s       IL_009e
+  IL_0084:  ldc.i4.2
+  IL_0085:  stloc.0
+  IL_0086:  br.s       IL_009e
+  IL_0088:  ldc.i4.3
+  IL_0089:  stloc.0
+  IL_008a:  br.s       IL_009e
+  IL_008c:  ldc.i4.4
+  IL_008d:  stloc.0
+  IL_008e:  br.s       IL_009e
+  IL_0090:  ldc.i4.5
+  IL_0091:  stloc.0
+  IL_0092:  br.s       IL_009e
+  IL_0094:  ldc.i4.6
+  IL_0095:  stloc.0
+  IL_0096:  br.s       IL_009e
+  IL_0098:  ldc.i4.7
+  IL_0099:  stloc.0
+  IL_009a:  br.s       IL_009e
+  IL_009c:  ldc.i4.0
+  IL_009d:  stloc.0
+  IL_009e:  ldloc.0
+  IL_009f:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharConstantStringAndListPatterns()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var s1 = new Span<char>(new char[0]);
+        var s2 = new Span<char>(new[] { 's', 't', 'r' });
+        Console.WriteLine(F1(s1));
+        Console.WriteLine(F1(s2));
+        Console.WriteLine(F2(s1));
+        Console.WriteLine(F2(s2));
+    }
+    static int F1(ReadOnlySpan<char> span) 
+    {
+        return span switch
+        {
+            ""str"" => 1,
+            [ 's', 't', 'r' ] => 2,
+            _ => 0,
+        };
+    }
+    static int F2(Span<char> span) 
+    {
+        return span switch
+        {
+            [ 's', 't', 'r' ] => 2,
+            ""str"" => 1,
+            _ => 0,
+        };
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"0
+1
+0
+2");
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""str""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brtrue.s   IL_0045
+  IL_0012:  ldarga.s   V_0
+  IL_0014:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0019:  ldc.i4.3
+  IL_001a:  bne.un.s   IL_004d
+  IL_001c:  ldarga.s   V_0
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0024:  ldind.u2
+  IL_0025:  ldc.i4.s   115
+  IL_0027:  bne.un.s   IL_004d
+  IL_0029:  ldarga.s   V_0
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0031:  ldind.u2
+  IL_0032:  ldc.i4.s   116
+  IL_0034:  bne.un.s   IL_004d
+  IL_0036:  ldarga.s   V_0
+  IL_0038:  ldc.i4.2
+  IL_0039:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_003e:  ldind.u2
+  IL_003f:  ldc.i4.s   114
+  IL_0041:  beq.s      IL_0049
+  IL_0043:  br.s       IL_004d
+  IL_0045:  ldc.i4.1
+  IL_0046:  stloc.0
+  IL_0047:  br.s       IL_004f
+  IL_0049:  ldc.i4.2
+  IL_004a:  stloc.0
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.0
+  IL_004f:  ldloc.0
+  IL_0050:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<char>.Length.get""
+  IL_0007:  ldc.i4.3
+  IL_0008:  bne.un.s   IL_0031
+  IL_000a:  ldarga.s   V_0
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0012:  ldind.u2
+  IL_0013:  ldc.i4.s   115
+  IL_0015:  bne.un.s   IL_0031
+  IL_0017:  ldarga.s   V_0
+  IL_0019:  ldc.i4.1
+  IL_001a:  call       ""ref char System.Span<char>.this[int].get""
+  IL_001f:  ldind.u2
+  IL_0020:  ldc.i4.s   116
+  IL_0022:  bne.un.s   IL_0031
+  IL_0024:  ldarga.s   V_0
+  IL_0026:  ldc.i4.2
+  IL_0027:  call       ""ref char System.Span<char>.this[int].get""
+  IL_002c:  ldind.u2
+  IL_002d:  ldc.i4.s   114
+  IL_002f:  beq.s      IL_0045
+  IL_0031:  ldarg.0
+  IL_0032:  ldstr      ""str""
+  IL_0037:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0041:  brtrue.s   IL_0049
+  IL_0043:  br.s       IL_004d
+  IL_0045:  ldc.i4.2
+  IL_0046:  stloc.0
+  IL_0047:  br.s       IL_004f
+  IL_0049:  ldc.i4.1
+  IL_004a:  stloc.0
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.0
+  IL_004f:  ldloc.0
+  IL_0050:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_ObsoleteMemoryExtensions()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        public ref T this[int index] => ref _array[index];
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        public ref T this[int index] => ref _array[index];
+    }
+    [Obsolete]
+    public static class MemoryExtensions
+    {
+        [Obsolete]
+        public static ReadOnlySpan<char> AsSpan(string s)
+        {
+            var array = new char[s.Length];
+            for (int i = 0; i < s.Length; i++) array[i] = s[i];
+            return new ReadOnlySpan<char>(array);
+        }
+        [Obsolete]
+        public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b)
+        {
+            if (a.Length != b.Length) return false;
+            for (int i = 0; i < a.Length; i++)
+                if (!object.Equals(a[i], b[i])) return false;
+            return true;
+        }
+        [Obsolete]
+        public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b)
+        {
+            return SequenceEqual((ReadOnlySpan<T>)a, b);
+        }
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is ""123"";
+    static bool F2(Span<char> span) => span is ""ABC"";
+    static void F(Span<char> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<char>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F(new Span<char>(new [] { 'A', 'B', 'C' }));
+        F(new Span<char>(new [] { '1', '2', '3' }));
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"(False, True)
+(True, False)
+");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_GetTypeInfo()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is ""123"";
+    static bool F2(Span<char> span) => span is ""ABC"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, exprs.Length);
+            foreach (var expr in exprs)
+            {
+                var typeInfo = model.GetTypeInfo(expr);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_String, typeInfo.ConvertedType.SpecialType);
+            }
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_GetDeclaredSymbol()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is ""123"" and var r;
+    static bool F2(Span<char> span) => span is ""ABC"" and var s;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var locals = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            var types = locals.Select(local => ((ILocalSymbol)model.GetDeclaredSymbol(local)).Type.ToTestDisplayString()).ToArray();
+            AssertEx.Equal(new[] { "System.ReadOnlySpan<System.Char>", "System.Span<System.Char>" }, types);
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_IOperation_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F(ReadOnlySpan<char> span)
+    {
+        return span is ""123"";
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return span is ""123"";')
+    ReturnedValue:
+      IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""123""')
+        Value:
+          IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.ReadOnlySpan<System.Char>) (Syntax: 'span')
+        Pattern:
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""123""') (InputType: System.ReadOnlySpan<System.Char>, NarrowedType: System.ReadOnlySpan<System.Char>)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
+",
+                actualText);
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(syntax, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""123""')
+          Value:
+            IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.ReadOnlySpan<System.Char>) (Syntax: 'span')
+          Pattern:
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""123""') (InputType: System.ReadOnlySpan<System.Char>, NarrowedType: System.ReadOnlySpan<System.Char>)
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                graph, symbol);
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_IOperation_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F(Span<char> span)
+    {
+        return span is ""ABC"";
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return span is ""ABC"";')
+    ReturnedValue:
+      IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""ABC""')
+        Value:
+          IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.Span<System.Char>) (Syntax: 'span')
+        Pattern:
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""ABC""') (InputType: System.Span<System.Char>, NarrowedType: System.Span<System.Char>)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""ABC"") (Syntax: '""ABC""')
+",
+                actualText);
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(syntax, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""ABC""')
+          Value:
+            IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.Span<System.Char>) (Syntax: 'span')
+          Pattern:
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""ABC""') (InputType: System.Span<System.Char>, NarrowedType: System.Span<System.Char>)
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""ABC"") (Syntax: '""ABC""')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                graph, symbol);
+        }
+
+        [Fact, WorkItem(50301, "https://github.com/dotnet/roslyn/issues/50301")]
+        public void SymbolsForSwitchExpressionLocals()
+        {
+            var source = @"
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            int i => $""Number: {i}"",
+            _ => ""Don't know""
+        };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x22"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x28"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2a"">
+        <scope startOffset=""0xf"" endOffset=""0x22"">
+          <local name=""i"" il_index=""0"" il_start=""0xf"" il_end=""0x22"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact, WorkItem(59050, "https://github.com/dotnet/roslyn/issues/59050")]
+        public void IsPatternInExceptionFilterInAsyncMethod_Spilled()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+static class C
+{
+    static async Task Main()
+    {
+        System.Console.Write(await ExceptionFilterBroken());
+    }
+
+    public static async Task<bool> ExceptionFilterBroken()
+    {
+        try
+        {
+            await ThrowException();
+            return true;
+        }
+        catch (Exception ex) when (ex.InnerException is { Message: ""bad dog"" or ""dog bad"" })
+        {
+            return await TrueAsync();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    static Task ThrowException() => throw new Exception("""", new Exception(""bad dog""));
+    static Task<bool> TrueAsync() => Task.FromResult(true);
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            // Note: the important thing is that we now assign `System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3`
+            // in the exception filter (at IL_00b6) before accessing `.InnerException` on it.
+            verifier.VerifyIL("C.<ExceptionFilterBroken>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      471 (0x1d7)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1,
+                System.Exception V_2,
+                string V_3,
+                bool V_4,
+                System.Runtime.CompilerServices.TaskAwaiter V_5,
+                C.<ExceptionFilterBroken>d__1 V_6,
+                System.Exception V_7,
+                int V_8,
+                System.Runtime.CompilerServices.TaskAwaiter<bool> V_9)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0012
+    IL_000a:  br.s       IL_000c
+    IL_000c:  ldloc.0
+    IL_000d:  ldc.i4.1
+    IL_000e:  beq.s      IL_0014
+    IL_0010:  br.s       IL_0019
+    IL_0012:  br.s       IL_0021
+    IL_0014:  br         IL_0166
+    IL_0019:  nop
+    IL_001a:  ldarg.0
+    IL_001b:  ldc.i4.0
+    IL_001c:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+    IL_0021:  nop
+    .try
+    {
+      IL_0022:  ldloc.0
+      IL_0023:  brfalse.s  IL_0027
+      IL_0025:  br.s       IL_0029
+      IL_0027:  br.s       IL_0068
+      IL_0029:  nop
+      IL_002a:  call       ""System.Threading.Tasks.Task C.ThrowException()""
+      IL_002f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+      IL_0034:  stloc.s    V_5
+      IL_0036:  ldloca.s   V_5
+      IL_0038:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+      IL_003d:  brtrue.s   IL_0085
+      IL_003f:  ldarg.0
+      IL_0040:  ldc.i4.0
+      IL_0041:  dup
+      IL_0042:  stloc.0
+      IL_0043:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+      IL_0048:  ldarg.0
+      IL_0049:  ldloc.s    V_5
+      IL_004b:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_0050:  ldarg.0
+      IL_0051:  stloc.s    V_6
+      IL_0053:  ldarg.0
+      IL_0054:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+      IL_0059:  ldloca.s   V_5
+      IL_005b:  ldloca.s   V_6
+      IL_005d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ExceptionFilterBroken>d__1)""
+      IL_0062:  nop
+      IL_0063:  leave      IL_01d6
+      IL_0068:  ldarg.0
+      IL_0069:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_006e:  stloc.s    V_5
+      IL_0070:  ldarg.0
+      IL_0071:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_0076:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+      IL_007c:  ldarg.0
+      IL_007d:  ldc.i4.m1
+      IL_007e:  dup
+      IL_007f:  stloc.0
+      IL_0080:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+      IL_0085:  ldloca.s   V_5
+      IL_0087:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+      IL_008c:  nop
+      IL_008d:  ldc.i4.1
+      IL_008e:  stloc.1
+      IL_008f:  leave      IL_01c1
+    }
+    filter
+    {
+      IL_0094:  isinst     ""System.Exception""
+      IL_0099:  dup
+      IL_009a:  brtrue.s   IL_00a0
+      IL_009c:  pop
+      IL_009d:  ldc.i4.0
+      IL_009e:  br.s       IL_0106
+      IL_00a0:  stloc.s    V_7
+      IL_00a2:  ldarg.0
+      IL_00a3:  ldloc.s    V_7
+      IL_00a5:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+      IL_00aa:  ldarg.0
+      IL_00ab:  ldarg.0
+      IL_00ac:  ldfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+      IL_00b1:  castclass  ""System.Exception""
+      IL_00b6:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+      IL_00bb:  ldarg.0
+      IL_00bc:  ldfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+      IL_00c1:  callvirt   ""System.Exception System.Exception.InnerException.get""
+      IL_00c6:  stloc.2
+      IL_00c7:  ldloc.2
+      IL_00c8:  brfalse.s  IL_00f2
+      IL_00ca:  ldloc.2
+      IL_00cb:  callvirt   ""string System.Exception.Message.get""
+      IL_00d0:  stloc.3
+      IL_00d1:  ldloc.3
+      IL_00d2:  ldstr      ""bad dog""
+      IL_00d7:  call       ""bool string.op_Equality(string, string)""
+      IL_00dc:  brtrue.s   IL_00ed
+      IL_00de:  ldloc.3
+      IL_00df:  ldstr      ""dog bad""
+      IL_00e4:  call       ""bool string.op_Equality(string, string)""
+      IL_00e9:  brtrue.s   IL_00ed
+      IL_00eb:  br.s       IL_00f2
+      IL_00ed:  ldc.i4.1
+      IL_00ee:  stloc.s    V_4
+      IL_00f0:  br.s       IL_00f5
+      IL_00f2:  ldc.i4.0
+      IL_00f3:  stloc.s    V_4
+      IL_00f5:  ldarg.0
+      IL_00f6:  ldloc.s    V_4
+      IL_00f8:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__4""
+      IL_00fd:  ldarg.0
+      IL_00fe:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__4""
+      IL_0103:  ldc.i4.0
+      IL_0104:  cgt.un
+      IL_0106:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0108:  pop
+      IL_0109:  ldarg.0
+      IL_010a:  ldc.i4.1
+      IL_010b:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+      IL_0110:  leave.s    IL_011b
+    }
+    catch object
+    {
+      IL_0112:  pop
+      IL_0113:  nop
+      IL_0114:  ldc.i4.0
+      IL_0115:  stloc.1
+      IL_0116:  leave      IL_01c1
+    }
+    IL_011b:  ldarg.0
+    IL_011c:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+    IL_0121:  stloc.s    V_8
+    IL_0123:  ldloc.s    V_8
+    IL_0125:  ldc.i4.1
+    IL_0126:  beq.s      IL_012a
+    IL_0128:  br.s       IL_0199
+    IL_012a:  nop
+    IL_012b:  call       ""System.Threading.Tasks.Task<bool> C.TrueAsync()""
+    IL_0130:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_0135:  stloc.s    V_9
+    IL_0137:  ldloca.s   V_9
+    IL_0139:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_013e:  brtrue.s   IL_0183
+    IL_0140:  ldarg.0
+    IL_0141:  ldc.i4.1
+    IL_0142:  dup
+    IL_0143:  stloc.0
+    IL_0144:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_0149:  ldarg.0
+    IL_014a:  ldloc.s    V_9
+    IL_014c:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_0151:  ldarg.0
+    IL_0152:  stloc.s    V_6
+    IL_0154:  ldarg.0
+    IL_0155:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_015a:  ldloca.s   V_9
+    IL_015c:  ldloca.s   V_6
+    IL_015e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<ExceptionFilterBroken>d__1)""
+    IL_0163:  nop
+    IL_0164:  leave.s    IL_01d6
+    IL_0166:  ldarg.0
+    IL_0167:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_016c:  stloc.s    V_9
+    IL_016e:  ldarg.0
+    IL_016f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_0174:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_017a:  ldarg.0
+    IL_017b:  ldc.i4.m1
+    IL_017c:  dup
+    IL_017d:  stloc.0
+    IL_017e:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_0183:  ldarg.0
+    IL_0184:  ldloca.s   V_9
+    IL_0186:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_018b:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__5""
+    IL_0190:  ldarg.0
+    IL_0191:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__5""
+    IL_0196:  stloc.1
+    IL_0197:  leave.s    IL_01c1
+    IL_0199:  ldarg.0
+    IL_019a:  ldnull
+    IL_019b:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+    IL_01a0:  ldarg.0
+    IL_01a1:  ldnull
+    IL_01a2:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+    IL_01a7:  leave.s    IL_01c1
+  }
+  catch System.Exception
+  {
+    IL_01a9:  stloc.2
+    IL_01aa:  ldarg.0
+    IL_01ab:  ldc.i4.s   -2
+    IL_01ad:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_01b2:  ldarg.0
+    IL_01b3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_01b8:  ldloc.2
+    IL_01b9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetException(System.Exception)""
+    IL_01be:  nop
+    IL_01bf:  leave.s    IL_01d6
+  }
+  IL_01c1:  ldarg.0
+  IL_01c2:  ldc.i4.s   -2
+  IL_01c4:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+  IL_01c9:  ldarg.0
+  IL_01ca:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+  IL_01cf:  ldloc.1
+  IL_01d0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetResult(bool)""
+  IL_01d5:  nop
+  IL_01d6:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(59050, "https://github.com/dotnet/roslyn/issues/59050")]
+        public void IsPatternInExceptionFilterInAsyncMethod()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+static class C
+{
+    static async Task Main()
+    {
+        System.Console.Write(await ExceptionFilterBroken());
+    }
+
+    public static async Task<bool> ExceptionFilterBroken()
+    {
+        try
+        {
+            await ThrowException();
+            return true;
+        }
+        catch (Exception ex) when (ex.InnerException is { Message: ""bad dog"" })
+        {
+            return await TrueAsync();
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    static Task ThrowException() => throw new Exception("""", new Exception(""bad dog""));
+    static Task<bool> TrueAsync() => Task.FromResult(true);
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+        }
+
+        [Fact, WorkItem(59050, "https://github.com/dotnet/roslyn/issues/59050")]
+        public void IsPatternInExceptionFilterInAsyncMethod_ExecuteVariousCodePaths()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(await C.ExceptionFilterBroken(() => { }));
+Console.Write(await C.ExceptionFilterBroken(() => C.ThrowException()));
+Console.Write(await C.ExceptionFilterBroken(() => throw new Exception()));
+
+public static class C
+{
+    public static async Task<int> ExceptionFilterBroken(Action a)
+    {
+        try
+        {
+            await Task.Yield();
+            a();
+            return 0;
+        }
+        catch (Exception ex) when (ex.InnerException is { Message: ""bad dog"" or ""dog bad"" })
+        {
+            return await OneAsync();
+        }
+        catch
+        {
+            return 2;
+        }
+    }
+
+    public static void ThrowException() => throw new Exception("""", new Exception(""bad dog""));
+    public static Task<int> OneAsync() => Task.FromResult(1);
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "012");
+        }
+
+        [Fact, WorkItem(59050, "https://github.com/dotnet/roslyn/issues/59050")]
+        public void IsPatternInExceptionFilterInAsyncMethod_Spilled_NoExceptionLocal()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+static class C
+{
+    static async Task Main()
+    {
+        System.Console.Write(await ExceptionFilterBroken());
+    }
+
+    public static async Task<bool> ExceptionFilterBroken()
+    {
+        try
+        {
+            await ThrowException();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                throw new Exception();
+            }
+            catch (Exception) when (ex.InnerException is { Message: ""bad dog"" or ""dog bad"" })
+            {
+                return await TrueAsync();
+            }
+        }
+    }
+
+    static Task ThrowException() => throw new Exception("""", new Exception(""bad dog""));
+    static Task<bool> TrueAsync() => Task.FromResult(true);
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.<ExceptionFilterBroken>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+ {
+  // Code size      527 (0x20f)
+  .maxstack  3
+  .locals init (int V_0,
+                bool V_1,
+                System.Runtime.CompilerServices.TaskAwaiter V_2,
+                C.<ExceptionFilterBroken>d__1 V_3,
+                System.Exception V_4,
+                int V_5,
+                System.Exception V_6,
+                string V_7,
+                bool V_8,
+                System.Exception V_9,
+                System.Runtime.CompilerServices.TaskAwaiter<bool> V_10)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0012
+    IL_000a:  br.s       IL_000c
+    IL_000c:  ldloc.0
+    IL_000d:  ldc.i4.1
+    IL_000e:  beq.s      IL_0014
+    IL_0010:  br.s       IL_0019
+    IL_0012:  br.s       IL_0021
+    IL_0014:  br         IL_0192
+    IL_0019:  nop
+    IL_001a:  ldarg.0
+    IL_001b:  ldc.i4.0
+    IL_001c:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+    IL_0021:  nop
+    .try
+    {
+      IL_0022:  ldloc.0
+      IL_0023:  brfalse.s  IL_0027
+      IL_0025:  br.s       IL_0029
+      IL_0027:  br.s       IL_0065
+      IL_0029:  nop
+      IL_002a:  call       ""System.Threading.Tasks.Task C.ThrowException()""
+      IL_002f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+      IL_0034:  stloc.2
+      IL_0035:  ldloca.s   V_2
+      IL_0037:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+      IL_003c:  brtrue.s   IL_0081
+      IL_003e:  ldarg.0
+      IL_003f:  ldc.i4.0
+      IL_0040:  dup
+      IL_0041:  stloc.0
+      IL_0042:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+      IL_0047:  ldarg.0
+      IL_0048:  ldloc.2
+      IL_0049:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_004e:  ldarg.0
+      IL_004f:  stloc.3
+      IL_0050:  ldarg.0
+      IL_0051:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+      IL_0056:  ldloca.s   V_2
+      IL_0058:  ldloca.s   V_3
+      IL_005a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ExceptionFilterBroken>d__1)""
+      IL_005f:  nop
+      IL_0060:  leave      IL_020e
+      IL_0065:  ldarg.0
+      IL_0066:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_006b:  stloc.2
+      IL_006c:  ldarg.0
+      IL_006d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+      IL_0078:  ldarg.0
+      IL_0079:  ldc.i4.m1
+      IL_007a:  dup
+      IL_007b:  stloc.0
+      IL_007c:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+      IL_0081:  ldloca.s   V_2
+      IL_0083:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+      IL_0088:  nop
+      IL_0089:  ldc.i4.1
+      IL_008a:  stloc.1
+      IL_008b:  leave      IL_01f9
+    }
+    catch System.Exception
+    {
+      IL_0090:  stloc.s    V_4
+      IL_0092:  ldarg.0
+      IL_0093:  ldloc.s    V_4
+      IL_0095:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+      IL_009a:  ldarg.0
+      IL_009b:  ldc.i4.1
+      IL_009c:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+      IL_00a1:  leave.s    IL_00a3
+    }
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+    IL_00a9:  stloc.s    V_5
+    IL_00ab:  ldloc.s    V_5
+    IL_00ad:  ldc.i4.1
+    IL_00ae:  beq.s      IL_00b5
+    IL_00b0:  br         IL_01d6
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+    IL_00bc:  castclass  ""System.Exception""
+    IL_00c1:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+    IL_00c6:  nop
+    IL_00c7:  ldarg.0
+    IL_00c8:  ldc.i4.0
+    IL_00c9:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__5""
+    .try
+    {
+      IL_00ce:  nop
+      IL_00cf:  newobj     ""System.Exception..ctor()""
+      IL_00d4:  throw
+    }
+    filter
+    {
+      IL_00d5:  isinst     ""System.Exception""
+      IL_00da:  dup
+      IL_00db:  brtrue.s   IL_00e1
+      IL_00dd:  pop
+      IL_00de:  ldc.i4.0
+      IL_00df:  br.s       IL_013c
+      IL_00e1:  stloc.s    V_9
+      IL_00e3:  ldarg.0
+      IL_00e4:  ldloc.s    V_9
+      IL_00e6:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__4""
+      IL_00eb:  ldarg.0
+      IL_00ec:  ldfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+      IL_00f1:  callvirt   ""System.Exception System.Exception.InnerException.get""
+      IL_00f6:  stloc.s    V_6
+      IL_00f8:  ldloc.s    V_6
+      IL_00fa:  brfalse.s  IL_0128
+      IL_00fc:  ldloc.s    V_6
+      IL_00fe:  callvirt   ""string System.Exception.Message.get""
+      IL_0103:  stloc.s    V_7
+      IL_0105:  ldloc.s    V_7
+      IL_0107:  ldstr      ""bad dog""
+      IL_010c:  call       ""bool string.op_Equality(string, string)""
+      IL_0111:  brtrue.s   IL_0123
+      IL_0113:  ldloc.s    V_7
+      IL_0115:  ldstr      ""dog bad""
+      IL_011a:  call       ""bool string.op_Equality(string, string)""
+      IL_011f:  brtrue.s   IL_0123
+      IL_0121:  br.s       IL_0128
+      IL_0123:  ldc.i4.1
+      IL_0124:  stloc.s    V_8
+      IL_0126:  br.s       IL_012b
+      IL_0128:  ldc.i4.0
+      IL_0129:  stloc.s    V_8
+      IL_012b:  ldarg.0
+      IL_012c:  ldloc.s    V_8
+      IL_012e:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
+      IL_0133:  ldarg.0
+      IL_0134:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
+      IL_0139:  ldc.i4.0
+      IL_013a:  cgt.un
+      IL_013c:  endfilter
+    }  // end filter
+    {  // handler
+      IL_013e:  pop
+      IL_013f:  ldarg.0
+      IL_0140:  ldc.i4.1
+      IL_0141:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__5""
+      IL_0146:  leave.s    IL_0148
+    }
+    IL_0148:  ldarg.0
+    IL_0149:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>s__5""
+    IL_014e:  stloc.s    V_5
+    IL_0150:  ldloc.s    V_5
+    IL_0152:  ldc.i4.1
+    IL_0153:  beq.s      IL_0157
+    IL_0155:  br.s       IL_01c5
+    IL_0157:  nop
+    IL_0158:  call       ""System.Threading.Tasks.Task<bool> C.TrueAsync()""
+    IL_015d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_0162:  stloc.s    V_10
+    IL_0164:  ldloca.s   V_10
+    IL_0166:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_016b:  brtrue.s   IL_01af
+    IL_016d:  ldarg.0
+    IL_016e:  ldc.i4.1
+    IL_016f:  dup
+    IL_0170:  stloc.0
+    IL_0171:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_0176:  ldarg.0
+    IL_0177:  ldloc.s    V_10
+    IL_0179:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_017e:  ldarg.0
+    IL_017f:  stloc.3
+    IL_0180:  ldarg.0
+    IL_0181:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_0186:  ldloca.s   V_10
+    IL_0188:  ldloca.s   V_3
+    IL_018a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<ExceptionFilterBroken>d__1)""
+    IL_018f:  nop
+    IL_0190:  leave.s    IL_020e
+    IL_0192:  ldarg.0
+    IL_0193:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_0198:  stloc.s    V_10
+    IL_019a:  ldarg.0
+    IL_019b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_01a0:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_01a6:  ldarg.0
+    IL_01a7:  ldc.i4.m1
+    IL_01a8:  dup
+    IL_01a9:  stloc.0
+    IL_01aa:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_01af:  ldarg.0
+    IL_01b0:  ldloca.s   V_10
+    IL_01b2:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_01b7:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__7""
+    IL_01bc:  ldarg.0
+    IL_01bd:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__7""
+    IL_01c2:  stloc.1
+    IL_01c3:  leave.s    IL_01f9
+    IL_01c5:  ldarg.0
+    IL_01c6:  ldnull
+    IL_01c7:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__4""
+    IL_01cc:  nop
+    IL_01cd:  ldarg.0
+    IL_01ce:  ldnull
+    IL_01cf:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+    IL_01d4:  br.s       IL_01d6
+    IL_01d6:  ldarg.0
+    IL_01d7:  ldnull
+    IL_01d8:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+    IL_01dd:  leave.s    IL_01f9
+  }
+  catch System.Exception
+  {
+    IL_01df:  stloc.s    V_6
+    IL_01e1:  ldarg.0
+    IL_01e2:  ldc.i4.s   -2
+    IL_01e4:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_01e9:  ldarg.0
+    IL_01ea:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_01ef:  ldloc.s    V_6
+    IL_01f1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetException(System.Exception)""
+    IL_01f6:  nop
+    IL_01f7:  leave.s    IL_020e
+  }
+  IL_01f9:  ldarg.0
+  IL_01fa:  ldc.i4.s   -2
+  IL_01fc:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+  IL_0201:  ldarg.0
+  IL_0202:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+  IL_0207:  ldloc.1
+  IL_0208:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetResult(bool)""
+  IL_020d:  nop
+  IL_020e:  ret
+}
+");
         }
     }
 }

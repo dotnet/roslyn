@@ -1,20 +1,33 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddParameter;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 {
     public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AddParameterTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddParameterCodeFixProvider());
 
@@ -480,7 +493,7 @@ class D
 @"
 class C
 {
-    public C(object p, int i) { }
+    public C(object value, int i) { }
 }
 
 class D
@@ -1055,7 +1068,6 @@ class C1
         M1(1, 2);
     }
 }");
-            //Should fix to: void M1<T>(T arg, T v) { }
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1186,7 +1198,7 @@ class C1
     @"
 class C1
 {
-    void M1((int, int) t1, (int, string) p)
+    void M1((int, int) t1, (int, string) value)
     {
     }
     void M2()
@@ -1627,6 +1639,68 @@ namespace N1
     partial class C1
     {
         partial void PartialM(int v) { }
+        void M1()
+        {
+            PartialM(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_ExtendedPartialMethods()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM();
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM() { }
+        void M1()
+        {
+            [|PartialM|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix0 =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v);
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        public partial void PartialM(int v) { }
         void M1()
         {
             PartialM(1);
@@ -2547,6 +2621,312 @@ class Rsrp
 }
 ";
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(39270, "https://github.com/dotnet/roslyn/issues/39270")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestWithArgThatHasImplicitConversionToParamType1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        [|MyFunc|](param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1) { }
+}",
+@"
+class BaseClass { }
+
+class MyClass : BaseClass
+{
+    void TestFunc()
+    {
+        MyClass param1 = new MyClass();
+        int newparam = 1;
+
+        MyFunc(param1, newparam);
+    }
+
+    void MyFunc(BaseClass param1, int newparam) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().[|GetEnumerator|](1);
+        foreach (var a in new object());
+    }
+}}";
+            var fix =
+@"
+using System.Collections.Generic;
+namespace N {
+static class Extensions
+{
+    public static IEnumerator<int> GetEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().GetEnumerator(1);
+        foreach (var a in new object());
+    }
+}}";
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestOnExtensionGetAsyncEnumerator()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().[|GetAsyncEnumerator|](1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            var fix =
+@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace N {
+static class Extensions
+{
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    async Task M1()
+    {
+        new object().GetAsyncEnumerator(1);
+        await foreach (var a in new object());
+    }
+}}" + IAsyncEnumerable;
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
+        [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TopLevelStatement()
+        {
+            await TestInRegularAndScriptAsync(@"
+[|local|](1, 2, 3);
+
+void local(int x, int y)
+{
+}
+",
+@"
+[|local|](1, 2, 3);
+
+void local(int x, int y, int v)
+{
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TopLevelStatement_Nested()
+        {
+            await TestInRegularAndScriptAsync(@"
+void outer()
+{
+    [|local|](1, 2, 3);
+
+    void local(int x, int y)
+    {
+    }
+}
+",
+@"
+void outer()
+{
+    local(1, 2, 3);
+
+    void local(int x, int y, int v)
+    {
+    }
+}
+");
+        }
+
+        [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestAddParameter_ImplicitObjectCreation()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    C(int i) { }
+
+    void M()
+    {
+       C c = [||]new(1, 2);
+    }
+}",
+@"
+class C
+{
+    C(int i, int v) { }
+
+    void M()
+    {
+       C c = new(1, 2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(48042, "https://github.com/dotnet/roslyn/issues/48042")]
+        public async Task TestNamedArgOnExtensionMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+namespace r
+{
+    static class AbcExtensions
+    {
+        public static Abc Act(this Abc state, bool p = true) => state;
+    }
+    class Abc {
+        void Test()
+            => new Abc().Act([|param3|]: 123);
+    }
+}",
+@"
+namespace r
+{
+    static class AbcExtensions
+    {
+        public static Abc Act(this Abc state, bool p = true, int param3 = 0) => state;
+    }
+    class Abc {
+        void Test()
+            => new Abc().Act(param3: 123);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        public async Task TestPositionalRecord()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+record R(int A);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+record R(int A, string b);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        public async Task TestPositionalRecordStruct()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+record struct R(int A);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+record struct R(int A, string b);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record Test();
+", @"new Test(""repro"");
+
+record Test(string V);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions_RecordStruct()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record struct Test();
+", @"new Test(""repro"");
+
+record struct Test(string V);
+");
         }
     }
 }

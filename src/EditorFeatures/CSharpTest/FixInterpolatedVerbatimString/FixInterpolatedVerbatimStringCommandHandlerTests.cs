@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -32,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         private static (string quoteCharSnapshotText, int quoteCharCaretPosition) TypeQuoteChar(TestWorkspace workspace)
         {
             var view = workspace.Documents.Single().GetTextView();
-            var commandHandler = new FixInterpolatedVerbatimStringCommandHandler();
+            var commandHandler = workspace.ExportProvider.GetCommandHandler<FixInterpolatedVerbatimStringCommandHandler>(nameof(FixInterpolatedVerbatimStringCommandHandler));
 
-            string quoteCharSnapshotText = default;
+            string quoteCharSnapshotText = null;
             int quoteCharCaretPosition = default;
 
             commandHandler.ExecuteCommand(new TypeCharCommandArgs(view, view.TextBuffer, '"'),
@@ -53,47 +57,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
         private static void TestHandled(string inputMarkup, string expectedOutputMarkup)
         {
-            using (var workspace = CreateTestWorkspace(inputMarkup))
-            {
-                var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
-                var view = workspace.Documents.Single().GetTextView();
+            using var workspace = CreateTestWorkspace(inputMarkup);
+            var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
+            var view = workspace.Documents.Single().GetTextView();
 
-                MarkupTestFile.GetSpans(expectedOutputMarkup,
-                    out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(expectedOutputMarkup,
+                out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
-                Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
+            Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
 
-                var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
-                history.Undo(count: 1);
+            var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
+            history.Undo(count: 1);
 
-                // Ensure that after undo, the ordering fix is undone but the quote remains inserted
-                Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
-            }
+            // Ensure that after undo, the ordering fix is undone but the quote remains inserted
+            Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
         }
 
         private static void TestNotHandled(string inputMarkup)
         {
-            using (var workspace = CreateTestWorkspace(inputMarkup))
-            {
-                var originalView = workspace.Documents.Single().GetTextView();
-                var originalSnapshotText = originalView.TextBuffer.CurrentSnapshot.GetText();
-                var originalCaretPosition = originalView.Caret.Position.BufferPosition.Position;
+            using var workspace = CreateTestWorkspace(inputMarkup);
+            var originalView = workspace.Documents.Single().GetTextView();
+            var originalSnapshotText = originalView.TextBuffer.CurrentSnapshot.GetText();
+            var originalCaretPosition = originalView.Caret.Position.BufferPosition.Position;
 
-                var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
-                var view = workspace.Documents.Single().GetTextView();
+            var (quoteCharSnapshotText, quoteCharCaretPosition) = TypeQuoteChar(workspace);
+            var view = workspace.Documents.Single().GetTextView();
 
-                Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
+            Assert.Equal(quoteCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(quoteCharCaretPosition, view.Caret.Position.BufferPosition.Position);
 
-                var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
-                history.Undo(count: 1);
+            var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
+            history.Undo(count: 1);
 
-                // Ensure that after undo, the quote is removed because the command made no changes
-                Assert.Equal(originalSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                Assert.Equal(originalCaretPosition, view.Caret.Position.BufferPosition.Position);
-            }
+            // Ensure that after undo, the quote is removed because the command made no changes
+            Assert.Equal(originalSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(originalCaretPosition, view.Caret.Position.BufferPosition.Position);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
@@ -156,22 +156,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
-        {
-            TestNotHandled(@"@$[||]");
-        }
+            => TestHandled(@"@$[||]", @"$@""[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterDollarSign()
-        {
-            TestNotHandled(@"$[||]");
-        }
+            => TestNotHandled(@"$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFile()
-        {
-            TestNotHandled(@"[||]");
-        }
+            => TestNotHandled(@"[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSignEndOfFile()

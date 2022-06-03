@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -102,14 +106,14 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var field = a.GetMembers("Field")[0] as FieldSymbol;
-            var fieldType = field.Type.TypeSymbol as NamedTypeSymbol;
+            var fieldType = field.Type as NamedTypeSymbol;
             Assert.Equal(TypeKind.Delegate, fieldType.TypeKind);
             var invoke = fieldType.DelegateInvokeMethod;
             Assert.Equal(MethodKind.DelegateInvoke, invoke.MethodKind);
             var ctor = fieldType.InstanceConstructors[0];
             Assert.Equal(2, ctor.Parameters.Length);
-            Assert.Equal(comp.GetSpecialType(SpecialType.System_Object), ctor.Parameters[0].Type.TypeSymbol);
-            Assert.Equal(comp.GetSpecialType(SpecialType.System_IntPtr), ctor.Parameters[1].Type.TypeSymbol);
+            Assert.Equal(comp.GetSpecialType(SpecialType.System_Object), ctor.Parameters[0].Type);
+            Assert.Equal(comp.GetSpecialType(SpecialType.System_IntPtr), ctor.Parameters[1].Type);
         }
 
         [WorkItem(537188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
@@ -121,7 +125,7 @@ class A {
 
             var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyDel", 0).Single();
-            Assert.NotEqual(null, v);
+            Assert.NotNull(v);
             Assert.Equal(SymbolKind.NamedType, v.Kind);
             Assert.Equal(TypeKind.Delegate, v.TypeKind);
             Assert.True(v.IsReferenceType);
@@ -156,29 +160,29 @@ namespace System
             var beginInvoke = myDel.GetMembers("BeginInvoke").Single() as MethodSymbol;
             Assert.Equal(invoke.Parameters.Length + 2, beginInvoke.Parameters.Length);
             Assert.Equal(TypeKind.Interface, beginInvoke.ReturnType.TypeKind);
-            Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.ToTestDisplayString());
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
-                Assert.Equal(invoke.Parameters[i].Type.TypeSymbol, beginInvoke.Parameters[i].Type.TypeSymbol);
+                Assert.Equal(invoke.Parameters[i].Type, beginInvoke.Parameters[i].Type);
                 Assert.Equal(invoke.Parameters[i].RefKind, beginInvoke.Parameters[i].RefKind);
             }
-            var lastParameterType = beginInvoke.Parameters[invoke.Parameters.Length].Type.TypeSymbol;
+            var lastParameterType = beginInvoke.Parameters[invoke.Parameters.Length].Type;
             Assert.Equal("System.AsyncCallback", lastParameterType.ToTestDisplayString());
             Assert.Equal(SpecialType.System_AsyncCallback, lastParameterType.SpecialType);
-            Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.ToTestDisplayString());
 
             var endInvoke = myDel.GetMembers("EndInvoke").Single() as MethodSymbol;
-            Assert.Equal(invoke.ReturnType.TypeSymbol, endInvoke.ReturnType.TypeSymbol);
+            Assert.Equal(invoke.ReturnType, endInvoke.ReturnType);
             int k = 0;
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
                 if (invoke.Parameters[i].RefKind != RefKind.None)
                 {
-                    Assert.Equal(invoke.Parameters[i].Type.TypeSymbol, endInvoke.Parameters[k].Type.TypeSymbol);
+                    Assert.Equal(invoke.Parameters[i].Type, endInvoke.Parameters[k].Type);
                     Assert.Equal(invoke.Parameters[i].RefKind, endInvoke.Parameters[k++].RefKind);
                 }
             }
-            lastParameterType = endInvoke.Parameters[k++].Type.TypeSymbol;
+            lastParameterType = endInvoke.Parameters[k++].Type;
             Assert.Equal("System.IAsyncResult", lastParameterType.ToTestDisplayString());
             Assert.Equal(SpecialType.System_IAsyncResult, lastParameterType.SpecialType);
             Assert.Equal(k, endInvoke.Parameters.Length);
@@ -207,7 +211,7 @@ namespace System
             Assert.Equal("Q", d.TypeParameters[0].Name);
             var q = d.TypeParameters[0];
             Assert.Equal(q.ContainingSymbol, d);
-            Assert.Equal(d.DelegateInvokeMethod.Parameters[0].Type.TypeSymbol, q);
+            Assert.Equal(d.DelegateInvokeMethod.Parameters[0].Type, q);
 
             // same as type parameter
             Assert.Equal(1, d.TypeArguments().Length);
@@ -313,9 +317,12 @@ class Program
   }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (7,27): error CS0428: Cannot convert method group 'Main' to non-delegate type 'System.MulticastDelegate'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.MulticastDelegate"));
+
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(538706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538706")]
@@ -770,18 +777,18 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             ExpressionSyntax lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
-            var lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+            var lambda = (IMethodSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
+            Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
 
             lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
-            lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+            lambda = (IMethodSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
+            Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
         }
     }
 }

@@ -1,13 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,16 +29,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     {
         private class MockFindUsagesContext : FindUsagesContext
         {
-            public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
+            public readonly List<DefinitionItem> Result = new();
 
-            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public MockFindUsagesContext()
+            {
+            }
+
+            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(FindUsagesOptions.Default);
+
+            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Result)
                 {
                     Result.Add(definition);
                 }
 
-                return Task.CompletedTask;
+                return default;
             }
         }
 
@@ -42,45 +54,45 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             private readonly FindUsagesContext _context;
 
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
-            {
-                _context = context;
-            }
+                => _context = context;
 
-            public FindUsagesContext StartSearch(string title, bool supportsReferences)
-                => _context;
+            public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
+                => (_context, CancellationToken.None);
 
             public void ClearAll()
             {
             }
+
+            public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => (_context, CancellationToken.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public async Task TestFindReferencesAsynchronousCall()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }"))
-            {
-                var context = new MockFindUsagesContext();
-                var presenter = new MockStreamingFindUsagesPresenter(context);
+            using var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }");
+            var context = new MockFindUsagesContext();
+            var presenter = new MockStreamingFindUsagesPresenter(context);
 
-                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
-                var handler = new FindReferencesCommandHandler(
-                    SpecializedCollections.SingletonEnumerable(new Lazy<IStreamingFindUsagesPresenter>(() => presenter)),
-                    listenerProvider);
+            var handler = new FindReferencesCommandHandler(
+                presenter,
+                workspace.GlobalOptions,
+                listenerProvider);
 
-                var textView = workspace.Documents[0].GetTextView();
-                textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
-                handler.ExecuteCommand(new FindReferencesCommandArgs(
-                    textView,
-                    textView.TextBuffer), TestCommandExecutionContext.Create());
+            var textView = workspace.Documents[0].GetTextView();
+            textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
+            handler.ExecuteCommand(new FindReferencesCommandArgs(
+                textView,
+                textView.TextBuffer), TestCommandExecutionContext.Create());
 
-                var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
-                await waiter.CreateWaitTask();
-                AssertResult(context.Result, "C.C()", "class C");
-            }
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
+            await waiter.ExpeditedWaitAsync();
+            AssertResult(context.Result, "C.C()", "class C");
         }
 
-        private void AssertResult(
+        private static void AssertResult(
             List<DefinitionItem> result,
             params string[] definitions)
         {

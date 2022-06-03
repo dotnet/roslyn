@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -207,8 +211,8 @@ public class C
             var sourceAssembly = comp.SourceAssembly;
             var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);
 
-            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type.TypeSymbol;
-            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type.TypeSymbol;
+            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type;
+            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type;
             var distinguisher = new SymbolDistinguisher(comp, sourceType, referencedType);
             // NOTE: Locations come from element types.
             Assert.Equal("C[] [file.cs(2)]", distinguisher.First.ToString());
@@ -232,8 +236,8 @@ unsafe public struct S
             var sourceAssembly = comp.SourceAssembly;
             var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);
 
-            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type.TypeSymbol;
-            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type.TypeSymbol;
+            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type;
+            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type;
             var distinguisher = new SymbolDistinguisher(comp, sourceType, referencedType);
             // NOTE: Locations come from element types.
             Assert.Equal("S* [file.cs(2)]", distinguisher.First.ToString());

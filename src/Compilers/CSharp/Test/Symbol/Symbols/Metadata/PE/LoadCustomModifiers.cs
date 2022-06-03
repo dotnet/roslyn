@@ -1,11 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -17,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var modifiersModule = assemblies[0].Modules[0];
@@ -27,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             FieldSymbol f0 = modifiers.GetMembers("F0").OfType<FieldSymbol>().Single();
 
-            Assert.Equal(1, f0.Type.CustomModifiers.Length);
+            Assert.Equal(1, f0.TypeWithAnnotations.CustomModifiers.Length);
 
-            var f0Mod = f0.Type.CustomModifiers[0];
+            var f0Mod = f0.TypeWithAnnotations.CustomModifiers[0];
 
             Assert.True(f0Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", f0Mod.Modifier.ToTestDisplayString());
@@ -47,60 +54,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             MethodSymbol m7 = modifiers.GetMembers("F7").OfType<MethodSymbol>().Single();
 
-            Assert.Equal(0, m1.ReturnType.CustomModifiers.Length);
+            Assert.Equal(0, m1.ReturnTypeWithAnnotations.CustomModifiers.Length);
 
-            Assert.Equal(1, p1.Type.CustomModifiers.Length);
+            Assert.Equal(1, p1.TypeWithAnnotations.CustomModifiers.Length);
 
-            var p1Mod = p1.Type.CustomModifiers[0];
+            var p1Mod = p1.TypeWithAnnotations.CustomModifiers[0];
 
             Assert.True(p1Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p1Mod.Modifier.ToTestDisplayString());
 
-            Assert.Equal(2, p2.Type.CustomModifiers.Length);
+            Assert.Equal(2, p2.TypeWithAnnotations.CustomModifiers.Length);
 
-            foreach (var p2Mod in p2.Type.CustomModifiers)
+            foreach (var p2Mod in p2.TypeWithAnnotations.CustomModifiers)
             {
                 Assert.True(p2Mod.IsOptional);
                 Assert.Equal("System.Runtime.CompilerServices.IsConst", p2Mod.Modifier.ToTestDisplayString());
             }
 
-            Assert.Equal(SymbolKind.ErrorType, p4.Type.Kind);
+            Assert.Equal("System.Int32 modopt(System.Int32) modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsConst) p", modifiers.GetMembers("F3").OfType<MethodSymbol>().Single().Parameters[0].ToTestDisplayString());
+
+            Assert.Equal("System.Int32 modreq(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsConst) p", p4.ToTestDisplayString());
+            Assert.True(p4.HasUnsupportedMetadata);
+            Assert.True(p4.ContainingSymbol.HasUnsupportedMetadata);
 
             Assert.True(m5.ReturnsVoid);
-            Assert.Equal(1, m5.ReturnType.CustomModifiers.Length);
+            Assert.Equal(1, m5.ReturnTypeWithAnnotations.CustomModifiers.Length);
 
-            var m5Mod = m5.ReturnType.CustomModifiers[0];
+            var m5Mod = m5.ReturnTypeWithAnnotations.CustomModifiers[0];
             Assert.True(m5Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", m5Mod.Modifier.ToTestDisplayString());
 
-            Assert.Equal(0, p5.Type.CustomModifiers.Length);
+            Assert.Equal(0, p5.TypeWithAnnotations.CustomModifiers.Length);
 
-            ArrayTypeSymbol p5Type = (ArrayTypeSymbol)p5.Type.TypeSymbol;
+            ArrayTypeSymbol p5Type = (ArrayTypeSymbol)p5.Type;
 
-            Assert.Equal("System.Int32", p5Type.ElementType.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", p5Type.ElementType.ToTestDisplayString());
 
-            Assert.Equal(1, p5Type.ElementType.CustomModifiers.Length);
-            var p5TypeMod = p5Type.ElementType.CustomModifiers[0];
+            Assert.Equal(1, p5Type.ElementTypeWithAnnotations.CustomModifiers.Length);
+            var p5TypeMod = p5Type.ElementTypeWithAnnotations.CustomModifiers[0];
 
             Assert.True(p5TypeMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p5TypeMod.Modifier.ToTestDisplayString());
 
-            Assert.Equal(0, p6.Type.CustomModifiers.Length);
+            Assert.Equal(0, p6.TypeWithAnnotations.CustomModifiers.Length);
 
-            PointerTypeSymbol p6Type = (PointerTypeSymbol)p6.Type.TypeSymbol;
+            PointerTypeSymbol p6Type = (PointerTypeSymbol)p6.Type;
 
-            Assert.Equal("System.Int32", p6Type.PointedAtType.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", p6Type.PointedAtType.ToTestDisplayString());
 
-            Assert.Equal(1, p6Type.PointedAtType.CustomModifiers.Length);
-            var p6TypeMod = p6Type.PointedAtType.CustomModifiers[0];
+            Assert.Equal(1, p6Type.PointedAtTypeWithAnnotations.CustomModifiers.Length);
+            var p6TypeMod = p6Type.PointedAtTypeWithAnnotations.CustomModifiers[0];
 
             Assert.True(p6TypeMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", p6TypeMod.Modifier.ToTestDisplayString());
 
             Assert.False(m7.ReturnsVoid);
-            Assert.Equal(1, m7.ReturnType.CustomModifiers.Length);
+            Assert.Equal(1, m7.ReturnTypeWithAnnotations.CustomModifiers.Length);
 
-            var m7Mod = m7.ReturnType.CustomModifiers[0];
+            var m7Mod = m7.ReturnTypeWithAnnotations.CustomModifiers[0];
             Assert.True(m7Mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsConst", m7Mod.Modifier.ToTestDisplayString());
         }
@@ -111,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -141,23 +152,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
 
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("PropertyCustomModifierCombinations");
             var property = @class.GetMember<PropertySymbol>("Property11");
-            var propertyTypeCustomModifier = property.Type.CustomModifiers.Single();
+            var propertyTypeCustomModifier = property.TypeWithAnnotations.CustomModifiers.Single();
 
             Assert.Equal("System.Runtime.CompilerServices.IsConst", propertyTypeCustomModifier.Modifier.ToTestDisplayString());
             Assert.True(propertyTypeCustomModifier.IsOptional);
 
-            var propertyType = property.Type.TypeSymbol;
+            var propertyType = property.Type;
             Assert.Equal(TypeKind.Array, propertyType.TypeKind);
 
             var arrayPropertyType = (ArrayTypeSymbol)propertyType;
-            var arrayPropertyTypeCustomModifiers = arrayPropertyType.ElementType.CustomModifiers.Single();
+            var arrayPropertyTypeCustomModifiers = arrayPropertyType.ElementTypeWithAnnotations.CustomModifiers.Single();
             Assert.Equal("System.Runtime.CompilerServices.IsConst", arrayPropertyTypeCustomModifiers.Modifier.ToTestDisplayString());
             Assert.True(arrayPropertyTypeCustomModifiers.IsOptional);
         }
@@ -168,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -199,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -218,17 +229,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
 
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("EventCustomModifierCombinations");
 
-            Assert.True(@class.GetMember<EventSymbol>("Event11").Type.TypeSymbol.IsErrorType()); //Can't have modopt on event type
-            Assert.Equal(1, @class.GetMember<EventSymbol>("Event10").Type.TypeSymbol.CustomModifierCount());
-            Assert.True(@class.GetMember<EventSymbol>("Event01").Type.TypeSymbol.IsErrorType()); //Can't have modopt on event type
-            Assert.Equal(0, @class.GetMember<EventSymbol>("Event00").Type.TypeSymbol.CustomModifierCount());
+            Assert.True(@class.GetMember<EventSymbol>("Event11").Type.IsErrorType()); //Can't have modopt on event type
+            Assert.Equal(1, @class.GetMember<EventSymbol>("Event10").Type.CustomModifierCount());
+            Assert.True(@class.GetMember<EventSymbol>("Event01").Type.IsErrorType()); //Can't have modopt on event type
+            Assert.Equal(0, @class.GetMember<EventSymbol>("Event00").Type.CustomModifierCount());
         }
 
         [Fact]
@@ -237,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
                     TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -258,8 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             int count = 0;
 
-            count += field.Type.CustomModifiers.Length;
-            count += field.Type.TypeSymbol.CustomModifierCount();
+            count += field.TypeWithAnnotations.CustomModifiers.Length;
+            count += field.Type.CustomModifierCount();
 
             return count;
         }

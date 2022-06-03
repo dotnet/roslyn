@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -145,7 +148,6 @@ a
 ";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected);
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected);
-
         }
 
         [Fact]
@@ -333,39 +335,47 @@ class C
             });
 
             vd.VerifyPdb("C.M", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""M"" parameterNames=""disposable"">
-      <customDebugInfo>
-        <forwardIterator name=""&lt;M&gt;d__3"" />
-        <encLocalSlotMap>
-          <slot kind=""6"" offset=""11"" />
-          <slot kind=""8"" offset=""11"" />
-          <slot kind=""0"" offset=""11"" />
-          <slot kind=""4"" offset=""53"" />
-          <slot kind=""6"" offset=""98"" />
-          <slot kind=""8"" offset=""98"" />
-          <slot kind=""0"" offset=""98"" />
-          <slot kind=""4"" offset=""151"" />
-          <slot kind=""4"" offset=""220"" />
-          <slot kind=""28"" offset=""261"" />
-          <slot kind=""28"" offset=""261"" ordinal=""1"" />
-          <slot kind=""28"" offset=""281"" />
-          <slot kind=""28"" offset=""281"" ordinal=""1"" />
-          <slot kind=""28"" offset=""281"" ordinal=""2"" />
-          <slot kind=""28"" offset=""261"" ordinal=""2"" />
-          <slot kind=""4"" offset=""307"" />
-          <slot kind=""4"" offset=""376"" />
-          <slot kind=""3"" offset=""410"" />
-          <slot kind=""2"" offset=""410"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-    </method>
-  </methods>
-</symbols>
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M"" parameterNames=""disposable"">
+          <customDebugInfo>
+            <forwardIterator name=""&lt;M&gt;d__3"" />
+            <encLocalSlotMap>
+              <slot kind=""6"" offset=""11"" />
+              <slot kind=""8"" offset=""11"" />
+              <slot kind=""0"" offset=""11"" />
+              <slot kind=""4"" offset=""53"" />
+              <slot kind=""6"" offset=""98"" />
+              <slot kind=""8"" offset=""98"" />
+              <slot kind=""0"" offset=""98"" />
+              <slot kind=""4"" offset=""151"" />
+              <slot kind=""4"" offset=""220"" />
+              <slot kind=""28"" offset=""261"" />
+              <slot kind=""28"" offset=""261"" ordinal=""1"" />
+              <slot kind=""28"" offset=""261"" ordinal=""2"" />
+              <slot kind=""28"" offset=""281"" />
+              <slot kind=""28"" offset=""281"" ordinal=""1"" />
+              <slot kind=""28"" offset=""281"" ordinal=""2"" />
+              <slot kind=""4"" offset=""307"" />
+              <slot kind=""4"" offset=""376"" />
+              <slot kind=""3"" offset=""410"" />
+              <slot kind=""2"" offset=""410"" />
+            </encLocalSlotMap>
+            <encStateMachineStateMap>
+              <state number=""0"" offset=""74"" />
+              <state number=""1"" offset=""172"" />
+              <state number=""2"" offset=""281"" />
+              <state number=""3"" offset=""261"" />
+              <state number=""4"" offset=""241"" />
+              <state number=""5"" offset=""328"" />
+            </encStateMachineStateMap>
+          </customDebugInfo>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 
@@ -592,7 +602,6 @@ class Test
   IL_00be:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -880,7 +889,6 @@ class Test
   IL_0263:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -957,10 +965,10 @@ class Test
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var testClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var stateMachineClass = (NamedTypeSymbol)testClass.GetMembers().Single(s => s.Name.StartsWith("<Run>", StringComparison.Ordinal));
-            IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap", StringComparison.Ordinal)).Cast<FieldSymbol>().GroupBy(x => x.Type.TypeSymbol);
+            IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap", StringComparison.Ordinal)).Cast<FieldSymbol>().GroupBy(x => x.Type);
 
             Assert.Equal(1, spillFieldsByType.Count());
-            Assert.Equal(1, spillFieldsByType.Single(x => x.Key == comp.GetSpecialType(SpecialType.System_Int32)).Count());
+            Assert.Equal(1, spillFieldsByType.Single(x => TypeSymbol.Equals(x.Key, comp.GetSpecialType(SpecialType.System_Int32), TypeCompareKind.ConsiderEverything2)).Count());
         }
 
         [Fact]
@@ -1552,7 +1560,6 @@ class Test
 }";
             var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
-
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -1684,10 +1691,9 @@ class Test
   IL_0123:  ret
 }");
 
-
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -1879,7 +1885,6 @@ class Test
 }";
             var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
-
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2011,10 +2016,9 @@ class Test
   IL_0123:  ret
 }");
 
-
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2174,6 +2178,5 @@ class Test
   IL_014a:  ret
 }");
         }
-
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -217,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var fullName = "System.Boolean Microsoft.Runtime.Hosting.StrongNameHelpers.StrongNameSignatureGeneration(System.String pwzFilePath, System.String pwzKeyContainer, System.Byte[] bKeyBlob, System.Int32 cbKeyBlob, ref System.IntPtr ppbSignatureBlob, out System.Int32 pcbSignatureBlob)";
             Assert.Equal(fullName, member1.ToTestDisplayString());
-            Assert.Equal(0, member1.TypeArguments.Length);
+            Assert.Equal(0, member1.TypeArgumentsWithAnnotations.Length);
             Assert.Equal(0, member1.TypeParameters.Length);
             Assert.Equal(6, member1.Parameters.Length);
             Assert.Equal("Boolean", member1.ReturnType.Name);
@@ -262,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("String", p2.Type.Name);
             Assert.True(p2.IsDefinition);
             Assert.Equal("System.Byte[] bKeyBlob", p3.ToTestDisplayString());
-            Assert.Equal("System.Byte[]", p3.Type.TypeSymbol.ToTestDisplayString()); //array types do not have names - use ToTestDisplayString
+            Assert.Equal("System.Byte[]", p3.Type.ToTestDisplayString()); //array types do not have names - use ToTestDisplayString
 
             Assert.False(p1.IsStatic);
             Assert.False(p1.IsAbstract);
@@ -321,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(member1.ReturnsVoid);
             Assert.False(member2.IsVararg);
 
-            Assert.Equal(0, member1.TypeArguments.Length);
+            Assert.Equal(0, member1.TypeArgumentsWithAnnotations.Length);
             Assert.Equal(0, member2.TypeParameters.Length);
             Assert.Equal(2, member1.Parameters.Length);
             Assert.Equal("Boolean", member2.ReturnType.Name);
@@ -680,7 +684,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var options = TestOptions.DebugDll;
 
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
@@ -722,7 +726,7 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            options = TestOptions.DebugDll;
             var compilation = CreateCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
@@ -762,16 +766,16 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal);
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Internal);
             Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All);
+            options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
             Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Public);
+            options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Public);
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue);
+            options = TestOptions.DebugDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue);
             Assert.Equal((MetadataImportOptions)byte.MaxValue, options.MetadataImportOptions);
             options.VerifyErrors(expectedDiagnostics);
 
@@ -785,21 +789,21 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            var compilation = CreateCompilation("", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
+            var compilation = CreateCompilation("", options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.Empty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All));
+            compilation = compilation.WithOptions(TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.NotEmpty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue));
+            compilation = compilation.WithOptions(TestOptions.DebugDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));

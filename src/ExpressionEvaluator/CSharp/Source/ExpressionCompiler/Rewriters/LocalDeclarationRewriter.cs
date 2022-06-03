@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 // Generate assignment to local. The assignment will
                 // be rewritten in PlaceholderLocalRewriter.
-                var type = local.Type.TypeSymbol;
+                var type = local.Type;
                 var assignment = new BoundAssignmentOperator(
                     syntax,
                     new BoundLocal(syntax, local, constantValueOpt: null, type: type),
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
             var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor);
-            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type.TypeSymbol), null, typeType);
+            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
             bool hasCustomTypeInfoPayload;
             var customTypeInfoPayload = GetCustomTypeInfoPayload(local, syntax, compilation, out hasCustomTypeInfoPayload);
@@ -120,14 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (!hasCustomTypeInfoPayload)
             {
-                return new BoundDefaultExpression(syntax, guidConstructor.ContainingType);
+                return new BoundDefaultExpression(syntax, targetType: null, constantValueOpt: null, guidConstructor.ContainingType);
             }
 
             var value = ConstantValue.Create(CustomTypeInfo.PayloadTypeId.ToString());
             return new BoundObjectCreationExpression(
                 syntax,
                 guidConstructor,
-                null,
                 new BoundLiteral(syntax, value, guidConstructor.ContainingType));
         }
 
@@ -135,16 +138,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,
-                TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte)));
+                TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte)));
 
-            var bytes = compilation.GetCustomTypeInfoPayload(local.Type.TypeSymbol, customModifiersCount: 0, refKind: RefKind.None);
+            var bytes = compilation.GetCustomTypeInfoPayload(local.Type, customModifiersCount: 0, refKind: RefKind.None);
             hasCustomTypeInfoPayload = bytes != null;
             if (!hasCustomTypeInfoPayload)
             {
                 return new BoundLiteral(syntax, ConstantValue.Null, byteArrayType);
             }
 
-            var byteType = byteArrayType.ElementType.TypeSymbol;
+            var byteType = byteArrayType.ElementType;
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
 
             var numBytes = bytes.Count;
@@ -158,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create<BoundExpression>(lengthExpr),
-                new BoundArrayInitialization(syntax, initializerExprs.ToImmutableAndFree()),
+                new BoundArrayInitialization(syntax, isInferred: false, initializerExprs.ToImmutableAndFree()),
                 byteArrayType);
         }
     }

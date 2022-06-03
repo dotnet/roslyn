@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -44,22 +48,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 SymbolKindList = new List<SymbolKindViewModel>
                 {
-                    new SymbolKindViewModel(SymbolKind.Namespace, "namespace", specification),
-                    new SymbolKindViewModel(TypeKind.Class, "class", specification),
-                    new SymbolKindViewModel(TypeKind.Struct, "struct", specification),
-                    new SymbolKindViewModel(TypeKind.Interface, "interface", specification),
-                    new SymbolKindViewModel(TypeKind.Enum, "enum", specification),
-                    new SymbolKindViewModel(SymbolKind.Property, "property", specification),
-                    new SymbolKindViewModel(MethodKind.Ordinary, "method", specification),
-                    new SymbolKindViewModel(MethodKind.LocalFunction, "local function", specification),
-                    new SymbolKindViewModel(SymbolKind.Field, "field", specification),
-                    new SymbolKindViewModel(SymbolKind.Event, "event", specification),
-                    new SymbolKindViewModel(TypeKind.Delegate, "delegate", specification),
-                    new SymbolKindViewModel(SymbolKind.Parameter, "parameter", specification),
-                    new SymbolKindViewModel(SymbolKind.TypeParameter, "type parameter", specification),
-                    new SymbolKindViewModel(SymbolKind.Local, "local", specification)
+                    new SymbolKindViewModel(SymbolKind.Namespace, ServicesVSResources.NamingSpecification_CSharp_Namespace, specification),
+                    new SymbolKindViewModel(TypeKind.Class, ServicesVSResources.NamingSpecification_CSharp_Class, specification),
+                    new SymbolKindViewModel(TypeKind.Struct, ServicesVSResources.NamingSpecification_CSharp_Struct, specification),
+                    new SymbolKindViewModel(TypeKind.Interface, ServicesVSResources.NamingSpecification_CSharp_Interface, specification),
+                    new SymbolKindViewModel(TypeKind.Enum, ServicesVSResources.NamingSpecification_CSharp_Enum, specification),
+                    new SymbolKindViewModel(SymbolKind.Property, ServicesVSResources.NamingSpecification_CSharp_Property, specification),
+                    new SymbolKindViewModel(MethodKind.Ordinary, ServicesVSResources.NamingSpecification_CSharp_Method, specification),
+                    new SymbolKindViewModel(MethodKind.LocalFunction, ServicesVSResources.NamingSpecification_CSharp_LocalFunction, specification),
+                    new SymbolKindViewModel(SymbolKind.Field, ServicesVSResources.NamingSpecification_CSharp_Field, specification),
+                    new SymbolKindViewModel(SymbolKind.Event, ServicesVSResources.NamingSpecification_CSharp_Event, specification),
+                    new SymbolKindViewModel(TypeKind.Delegate, ServicesVSResources.NamingSpecification_CSharp_Delegate, specification),
+                    new SymbolKindViewModel(SymbolKind.Parameter, ServicesVSResources.NamingSpecification_CSharp_Parameter, specification),
+                    new SymbolKindViewModel(SymbolKind.TypeParameter, ServicesVSResources.NamingSpecification_CSharp_TypeParameter, specification),
+                    new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_CSharp_Local, specification)
                 };
 
+                // Not localized because they're language keywords
                 AccessibilityList = new List<AccessibilityViewModel>
                 {
                     new AccessibilityViewModel(Accessibility.Public, "public", specification),
@@ -71,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.NotApplicable, "local", specification),
                 };
 
+                // Not localized because they're language keywords
                 ModifierList = new List<ModifierViewModel>
                 {
                     new ModifierViewModel(DeclarationModifiers.Abstract, "abstract", specification),
@@ -84,22 +90,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 SymbolKindList = new List<SymbolKindViewModel>
                 {
-                    new SymbolKindViewModel(SymbolKind.Namespace, "Namespace", specification),
-                    new SymbolKindViewModel(TypeKind.Class, "Class", specification),
-                    new SymbolKindViewModel(TypeKind.Struct, "Structure", specification),
-                    new SymbolKindViewModel(TypeKind.Interface, "Interface", specification),
-                    new SymbolKindViewModel(TypeKind.Enum, "Enum", specification),
-                    new SymbolKindViewModel(TypeKind.Module, "Module", specification),
-                    new SymbolKindViewModel(SymbolKind.Property, "Property", specification),
-                    new SymbolKindViewModel(SymbolKind.Method, "Method", specification),
-                    new SymbolKindViewModel(SymbolKind.Field, "Field", specification),
-                    new SymbolKindViewModel(SymbolKind.Event, "Event", specification),
-                    new SymbolKindViewModel(TypeKind.Delegate, "Delegate", specification),
-                    new SymbolKindViewModel(SymbolKind.Parameter, "Parameter", specification),
-                    new SymbolKindViewModel(SymbolKind.TypeParameter, "Type Parameter", specification),
-                    new SymbolKindViewModel(SymbolKind.Local, "Local", specification)
+                    new SymbolKindViewModel(SymbolKind.Namespace, ServicesVSResources.NamingSpecification_VisualBasic_Namespace, specification),
+                    new SymbolKindViewModel(TypeKind.Class, ServicesVSResources.NamingSpecification_VisualBasic_Class, specification),
+                    new SymbolKindViewModel(TypeKind.Struct, ServicesVSResources.NamingSpecification_VisualBasic_Structure, specification),
+                    new SymbolKindViewModel(TypeKind.Interface, ServicesVSResources.NamingSpecification_VisualBasic_Interface, specification),
+                    new SymbolKindViewModel(TypeKind.Enum, ServicesVSResources.NamingSpecification_VisualBasic_Enum, specification),
+                    new SymbolKindViewModel(TypeKind.Module, ServicesVSResources.NamingSpecification_VisualBasic_Module, specification),
+                    new SymbolKindViewModel(SymbolKind.Property, ServicesVSResources.NamingSpecification_VisualBasic_Property, specification),
+                    new SymbolKindViewModel(SymbolKind.Method, ServicesVSResources.NamingSpecification_VisualBasic_Method, specification),
+                    new SymbolKindViewModel(SymbolKind.Field, ServicesVSResources.NamingSpecification_VisualBasic_Field, specification),
+                    new SymbolKindViewModel(SymbolKind.Event, ServicesVSResources.NamingSpecification_VisualBasic_Event, specification),
+                    new SymbolKindViewModel(TypeKind.Delegate, ServicesVSResources.NamingSpecification_VisualBasic_Delegate, specification),
+                    new SymbolKindViewModel(SymbolKind.Parameter, ServicesVSResources.NamingSpecification_VisualBasic_Parameter, specification),
+                    new SymbolKindViewModel(SymbolKind.TypeParameter, ServicesVSResources.NamingSpecification_VisualBasic_TypeParameter, specification),
+                    new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_VisualBasic_Local, specification)
                 };
 
+                // Not localized because they're language keywords
                 AccessibilityList = new List<AccessibilityViewModel>
                 {
                     new AccessibilityViewModel(Accessibility.Public, "Public", specification),
@@ -111,6 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.NotApplicable, "Local", specification),
                 };
 
+                // Not localized because they're language keywords
                 ModifierList = new List<ModifierViewModel>
                 {
                     new ModifierViewModel(DeclarationModifiers.Abstract, "MustInherit", specification),
@@ -155,9 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         // For screen readers
         public override string ToString()
-        {
-            return _symbolSpecName;
-        }
+            => _symbolSpecName;
 
         internal interface ISymbolSpecificationViewModelPart
         {

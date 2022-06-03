@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics.Eventing.Reader;
@@ -13,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     internal class FeedbackItemWatsonEntry
     {
         /// <summary>
-        /// The time the event happend (UTC)
+        /// The time the event happened (UTC)
         /// </summary>
         [DataMember(Name = "eventTime")]
         public DateTime EventTime { get; }
@@ -122,7 +124,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public FeedbackItemWatsonEntry(EventRecord eventLogRecord)
         {
-            EventTime = eventLogRecord.TimeCreated.Value.ToUniversalTime();
+            EventTime = eventLogRecord.TimeCreated?.ToUniversalTime() ?? DateTime.MinValue;
             FaultBucket = EventLogCollector.GetEventRecordPropertyToString(eventLogRecord, FaultBucketIndex);
             HashedBucket = EventLogCollector.GetEventRecordPropertyToString(eventLogRecord, HashedBucketIndex);
             WatsonReportId = EventLogCollector.GetEventRecordPropertyToString(eventLogRecord, WatsonReportIdIndex);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,10 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             this IBraceMatchingService service,
             Document document,
             int position,
+            BraceMatchingOptions options,
             CancellationToken cancellationToken)
         {
             // These are the matching spans when checking the token to the right of the position.
-            var braces1 = await service.GetMatchingBracesAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var braces1 = await service.GetMatchingBracesAsync(document, position, options, cancellationToken).ConfigureAwait(false);
 
             // These are the matching spans when checking the token to the left of the position.
             BraceMatchingResult? braces2 = null;
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // Ensure caret is valid at left of position.
             if (position > 0)
             {
-                braces2 = await service.GetMatchingBracesAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
+                braces2 = await service.GetMatchingBracesAsync(document, position - 1, options, cancellationToken).ConfigureAwait(false);
             }
 
             // Favor matches where the position is on the outside boundary of the braces. i.e. if we

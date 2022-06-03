@@ -27,7 +27,7 @@ Options:
   /define:&lt;name&gt;=&lt;value&gt;,...     Declare global conditional compilation symbol(s) (Short form: /d)
   @&lt;file&gt;                        Read response file for more options
 </source>
-        <target state="translated">Sintassi: vbi [opzioni] [file-script.vbx] [-- argomenti-script]
+        <target state="translated">Sintassi: vbi [options] [script-file.vbx] [-- script-arguments]
 
 Esegue lo script se è specificato un valore per file-script; in caso contrario, avvia un REPL (Read Eval Print Loop) interattivo.
 

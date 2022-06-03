@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,21 +17,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// returns the type transformed to have IsNullable set to true or false
         /// (but not null) for each reference type in the type.
         /// </summary>
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
+        internal static TypeWithAnnotations TransformType(
+            TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule)
+            PEModuleSymbol containingModule,
+            Symbol accessSymbol,
+            Symbol nullableContext)
         {
-            Debug.Assert(!metadataType.IsNull);
+            Debug.Assert(metadataType.HasType);
+            Debug.Assert(accessSymbol.IsDefinition);
+            Debug.Assert((object)accessSymbol.ContainingModule == containingModule);
+#if DEBUG
+            // Ensure we could check accessibility at this point if we had to in ShouldDecodeNullableAttributes().
+            // That is, ensure the accessibility of the symbol (and containing symbols) is available.
+            _ = AccessCheck.IsEffectivelyPublicOrInternal(accessSymbol, out _);
+#endif
 
             byte defaultTransformFlag;
             ImmutableArray<byte> nullableTransformFlags;
-            containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags);
+            if (!containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags))
+            {
+                byte? value = nullableContext.GetNullableContextValue();
+                if (value == null)
+                {
+                    return metadataType;
+                }
+                defaultTransformFlag = value.GetValueOrDefault();
+            }
+
+            if (!containingModule.ShouldDecodeNullableAttributes(accessSymbol))
+            {
+                return metadataType;
+            }
 
             return TransformType(metadataType, defaultTransformFlag, nullableTransformFlags);
         }
 
-        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
+        internal static TypeWithAnnotations TransformType(TypeWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
         {
             if (nullableTransformFlags.IsDefault && defaultTransformFlag == 0)
             {
@@ -35,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             int position = 0;
-            TypeSymbolWithAnnotations result;
+            TypeWithAnnotations result;
             if (metadataType.ApplyNullableTransforms(defaultTransformFlag, nullableTransformFlags, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
@@ -44,23 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // No NullableAttribute applied to the target symbol, or flags do not line-up, return unchanged metadataType.
             return metadataType;
-        }
-
-        // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
-            EntityHandle targetSymbolToken,
-            PEModuleSymbol containingModule,
-            ImmutableArray<byte> extraAnnotations)
-        {
-            if (extraAnnotations.IsDefault)
-            {
-                return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
-            }
-            else
-            {
-                return NullableTypeDecoder.TransformType(metadataType, defaultTransformFlag: 0, extraAnnotations);
-            }
         }
     }
 }

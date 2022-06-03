@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -691,6 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        <DebuggerStepThrough>
         Private Shadows Function VisitWithStackGuard(node As BoundNode) As BoundNode
             Dim expression = TryCast(node, BoundExpression)
 
@@ -701,6 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.Visit(node)
         End Function
 
+        <DebuggerStepThrough>
         Protected Overrides Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
             Return DirectCast(MyBase.Visit(node), BoundExpression)
         End Function

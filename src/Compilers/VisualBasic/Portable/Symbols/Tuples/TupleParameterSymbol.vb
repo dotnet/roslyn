@@ -1,8 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-Imports System.Collections.Immutable
-Imports System.Globalization
-Imports System.Threading
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -11,11 +9,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class TupleParameterSymbol
         Inherits WrappedParameterSymbol
 
-        Private _container As Symbol
+        Private ReadOnly _container As Symbol
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return Me._container
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
+            Get
+                Return Me._underlyingParameter.IsCallerLineNumber
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
+            Get
+                Return Me._underlyingParameter.IsCallerFilePath
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
+            Get
+                Return Me._underlyingParameter.IsCallerMemberName
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return Me._underlyingParameter.CallerArgumentExpressionParameterIndex
             End Get
         End Property
 

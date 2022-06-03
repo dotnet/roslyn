@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class ConversionGroup
     {
-        internal ConversionGroup(Conversion conversion, TypeSymbolWithAnnotations explicitType = default)
+        internal ConversionGroup(Conversion conversion, TypeWithAnnotations explicitType = default)
         {
             Conversion = conversion;
             ExplicitType = explicitType;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if the conversion is an explicit conversion.
         /// </summary>
-        internal bool IsExplicitConversion => !ExplicitType.IsNull;
+        internal bool IsExplicitConversion => ExplicitType.HasType;
 
         /// <summary>
         /// The conversion (from Conversions.ClassifyConversionFromExpression for
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The target type of the conversion specified explicitly in source,
         /// or null if not an explicit conversion.
         /// </summary>
-        internal readonly TypeSymbolWithAnnotations ExplicitType;
+        internal readonly TypeWithAnnotations ExplicitType;
 
 #if DEBUG
         private static int _nextId;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal string GetDebuggerDisplay()
         {
             var str = $"#{_id} {Conversion}";
-            if (!ExplicitType.IsNull)
+            if (ExplicitType.HasType)
             {
                 str += $" ({ExplicitType})";
             }

@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+#nullable disable
+
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     {
         public static SyntaxNode TryGetMethodDeclarationBody(SyntaxNode node)
         {
-            SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
+            static SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
                 => (SyntaxNode)blockBodyOpt ?? expressionBodyOpt?.Expression;
 
             SyntaxNode result;
@@ -34,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
 
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
@@ -53,16 +59,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.PropertyDeclaration:
                     var propertyDeclaration = (PropertyDeclarationSyntax)node;
-                    if (propertyDeclaration.Initializer != null)
-                    {
-                        result = propertyDeclaration.Initializer.Value;
-                        break;
-                    }
+                    result = propertyDeclaration.Initializer?.Value;
+                    break;
 
-                    return propertyDeclaration.ExpressionBody?.Expression;
-
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)node).ExpressionBody?.Expression;
+                case SyntaxKind.ArrowExpressionClause:
+                    // We associate the body of expression-bodied property/indexer with the ArrowExpressionClause
+                    // since that's the syntax node associated with the getter symbol.
+                    // The property/indexer itself is considered to not have a body unless the property has an initializer.
+                    result = node.Parent.IsKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration) ?
+                        ((ArrowExpressionClauseSyntax)node).Expression : null;
+                    break;
 
                 default:
                     return null;
@@ -83,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (LambdaUtilities.IsLambdaBody(syntax))
             {
                 Debug.Assert(allowLambda);
-                Debug.Assert(syntax is ExpressionSyntax || syntax is BlockSyntax);
+                Debug.Assert(syntax is ExpressionSyntax or BlockSyntax);
                 return;
             }
 
@@ -111,8 +117,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return;
             }
 
+            // special case for top level statements, which have no containing block other than the compilation unit
+            if (syntax is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
+            {
+                return;
+            }
+
             Debug.Assert(false);
         }
+
+        public static bool ContainsGlobalStatements(this CompilationUnitSyntax compilationUnit)
+            => compilationUnit.Members.Count > 0 && compilationUnit.Members[0] is GlobalStatementSyntax;
 
         public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
         {
@@ -154,10 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(leftNode.FullSpan.Length > 0);
             Debug.Assert(leftNode.SyntaxTree == leftRoot.SyntaxTree);
 
-            SyntaxNode originalLeftNode = leftNode;
-            int leftPosition = leftNode.SpanStart;
+            var originalLeftNode = leftNode;
+            var leftPosition = leftNode.SpanStart;
             leftNode = leftRoot;
-            SyntaxNode rightNode = rightRoot;
+            var rightNode = rightRoot;
 
             while (leftNode != originalLeftNode)
             {
@@ -175,21 +190,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         public static bool Any(TypeParameterListSyntax listOpt)
-        {
-            return listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
-        }
+            => listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
 
         public static SyntaxNode TryGetEffectiveGetterBody(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.PropertyDeclaration))
+            if (declaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax property))
             {
-                var property = (PropertyDeclarationSyntax)declaration;
                 return TryGetEffectiveGetterBody(property.ExpressionBody, property.AccessorList);
             }
 
-            if (declaration.IsKind(SyntaxKind.IndexerDeclaration))
+            if (declaration.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
             {
-                var indexer = (IndexerDeclarationSyntax)declaration;
                 return TryGetEffectiveGetterBody(indexer.ExpressionBody, indexer.AccessorList);
             }
 
@@ -214,51 +225,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration))
-            {
-                return ((FieldDeclarationSyntax)node).Modifiers;
-            }
+            if (node.IsKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax fieldDecl))
+                return fieldDecl.Modifiers;
 
-            if (node.IsKind(SyntaxKind.PropertyDeclaration))
-            {
-                return ((PropertyDeclarationSyntax)node).Modifiers;
-            }
+            if (node.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+                return propertyDecl.Modifiers;
 
             return null;
         }
 
-        public static bool IsMethod(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                    return true;
-
-                case SyntaxKind.IndexerDeclaration:
-                    // expression bodied indexer
-                    return ((IndexerDeclarationSyntax)declaration).ExpressionBody != null;
-
-                default:
-                    return false;
-            }
-        }
-
         public static bool IsParameterlessConstructor(SyntaxNode declaration)
         {
-            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration))
+            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax ctor))
             {
                 return false;
             }
 
-            var ctor = (ConstructorDeclarationSyntax)declaration;
             return ctor.ParameterList.Parameters.Count == 0;
         }
 
@@ -274,58 +256,47 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 && property.AccessorList.Accessors.Any(e => e.Body == null);
         }
 
-        public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
+        /// <summary>
+        /// True if the specified declaration node is an async method, anonymous function, lambda, local function.
+        /// </summary>
+        public static bool IsAsyncDeclaration(SyntaxNode declaration)
         {
+            // lambdas and anonymous functions
             if (declaration is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 return anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
             }
 
-            // expression bodied methods:
+            // expression bodied methods/local functions:
             if (declaration.IsKind(SyntaxKind.ArrowExpressionClause))
             {
                 declaration = declaration.Parent;
             }
 
-            if (!declaration.IsKind(SyntaxKind.MethodDeclaration))
+            return declaration switch
             {
-                return false;
-            }
-
-            var method = (MethodDeclarationSyntax)declaration;
-            return method.Modifiers.Any(SyntaxKind.AsyncKeyword);
+                MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                _ => false
+            };
         }
 
-        public static ImmutableArray<SyntaxNode> GetAwaitExpressions(SyntaxNode body)
-        {
-            // skip lambda bodies:
-            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
-        }
+        /// <summary>
+        /// Returns a list of all await expressions, await foreach statements, await using declarations and yield statements in the given body,
+        /// in the order in which they occur.
+        /// </summary>
+        /// <returns>
+        /// <see cref="AwaitExpressionSyntax"/> for await expressions,
+        /// <see cref="YieldStatementSyntax"/> for yield return statements,
+        /// <see cref="CommonForEachStatementSyntax"/> for await foreach statements,
+        /// <see cref="VariableDeclaratorSyntax"/> for await using declarators.
+        /// <see cref="UsingStatementSyntax"/> for await using statements.
+        /// </returns>
+        public static IEnumerable<SyntaxNode> GetSuspensionPoints(SyntaxNode body)
+            => body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(SyntaxBindingUtilities.BindsToResumableStateMachineState);
 
-        public static ImmutableArray<SyntaxNode> GetYieldStatements(SyntaxNode body)
-        {
-            // lambdas and expression-bodied methods can't be iterators:
-            if (!body.Parent.IsKind(SyntaxKind.MethodDeclaration))
-            {
-                return ImmutableArray<SyntaxNode>.Empty;
-            }
-
-            // enumerate statements:
-            return ImmutableArray.CreateRange(body.DescendantNodes(n => !(n is ExpressionSyntax))
-                   .Where(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement)));
-        }
-
-        public static bool IsIteratorMethod(SyntaxNode declaration)
-        {
-            // lambdas and expression-bodied methods can't be iterators:
-            if (!declaration.IsKind(SyntaxKind.MethodDeclaration))
-            {
-                return false;
-            }
-
-            // enumerate statements:
-            return declaration.DescendantNodes(n => !(n is ExpressionSyntax))
-                   .Any(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement));
-        }
+        // Presence of yield break or yield return indicates state machine, but yield break does not bind to a resumable state. 
+        public static bool IsIterator(SyntaxNode body)
+            => body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Any(n => n is YieldStatementSyntax);
     }
 }

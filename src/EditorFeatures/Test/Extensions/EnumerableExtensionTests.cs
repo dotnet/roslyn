@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -12,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class EnumerableExtensionTests
     {
-        private IEnumerable<T> Enumerable<T>(params T[] values)
-        {
-            return values;
-        }
+        private static IEnumerable<T> Enumerable<T>(params T[] values)
+            => values;
 
         [Fact]
         public void TestDo()
@@ -37,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
         [Fact]
         public void TestSetEquals()
-        {
-            Assert.True(Enumerable(1, 2, 3, 4).SetEquals(Enumerable(4, 2, 3, 1)));
-        }
+            => Assert.True(Enumerable(1, 2, 3, 4).SetEquals(Enumerable(4, 2, 3, 1)));
 
         [Fact]
         public void TestIsEmpty()
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void TestSequenceEqualWithFunction()
         {
-            bool equality(int a, int b) => a == b;
+            static bool equality(int a, int b) => a == b;
             var seq = new List<int>() { 1, 2, 3 };
 
             // same object reference

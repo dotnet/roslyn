@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -12,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' </summary>
     Friend NotInheritable Class PlaceholderMethodSymbol
         Inherits SynthesizedMethodBase
-        Implements Cci.ISignature
 
         Friend Delegate Function GetTypeParameters(method As PlaceholderMethodSymbol) As ImmutableArray(Of TypeParameterSymbol)
         Friend Delegate Function GetParameters(method As PlaceholderMethodSymbol) As ImmutableArray(Of ParameterSymbol)
@@ -109,12 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Private ReadOnly Property ReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
-            Get
-                Return True
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
                 Return ImmutableArrayExtensions.Cast(Of TypeParameterSymbol, TypeSymbol)(_typeParameters)
@@ -154,6 +149,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
+
+#If DEBUG Then
+        Protected Overrides Function CreateCciAdapter() As MethodSymbolAdapter
+            Return New PlaceholderMethodSymbolAdapter(Me)
+        End Function
+#End If
+    End Class
+
+#If DEBUG Then
+    Friend NotInheritable Class PlaceholderMethodSymbolAdapter
+        Inherits MethodSymbolAdapter
+
+        Friend Sub New(underlying As PlaceholderMethodSymbol)
+            MyBase.New(underlying)
+        End Sub
+    End Class
+#End If
+
+#If DEBUG Then
+    Partial Friend Class PlaceholderMethodSymbolAdapter
+#Else
+    Partial Friend Class PlaceholderMethodSymbol
+#End If
+        Implements Cci.ISignature
+
+        Private ReadOnly Property ReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
+            Get
+                Return True
+            End Get
+        End Property
     End Class
 
 End Namespace

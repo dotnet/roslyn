@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,19 +24,14 @@ namespace Microsoft.CodeAnalysis.Navigation
                 solution, symbol, location, displayTaggedParts);
         }
 
-        public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
-        {
-            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
-        }
-
-        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
+        public static ImmutableArray<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
             ISymbol symbol,
             ImmutableArray<TaggedText>? displayTaggedParts,
             CancellationToken cancellationToken)
         {
             var locations = GetPreferredSourceLocations(solution, symbol, cancellationToken);
-            return locations.Select(loc => GetItemFromSymbolLocation(
+            return locations.SelectAsArray(loc => GetItemFromSymbolLocation(
                 solution, symbol, loc, displayTaggedParts));
         }
 
@@ -64,18 +63,6 @@ namespace Microsoft.CodeAnalysis.Navigation
             return visibleSourceLocations.Any()
                 ? visibleSourceLocations
                 : locations.Where(loc => loc.IsInSource);
-        }
-
-        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(
-            Solution solution,
-            IEnumerable<INavigableItem> navigableItems,
-            CancellationToken cancellationToken)
-        {
-            navigableItems = navigableItems.Where(n => n.Document != null);
-            var hasNonGeneratedCodeItem = navigableItems.Any(n => !n.Document.IsGeneratedCode(cancellationToken));
-            return hasNonGeneratedCodeItem
-                ? navigableItems.Where(n => !n.Document.IsGeneratedCode(cancellationToken))
-                : navigableItems.Where(n => n.Document.IsGeneratedCode(cancellationToken));
         }
     }
 }

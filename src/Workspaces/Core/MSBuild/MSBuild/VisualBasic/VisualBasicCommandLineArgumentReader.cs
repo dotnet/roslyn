@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.MSBuild;
+using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.VisualBasic
@@ -65,11 +68,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             var documentationFile = Project.ReadPropertyString(PropertyNames.DocFileItem);
             var generateDocumentation = Project.ReadPropertyBool(PropertyNames.GenerateDocumentation);
 
-            var hasDocumentationFile = !string.IsNullOrWhiteSpace(documentationFile);
+            var hasDocumentationFile = !RoslynString.IsNullOrWhiteSpace(documentationFile);
 
             if (hasDocumentationFile || generateDocumentation)
             {
-                if (hasDocumentationFile)
+                if (!RoslynString.IsNullOrWhiteSpace(documentationFile))
                 {
                     Add("doc", documentationFile);
                 }
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
         private void ReadVbRuntime()
         {
             var vbRuntime = Project.ReadPropertyString(PropertyNames.VbRuntime);
-            if (!string.IsNullOrWhiteSpace(vbRuntime))
+            if (!RoslynString.IsNullOrWhiteSpace(vbRuntime))
             {
                 if (string.Equals("default", vbRuntime, StringComparison.OrdinalIgnoreCase))
                 {

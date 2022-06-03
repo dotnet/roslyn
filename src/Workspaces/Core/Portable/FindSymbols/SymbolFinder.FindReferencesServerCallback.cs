@@ -1,86 +1,121 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-
         /// <summary>
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        private class FindReferencesServerCallback
+        internal sealed class FindReferencesServerCallback
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
-            private readonly CancellationToken _cancellationToken;
 
-            private readonly object _gate = new object();
-            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap =
-                new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>();
+            private readonly object _gate = new();
+            private readonly Dictionary<SerializableSymbolGroup, SymbolGroup> _groupMap = new();
+            private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap = new();
 
             public FindReferencesServerCallback(
                 Solution solution,
-                IStreamingFindReferencesProgress progress,
-                CancellationToken cancellationToken)
+                IStreamingFindReferencesProgress progress)
             {
                 _solution = solution;
                 _progress = progress;
-                _cancellationToken = cancellationToken;
             }
 
-            public Task OnStartedAsync() => _progress.OnStartedAsync();
-            public Task OnCompletedAsync() => _progress.OnCompletedAsync();
-            public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
+            public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
+                => _progress.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
-            public Task OnFindInDocumentStartedAsync(DocumentId documentId)
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _progress.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
+
+            public ValueTask OnStartedAsync(CancellationToken cancellationToken)
+                => _progress.OnStartedAsync(cancellationToken);
+
+            public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+                => _progress.OnCompletedAsync(cancellationToken);
+
+            public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 var document = _solution.GetDocument(documentId);
-                return _progress.OnFindInDocumentStartedAsync(document);
+                return _progress.OnFindInDocumentStartedAsync(document, cancellationToken);
             }
 
-            public Task OnFindInDocumentCompletedAsync(DocumentId documentId)
+            public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 var document = _solution.GetDocument(documentId);
-                return _progress.OnFindInDocumentCompletedAsync(document);
+                return _progress.OnFindInDocumentCompletedAsync(document, cancellationToken);
             }
 
-            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
+            public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated, CancellationToken cancellationToken)
             {
-                var symbolAndProjectId = await definition.TryRehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(dehydrated.Symbols.Count == 0);
 
-                if (!symbolAndProjectId.HasValue)
+                using var _ = PooledDictionary<SerializableSymbolAndProjectId, ISymbol>.GetInstance(out var map);
+
+                foreach (var symbolAndProjectId in dehydrated.Symbols)
                 {
-                    return;
+                    var symbol = await symbolAndProjectId.TryRehydrateAsync(_solution, cancellationToken).ConfigureAwait(false);
+                    if (symbol == null)
+                        return;
+
+                    map[symbolAndProjectId] = symbol;
                 }
 
+                var symbolGroup = new SymbolGroup(map.Values.ToImmutableArray());
                 lock (_gate)
                 {
-                    _definitionMap[definition] = symbolAndProjectId.Value;
+                    _groupMap[dehydrated] = symbolGroup;
+                    foreach (var pair in map)
+                        _definitionMap[pair.Key] = pair.Value;
                 }
 
-                await _progress.OnDefinitionFoundAsync(symbolAndProjectId.Value).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(symbolGroup, cancellationToken).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(
-                SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
+            public async ValueTask OnReferenceFoundAsync(
+                SerializableSymbolGroup serializableSymbolGroup,
+                SerializableSymbolAndProjectId serializableSymbol,
+                SerializableReferenceLocation reference,
+                CancellationToken cancellationToken)
             {
-                SymbolAndProjectId symbolAndProjectId;
+                SymbolGroup symbolGroup;
+                ISymbol symbol;
                 lock (_gate)
                 {
-                    symbolAndProjectId = _definitionMap[definition];
+                    // The definition may not be in the map if we failed to map it over using TryRehydrateAsync in OnDefinitionFoundAsync.
+                    // Just ignore this reference.  Note: while this is a degraded experience:
+                    //
+                    // 1. TryRehydrateAsync logs an NFE so we can track down while we're failing to roundtrip the
+                    //    definition so we can track down that issue.
+                    // 2. NFE'ing and failing to show a result, is much better than NFE'ing and then crashing
+                    //    immediately afterwards.
+                    if (!_groupMap.TryGetValue(serializableSymbolGroup, out symbolGroup) ||
+                        !_definitionMap.TryGetValue(serializableSymbol, out symbol))
+                    {
+                        return;
+                    }
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
+                    _solution, cancellationToken).ConfigureAwait(false);
 
-                await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(symbolGroup, symbol, referenceLocation, cancellationToken).ConfigureAwait(false);
             }
         }
     }

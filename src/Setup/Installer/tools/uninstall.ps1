@@ -1,30 +1,42 @@
+[CmdletBinding(PositionalBinding=$false)]
+param (
+    [string][Alias("hive")]$rootSuffix = ""
+)
+
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
 try {
   . (Join-Path $PSScriptRoot "utils.ps1")
-  if (Test-Process "devenv") {
-      Write-Host "Please shut down all instances of Visual Studio before running" -ForegroundColor Red
-      exit 1
-  }
+
   # Find VS Instance
-  $vsInstalls = Get-VisualStudioDirAndId
-  $vsDir = $vsInstalls[0].Trim("\")
-  $vsId = $vsInstalls[1]
-  # Uninstall VSIX
-  Write-Host "Uninstalling Preview Everywhere..." -ForegroundColor Green
-  for ($i = 0; $i -lt $vsInstalls.Count;  $i+=2) {
-      $vsDir = $vsInstalls[$i].Trim("\")
-      $vsId = $vsInstalls[$i+1]
-      Uninstall-VsixViaTool -vsDir $vsDir -vsId $vsId -hive ""
-      # Clear MEF Cache
-      Write-Host "Refreshing MEF Cache" -ForegroundColor Gray
-      $mefCacheFolder = Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\15.0_$vsId\ComponentModelCache"
-      Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_}
-      $vsExe = Join-Path $vsDir "Common7\IDE\devenv.exe"
-      $args = "/updateconfiguration"
-      Exec-Console $vsExe $args
+  $vsInstances = Get-VisualStudioInstances
+
+  # Uninstall VSIX from all instances
+  Write-Host "Uninstalling Roslyn Preview ..." -ForegroundColor Green
+
+  foreach ($vsInstance in $vsInstances) {
+    $vsDir = $vsInstance.installationPath.Trim("\")
+    $vsId = $vsInstance.instanceId
+    $vsMajorVersion = $vsInstance.installationVersion.Split(".")[0]
+    $vsLocalDir = Get-VisualStudioLocalDir -vsMajorVersion $vsMajorVersion -vsId $vsId -rootSuffix $rootSuffix
+    
+    Stop-Processes $vsDir $vsLocalDir
+
+    Uninstall-VsixViaTool -vsDir $vsDir -vsId $vsId -rootSuffix $rootSuffix
+
+    # Clear MEF Cache
+    Write-Host "Refreshing MEF Cache" -ForegroundColor Gray
+    $mefCacheFolder = Get-MefCacheDir $vsLocalDir
+    if (Test-Path $mefCacheFolder) {
+      Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_ }
+    }
+
+    $vsExe = Join-Path $vsDir "Common7\IDE\devenv.exe"
+    $args = "/updateconfiguration"
+    Exec-Console $vsExe $args
   }
+
   Write-Host "Uninstall Succeeded" -ForegroundColor Green
   exit 0
 }

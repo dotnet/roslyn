@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
-        <target state="new">Indentation preferences</target>
+        <target state="translated">缩进首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
-        <target state="new">Space preferences</target>
+        <target state="translated">空格键首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="new">Wrapping preferences</target>
+        <target state="translated">包装首选项</target>
         <note />
       </trans-unit>
     </body>

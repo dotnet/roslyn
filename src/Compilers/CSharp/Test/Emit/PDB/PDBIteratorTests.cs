@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -17,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     public class PDBIteratorTests : CSharpPDBTestBase
     {
         [WorkItem(543376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543376")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SimpleIterator1()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> Goo()
@@ -28,7 +30,7 @@ class Program
         yield break;
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -61,10 +63,10 @@ class Program
         }
 
         [WorkItem(543376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543376")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SimpleIterator2()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> Goo()
@@ -72,7 +74,7 @@ class Program
         yield break;
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
@@ -106,10 +108,10 @@ class Program
         }
 
         [WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SimpleIterator3()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> Goo()
@@ -117,7 +119,7 @@ class Program
         yield return 1; //hidden sequence point after this.
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
@@ -129,6 +131,9 @@ class Program
     <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
         <forwardIterator name=""&lt;Goo&gt;d__0"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""11"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
@@ -152,7 +157,7 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorWithLocals_ReleasePdb()
         {
             var text = @"
@@ -222,10 +227,10 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorWithLocals_DebugPdb()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> IEI<T>(int i0, int i1)
@@ -241,7 +246,7 @@ class Program
         yield break;
     }
 }
-";
+");
 
             var c = CompileAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
             {
@@ -265,6 +270,12 @@ class Program
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""101"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""32"" />
+          <state number=""2"" offset=""57"" />
+          <state number=""3"" offset=""122"" />
+          <state number=""4"" offset=""151"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
@@ -302,11 +313,12 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorWithCapturedSyntheticVariables()
         {
             // this iterator captures the synthetic variable generated from the expansion of the foreach loop
-            var text = @"// Based on LegacyTest csharp\Source\Conformance\iterators\blocks\using001.cs
+            var text = WithWindowsLineBreaks(
+@"// Based on LegacyTest csharp\Source\Conformance\iterators\blocks\using001.cs
 using System;
 using System.Collections.Generic;
 
@@ -323,7 +335,7 @@ class Test<T>
         }
         yield return val;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -339,6 +351,11 @@ class Test<T>
           <slot kind=""5"" offset=""42"" />
           <slot kind=""0"" offset=""42"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""42"" />
+          <state number=""1"" offset=""117"" />
+          <state number=""2"" offset=""155"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -385,7 +402,7 @@ class Test<T>
         }
 
         [WorkItem(542705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542705"), WorkItem(528790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528790"), WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorBackToNextStatementAfterYieldReturn()
         {
             var text = @"
@@ -480,10 +497,10 @@ class C
         }
 
         [WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorMultipleEnumerables()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -531,7 +548,7 @@ public class Test
         foreach (var v in new Test<string>()) { } 
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
             c.VerifyPdb(@"
 <symbols>
@@ -569,16 +586,30 @@ public class Test
           <slot kind=""5"" offset=""104"" />
           <slot kind=""0"" offset=""104"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""11"" />
+          <state number=""1"" offset=""68"" />
+          <state number=""-4"" offset=""104"" />
+          <state number=""2"" offset=""160"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1"" name=""get_IterProp"">
       <customDebugInfo>
         <forwardIterator name=""&lt;get_IterProp&gt;d__3"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""16"" />
+          <state number=""2"" offset=""48"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test`1"" name=""IterMethod"">
       <customDebugInfo>
         <forwardIterator name=""&lt;IterMethod&gt;d__4"" />
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""11"" />
+          <state number=""2"" offset=""45"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""Test"" name=""Main"">
@@ -647,23 +678,6 @@ public class Test
         <entry offset=""0x12e"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
-        <encLocalSlotMap>
-          <slot kind=""27"" offset=""0"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x40"" hidden=""true"" document=""1"" />
-        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
-      </sequencePoints>
-    </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"">
       <customDebugInfo>
         <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
@@ -681,14 +695,31 @@ public class Test
         <entry offset=""0x63"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
+    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x40"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
+      </sequencePoints>
+    </method>
   </methods>
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void VariablesWithSubstitutedType1()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 class C
 {
@@ -700,7 +731,7 @@ class C
         yield return o[i];
     }
 }
-";
+");
 
             var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
@@ -753,10 +784,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorWithConditionalBranchDiscriminator1()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 class C
 {
@@ -770,7 +801,7 @@ class C
         }
     }
 }
-";
+");
             // Note that conditional branch discriminator is not hoisted.
 
             var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -826,8 +857,7 @@ class C
   IL_0041:  nop
   IL_0042:  ldc.i4.0
   IL_0043:  ret
-}
-");
+}");
 
             v.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
@@ -859,10 +889,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SynthesizedVariables1()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 using System;
 using System.Collections.Generic;
@@ -879,7 +909,7 @@ class C
         if (disposable != null) { using (disposable) { } }
         lock (this) { }
     }
-}";
+}");
             CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
@@ -954,6 +984,16 @@ class C
           <slot kind=""3"" offset=""367"" />
           <slot kind=""2"" offset=""367"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""53"" />
+          <state number=""1"" offset=""67"" />
+          <state number=""-4"" offset=""149"" />
+          <state number=""2"" offset=""163"" />
+          <state number=""-5"" offset=""216"" />
+          <state number=""3"" offset=""237"" />
+          <state number=""-6"" offset=""266"" />
+          <state number=""4"" offset=""280"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -962,10 +1002,10 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DisplayClass_AcrossSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -983,7 +1023,7 @@ class C
         yield return x1 + x2 + x3;
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
@@ -1033,7 +1073,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DisplayClass_InBetweenSuspensionPoints_Release()
         {
             string source = @"
@@ -1155,10 +1195,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DisplayClass_InBetweenSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -1178,7 +1218,7 @@ class C
         // () => { x1 }
     }
 }
-";
+");
             // We need to hoist display class variable to allow adding a new lambda after yield return 
             // that shares closure with the existing lambda.
 
@@ -1250,8 +1290,7 @@ class C
   IL_0078:  stfld      ""int C.<M>d__0.<>1__state""
   IL_007d:  ldc.i4.0
   IL_007e:  ret
-}
-");
+}");
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
@@ -1302,6 +1341,9 @@ class C
           <closure offset=""0"" />
           <lambda offset=""95"" closure=""0"" />
         </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""129"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1310,10 +1352,10 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DynamicLocal_AcrossSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 
 class C
@@ -1325,7 +1367,7 @@ class C
         d.ToString();
     }
 }
-";
+");
             var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
@@ -1372,7 +1414,6 @@ class C
     </method>
   </methods>
 </symbols>");
-
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
@@ -1385,6 +1426,9 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""35"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1395,7 +1439,7 @@ class C
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DynamicLocal_InBetweenSuspensionPoints_Release()
         {
             string source = @"
@@ -1454,10 +1498,10 @@ class C
         }
 
         [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DynamicLocal_InBetweenSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 
 class C
@@ -1471,7 +1515,7 @@ class C
         // System.Console.WriteLine(d);
     }
 }
-";
+");
             var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
@@ -1518,10 +1562,10 @@ class C
         }
 
         [WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DebuggerHiddenIterator()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1539,7 +1583,7 @@ class C
         throw new Exception();
         yield break;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
@@ -1564,7 +1608,8 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
+        [Fact]
+        [WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
         public void PortableStateMachineDebugInfo()
         {
             string src = @"
@@ -1573,7 +1618,10 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
+
+            // Since metadata references are captured in pdb debug information make sure to specify
+            // the target framework so the test always has the same debug information output
+            var compilation = CreateCompilation(src, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();
@@ -1584,22 +1632,25 @@ public class C
                pdbStream,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
 
+            Assert.True(result.Success);
             pdbStream.Position = 0;
-            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
-            {
-                var mdReader = provider.GetMetadataReader();
-                var writer = new StringWriter();
-                var visualizer = new MetadataVisualizer(mdReader, writer);
-                visualizer.WriteMethodDebugInformation();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+            var mdReader = provider.GetMetadataReader();
+            var writer = new StringWriter();
+            var visualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            visualizer.WriteMethodDebugInformation();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 40): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: nil
-5: #22
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4: nil  
+5:      
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000001 (StandAloneSig)
@@ -1610,13 +1661,12 @@ MethodDebugInformation (index: 0x31, size: 40):
   IL_0030: <hidden>
   IL_0037: (5, 44) - (5, 45)
 }
-6: nil
-7: nil
-8: nil
-9: nil
+6: nil  
+7: nil  
+8: nil  
+9: nil  
 a: nil",
-                    writer.ToString());
-            }
+                writer.ToString());
         }
     }
 }

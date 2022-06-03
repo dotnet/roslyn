@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,11 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) {}
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
-    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int I = 9;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
-);
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int I = 9;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I").WithArguments("struct field initializers", "10.0").WithLocation(3, 16));
         }
 
         [Fact]
@@ -40,15 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int I = 9;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16),
-    // (3,16): warning CS0649: Field 'S.I' is never assigned to, and will always have its default value 0
-    //     public int I = 9;
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "I").WithArguments("S.I", "0").WithLocation(3, 16)
-);
+                // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int I = 9;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I").WithArguments("struct field initializers", "10.0").WithLocation(3, 16));
         }
 
         [Fact]
@@ -66,7 +63,7 @@ class A {
             var sym = a.GetMembers("F").Single() as FieldSymbol;
 
             Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
-            Assert.Equal<TypeSymbol>(a, sym.Type.TypeSymbol);
+            Assert.Equal<TypeSymbol>(a, sym.Type);
             Assert.Equal(Accessibility.Private, sym.DeclaredAccessibility);
             Assert.Equal(SymbolKind.Field, sym.Kind);
             Assert.False(sym.IsStatic);
@@ -93,13 +90,13 @@ class A {
             var a = global.GetTypeMembers("A", 0).Single();
             var f = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal(TypeKind.Class, f.Type.TypeKind);
-            Assert.Equal<TypeSymbol>(a, f.Type.TypeSymbol);
+            Assert.Equal<TypeSymbol>(a, f.Type);
             Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
             var gs = a.GetMembers("G");
             Assert.Equal(2, gs.Length);
             foreach (var g in gs)
             {
-                Assert.Equal(a, (g as FieldSymbol).Type.TypeSymbol); // duplicate, but all the same.
+                Assert.Equal(a, (g as FieldSymbol).Type); // duplicate, but all the same.
             }
 
             var errors = comp.GetDeclarationDiagnostics();
@@ -124,7 +121,7 @@ class A {
             Assert.Equal(2, fs.Length);
             foreach (var f in fs)
             {
-                Assert.Equal(a, (f as FieldSymbol).Type.TypeSymbol);
+                Assert.Equal(a, (f as FieldSymbol).Type);
             }
         }
 
@@ -148,14 +145,14 @@ class A
             Assert.True(n1.IsConst);
             Assert.False(n1.IsVolatile);
             Assert.True(n1.IsStatic);
-            Assert.Equal(0, n1.Type.CustomModifiers.Length);
+            Assert.Equal(0, n1.TypeWithAnnotations.CustomModifiers.Length);
 
             var n2 = a.GetMembers("N2").Single() as FieldSymbol;
             Assert.False(n2.IsConst);
             Assert.True(n2.IsVolatile);
             Assert.False(n2.IsStatic);
-            Assert.Equal(1, n2.Type.CustomModifiers.Length);
-            CustomModifier mod = n2.Type.CustomModifiers[0];
+            Assert.Equal(1, n2.TypeWithAnnotations.CustomModifiers.Length);
+            CustomModifier mod = n2.TypeWithAnnotations.CustomModifiers[0];
             Assert.False(mod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsVolatile[missing]", mod.Modifier.ToTestDisplayString());
 
@@ -163,7 +160,7 @@ class A
             Assert.False(n3.IsConst);
             Assert.False(n3.IsVolatile);
             Assert.True(n3.IsStatic);
-            Assert.Equal(0, n3.Type.CustomModifiers.Length);
+            Assert.Equal(0, n3.TypeWithAnnotations.CustomModifiers.Length);
         }
 
         [Fact]
@@ -181,7 +178,7 @@ class A {
             var sym = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal("System.Int32? A.F", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
-            Assert.Equal("System.Int32?", sym.Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32?", sym.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -210,17 +207,17 @@ class A {
             var sym = type2.GetMembers("field1").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.List<T> C<T>.S<V>.field1", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
-            Assert.Equal("System.Collections.Generic.List<T>", sym.Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.List<T>", sym.Type.ToTestDisplayString());
 
             sym = type2.GetMembers("field2").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.IList<V> C<T>.S<V>.field2", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Interface, sym.Type.TypeKind);
-            Assert.Equal("System.Collections.Generic.IList<V>", sym.Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.IList<V>", sym.Type.ToTestDisplayString());
 
             sym = type2.GetMembers("field3").Single() as FieldSymbol;
             Assert.Equal("C<T>.S<System.String> C<T>.S<V>.field3", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
-            Assert.Equal("C<T>.S<System.String>", sym.Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("C<T>.S<System.String>", sym.Type.ToTestDisplayString());
         }
 
         [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
@@ -239,7 +236,7 @@ class C1
             FieldSymbol ein = (FieldSymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
             Assert.Equal("C1.@in", ein.ToString());
-            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type.TypeSymbol;
+            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type;
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
         }
@@ -260,7 +257,7 @@ class C
             Assert.Equal("x", mem.Name);
             Assert.True(mem.IsConst);
             Assert.False(mem.HasConstantValue);
-            Assert.Equal(null, mem.ConstantValue);
+            Assert.Null(mem.ConstantValue);
         }
 
         [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
@@ -303,7 +300,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
@@ -313,22 +310,19 @@ class A
                 // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual").WithLocation(5, 28),
-                // (5,46): error CS0102: The type 'A' already contains a definition for ''
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
                 // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
                 // (5,23): error CS0670: Field cannot have void type
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
+                // (5,46): error CS0102: The type 'A' already contains a definition for ''
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
                 // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
-    );
+                );
         }
 
         [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
@@ -374,7 +368,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
                 // (5,46): error CS1003: Syntax error, ',' expected
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(5, 46),
                 // (5,48): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
@@ -384,18 +378,15 @@ class A
                 // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual").WithLocation(5, 28),
-                // (5,46): error CS0102: The type 'A' already contains a definition for ''
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
                 // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
                 // (5,23): error CS0670: Field cannot have void type
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
+                // (5,46): error CS0102: The type 'A' already contains a definition for ''
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
                 // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
@@ -490,7 +481,7 @@ class K
                 "Error: Field name value__ is reserved for Enums only.");
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferTrue()
         {
@@ -501,15 +492,16 @@ unsafe struct S
     private fixed byte goo[10];
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");
-            var goo = s.GetMember<FieldSymbol>("goo");
+            var goo = (IFieldSymbol)s.GetMember("goo").GetPublicSymbol();
 
             Assert.True(goo.IsFixedSizeBuffer);
+            Assert.Equal(10, goo.FixedSize);
         }
 
-        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364"), WorkItem(54799, "https://github.com/dotnet/roslyn/issues/54799")]
         [Fact]
         public void FixedSizeBufferFalse()
         {
@@ -520,12 +512,81 @@ unsafe struct S
     private byte goo;
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");
-            var goo = s.GetMember<FieldSymbol>("goo");
+            var goo = (IFieldSymbol)s.GetMember("goo").GetPublicSymbol();
 
             Assert.False(goo.IsFixedSizeBuffer);
+            Assert.Equal(0, goo.FixedSize);
+        }
+
+        [Fact]
+        public void StaticFieldDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int F = 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var field = compilation.GetMember<FieldSymbol>("C.F");
+            Assert.False(field.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceFieldRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int F = 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var field = compilation.GetMember<FieldSymbol>("C.F");
+            Assert.True(field.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void UnreferencedInterpolatedStringConstants()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    private static string s1 = $"""";
+    private static readonly string s2 = $"""";
+    private string s3 = $"""";
+    private readonly string s4 = $"""";
+}
+struct S
+{
+    private static string s1 = $"""";
+    private static readonly string s2 = $"""";
+}
+");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnreferencedRawInterpolatedStringConstants()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
+    private string s3 = $"""""" """""";
+    private readonly string s4 = $"""""" """""";
+}
+struct S
+{
+    private static string s1 = $"""""" """""";
+    private static readonly string s2 = $"""""" """""";
+}
+");
+
+            comp.VerifyDiagnostics();
         }
     }
 }

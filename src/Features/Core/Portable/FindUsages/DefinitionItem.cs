@@ -1,8 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Completion;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -20,6 +28,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal abstract partial class DefinitionItem
     {
+        /// <summary>
+        /// The definition item corresponding to the initial symbol the user was trying to find. This item should get
+        /// prominent placement in the final UI for the user.
+        /// </summary>
+        internal const string Primary = nameof(Primary);
+
         // Existing behavior is to do up to two lookups for 3rd party navigation for FAR.  One
         // for the symbol itself and one for a 'fallback' symbol.  For example, if we're FARing
         // on a constructor, then the fallback symbol will be the actual type that the constructor
@@ -54,6 +68,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// keep track of additional data.
         /// </summary>
         public ImmutableDictionary<string, string> Properties { get; }
+
+        /// <summary>
+        /// Additional diplayable properties that can be attached to the definition for clients that want to
+        /// display additional data.
+        /// </summary>
+        public ImmutableDictionary<string, string> DisplayableProperties { get; }
 
         /// <summary>
         /// The DisplayParts just for the name of this definition.  Generally used only for 
@@ -93,13 +113,35 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         internal abstract bool IsExternal { get; }
 
+        // F# uses this
         protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string>? properties,
+            bool displayIfNoReferences)
+            : this(
+                tags,
+                displayParts,
+                nameDisplayParts,
+                originationParts,
+                sourceSpans,
+                properties,
+                ImmutableDictionary<string, string>.Empty,
+                displayIfNoReferences)
+        {
+        }
+
+        protected DefinitionItem(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string>? displayableProperties,
             bool displayIfNoReferences)
         {
             Tags = tags;
@@ -108,6 +150,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
 
             if (Properties.ContainsKey(MetadataSymbolKey))
@@ -117,8 +160,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        public abstract bool CanNavigateTo(Workspace workspace);
-        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
+        [Obsolete("Use GetNavigableLocationAsync instead")]
+        public Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            => TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
+
+        [Obsolete("Use GetNavigableLocationAsync instead")]
+        public async Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+        {
+            var location = await GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return location != null &&
+                await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
+        }
+
+        public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -142,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             return Create(
                 tags, displayParts, sourceSpans, nameDisplayParts,
-                properties: null, displayIfNoReferences: displayIfNoReferences);
+                properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
@@ -150,7 +204,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
+            bool displayIfNoReferences = true)
+        {
+            return Create(tags, displayParts, sourceSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
+        }
+
+        public static DefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            ImmutableDictionary<string, string>? properties = null,
+            ImmutableDictionary<string, string>? displayableProperties = null,
             bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
@@ -164,31 +230,43 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans, properties, displayIfNoReferences);
+                sourceSpans, properties, displayableProperties, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            Project project,
+            Solution solution,
             ISymbol symbol,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
 
             var symbolKey = symbol.GetSymbolKey().ToString();
 
+            var projectId = solution.GetOriginatingProjectId(symbol);
+            Contract.ThrowIfNull(projectId);
+
             properties = properties.Add(MetadataSymbolKey, symbolKey)
-                                   .Add(MetadataSymbolOriginatingProjectIdGuid, project.Id.Id.ToString())
-                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, project.Id.DebugName);
+                                   .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
+
+            // Find the highest level containing type to show as the "file name". For metadata locations
+            // that come from embedded source or SourceLink this could be wrong, as there is no reason
+            // to assume a type is defined in a filename that matches, but its _way_ too expensive
+            // to try to find the right answer. For metadata-as-source locations though, it will be the same
+            // as the synthesized filename, so will make sense in the majority of cases.
+            var containingTypeName = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol).Name;
+            properties = properties.Add(AbstractReferenceFinder.ContainingTypeInfoPropertyName, containingTypeName);
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
+                displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 
@@ -208,10 +286,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> originationParts = default,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
             properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(
@@ -221,6 +299,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 originationParts: originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
+                displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 
@@ -242,5 +321,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return ImmutableArray<TaggedText>.Empty;
         }
+
+        public DetachedDefinitionItem Detach()
+            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), Properties, DisplayableProperties, DisplayIfNoReferences);
     }
 }

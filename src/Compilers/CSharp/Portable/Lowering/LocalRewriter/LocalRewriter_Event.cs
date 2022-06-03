@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            BoundExpression rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
             BoundExpression rewrittenArgument = VisitExpression(node.Argument);
 
             if (rewrittenReceiverOpt != null && node.Event.ContainingAssembly.IsLinked && node.Event.ContainingType.IsInterfaceType())
@@ -41,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenArguments = ImmutableArray.Create<BoundExpression>(rewrittenArgument);
 
-            MethodSymbol method = node.IsAddition ? node.Event.AddMethod : node.Event.RemoveMethod;
+            MethodSymbol? method = node.IsAddition ? node.Event.AddMethod : node.Event.RemoveMethod;
+            Debug.Assert(method is { });
             return MakeCall(node.Syntax, rewrittenReceiverOpt, method, rewrittenArguments, node.Type);
         }
 
@@ -70,13 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// TODO: use or delete isDynamic.
         /// </remarks>
-        private BoundExpression RewriteWindowsRuntimeEventAssignmentOperator(SyntaxNode syntax, EventSymbol eventSymbol, EventAssignmentKind kind, bool isDynamic, BoundExpression rewrittenReceiverOpt, BoundExpression rewrittenArgument)
+        private BoundExpression RewriteWindowsRuntimeEventAssignmentOperator(SyntaxNode syntax, EventSymbol eventSymbol, EventAssignmentKind kind, bool isDynamic, BoundExpression? rewrittenReceiverOpt, BoundExpression rewrittenArgument)
         {
-            BoundAssignmentOperator tempAssignment = null;
-            BoundLocal boundTemp = null;
-            if (!eventSymbol.IsStatic && CanChangeValueBetweenReads(rewrittenReceiverOpt))
+            BoundAssignmentOperator? tempAssignment = null;
+            BoundLocal? boundTemp = null;
+            Debug.Assert(eventSymbol.IsStatic || rewrittenReceiverOpt is { });
+            if (!eventSymbol.IsStatic && CanChangeValueBetweenReads(rewrittenReceiverOpt!))
             {
-                boundTemp = _factory.StoreToTemp(rewrittenReceiverOpt, out tempAssignment);
+                boundTemp = _factory.StoreToTemp(rewrittenReceiverOpt!, out tempAssignment);
             }
 
             NamedTypeSymbol tokenType = _factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol actionType = _factory.WellKnownType(WellKnownType.System_Action_T).Construct(tokenType);
 
-            TypeSymbol eventType = eventSymbol.Type.TypeSymbol;
+            TypeSymbol eventType = eventSymbol.Type;
 
             BoundExpression delegateCreationArgument = boundTemp ?? rewrittenReceiverOpt ?? _factory.Type(eventType);
 
@@ -93,9 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument: delegateCreationArgument,
                 methodOpt: eventSymbol.RemoveMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: actionType);
 
-            BoundExpression clearCall = null;
+            BoundExpression? clearCall = null;
             if (kind == EventAssignmentKind.Assignment)
             {
                 MethodSymbol clearMethod;
@@ -106,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenReceiver: null,
                         method: clearMethod,
                         rewrittenArguments: ImmutableArray.Create<BoundExpression>(removeDelegate),
-                        type: clearMethod.ReturnType.TypeSymbol);
+                        type: clearMethod.ReturnType);
                 }
                 else
                 {
-                    clearCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(removeDelegate), ErrorTypeSymbol.UnknownResultType);
+                    clearCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(removeDelegate), ErrorTypeSymbol.UnknownResultType);
                 }
             }
 
@@ -130,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argument: delegateCreationArgument,
                     methodOpt: eventSymbol.AddMethod,
                     isExtensionMethod: false,
+                    wasTargetTyped: false,
                     type: func2Type);
 
                 helper = WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal__AddEventHandler_T;
@@ -148,11 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver: null,
                     method: marshalMethod,
                     rewrittenArguments: marshalArguments,
-                    type: marshalMethod.ReturnType.TypeSymbol);
+                    type: marshalMethod.ReturnType);
             }
             else
             {
-                marshalCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, marshalArguments, ErrorTypeSymbol.UnknownResultType);
+                marshalCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, marshalArguments, ErrorTypeSymbol.UnknownResultType);
             }
 
             // In this case, we don't need a sequence.
@@ -170,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (tempAssignment != null) sideEffects.Add(tempAssignment);
             Debug.Assert(sideEffects.Any(), "Otherwise, we shouldn't be building a sequence");
 
-            return new BoundSequence(syntax, tempSymbols, sideEffects.ToImmutableAndFree(), marshalCall, marshalCall.Type);
+            return new BoundSequence(syntax, tempSymbols, sideEffects.ToImmutableAndFree(), marshalCall, marshalCall.Type!);
         }
 
         private BoundExpression VisitWindowsRuntimeEventFieldAssignmentOperator(SyntaxNode syntax, BoundEventAccess left, BoundExpression rewrittenRight)
@@ -181,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(eventSymbol.HasAssociatedField);
             Debug.Assert(eventSymbol.IsWindowsRuntimeEvent);
 
-            BoundExpression rewrittenReceiverOpt = left.ReceiverOpt == null ? null : VisitExpression(left.ReceiverOpt);
+            BoundExpression? rewrittenReceiverOpt = VisitExpression(left.ReceiverOpt);
 
             const bool isDynamic = false;
             return RewriteWindowsRuntimeEventAssignmentOperator(
@@ -199,29 +205,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so the event better be field-like.
             Debug.Assert(node.IsUsableAsField);
 
-            BoundExpression rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
             return MakeEventAccess(node.Syntax, rewrittenReceiver, node.EventSymbol, node.ConstantValue, node.ResultKind, node.Type);
         }
 
         private BoundExpression MakeEventAccess(
             SyntaxNode syntax,
-            BoundExpression rewrittenReceiver,
+            BoundExpression? rewrittenReceiver,
             EventSymbol eventSymbol,
-            ConstantValue constantValueOpt,
+            ConstantValue? constantValueOpt,
             LookupResultKind resultKind,
             TypeSymbol type)
         {
             Debug.Assert(eventSymbol.HasAssociatedField);
 
-            FieldSymbol fieldSymbol = eventSymbol.AssociatedField;
-            Debug.Assert((object)fieldSymbol != null);
+            FieldSymbol? fieldSymbol = eventSymbol.AssociatedField;
+            Debug.Assert(fieldSymbol is { });
 
             if (!eventSymbol.IsWindowsRuntimeEvent)
             {
                 return MakeFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
             }
 
-            NamedTypeSymbol fieldType = (NamedTypeSymbol)fieldSymbol.Type.TypeSymbol;
+            NamedTypeSymbol fieldType = (NamedTypeSymbol)fieldSymbol.Type;
             Debug.Assert(fieldType.Name == "EventRegistrationTokenTable");
 
             // _tokenTable
@@ -248,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                getOrCreateCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(fieldAccess), ErrorTypeSymbol.UnknownResultType);
+                getOrCreateCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(fieldAccess), ErrorTypeSymbol.UnknownResultType);
             }
 
             PropertySymbol invocationListProperty;
@@ -270,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(getOrCreateCall), ErrorTypeSymbol.UnknownResultType);
+            return new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(getOrCreateCall), ErrorTypeSymbol.UnknownResultType);
         }
 
         private BoundExpression RewriteNoPiaEventAssignmentOperator(BoundEventAssignmentOperator node, BoundExpression rewrittenReceiver, BoundExpression rewrittenArgument)
@@ -279,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // new System.Runtime.InteropServices.ComAwareEventInfo(typeof(myPIA), "event").AddEventHandler(myPIA, someevent)
 
-            BoundExpression result = null;
+            BoundExpression? result = null;
 
             SyntaxNode oldSyntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
@@ -296,8 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType), _factory.Literal(node.Event.MetadataName));
                     result = _factory.Call(eventInfo, addRemove,
-                                          _factory.Convert(addRemove.Parameters[0].Type.TypeSymbol, rewrittenReceiver),
-                                          _factory.Convert(addRemove.Parameters[1].Type.TypeSymbol, rewrittenArgument));
+                                          _factory.Convert(addRemove.Parameters[0].Type, rewrittenReceiver),
+                                          _factory.Convert(addRemove.Parameters[1].Type, rewrittenArgument));
                 }
             }
 
@@ -309,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var module = this.EmitModule;
             if (module != null)
             {
-                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event, node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);
+                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event.GetCciAdapter(), node.Syntax, _diagnostics.DiagnosticBag, isUsedForComAwareEventBinding: true);
             }
 
             if (result != null)
@@ -317,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            return new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(node.Event),
+            return new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol?>(node.Event),
                                           ImmutableArray.Create(rewrittenReceiver, rewrittenArgument), ErrorTypeSymbol.UnknownResultType);
         }
     }

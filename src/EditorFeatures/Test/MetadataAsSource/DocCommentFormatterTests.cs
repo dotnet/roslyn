@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -12,13 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public class DocCommentFormatterTests
     {
-        private CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-        private VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+        private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
+        private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
 
         private void TestFormat(string docCommentXmlFragment, string expected)
-        {
-            TestFormat(docCommentXmlFragment, expected, expected);
-        }
+            => TestFormat(docCommentXmlFragment, expected, expected);
 
         private void TestFormat(string docCommentXmlFragment, string expectedCSharp, string expectedVB)
         {
@@ -136,6 +138,18 @@ $@"{FeaturesResources.Returns_colon}
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void Value()
+        {
+            var comment = @"<value>A string value</value>";
+
+            var expected =
+$@"{FeaturesResources.Value_colon}
+    A string value";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void SummaryAndParams()
         {
             var comment =
@@ -189,6 +203,7 @@ This is a summary of something.
 <typeparam name=""U""></typeparam>
 <typeparam name=""V"">Another type parameter.</typeparam>
 <returns>This returns nothing.</returns>
+<value>This has no value.</value>
 <exception cref=""System.GooException"">Thrown for an unknown reason</exception>
 <exception cref=""System.BarException""></exception>
 <exception cref=""System.BlahException"">Thrown when blah blah blah</exception>
@@ -218,6 +233,9 @@ $@"{FeaturesResources.Summary_colon}
 
 {FeaturesResources.Returns_colon}
     This returns nothing.
+
+{FeaturesResources.Value_colon}
+    This has no value.
 
 {FeaturesResources.Exceptions_colon}
   System.GooException:

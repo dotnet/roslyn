@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.IntroduceUsingStatement
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -11,6 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), [Shared]>
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
         Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax)
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
 
         Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Introduce_Using_statement
 
@@ -27,16 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
             Return parentOfStatementsToSurround.ReplaceStatements(statements)
         End Function
 
-        Protected Overrides Function CreateUsingStatement(declarationStatement As LocalDeclarationStatementSyntax, sameLineTrivia As SyntaxTriviaList, statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
-            Dim usingStatement =
-                SyntaxFactory.UsingStatement(
-                    expression:=Nothing,
-                    variables:=declarationStatement.Declarators)
-
-            If sameLineTrivia.Any Then
-                usingStatement = usingStatement.WithTrailingTrivia(sameLineTrivia)
-            End If
-
+        Protected Overrides Function CreateUsingStatement(
+                declarationStatement As LocalDeclarationStatementSyntax,
+                statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
+            Dim usingStatement = SyntaxFactory.UsingStatement(
+                expression:=Nothing,
+                variables:=declarationStatement.Declarators).WithTriviaFrom(declarationStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
         End Function
     End Class

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Reflection
@@ -49,17 +51,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
 
-                If containingAssembly.IsMissing Then
+                If containingAssembly?.IsMissing Then
                     Dim arg = If(Me.SpecialType <> SpecialType.None, DirectCast(CustomSymbolDisplayFormatter.DefaultErrorFormat(Me), Object), Me)
                     Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, containingAssembly.Identity, arg)
                 Else
                     Dim containingModule As ModuleSymbol = Me.ContainingModule
 
-                    If containingModule.IsMissing Then
-                        Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, containingModule.Name, Me)
+                    If containingModule IsNot Nothing Then
+                        If containingModule.IsMissing Then
+                            Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, containingModule.Name, Me)
+                        End If
+
+                        Return ErrorFactory.ErrorInfo(ERRID.ERR_TypeRefResolutionError3, Me, containingModule.Name)
                     End If
 
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_TypeRefResolutionError3, Me, containingModule.Name)
+                    Return If(TryCast(ContainingType, ErrorTypeSymbol)?.ErrorInfo,
+                              ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty)) ' This is the best we can do at this point
                 End If
             End Get
         End Property
@@ -187,14 +194,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Overrides Function GetHashCode() As Integer
+            Public NotOverridable Overrides Function GetHashCode() As Integer
                 Return Hash.Combine(_containingModule, Hash.Combine(MetadataName, Hash.Combine(_namespaceName, Arity)))
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
+            Protected NotOverridable Overrides Function SpecializedEquals(obj As InstanceErrorTypeSymbol) As Boolean
+                Debug.Assert(obj IsNot Me)
 
                 Dim other = TryCast(obj, TopLevel)
 
@@ -249,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Represents nested missing type.
         ''' </summary>
-        Friend Class Nested
+        Friend NotInheritable Class Nested
             Inherits MissingMetadataTypeSymbol
 
             Private ReadOnly _containingType As NamedTypeSymbol
@@ -257,6 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Sub New(containingType As NamedTypeSymbol, name As String, arity As Integer, mangleName As Boolean)
                 MyBase.New(name, arity, mangleName)
                 Debug.Assert(containingType IsNot Nothing)
+                Debug.Assert(containingType.IsDefinition)
 
                 _containingType = containingType
             End Sub
@@ -288,10 +294,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Hash.Combine(_containingType, Hash.Combine(MetadataName, Arity))
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
+            Protected Overrides Function SpecializedEquals(obj As InstanceErrorTypeSymbol) As Boolean
+                Debug.Assert(Me IsNot obj)
 
                 Dim other = TryCast(obj, Nested)
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports System.Windows
@@ -16,12 +18,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private _grid As NamingStyleOptionPageControl
         Private _notificationService As INotificationService
 
-        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider) As AbstractOptionPageControl
+        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
             Dim componentModel = DirectCast(serviceProvider.GetService(GetType(SComponentModel)), IComponentModel)
             Dim workspace = componentModel.GetService(Of VisualStudioWorkspace)
             _notificationService = workspace.Services.GetService(Of INotificationService)
 
-            _grid = New NamingStyleOptionPageControl(serviceProvider, _notificationService, LanguageNames.VisualBasic)
+            _grid = New NamingStyleOptionPageControl(optionStore, _notificationService, LanguageNames.VisualBasic)
             Return _grid
         End Function
 

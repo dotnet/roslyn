@@ -1,48 +1,62 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestStateFactory
-        Public Shared Function CreateCSharpTestState(completionImplementation As CompletionImplementation,
-                                                      documentElement As XElement,
-                                                     Optional extraCompletionProviders As CompletionProvider() = Nothing,
+        Public Shared Function CreateCSharpTestState(documentElement As XElement,
                                                      Optional excludedTypes As List(Of Type) = Nothing,
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                     Optional includeFormatCommandHandler As Boolean = False) As ITestState
-            If completionImplementation = CompletionImplementation.Legacy Then
-                Return TestState.CreateCSharpTestState(documentElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler)
-            End If
+                                                     Optional includeFormatCommandHandler As Boolean = False,
+                                                     Optional languageVersion As LanguageVersion = LanguageVersion.Default,
+                                                     Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
-            Throw New ArgumentException(completionImplementation.ToString())
+            Dim testState = New TestState(<Workspace>
+                                              <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
+                                                  <Document>
+                                                      <%= documentElement.Value %>
+                                                  </Document>
+                                              </Project>
+                                          </Workspace>,
+                                 excludedTypes, extraExportedTypes,
+                                 includeFormatCommandHandler, workspaceKind:=Nothing)
+
+            testState.Workspace.GlobalOptions.SetGlobalOption(
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+
+            Return testState
         End Function
 
-        Public Shared Function CreateVisualBasicTestState(completionImplementation As CompletionImplementation,
-                                                           documentElement As XElement,
-                                                           Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                                                           Optional extraExportedTypes As List(Of Type) = Nothing) As ITestState
-            If completionImplementation = CompletionImplementation.Legacy Then
-                Return TestState.CreateVisualBasicTestState(documentElement, extraCompletionProviders, extraExportedTypes)
-            End If
+        Public Shared Function CreateVisualBasicTestState(documentElement As XElement,
+                                                           Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
 
-            Throw New ArgumentException(completionImplementation.ToString())
+            Return New TestState(<Workspace>
+                                     <Project Language="Visual Basic" CommonReferences="true">
+                                         <Document>
+                                             <%= documentElement.Value %>
+                                         </Document>
+                                     </Project>
+                                 </Workspace>,
+                                 excludedTypes:=Nothing, extraExportedTypes,
+                                 includeFormatCommandHandler:=False, workspaceKind:=Nothing)
         End Function
 
-        Public Shared Function CreateTestStateFromWorkspace(completionImplementation As CompletionImplementation,
-                                                            workspaceElement As XElement,
-                                                            Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                                                            Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                            Optional workspaceKind As String = Nothing) As TestState
+        Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
+                                                            Optional extraExportedTypes As IEnumerable(Of Type) = Nothing,
+                                                            Optional workspaceKind As String = Nothing,
+                                                            Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
-            If completionImplementation = CompletionImplementation.Legacy Then
-                Return TestState.CreateTestStateFromWorkspace(workspaceElement, extraCompletionProviders, extraExportedTypes, workspaceKind)
-            End If
+            Dim testState = New TestState(
+                workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
-            Throw New ArgumentException(completionImplementation.ToString())
-        End Function
+            testState.Workspace.GlobalOptions.SetGlobalOption(
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
 
-        Public Shared Function GetAllCompletionImplementations() As IEnumerable(Of Object())
-            Return {New Object() {CompletionImplementation.Legacy}}
+            Return testState
         End Function
     End Class
 End Namespace

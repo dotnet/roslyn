@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -40,24 +44,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract SyntaxTokenList ModifiersTokenList { get; }
 
-        protected void TypeChecks(TypeSymbol type, DiagnosticBag diagnostics)
+        protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
             if (type.IsStatic)
             {
                 // Cannot declare a variable of static type '{0}'
                 diagnostics.Add(ErrorCode.ERR_VarDeclIsStaticClass, this.ErrorLocation, type);
             }
-            else if (type.SpecialType == SpecialType.System_Void)
+            else if (type.IsVoidType())
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
             }
             else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.Locations[0], type);
             }
-            else if (type.IsByRefLikeType && (this.IsStatic || !containingType.IsByRefLikeType))
+            else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.Locations[0], type);
             }
             else if (IsConst && !type.CanBeConst())
             {
@@ -80,14 +84,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_VolatileStruct, this.ErrorLocation, this, type);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+            if (!this.IsNoMoreVisibleThan(type, ref useSiteInfo))
             {
                 // Inconsistent accessibility: field type '{1}' is less accessible than field '{0}'
                 diagnostics.Add(ErrorCode.ERR_BadVisFieldType, this.ErrorLocation, this, type);
             }
 
-            diagnostics.Add(this.ErrorLocation, useSiteDiagnostics);
+            diagnostics.Add(this.ErrorLocation, useSiteInfo);
         }
 
         public abstract bool HasInitializer { get; }
@@ -110,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(value.DecimalValue));
                 }
             }
+
+            // Synthesize RequiredMemberAttribute if this field is required
+            if (IsRequired)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
         }
 
         public override Symbol AssociatedSymbol
@@ -130,10 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, DiagnosticBag diagnostics, out bool modifierErrors)
+        internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
+            bool isInterface = containingType.IsInterface;
             DeclarationModifiers defaultAccess =
-                (containingType.IsInterface) ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+                isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             DeclarationModifiers allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
@@ -144,10 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Volatile |
                 DeclarationModifiers.Fixed |
                 DeclarationModifiers.Unsafe |
-                DeclarationModifiers.Abstract; // filtered out later
+                DeclarationModifiers.Abstract |
+                DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                isForTypeDeclaration: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
@@ -182,10 +197,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
                 }
 
-                result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile);
+                if ((result & DeclarationModifiers.Required) != 0)
+                {
+                    // The modifier 'required' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                }
+
+                result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile | DeclarationModifiers.Required);
                 Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
             }
-
 
             if ((result & DeclarationModifiers.Const) != 0)
             {
@@ -213,10 +233,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.UnsafeKeyword));
                 }
 
+                if ((result & DeclarationModifiers.Required) != 0)
+                {
+                    // The modifier 'required' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                    result &= ~DeclarationModifiers.Required;
+                }
+
                 result |= DeclarationModifiers.Static; // "constants are considered static members"
             }
             else
             {
+                if ((result & DeclarationModifiers.Static) != 0 && (result & DeclarationModifiers.Required) != 0)
+                {
+                    // The modifier 'required' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                    result &= ~DeclarationModifiers.Required;
+                }
+
                 // NOTE: always cascading on a const, so suppress.
                 // NOTE: we're being a bit sneaky here - we're using the containingType rather than this symbol
                 // to determine whether or not unsafe is allowed.  Since this symbol and the containing type are
@@ -276,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -287,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VariableDeclaratorSyntax declarator,
             DeclarationModifiers modifiers,
             bool modifierErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
         {
             _hasInitializer = declarator.Initializer != null;
@@ -297,6 +331,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!modifierErrors)
             {
                 this.ReportModifiersDiagnostics(diagnostics);
+            }
+
+            if (containingType.IsInterface)
+            {
+                if (this.IsStatic)
+                {
+                    Binder.CheckFeatureAvailability(declarator, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, ErrorLocation);
+
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, ErrorLocation);
+                }
             }
         }
 
@@ -351,12 +402,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyType.IsNull)
+                if (_lazyType != null)
                 {
-                    Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
-                        IsPointerFieldSyntactically());
-
-                    return _lazyType.DefaultType.IsPointerType();
+                    bool isPointerType = _lazyType.Value.DefaultType.Kind switch
+                    {
+                        SymbolKind.PointerType => true,
+                        SymbolKind.FunctionPointerType => true,
+                        _ => false
+                    };
+                    Debug.Assert(isPointerType == IsPointerFieldSyntactically());
+                    return isPointerType;
                 }
 
                 return IsPointerFieldSyntactically();
@@ -366,32 +421,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool IsPointerFieldSyntactically()
         {
             var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
-            if (declaration.Type.Kind() == SyntaxKind.PointerType)
+            if (declaration.Type.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false })
             {
                 // public int * Blah;   // pointer
                 return true;
             }
 
-            foreach (var singleVariable in declaration.Variables)
-            {
-                var argList = singleVariable.ArgumentList;
-                if (argList != null && argList.Arguments.Count != 0)
-                {
-                    // public int Blah[10];     // fixed buffer
-                    return true;
-                }
-            }
-
-            return false;
+            return IsFixedSizeBuffer;
         }
 
-        internal sealed override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsNull)
+            if (_lazyType != null)
             {
-                return _lazyType.ToType();
+                return _lazyType.Value;
             }
 
             var declarator = VariableDeclaratorNode;
@@ -400,11 +445,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
 
-            var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbolWithAnnotations type;
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            TypeWithAnnotations type;
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
-            DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
+            var diagnosticsForFirstDeclarator = BindingDiagnosticBag.GetInstance();
 
             Symbol associatedPropertyOrEvent = this.AssociatedSymbol;
             if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
@@ -413,15 +458,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (@event.IsWindowsRuntimeEvent)
                 {
                     NamedTypeSymbol tokenTableType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T);
-                    Binder.ReportUseSiteDiagnostics(tokenTableType, diagnosticsForFirstDeclarator, this.ErrorLocation);
+                    Binder.ReportUseSite(tokenTableType, diagnosticsForFirstDeclarator, this.ErrorLocation);
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
                     // type that has additional generic constraints?
-                    type = TypeSymbolWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.Type)));
+                    type = TypeWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.TypeWithAnnotations)));
                 }
                 else
                 {
-                    type = @event.Type;
+                    type = @event.TypeWithAnnotations;
                 }
             }
             else
@@ -429,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binderFactory = compilation.GetBinderFactory(SyntaxTree);
                 var binder = binderFactory.GetBinder(typeSyntax);
 
-                binder = binder.WithContainingMemberOrLambda(this);
+                binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
                     type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
@@ -439,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool isVar;
                     type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
-                    Debug.Assert(!type.IsNull || isVar);
+                    Debug.Assert(type.HasType || isVar);
 
                     if (isVar)
                     {
@@ -465,38 +510,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
+                            var syntaxNode = (EqualsValueClauseSyntax)declarator.Initializer;
 
                             var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
+                            var executableBinder = new ExecutableCodeBinder(syntaxNode, this, initializerBinder);
+                            var initializerOpt = executableBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, syntaxNode, declarator);
 
                             if (initializerOpt != null)
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
+                                    type = TypeWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
                             }
                         }
 
-                        if (type.IsNull)
+                        if (!type.HasType)
                         {
-                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
+                            type = TypeWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
 
                 if (IsFixedSizeBuffer)
                 {
-                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
+                    type = TypeWithAnnotations.Create(new PointerTypeSymbol(type));
 
                     if (ContainingType.TypeKind != TypeKind.Struct)
                     {
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    var elementType = ((PointerTypeSymbol)type.TypeSymbol).PointedAtType.TypeSymbol;
+                    var elementType = ((PointerTypeSymbol)type.Type).PointedAtType;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
                     {
@@ -511,18 +558,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            Debug.Assert(type.DefaultType.IsPointerOrFunctionPointer() == IsPointerFieldSyntactically());
+
             // update the lazyType only if it contains value last seen by the current thread:
-            if (_lazyType.InterlockedInitialize(type.WithModifiers(this.RequiredCustomModifiers)))
+            if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
             {
-                TypeChecks(type.TypeSymbol, diagnostics);
+                TypeChecks(type.Type, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
-                compilation.DeclarationDiagnostics.AddRange(diagnostics);
+                AddDeclarationDiagnostics(diagnostics);
 
                 bool isFirstDeclarator = fieldSyntax.Declaration.Variables[0] == declarator;
                 if (isFirstDeclarator)
                 {
-                    compilation.DeclarationDiagnostics.AddRange(diagnosticsForFirstDeclarator);
+                    AddDeclarationDiagnostics(diagnosticsForFirstDeclarator);
                 }
 
                 state.NotePartComplete(CompletionPart.Type);
@@ -530,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
-            return _lazyType.ToType();
+            return _lazyType.Value;
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)
@@ -546,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyFieldTypeInferred != 0 || Volatile.Read(ref _lazyFieldTypeInferred) != 0;
         }
 
-        protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
+        protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics)
         {
             if (!this.IsConst || VariableDeclaratorNode.Initializer == null)
             {
@@ -570,6 +619,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
+            if (!IsFixedSizeBuffer)
+            {
+                Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
+            }
+
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }
 }

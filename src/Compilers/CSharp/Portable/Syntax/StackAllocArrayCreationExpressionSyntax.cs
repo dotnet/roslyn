@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -7,9 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class StackAllocArrayCreationExpressionSyntax
     {
         public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type)
-        {
-            return Update(StackAllocKeyword, type, default(InitializerExpressionSyntax));
-        }
+            => Update(stackAllocKeyword, type, Initializer);
     }
 }
 
@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     public partial class SyntaxFactory
     {
         public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type)
-        {
-            return StackAllocArrayCreationExpression(stackAllocKeyword, type, default(InitializerExpressionSyntax));
-        }
+            => StackAllocArrayCreationExpression(stackAllocKeyword, type, initializer: null);
     }
 }

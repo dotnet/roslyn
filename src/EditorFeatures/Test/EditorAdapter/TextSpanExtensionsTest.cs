@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+#nullable disable
+
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.EditorUtilities;
 using Xunit;
 
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSpan()
         {
-            void del(int start, int length)
+            static void del(int start, int length)
             {
                 var textSpan = new TextSpan(start, length);
                 var span = textSpan.ToSpan();
@@ -30,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSnapshotSpan1()
         {
-            var snapshot = EditorFactory.CreateBuffer(EditorServicesUtil.ExportProvider, new string('a', 10)).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, new string('a', 10)).CurrentSnapshot;
             var textSpan = new TextSpan(0, 5);
             var ss = textSpan.ToSnapshotSpan(snapshot);
             Assert.Same(snapshot, ss.Snapshot);
@@ -41,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSnapshotSpan2()
         {
-            var snapshot = EditorFactory.CreateBuffer(EditorServicesUtil.ExportProvider, new string('a', 10)).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, new string('a', 10)).CurrentSnapshot;
             var textSpan = new TextSpan(0, 10);
             var ss = textSpan.ToSnapshotSpan(snapshot);
             Assert.Same(snapshot, ss.Snapshot);

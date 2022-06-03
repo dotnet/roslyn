@@ -1,11 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -13,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     <[UseExportProvider]>
     Public Class EncapsulateFieldCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Sub PrivateField()
+        Public Async Function PrivateField() As Task
             Dim text = <File>
 Class C
     Private goo$$ As Integer
@@ -42,12 +45,12 @@ Class C
 End Class</File>.ConvertTestSourceTag()
 
             Using state = EncapsulateFieldTestState.Create(text)
-                state.AssertEncapsulateAs(expected)
+                Await state.AssertEncapsulateAsAsync(expected)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Sub NonPrivateField()
+        Public Async Function NonPrivateField() As Task
             Dim text = <File>
 Class C
     Protected goo$$ As Integer
@@ -76,13 +79,13 @@ Class C
 End Class</File>.ConvertTestSourceTag()
 
             Using state = EncapsulateFieldTestState.Create(text)
-                state.AssertEncapsulateAs(expected)
+                Await state.AssertEncapsulateAsAsync(expected)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
-        Public Sub EncapsulateTwoFields()
+        Public Async Function EncapsulateTwoFields() As Task
             Dim text = "
 Class Program
     [|Shared A As Integer = 1
@@ -125,18 +128,14 @@ End Class
 "
 
             Using state = EncapsulateFieldTestState.Create(text)
-                state.AssertEncapsulateAs(expected)
+                Await state.AssertEncapsulateAsAsync(expected)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub EncapsulateFieldCommandDisabledInSubmission()
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
-                .CreateExportProvider()
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
@@ -146,15 +145,19 @@ End Class
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                exportProvider:=exportProvider)
+                composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of ITextBufferUndoManagerProvider),
-                                                                 workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+                Dim handler = New EncapsulateFieldCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of ITextBufferUndoManagerProvider),
+                    workspace.GlobalOptions,
+                    workspace.GetService(Of IAsynchronousOperationListenerProvider)())
+
                 Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)
             End Using

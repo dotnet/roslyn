@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -8,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GroupClassTests
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/34467")>
         Public Sub SimpleTest1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -34,7 +37,7 @@ Module Module1
         Dim methods = gr.GetMethods(bindingFlags).OrderBy(Function(f) f.Name)
 
         For Each method In methods
-            System.Console.WriteLine("{0} {1} {2}", method.Name, method.Attributes, method.GetMethodImplementationFlags())
+            System.Console.WriteLine("{0} {1} {2}", method.Name, method.Attributes, CInt(method.GetMethodImplementationFlags()))
             For Each attribute In method.GetCustomAttributes(False)
                 System.Console.WriteLine("  {0}", attribute)
             Next
@@ -124,15 +127,15 @@ m_DefaultInstanceTest1 DefaultInstanceTest1 Public
 m_DefaultInstanceTest2 DefaultInstanceTest2 Public
   System.ComponentModel.EditorBrowsableAttribute
 ----------------------
-Create PrivateScope, Private, Static IL
-Dispose PrivateScope, Private, Static IL
-get_DefaultInstanceTest1 PrivateScope, Public, SpecialName IL
+Create PrivateScope, Private, Static 0
+Dispose PrivateScope, Private, Static 0
+get_DefaultInstanceTest1 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-get_DefaultInstanceTest2 PrivateScope, Public, SpecialName IL
+get_DefaultInstanceTest2 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-set_DefaultInstanceTest1 PrivateScope, Public, SpecialName IL
+set_DefaultInstanceTest1 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-set_DefaultInstanceTest2 PrivateScope, Public, SpecialName IL
+set_DefaultInstanceTest2 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
 ----------------------
 DefaultInstanceTest1 None
@@ -2457,8 +2460,7 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
             compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                  TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
-            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
-            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource, options:=TestOptions.Regular))
+            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource))
 
             compilation.MyTemplate = Nothing
 

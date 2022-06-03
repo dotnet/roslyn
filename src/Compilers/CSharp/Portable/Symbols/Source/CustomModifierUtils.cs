@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void CopyMethodCustomModifiers(
             MethodSymbol sourceMethod,
             MethodSymbol destinationMethod,
-            out TypeSymbolWithAnnotations returnType,
+            out TypeWithAnnotations returnType,
             out ImmutableArray<CustomModifier> customModifiers,
             out ImmutableArray<ParameterSymbol> parameters,
             bool alsoCopyParamsModifier) // Last since always named.
@@ -34,23 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // with (equivalent) type parameters owned by this method.  We know that
             // we can perform this mapping positionally, because the method signatures
             // have already been compared.
-            MethodSymbol constructedSourceMethod = sourceMethod.ConstructIfGeneric(destinationMethod.TypeArguments);
+            MethodSymbol constructedSourceMethod = sourceMethod.ConstructIfGeneric(destinationMethod.TypeArgumentsWithAnnotations);
 
             customModifiers =
                 destinationMethod.RefKind != RefKind.None ? constructedSourceMethod.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty;
 
             parameters = CopyParameterCustomModifiers(constructedSourceMethod.Parameters, destinationMethod.Parameters, alsoCopyParamsModifier);
 
-            returnType = destinationMethod.ReturnType; // Default value - in case we don't copy the custom modifiers.
-            TypeSymbol returnTypeSymbol = returnType.TypeSymbol;
+            returnType = destinationMethod.ReturnTypeWithAnnotations; // Default value - in case we don't copy the custom modifiers.
+            TypeSymbol returnTypeSymbol = returnType.Type;
 
-            var sourceMethodReturnType = constructedSourceMethod.ReturnType;
+            var sourceMethodReturnType = constructedSourceMethod.ReturnTypeWithAnnotations;
 
             // We do an extra check before copying the return type to handle the case where the overriding
             // method (incorrectly) has a different return type than the overridden method.  In such cases,
             // we want to retain the original (incorrect) return type to avoid hiding the return type
             // given in source.
-            TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.TypeSymbol;
+            TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.Type;
             if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptions))
             {
                 returnType = returnType.WithTypeAndModifiers(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly),
@@ -59,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <param name="sourceType">Type that already has custom modifiers.</param>
-        /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.  May differ in object/dynamic.</param>
+        /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.
+        /// May differ in object/dynamic, tuple element names, or other differences ignored by the runtime.</param>
         /// <param name="containingAssembly">The assembly containing the signature referring to the destination type.</param>
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
         internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly)
@@ -68,23 +72,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             const RefKind refKind = RefKind.None;
 
-            // NOTE: overrides can differ by object/dynamic.  If they do, we'll need to tweak newType before
-            // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
-            // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
-            // NOTE: ref is irrelevant here since we are just encoding/decoding the type out of the signature context
+            // NOTE: overrides can differ by object/dynamic, tuple element names, etc.
+            // If they do, we'll need to tweak destinationType before we can use it in place of sourceType.
+            // NOTE: refKind is irrelevant here since we are just encoding/decoding the type.
             ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
-            TypeSymbol typeWithDynamic = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
+            TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
-            TypeSymbol resultType;
+            if (!containingAssembly.RuntimeSupportsNumericIntPtr)
+            {
+                var builder = ArrayBuilder<bool>.GetInstance();
+                CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, destinationType);
+                resultType = NativeIntegerTypeDecoder.TransformType(resultType, builder.ToImmutableAndFree());
+            }
+
             if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
             {
                 // We also preserve tuple names, if present and different
                 ImmutableArray<string> names = CSharpCompilation.TupleNamesEncoder.Encode(destinationType);
-                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithDynamic, names);
-            }
-            else
-            {
-                resultType = typeWithDynamic;
+                resultType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(resultType, names);
             }
 
             // Preserve nullable modifiers as well.
@@ -99,10 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool transformResult = resultType.ApplyNullableTransforms(defaultTransformFlag: 0, flagsBuilder.ToImmutableAndFree(), ref position, out resultType);
             Debug.Assert(transformResult && position == length);
 
-            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)); // Same custom modifiers as source type.
+            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers)); // Same custom modifiers as source type.
 
-            Debug.Assert(resultType.Equals(destinationType,
-                TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)); // Same object/dynamic and tuple names as destination type.
+            // Same object/dynamic, nullability, native integers, and tuple names as destination type.
+            Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
 
             return resultType;
         }
@@ -123,10 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SourceParameterSymbolBase destinationParameter = (SourceParameterSymbolBase)destinationParameters[i];
                 ParameterSymbol sourceParameter = sourceParameters[i];
 
-                if (sourceParameter.Type.CustomModifiers.Any() || sourceParameter.RefCustomModifiers.Any() ||
-                    sourceParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) ||
-                    destinationParameter.Type.CustomModifiers.Any() || destinationParameter.RefCustomModifiers.Any() ||
-                    destinationParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) || // Could happen if the associated property has custom modifiers.
+                if (sourceParameter.TypeWithAnnotations.CustomModifiers.Any() || sourceParameter.RefCustomModifiers.Any() ||
+                    sourceParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) ||
+                    destinationParameter.TypeWithAnnotations.CustomModifiers.Any() || destinationParameter.RefCustomModifiers.Any() ||
+                    destinationParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) || // Could happen if the associated property has custom modifiers.
                     (alsoCopyParamsModifier && (sourceParameter.IsParams != destinationParameter.IsParams)))
                 {
                     if (builder == null)
@@ -136,8 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams;
-                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type.TypeSymbol,
-                                                                                  sourceParameter.Type.CustomModifiers,
+                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type,
+                                                                                  sourceParameter.TypeWithAnnotations.CustomModifiers,
                                                                                   destinationParameter.RefKind != RefKind.None ? sourceParameter.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty,
                                                                                   newParams));
                 }
@@ -152,7 +157,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasInAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
+            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
+        }
+
+        internal static bool HasIsExternalInitModifier(this ImmutableArray<CustomModifier> modifiers)
+        {
+            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());
+        }
+
+        internal static bool HasOutAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
+        {
+            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeOutAttribute());
         }
     }
 }

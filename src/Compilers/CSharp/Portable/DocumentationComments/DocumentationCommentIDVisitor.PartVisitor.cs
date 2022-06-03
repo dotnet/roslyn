@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitArrayType(ArrayTypeSymbol symbol, StringBuilder builder)
             {
-                Visit(symbol.ElementType.TypeSymbol, builder);
+                Visit(symbol.ElementType, builder);
 
                 // Rank-one arrays are displayed different than rectangular arrays
                 if (symbol.IsSZArray)
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.MethodKind == MethodKind.Conversion)
                 {
                     builder.Append('~');
-                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnType.TypeSymbol, builder);
+                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnType, builder);
                 }
 
                 return null;
@@ -171,11 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
-                if (symbol.IsTupleType)
-                {
-                    return VisitNamedType(((TupleTypeSymbol)symbol).UnderlyingNamedType, builder);
-                }
-
                 if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
                 {
                     Visit(symbol.ContainingSymbol, builder);
@@ -188,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Special case: dev11 treats types instances of the declaring type in the parameter list
                     // (and return type, for conversions) as constructed with its own type parameters.
-                    if (!_inParameterOrReturnType && symbol == symbol.ConstructedFrom)
+                    if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.ConsiderEverything2))
                     {
                         builder.Append('`');
                         builder.Append(symbol.Arity);
@@ -199,14 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         bool needsComma = false;
 
-                        foreach (var typeArgument in symbol.TypeArgumentsNoUseSiteDiagnostics)
+                        foreach (var typeArgument in symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
                             if (needsComma)
                             {
                                 builder.Append(',');
                             }
 
-                            Visit(typeArgument.TypeSymbol, builder);
+                            Visit(typeArgument.Type, builder);
 
                             needsComma = true;
                         }
@@ -220,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitPointerType(PointerTypeSymbol symbol, StringBuilder builder)
             {
-                Visit(symbol.PointedAtType.TypeSymbol, builder);
+                Visit(symbol.PointedAtType, builder);
                 builder.Append('*');
 
                 return null;
@@ -243,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(_inParameterOrReturnType);
 
-                Visit(symbol.Type.TypeSymbol, builder);
+                Visit(symbol.Type, builder);
 
                 // ref and out params are suffixed with @
                 if (symbol.RefKind != RefKind.None)

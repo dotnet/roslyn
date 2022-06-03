@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +31,7 @@ public class X
 ", new[] { MinCorlibRef });
 
             var field = c.GlobalNamespace.GetMember<NamedTypeSymbol>("X").GetMember<FieldSymbol>("A");
-            Assert.Equal(0, field.Type.TypeSymbol.Interfaces().Length);
+            Assert.Equal(0, field.Type.Interfaces().Length);
             c.VerifyDiagnostics();
         }
     }

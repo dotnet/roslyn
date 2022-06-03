@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,18 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SignatureOnlyParameterSymbol : ParameterSymbol
     {
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly bool _isParams;
         private readonly RefKind _refKind;
 
         public SignatureOnlyParameterSymbol(
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             ImmutableArray<CustomModifier> refCustomModifiers,
             bool isParams,
             RefKind refKind)
         {
-            Debug.Assert(type.TypeSymbol != null);
+            Debug.Assert((object)type.Type != null);
             Debug.Assert(!refCustomModifiers.IsDefault);
 
             _type = type;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
         }
 
-        public override TypeSymbolWithAnnotations Type { get { return _type; } }
+        public override TypeWithAnnotations TypeWithAnnotations { get { return _type; } }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
@@ -42,10 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name { get { return ""; } }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+        public override bool IsImplicitlyDeclared { get { return true; } }
+
+        public override bool IsDiscard { get { return false; } }
 
         #region Not used by MethodSignatureComparer
 
@@ -71,7 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable; } }
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
 
         public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
 
@@ -83,9 +88,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+
         #endregion Not used by MethodSignatureComparer
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
@@ -93,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var other = obj as SignatureOnlyParameterSymbol;
-            return (object)other != null &&
-                _type.TypeSymbol == other._type.TypeSymbol &&
+            return other is not null &&
+                TypeSymbol.Equals(_type.Type, other._type.Type, compareKind) &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&
                 _isParams == other._isParams &&
@@ -104,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return Hash.Combine(
-                _type.TypeSymbol.GetHashCode(),
+                _type.Type.GetHashCode(),
                 Hash.Combine(
                     Hash.CombineValues(_type.CustomModifiers),
                     Hash.Combine(

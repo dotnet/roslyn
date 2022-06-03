@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
@@ -57,7 +59,7 @@ End Class"
 "{
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init ((Integer, Integer) V_0) //o
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //o
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)""
@@ -144,8 +146,7 @@ End Class"
                 AssertEx.SetEqual({"corlib 2.0", appRef + " 0.0"}, reader.DumpAssemblyReferences())
 
                 AssertEx.SetEqual({"Object, System, AssemblyReference:corlib",
-                    "ValueTuple`2, System, AssemblyReference:" + appRef, ' ValueTuple comes from app, not corlib
-                    ", System, AssemblyReference:" + appRef},
+                    "ValueTuple`2, System, AssemblyReference:" + appRef}, ' ValueTuple comes from app, not corlib
                     reader.DumpTypeReferences())
             End Using
         End Sub
@@ -192,7 +193,7 @@ End Class"
 "{
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init ((Integer, Integer) V_0) //o
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //o
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)""
@@ -234,7 +235,7 @@ End Class"
 "{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init ((A As Integer, B As Integer) V_0) //o
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //o
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")
@@ -317,7 +318,7 @@ End Class"
 "{
   // Code size       19 (0x13)
   .maxstack  2
-  .locals init ((Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) V_0) //x
+  .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)) V_0) //x
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Item4 As Integer""
   IL_0006:  ldloc.0
@@ -354,7 +355,7 @@ End Class"
 "{
   // Code size       24 (0x18)
   .maxstack  2
-  .locals init ((Integer, Integer, Three As Integer, Four As Integer, Integer, Integer, Integer, Eight As Integer) V_0) //x
+  .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)) V_0) //x
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_0006:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
@@ -403,7 +404,7 @@ End Class"
            "{
   // Code size       48 (0x30)
   .maxstack  4
-  .locals init ((Integer, Integer) V_0, //x
+  .locals init (System.ValueTuple(Of Integer, Integer) V_0, //x
                 System.Guid V_1)
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""

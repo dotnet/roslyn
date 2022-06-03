@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -270,6 +272,7 @@ End Class
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_$0".
+            ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext",
 <symbols>
     <files>
@@ -294,7 +297,9 @@ End Class
                 <entry offset="0x96" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x98">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
                 <scope startOffset="0x19" endOffset="0x97">
                     <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
                 </scope>
@@ -347,7 +352,9 @@ End Class
                 <entry offset="0x54" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x56">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
                 <scope startOffset="0x19" endOffset="0x55">
                     <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
                 </scope>
@@ -528,8 +535,8 @@ End Module
 </symbols>)
         End Sub
 
+        <Fact>
         <WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PortableStateMachineDebugInfo()
             Dim src = "
 Imports System.Collections.Generic
@@ -549,17 +556,19 @@ End Class"
             Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
                 Dim mdReader = provider.GetMetadataReader()
                 Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                Dim visualizer = New MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences)
                 visualizer.WriteMethodDebugInformation()
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
 MethodDebugInformation (index: 0x31, size: 40): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: nil
-5: #22
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4: nil  
+5:      
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
@@ -569,10 +578,10 @@ MethodDebugInformation (index: 0x31, size: 40):
   IL_0022: (5, 8) - (5, 15)
   IL_003D: (6, 5) - (6, 17)
 }
-6: nil
-7: nil
-8: nil
-9: nil
+6: nil  
+7: nil  
+8: nil  
+9: nil  
 a: nil", writer.ToString())
             End Using
         End Sub

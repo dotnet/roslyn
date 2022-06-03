@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -12,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class IteratorRewriter : StateMachineRewriter
     {
-        private readonly TypeSymbol _elementType;
+        private readonly TypeWithAnnotations _elementType;
 
         // true if the iterator implements IEnumerable and IEnumerable<T>,
         // false if it implements IEnumerator and IEnumerator<T>
@@ -25,10 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             bool isEnumerable,
             IteratorStateMachine stateMachineType,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
-            : base(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            BindingDiagnosticBag diagnostics)
+            : base(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
         {
             // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
             _elementType = stateMachineType.ElementType;
@@ -43,13 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body,
             MethodSymbol method,
             int methodOrdinal,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
-            TypeSymbol elementType = method.IteratorElementType;
-            if ((object)elementType == null || method.IsAsync)
+            TypeWithAnnotations elementType = method.IteratorElementTypeWithAnnotations;
+            if (elementType.IsDefault || method.IsAsync)
             {
                 stateMachineType = null;
                 return body;
@@ -57,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Figure out what kind of iterator we are generating.
             bool isEnumerable;
-            switch (method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType)
+            switch (method.ReturnType.OriginalDefinition.SpecialType)
             {
                 case SpecialType.System_Collections_IEnumerable:
                 case SpecialType.System_Collections_Generic_IEnumerable_T:
@@ -70,12 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType);
+                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.OriginalDefinition.SpecialType);
             }
 
             stateMachineType = new IteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, isEnumerable, elementType);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+            var rewriter = new IteratorRewriter(body, method, isEnumerable, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics);
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
                 return body;
@@ -89,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         protected bool VerifyPresenceOfRequiredAPIs()
         {
-            DiagnosticBag bag = DiagnosticBag.GetInstance();
+            var bag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
 
             EnsureSpecialType(SpecialType.System_Int32, bag);
             EnsureSpecialType(SpecialType.System_IDisposable, bag);
@@ -115,7 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool hasErrors = bag.HasAnyErrors();
-            if (hasErrors)
+            if (!hasErrors)
+            {
+                diagnostics.AddDependencies(bag);
+            }
+            else
             {
                 diagnostics.AddRange(bag);
             }
@@ -124,14 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors;
         }
 
-        private Symbol EnsureSpecialMember(SpecialMember member, DiagnosticBag bag)
+        private Symbol EnsureSpecialMember(SpecialMember member, BindingDiagnosticBag bag)
         {
             Symbol symbol;
             Binder.TryGetSpecialTypeMember(F.Compilation, member, body.Syntax, bag, out symbol);
             return symbol;
         }
 
-        private void EnsureSpecialType(SpecialType type, DiagnosticBag bag)
+        private void EnsureSpecialType(SpecialType type, BindingDiagnosticBag bag)
         {
             Binder.GetSpecialType(F.Compilation, type, body.Syntax, bag);
         }
@@ -139,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the property and its getter exist and collect any use-site errors.
         /// </summary>
-        private void EnsureSpecialPropertyGetter(SpecialMember member, DiagnosticBag bag)
+        private void EnsureSpecialPropertyGetter(SpecialMember member, BindingDiagnosticBag bag)
         {
             PropertySymbol symbol = (PropertySymbol)EnsureSpecialMember(member, bag);
             if ((object)symbol != null)
@@ -151,11 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var info = getter.GetUseSiteDiagnostic();
-                if ((object)info != null)
-                {
-                    bag.Add(new CSDiagnostic(info, body.Syntax.Location));
-                }
+                bag.ReportUseSite(getter, body.Syntax.Location);
             }
         }
 
@@ -199,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IEnumerator_Reset = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__Reset);
             var IEnumerator_get_Current = F.SpecialProperty(SpecialMember.System_Collections_IEnumerator__Current).GetMethod;
 
-            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType);
+            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(ImmutableArray.Create(_elementType));
             var IEnumeratorOfElementType_get_Current = F.SpecialProperty(SpecialMember.System_Collections_Generic_IEnumerator_T__Current).GetMethod.AsMember(IEnumeratorOfElementType);
 
             // Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
@@ -239,11 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
 
-            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType);
+            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType.Type);
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate GetEnumerator()
-            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineStates.FirstUnusedState);
+            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineStates.InitialIteratorState);
 
             // Generate IEnumerable.GetEnumerator
             var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
@@ -280,16 +287,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // var stateMachineLocal = new IteratorImplementationClass(N)
             // where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.FirstUnusedState;
+            int initialState = _isEnumerable ? StateMachineStates.FinishedState : StateMachineStates.InitialIteratorState;
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal),
                     F.New(stateMachineType.Constructor.AsMember(frameType), F.Literal(initialState))));
         }
 
-        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
         {
-            return F.Return(F.Local(stateMachineVariable));
+            var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
+
+            // return local;
+            bodyBuilder.Add(
+                F.Return(
+                    F.Local(stateMachineVariable)));
+
+            return F.Block(bodyBuilder.ToImmutableAndFree());
         }
 
         private void GenerateMoveNextAndDispose(
@@ -304,6 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hoistedVariables,
                 nonReusableLocalProxies,
                 synthesizedLocalOrdinals,
+                stateMachineStateDebugInfoBuilder,
                 slotAllocatorOpt,
                 nextFreeHoistedLocalSlot,
                 diagnostics);

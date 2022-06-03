@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics.Eventing.Reader;
@@ -14,13 +16,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     internal class FeedbackItemDotNetEntry
     {
         /// <summary>
-        /// The time the event happend (UTC)
+        /// The time the event happened (UTC)
         /// </summary>
         [DataMember(Name = "eventTime")]
         public DateTime EventTime { get; set; }
 
         /// <summary>
-        /// The .NET Runtime event id (this is set by .NET and we get it from the Event Log, so we can better differenciate between them)
+        /// The .NET Runtime event id (this is set by .NET and we get it from the Event Log, so we can better differentiate between them)
         /// As defined in CLR code:  ndp\clr\src\vm\eventreporter.cpp, these IDs are:
         /// 1023 - ERT_UnmanagedFailFast, 1025 - ERT_ManagedFailFast, 1026 - ERT_UnhandledException, 1027 - ERT_StackOverflow, 1028 - ERT_CodeContractFailed
         /// </summary>
@@ -41,7 +43,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public FeedbackItemDotNetEntry(EventRecord eventLogRecord)
         {
-            EventTime = eventLogRecord.TimeCreated.Value.ToUniversalTime();
+            EventTime = eventLogRecord.TimeCreated?.ToUniversalTime() ?? DateTime.MinValue;
             EventId = eventLogRecord.Id;
             Data = string.Join(";", eventLogRecord.Properties.Select(pr => pr.Value ?? string.Empty));
         }

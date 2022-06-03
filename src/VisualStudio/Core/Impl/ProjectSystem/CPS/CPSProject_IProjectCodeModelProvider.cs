@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading;
@@ -10,9 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     internal sealed partial class CPSProject
     {
         public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)
-        {
-            return _projectCodeModel.GetOrCreateRootCodeModel(parent);
-        }
+            => _projectCodeModel.GetOrCreateRootCodeModel(parent);
 
         public EnvDTE.FileCodeModel GetFileCodeModel(EnvDTE.ProjectItem item)
         {
@@ -26,12 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
         {
-            private CPSProject _project;
+            private readonly CPSProject _project;
 
             public CPSCodeModelInstanceFactory(CPSProject project)
-            {
-                _project = project;
-            }
+                => _project = project;
 
             EnvDTE.FileCodeModel ICodeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem(string filePath)
             {

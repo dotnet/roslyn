@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -732,6 +734,45 @@ S1_TakeWhileSpecific S1_Select|
 S4_TakeWhileBaseClass S4_Select
 ]]>)
 
+        End Sub
+
+        <WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")>
+        <Fact>
+        Public Sub UserDefinedUnaryOperatorInGenericExpressionTree()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Public Class Program
+    Public Shared Sub Main()
+        GenericMethod(Of String)()
+    End Sub
+    
+    Private Shared Sub GenericMethod(Of T)()
+        Dim func As Func(Of Expression(Of Func(Of C(Of T), C(Of T)))) =
+            Function ()
+                Return Function(x) +x 
+            End Function
+            
+        func().Compile()(Nothing)
+    End Sub
+End Class
+
+Class C(Of T)
+    Public Shared Operator +(c1 As C(Of T)) As C(Of T)
+        Console.Write("Run")
+        Return c1
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics()
+
+            CompileAndVerify(compilation, expectedOutput:="Run")
         End Sub
 
     End Class

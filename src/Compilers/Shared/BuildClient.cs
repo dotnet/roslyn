@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 #if NET472
@@ -14,12 +19,14 @@ using System.Runtime.Loader;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal delegate int CompileFunc(string[] arguments, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
+    internal delegate Task<BuildResponse> CompileOnServerFunc(BuildRequest buildRequest, string pipeName, CancellationToken cancellationToken);
 
-    internal struct RunCompilationResult
+    internal readonly struct RunCompilationResult
     {
         internal static readonly RunCompilationResult Succeeded = new RunCompilationResult(CommonCompiler.Succeeded);
 
@@ -39,23 +46,70 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// <summary>
     /// Client class that handles communication to the server.
     /// </summary>
-    internal abstract class BuildClient
+    internal sealed class BuildClient
     {
-        protected static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
+        internal static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
+
+        private readonly RequestLanguage _language;
+        private readonly CompileFunc _compileFunc;
+        private readonly CompileOnServerFunc _compileOnServerFunc;
+
+        /// <summary>
+        /// When set it overrides all timeout values in milliseconds when communicating with the server.
+        /// </summary>
+        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, CompileOnServerFunc compileOnServerFunc)
+        {
+            _language = language;
+            _compileFunc = compileFunc;
+            _compileOnServerFunc = compileOnServerFunc;
+        }
+
+        /// <summary>
+        /// Get the directory which contains the csc, vbc and VBCSCompiler clients. 
+        /// 
+        /// Historically this is referred to as the "client" directory but maybe better if it was 
+        /// called the "installation" directory.
+        /// 
+        /// It is important that this method exist here and not on <see cref="BuildServerConnection"/>. This
+        /// can only reliably be called from our executable projects and this file is only linked into 
+        /// those projects while <see cref="BuildServerConnection"/> is also included in the MSBuild 
+        /// task.
+        /// </summary>
+        public static string GetClientDirectory() =>
+            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
+            // location of the response files.
+            //
+            // BaseDirectory was mistakenly marked as potentially null in 3.1
+            // https://github.com/dotnet/runtime/pull/32486
+            AppDomain.CurrentDomain.BaseDirectory!;
 
         /// <summary>
         /// Returns the directory that contains mscorlib, or null when running on CoreCLR.
         /// </summary>
         public static string GetSystemSdkDirectory()
         {
-            if (CoreClrShim.IsRunningOnCoreClr)
+            return RuntimeHostInfo.IsCoreClrRuntime
+                ? null
+                : RuntimeEnvironment.GetRuntimeDirectory();
+        }
+
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, CompileOnServerFunc compileOnServerFunc)
+        {
+            var sdkDir = GetSystemSdkDirectory();
+            if (RuntimeHostInfo.IsCoreClrRuntime)
             {
-                return null;
+                // Register encodings for console
+                // https://github.com/dotnet/roslyn/issues/10785
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             }
-            else
-            {
-                return RuntimeEnvironment.GetRuntimeDirectory();
-            }
+
+            var client = new BuildClient(language, compileFunc, compileOnServerFunc);
+            var clientDir = GetClientDirectory();
+            var workingDir = Directory.GetCurrentDirectory();
+            var tempDir = BuildServerConnection.GetTempPath(workingDir);
+            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
+            var originalArguments = GetCommandLineArgs(arguments);
+            return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
 
         /// <summary>
@@ -63,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
+        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null, string pipeName = null)
         {
             textWriter = textWriter ?? Console.Out;
 
@@ -72,15 +126,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             List<string> parsedArgs;
             bool hasShared;
             string keepAliveOpt;
-            string sessionKeyOpt;
             string errorMessageOpt;
-            if (!CommandLineParser.TryParseClientArgs(
+            if (CommandLineParser.TryParseClientArgs(
                     args,
                     out parsedArgs,
                     out hasShared,
                     out keepAliveOpt,
-                    out sessionKeyOpt,
+                    out string commandLinePipeName,
                     out errorMessageOpt))
+            {
+                pipeName ??= commandLinePipeName;
+            }
+            else
             {
                 textWriter.WriteLine(errorMessageOpt);
                 return RunCompilationResult.Failed;
@@ -88,9 +145,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             if (hasShared)
             {
-                sessionKeyOpt = sessionKeyOpt ?? GetSessionKey(buildPaths);
+                pipeName = pipeName ?? BuildServerConnection.GetPipeName(buildPaths.ClientDirectory);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
-                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, sessionKeyOpt, keepAliveOpt);
+                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, pipeName, keepAliveOpt);
                 if (serverResult.HasValue)
                 {
                     Debug.Assert(serverResult.Value.RanOnServer);
@@ -157,25 +214,50 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return tcs.Task;
         }
 
-        protected abstract int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter);
+        private int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
+        {
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            return _compileFunc(arguments, buildPaths, textWriter, loader);
+        }
+
+        public static CompileOnServerFunc GetCompileOnServerFunc(ICompilerServerLogger logger) => (buildRequest, pipeName, cancellationToken) =>
+            BuildServerConnection.RunServerBuildRequestAsync(
+                buildRequest,
+                pipeName,
+                GetClientDirectory(),
+                logger,
+                cancellationToken);
 
         /// <summary>
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
         /// will be returned.
         /// </summary>
-        internal RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string sessionName, string keepAlive)
+        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string pipeName, string keepAlive)
         {
             BuildResponse buildResponse;
 
+            if (!AreNamedPipesSupported())
+            {
+                return null;
+            }
+
             try
             {
-                var buildResponseTask = RunServerCompilation(
+                var requestId = Guid.NewGuid();
+                var buildRequest = BuildServerConnection.CreateBuildRequest(
+                    requestId,
+                    _language,
                     arguments,
-                    buildPaths,
-                    sessionName,
-                    keepAlive,
-                    libDirectory,
-                    CancellationToken.None);
+                    workingDirectory: buildPaths.WorkingDirectory,
+                    tempDirectory: buildPaths.TempDirectory,
+                    keepAlive: keepAlive,
+                    libDirectory: libDirectory);
+
+                var buildResponseTask = _compileOnServerFunc(
+                    buildRequest,
+                    pipeName,
+                    cancellationToken: default);
+
                 buildResponse = buildResponseTask.Result;
 
                 Debug.Assert(buildResponse != null);
@@ -215,11 +297,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
-
-        protected abstract string GetSessionKey(BuildPaths buildPaths);
-
-        protected static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
+        private static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
         {
             if (UseNativeArguments())
             {
@@ -236,12 +314,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            if (Type.GetType("Mono.Runtime") != null)
+            if (PlatformInformation.IsRunningOnMono)
             {
                 return false;
             }
 
-            if (CoreClrShim.IsRunningOnCoreClr)
+            if (RuntimeHostInfo.IsCoreClrRuntime)
             {
                 // The native invoke ends up giving us both CoreRun and the exe file.
                 // We've decided to ignore backcompat for CoreCLR,
@@ -251,6 +329,32 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             return true;
+        }
+
+        private static bool AreNamedPipesSupported()
+        {
+            if (!PlatformInformation.IsRunningOnMono)
+                return true;
+
+            IDisposable npcs = null;
+            try
+            {
+                var testPipeName = $"mono-{Guid.NewGuid()}";
+                // Mono configurations without named pipe support will throw a PNSE at some point in this process.
+                npcs = new NamedPipeClientStream(".", testPipeName, PipeDirection.InOut);
+                npcs.Dispose();
+                return true;
+            }
+            catch (PlatformNotSupportedException)
+            {
+                if (npcs != null)
+                {
+                    // Compensate for broken finalizer in older builds of mono
+                    // https://github.com/mono/mono/commit/2a731f29b065392ca9b44d6613abee2aa413a144
+                    GC.SuppressFinalize(npcs);
+                }
+                return false;
+            }
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Roslyn.Utilities;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     public readonly struct TextLine : IEquatable<TextLine>
     {
-        private readonly SourceText _text;
+        private readonly SourceText? _text;
         private readonly int _start;
         private readonly int _endIncludingBreaks;
 
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Gets the source text.
         /// </summary>
-        public SourceText Text
+        public SourceText? Text
         {
             get { return _text; }
         }
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Text
                 && other._endIncludingBreaks == _endIncludingBreaks;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is TextLine)
             {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
@@ -130,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
             End If
 
-            Using reader = ObjectReader.TryGetReader(stream, cancellationToken:=cancellationToken)
+            Using reader = ObjectReader.TryGetReader(stream, leaveOpen:=True, cancellationToken:=cancellationToken)
                 If reader Is Nothing Then
                     Throw New ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, NameOf(stream))
                 End If
@@ -214,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If node.ContainsDiagnostics Then
                         Dim errors = DirectCast(node, Syntax.InternalSyntax.VisualBasicSyntaxNode).GetDiagnostics
                         If errors IsNot Nothing Then
-                            For i = 0 To errors.Count - 1
+                            For i = 0 To errors.Length - 1
                                 Dim greenError = errors(i)
                                 Debug.Assert(greenError IsNot Nothing)
                                 errorList.Add(CreateSyntaxError(tree, nodeOrToken, greenError))

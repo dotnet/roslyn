@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 
@@ -124,7 +126,6 @@ Friend Class RedNodeWriter
         Next
     End Sub
 
-
     Private Sub GenerateRedFactory()
         'Private Shared Function CreateRed(ByVal green As GreenNode, ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
         '    Requires(green IsNot Nothing)
@@ -167,7 +168,7 @@ Friend Class RedNodeWriter
                 _writer.Write("            Case SyntaxKind." & kind.Name)
                 first = False
             Else
-                _writer.Write("," & vbCrLf)
+                _writer.Write("," & Environment.NewLine)
                 _writer.Write("                 SyntaxKind." & kind.Name)
 
             End If
@@ -218,7 +219,7 @@ Friend Class RedNodeWriter
         _writer.WriteLine()
     End Sub
 
-    ' Generate an constant value
+    ' Generate a constant value
     Private Function GetConstantValue(val As Long) As String
         Return val.ToString()
     End Function
@@ -229,7 +230,7 @@ Friend Class RedNodeWriter
         If nodeStructure.IsPredefined Then Return
 
         ' XML comment
-        GenerateXmlComment(_writer, nodeStructure, 4)
+        GenerateXmlComment(_writer, nodeStructure, 4, includeRemarks:=True)
 
         ' Class name
         _writer.Write("    ")
@@ -241,7 +242,7 @@ Friend Class RedNodeWriter
         ElseIf Not nodeStructure.HasDerivedStructure Then
             _writer.WriteLine("Public NotInheritable Class {0}", StructureTypeName(nodeStructure))
         Else
-            _writer.WriteLine("Public Class {0}", StructureTypeName(nodeStructure))
+            Throw New InvalidOperationException("Not reachable")
         End If
 
         ' Base class
@@ -390,7 +391,7 @@ Friend Class RedNodeWriter
         Else
 
             _writer.WriteLine("        Public Shadows Function Add{0}{1}(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
-            _writer.WriteLine("            Dim _child = If (Me.{0} IsNot Nothing, Me.{0}, SyntaxFactory.{1}())", child.Name, FactoryName(childStructure))
+            _writer.WriteLine("            Dim _child = If(Me.{0} IsNot Nothing, Me.{0}, SyntaxFactory.{1}())", child.Name, FactoryName(childStructure))
             _writer.WriteLine("            Return Me.With{0}(_child.Add{1}(items))", child.Name, nestedList.Name)
             _writer.WriteLine("        End Function")
             _writer.WriteLine()
@@ -493,7 +494,6 @@ Friend Class RedNodeWriter
                 Next
             End If
 
-
             For Each child In GetAllChildrenOfStructure(nodeStructure)
                 If KindTypeStructure(child.ChildKind).IsToken Then
                     _writer.Write(", {0}", ChildParamName(child))
@@ -504,7 +504,7 @@ Friend Class RedNodeWriter
                 Else
                     If child.IsOptional Then
                         ' optional normal child.
-                        _writer.Write(", if({0} IsNot Nothing ", ChildParamName(child))
+                        _writer.Write(", if({0} IsNot Nothing", ChildParamName(child))
                     End If
 
                     ' non-optional normal child.
@@ -512,7 +512,7 @@ Friend Class RedNodeWriter
 
                     If child.IsOptional Then
                         ' optional normal child.
-                        _writer.Write(", Nothing) ")
+                        _writer.Write(", Nothing)")
                     End If
                 End If
             Next
@@ -553,9 +553,9 @@ Friend Class RedNodeWriter
         Dim modifiers = ""
 
         If isOverride Then
-            modifiers = "Overrides"
+            modifiers = "Overrides "
         ElseIf containingStructure.HasDerivedStructure Then
-            modifiers = "Overridable"
+            modifiers = "Overridable "
         End If
 
         ' Put Shadows modifier on if useful.
@@ -564,6 +564,7 @@ Friend Class RedNodeWriter
         If (name = "Equals" OrElse name = "GetType") Then ' OrElse _parseTree.NodeKinds.ContainsKey(name) OrElse _parseTree.NodeStructures.ContainsKey(name)) Then
             modifiers = "Shadows " + modifiers
         End If
+
         Return modifiers
     End Function
 
@@ -572,7 +573,7 @@ Friend Class RedNodeWriter
         ' XML comment
         GenerateXmlComment(_writer, field, 8)
 
-        _writer.WriteLine("        Public {2} ReadOnly Property {0} As {1}", FieldPropertyName(field), FieldTypeRef(field), GetModifiers(field.ContainingStructure, False, field.Name))
+        _writer.WriteLine("        Public {2}ReadOnly Property {0} As {1}", FieldPropertyName(field), FieldTypeRef(field), GetModifiers(field.ContainingStructure, False, field.Name))
         _writer.WriteLine("            Get")
         _writer.WriteLine("                Return DirectCast(Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", TypeName, FieldPropertyName(field))
         _writer.WriteLine("            End Get")
@@ -596,30 +597,30 @@ Friend Class RedNodeWriter
             _writer.WriteLine("        End Property")
             _writer.WriteLine("")
 
-            _writer.WriteLine("        Friend {0} Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
+            _writer.WriteLine("        Friend {0}Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
+            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride, extraIndent:="")
             _writer.WriteLine("        End Function")
             _writer.WriteLine()
 
         ElseIf isOverride Then
 
-            _writer.WriteLine("        Public {0} ReadOnly Property {1} As {2}", If(isOverride, "Shadows", ""), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
+            _writer.WriteLine("        Public {0}ReadOnly Property {1} As {2}", If(isOverride, "Shadows ", ""), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
             _writer.WriteLine("            Get")
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
+            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride, extraIndent:="    ")
             _writer.WriteLine("            End Get")
             _writer.WriteLine("        End Property")
             _writer.WriteLine("")
 
-            _writer.WriteLine("        Friend {0} Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
+            _writer.WriteLine("        Friend {0}Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
             _writer.WriteLine("            Return Me.{0}", ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
             _writer.WriteLine("        End Function")
             _writer.WriteLine()
 
         Else
 
-            _writer.WriteLine("        Public {0} ReadOnly Property {1} As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
+            _writer.WriteLine("        Public {0}ReadOnly Property {1} As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
             _writer.WriteLine("            Get")
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
+            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride, extraIndent:="    ")
             _writer.WriteLine("            End Get")
             _writer.WriteLine("        End Property")
             _writer.WriteLine("")
@@ -627,47 +628,47 @@ Friend Class RedNodeWriter
         End If
     End Sub
 
-    Private Sub GenerateNodeChildPropertyRedAccessLogic(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean)
+    Private Sub GenerateNodeChildPropertyRedAccessLogic(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean, extraIndent As String)
         If KindTypeStructure(child.ChildKind).IsToken Then
             If child.IsList Then
-                _writer.WriteLine("                Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-                _writer.WriteLine("                If slot IsNot Nothing")
-                _writer.WriteLine("                    return new SyntaxTokenList(Me, slot, {0}, {1})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
-                _writer.WriteLine("                End If")
-                _writer.WriteLine("                Return Nothing")
+                _writer.WriteLine($"            {extraIndent}Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}", StructureTypeName(nodeStructure), ChildVarName(child))
+                _writer.WriteLine($"            {extraIndent}If slot IsNot Nothing")
+                _writer.WriteLine($"            {extraIndent}    return new SyntaxTokenList(Me, slot, {{0}}, {{1}})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+                _writer.WriteLine($"            {extraIndent}End If")
+                _writer.WriteLine($"            {extraIndent}Return Nothing")
             Else
                 If child.IsOptional Then
-                    _writer.WriteLine("                Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-                    _writer.WriteLine("                If slot IsNot Nothing")
-                    _writer.WriteLine("                    return new SyntaxToken(Me, slot, {0}, {1})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
-                    _writer.WriteLine("                End If")
-                    _writer.WriteLine("                Return Nothing")
+                    _writer.WriteLine($"            {extraIndent}Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}", StructureTypeName(nodeStructure), ChildVarName(child))
+                    _writer.WriteLine($"            {extraIndent}If slot IsNot Nothing")
+                    _writer.WriteLine($"            {extraIndent}    return new SyntaxToken(Me, slot, {{0}}, {{1}})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+                    _writer.WriteLine($"            {extraIndent}End If")
+                    _writer.WriteLine($"            {extraIndent}Return Nothing")
                 Else
-                    _writer.WriteLine("                return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}, {2}, {3})", StructureTypeName(nodeStructure), ChildVarName(child), Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+                    _writer.WriteLine($"            {extraIndent}return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}, {{2}}, {{3}})", StructureTypeName(nodeStructure), ChildVarName(child), Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
                 End If
             End If
         ElseIf IsListStructureType(child) Then
             If childIndex = 0 Then
-                _writer.WriteLine("                Dim listNode = GetRedAtZero({0})", ChildVarName(child))
+                _writer.WriteLine($"            {extraIndent}Dim listNode = GetRedAtZero({{0}})", ChildVarName(child))
             Else
-                _writer.WriteLine("                Dim listNode = GetRed({0}, {1})", ChildVarName(child), childIndex)
+                _writer.WriteLine($"            {extraIndent}Dim listNode = GetRed({{0}}, {{1}})", ChildVarName(child), childIndex)
             End If
-            _writer.WriteLine("                Return new {0}(listNode)", ChildPropertyTypeRef(nodeStructure, child, False))
+            _writer.WriteLine($"            {extraIndent}Return new {{0}}(listNode)", ChildPropertyTypeRef(nodeStructure, child, False))
         Else
             Dim type = ChildPropertyTypeRef(nodeStructure, child)
             Dim baseType = ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True)
 
             If childIndex = 0 Then
                 If type = baseType Then
-                    _writer.WriteLine("                Return GetRedAtZero({0})", ChildVarName(child))
+                    _writer.WriteLine($"            {extraIndent}Return GetRedAtZero({{0}})", ChildVarName(child))
                 Else
-                    _writer.WriteLine("                Return DirectCast(GetRedAtZero({0}), {1})", ChildVarName(child), type)
+                    _writer.WriteLine($"            {extraIndent}Return DirectCast(GetRedAtZero({{0}}), {{1}})", ChildVarName(child), type)
                 End If
             Else
                 If type = baseType Then
-                    _writer.WriteLine("                Return GetRed({0}, {1})", ChildVarName(child), childIndex)
+                    _writer.WriteLine($"            {extraIndent}Return GetRed({{0}}, {{1}})", ChildVarName(child), childIndex)
                 Else
-                    _writer.WriteLine("                Return DirectCast(GetRed({0}, {1}), {2})", ChildVarName(child), childIndex, type)
+                    _writer.WriteLine($"            {extraIndent}Return DirectCast(GetRed({{0}}, {{1}}), {{2}})", ChildVarName(child), childIndex, type)
                 End If
             End If
 
@@ -767,7 +768,7 @@ Friend Class RedNodeWriter
         ' XML comment
         GenerateXmlComment(_writer, child, 8)
 
-        _writer.WriteLine("        Public {2} ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(node, child), GetModifiers(child.ContainingStructure, isOverride, child.Name))
+        _writer.WriteLine("        Public {2}ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(node, child), GetModifiers(child.ContainingStructure, isOverride, child.Name))
         _writer.WriteLine("            Get")
         If childIndex = 0 Then
             _writer.WriteLine("                Dim listNode = GetRedAtZero({0})", ChildVarName(child), childIndex)
@@ -935,8 +936,8 @@ Friend Class RedNodeWriter
                 End If
             Next
             _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                     Debug.Assert(false, ""child index out of range"")")
-            _writer.WriteLine("                     Return Nothing")
+            _writer.WriteLine("                    Debug.Assert(false, ""child index out of range"")")
+            _writer.WriteLine("                    Return Nothing")
             _writer.WriteLine("            End Select")
         Else
             _writer.WriteLine("            If i = 0 Then")
@@ -997,14 +998,14 @@ Friend Class RedNodeWriter
 
             Next
             _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                     Return Nothing")
+            _writer.WriteLine("                    Return Nothing")
             _writer.WriteLine("            End Select")
 
         ElseIf Not KindTypeStructure(children(0).ChildKind).IsToken Then
             _writer.WriteLine("            If i = 0 Then")
             Dim child = children(0)
             If child.IsList Then
-                _writer.WriteLine("               Return GetRedAtZero({0})", ChildVarName(child))
+                _writer.WriteLine("                Return GetRedAtZero({0})", ChildVarName(child))
             Else
                 _writer.WriteLine("                Return Me.{0}", ChildPropertyName(child))
             End If
@@ -1014,7 +1015,7 @@ Friend Class RedNodeWriter
             _writer.WriteLine("            End If")
 
         Else
-            _writer.WriteLine("                Return Nothing")
+            _writer.WriteLine("            Return Nothing")
         End If
 
         _writer.WriteLine("        End Function")
@@ -1048,7 +1049,7 @@ Friend Class RedNodeWriter
                 End If
             Next
             _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                     Return Nothing")
+            _writer.WriteLine("                    Return Nothing")
             _writer.WriteLine("            End Select")
         Else
             _writer.WriteLine("            If i = 0 Then")
@@ -1067,7 +1068,6 @@ Friend Class RedNodeWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
-
 
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetSlotCount(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
@@ -1114,11 +1114,9 @@ Friend Class RedNodeWriter
                           If(withResult, "Function", "Sub"),
                           If(withResult, " As TResult", ""))
 
-        _writer.WriteLine("            {0}Me.DefaultVisit(node){1}", If(withResult, "Return ", ""), If(withResult, "", ": Return"))
+        _writer.WriteLine("            {0}Me.DefaultVisit(node){1}", If(withResult, "Return ", ""), If(withResult, "", " : Return"))
         _writer.WriteLine("        End {0}", If(withResult, "Function", "Sub"))
     End Sub
-
-
 
     ' Generate the RewriteVisitor class definition
     Private Sub GenerateRewriteVisitorClass()
@@ -1172,11 +1170,11 @@ Friend Class RedNodeWriter
                 End If
 
             ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.WriteLine("            Dim {0} = DirectCast(VisitToken(node.{2}).Node, {3})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(VisitToken(node.{2}).Node, {3})" + Environment.NewLine +
                                   "            If node.{2}.Node IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(child), BaseTypeReference(child), ChildPropertyName(child), ChildConstructorTypeRef(child))
             Else
-                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + Environment.NewLine +
                                   "            If node.{2} IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(child), ChildPropertyTypeRef(nodeStructure, child), ChildPropertyName(child))
             End If
@@ -1215,6 +1213,5 @@ Friend Class RedNodeWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
-
 
 End Class

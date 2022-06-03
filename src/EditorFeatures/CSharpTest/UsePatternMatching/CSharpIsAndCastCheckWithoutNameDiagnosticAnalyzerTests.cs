@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,12 +10,19 @@ using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
     public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
+             : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer(), new CSharpIsAndCastCheckWithoutNameCodeFixProvider());
 
@@ -509,6 +519,61 @@ class TestFile
             var v = (x.file, 0);
             M(file.i);
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(51340, "https://github.com/dotnet/roslyn/issues/51340")]
+        public async Task TestNoDiagnosticWhenCS0103Happens()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System.Linq;
+class Bar
+{
+    private void Foo()
+    {
+        var objects = new SpecificThingType[100];
+        var d = from obj in objects
+                let aGenericThing = obj.Prop
+                where aGenericTh[||]ing is SpecificThingType
+                let specificThing = (SpecificThingType)aGenericThing
+                select (obj, specificThing);
+    }
+}
+class SpecificThingType
+{
+    public SpecificThingType Prop { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        public async Task TestInExpressionTree1()
+        {
+            await TestMissingAsync(
+@"
+using System.Linq.Expressions;
+
+object? o = null;
+Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(58558, "https://github.com/dotnet/roslyn/issues/58558")]
+        public async Task TestInExpressionTree2()
+        {
+            await TestMissingAsync(
+@"
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        Expression<Func<bool>> test = () => [||]o is int && (int)o > 5;
     }
 }");
         }

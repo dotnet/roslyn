@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        internal static ImmutableArray<TypeParameterSymbol> Take(int count)
+        internal static ImmutableArray<TypeParameterSymbol> TakeSymbols(int count)
         {
             if (count > s_parameterPool.Length)
             {
@@ -89,6 +94,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < count; i++)
             {
                 builder.Add(GetTypeParameter(i));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        internal static ImmutableArray<TypeWithAnnotations> Take(int count)
+        {
+            if (count > s_parameterPool.Length)
+            {
+                GrowPool(count);
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+
+            for (int i = 0; i < count; i++)
+            {
+                builder.Add(TypeWithAnnotations.Create(GetTypeParameter(i), NullableAnnotation.Ignored));
             }
 
             return builder.ToImmutableAndFree();
@@ -120,7 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
+
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
         {
             get { return false; }
         }
@@ -129,6 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+
+        public override bool HasNotNullConstraint => false;
+
+        internal override bool? IsNotNullable => null;
 
         public override bool HasUnmanagedTypeConstraint
         {
@@ -164,13 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+            return ImmutableArray<TypeWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)

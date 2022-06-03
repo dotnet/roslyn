@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
@@ -19,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(containingBinder, commentedSymbol)
         End Sub
 
-        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
-            Dim result As ImmutableArray(Of Symbol) = MyBase.BindXmlNameAttributeValue(identifier, useSiteDiagnostics)
+        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
+            Dim result As ImmutableArray(Of Symbol) = MyBase.BindXmlNameAttributeValue(identifier, useSiteInfo)
             If Not result.IsEmpty Then
                 Return result
             End If
@@ -32,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LookupOptions.MustNotBeLocalOrParameter
 
             Dim lookupResult As LookupResult = lookupResult.GetInstance()
-            Me.Lookup(lookupResult, identifier.Identifier.ValueText, 0, options, useSiteDiagnostics)
+            Me.Lookup(lookupResult, identifier.Identifier.ValueText, 0, options, useSiteInfo)
 
             If Not lookupResult.HasSingleSymbol Then
                 lookupResult.Free()

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return assembly.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MissingModuleSymbol other = obj as MissingModuleSymbol;
 
-            return (object)other != null && assembly.Equals(other.assembly);
+            return (object)other != null && assembly.Equals(other.assembly, compareKind);
         }
 
         public override ImmutableArray<Location> Locations
@@ -185,6 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ModuleMetadata GetMetadata() => null;
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
     }
 
     internal sealed class MissingModuleSymbolWithName : MissingModuleSymbol
@@ -212,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(assembly.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(_name));
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -221,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MissingModuleSymbolWithName other = obj as MissingModuleSymbolWithName;
 
-            return (object)other != null && assembly.Equals(other.assembly) && string.Equals(_name, other._name, StringComparison.OrdinalIgnoreCase);
+            return (object)other != null && assembly.Equals(other.assembly, compareKind) && string.Equals(_name, other._name, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

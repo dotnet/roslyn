@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.IO;
@@ -12,28 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class DesktopStrongNameProviderTests : CSharpTestBase
     {
         [WorkItem(13995, "https://github.com/dotnet/roslyn/issues/13995")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RespectCustomTempPath()
         {
             var tempDir = Temp.CreateDirectory();
             var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path);
-            using (var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream())
-            {
-                Assert.Equal(tempDir.Path, Path.GetDirectoryName(stream.Path));
-            }
+            Assert.Equal(tempDir.Path, provider.FileSystem.GetTempPath());
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RespectDefaultTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
-            using (var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream())
-            {
-                Assert.Equal(Path.GetTempPath(), Path.GetDirectoryName(stream.Path) + @"\");
-            }
+            Assert.Equal(Path.GetTempPath(), provider.FileSystem.GetTempPath());
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void EmitWithCustomTempPath()
         {
             string src = @"
@@ -42,7 +40,7 @@ class C
     public static void Main(string[] args) { }
 }";
             var tempDir = Temp.CreateDirectory();
-            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, tempDir.Path, new VirtualizedStrongNameFileSystem());
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem(tempDir.Path));
 
             var options = TestOptions
                 .DebugExe
@@ -52,7 +50,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void EmitWithDefaultTempPath()
         {
             string src = @"
@@ -60,7 +58,7 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
             var options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)

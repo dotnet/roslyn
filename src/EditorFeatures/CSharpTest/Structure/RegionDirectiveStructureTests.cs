@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
@@ -71,8 +75,8 @@ namespace BasicGenerateFromUsage
         }
 
         [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task RegionsShouldBeCollapsedByDefault()
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
         {
             const string code = @"
 class C
@@ -84,8 +88,13 @@ class C
     #endregion|}
 }";
 
-            await VerifyBlockSpansAsync(code,
-                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));
+            var options = GetDefaultOptions() with
+            {
+                CollapseRegionsWhenFirstOpened = collapseRegionsWhenFirstOpened
+            };
+
+            await VerifyBlockSpansAsync(code, options,
+                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: collapseRegionsWhenFirstOpened));
         }
 
         [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]

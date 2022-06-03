@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -34,7 +36,7 @@ End Class
 
             ' When we fetch an omitted argument that involves a conversion, there was a bug that involved
             ' a synthesized conversion node being introduced without a corresponding BoundNode that got
-            ' incorrectly duplicated. This excercises that code path to ensure that the BoundNode is correctly
+            ' incorrectly duplicated. This exercises that code path to ensure that the BoundNode is correctly
             ' cached in the tree.
             Dim operationsToAnalyze = methodOperation.DescendantsAndSelf().ToArray()
         End Sub

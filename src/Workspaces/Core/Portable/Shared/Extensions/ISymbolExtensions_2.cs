@@ -1,22 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
-        public static bool IsImplicitValueParameter(this ISymbol symbolOpt)
+        public static bool IsImplicitValueParameter([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            if (symbolOpt is IParameterSymbol && symbolOpt.IsImplicitlyDeclared)
+            if (symbol is IParameterSymbol && symbol.IsImplicitlyDeclared)
             {
-                if (symbolOpt.ContainingSymbol is IMethodSymbol method)
+                if (symbol.ContainingSymbol is IMethodSymbol method)
                 {
-                    if (method.MethodKind == MethodKind.EventAdd ||
-                        method.MethodKind == MethodKind.EventRemove ||
-                        method.MethodKind == MethodKind.PropertySet)
+                    if (method.MethodKind is MethodKind.EventAdd or
+                        MethodKind.EventRemove or
+                        MethodKind.PropertySet)
                     {
                         // the name is value in C#, and Value in VB
-                        return symbolOpt.Name == "value" || symbolOpt.Name == "Value";
+                        return symbol.Name is "value" or "Value";
                     }
                 }
             }

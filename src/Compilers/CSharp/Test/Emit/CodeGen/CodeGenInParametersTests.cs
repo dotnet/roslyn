@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1176,10 +1180,10 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (18,20): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (18,20): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //         return ref arg1;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(18, 20),
-                // (23,20): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                // (23,20): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
                 //         return ref arg2.Alice;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(23, 20)
             );
@@ -1267,10 +1271,10 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (10,24): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (10,24): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //             return ref arg1;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(10, 24),
-                // (14,24): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                // (14,24): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
                 //             return ref arg2.Alice;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(14, 24)
             );
@@ -1343,7 +1347,7 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
-            comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
+            comp.VerifyIL("Program.<M>g__M1|0_0(in int, in System.ValueTuple<int, int>)", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1386,10 +1390,10 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,28): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (12,28): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //                 return ref arg11;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "in int").WithLocation(12, 28),
-                // (16,28): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                // (16,28): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
                 //                 return ref arg21.Alice;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(16, 28)
                 );
@@ -1537,9 +1541,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (14,44): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
+                // (14,19): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await GetT(2)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 44)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "RefReturning(ref local)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 19)
                 );
         }
 
@@ -3978,7 +3982,8 @@ public class Test
 
             var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.FailsPEVerify);
 
             verifier.VerifyIL("Test..ctor()", @"
 {

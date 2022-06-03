@@ -1,45 +1,66 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddFileBanner
 {
-    internal abstract class AbstractAddFileBannerCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
+        private const string BannerFileNamePlaceholder = "{filename}";
+
         protected abstract bool IsCommentStartCharacter(char ch);
+
+        protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
+        protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
+            = ImmutableArray.Create(FixAllScope.Project, FixAllScope.Solution);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-
-            if (!context.Span.IsEmpty)
+            var (document, span, cancellationToken) = context;
+            if (!span.IsEmpty)
             {
                 return;
             }
 
-            var position = context.Span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetDocumentFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrEmpty(formattingOptions.FileHeaderTemplate))
+            {
+                // If we have a defined file header template, allow the analyzer and code fix to handle it
+                return;
+            }
 
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var position = span.Start;
             var firstToken = root.GetFirstToken();
             if (!firstToken.FullSpan.IntersectsWith(position))
             {
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var banner = syntaxFacts.GetFileBanner(root);
-
-            if (banner.Length > 0)
+            if (HasExistingBanner(document, root))
             {
                 // Already has a banner.
                 return;
@@ -66,29 +87,92 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(c => AddBannerAsync(document, root, siblingBanner, c)));
+                        CodeAction.Create(
+                            CodeFixesResources.Add_file_header,
+                            _ => AddBannerAsync(document, root, siblingDocument, siblingBanner),
+                            equivalenceKey: GetEquivalenceKey(siblingDocument, siblingBanner)),
+                        new Text.TextSpan(position, length: 0));
                     return;
                 }
             }
         }
 
-        private Task<Document> AddBannerAsync(
-            Document document, SyntaxNode root, ImmutableArray<SyntaxTrivia> banner, CancellationToken c)
+        private static bool HasExistingBanner(Document document, SyntaxNode root)
         {
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var banner = bannerService.GetFileBanner(root);
+            return banner.Length > 0;
+        }
+
+        private static string GetEquivalenceKey(Document document, ImmutableArray<SyntaxTrivia> banner)
+        {
+            var bannerText = banner.Select(trivia => trivia.ToFullString()).Join(string.Empty);
+
+            var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
+            if (!string.IsNullOrEmpty(fileName))
+                bannerText = bannerText.Replace(fileName, BannerFileNamePlaceholder);
+
+            return bannerText;
+        }
+
+        private static ImmutableArray<SyntaxTrivia> GetBannerFromEquivalenceKey(string equivalenceKey, Document document)
+        {
+            var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
+            if (!string.IsNullOrEmpty(fileName))
+                equivalenceKey = equivalenceKey.Replace(BannerFileNamePlaceholder, fileName);
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var token = syntaxFacts.ParseToken(equivalenceKey);
+
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            return bannerService.GetFileBanner(token);
+        }
+
+        private Task<Document> AddBannerAsync(
+            Document document, SyntaxNode root,
+            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
+        {
+            banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
+
             var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
-        private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
-            Document document, SyntaxNode root, CancellationToken cancellationToken)
+        /// <summary>
+        /// Looks at <paramref name="banner"/> to see if it contains the name of <paramref name="sourceDocument"/>
+        /// in it.  If so, those names will be replaced with <paramref name="destinationDocument"/>'s name.
+        /// </summary>
+        private ImmutableArray<SyntaxTrivia> UpdateEmbeddedFileNames(
+            Document sourceDocument, Document destinationDocument, ImmutableArray<SyntaxTrivia> banner)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
+            var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
+            if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
+            {
+                return banner;
+            }
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+            foreach (var trivia in banner)
+            {
+                var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
+                result.Add(updated);
+            }
+
+            return result.ToImmutable();
+        }
+
+        private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
+            Document document, SyntaxNode? root, CancellationToken cancellationToken)
+        {
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // If we have a tree already for this document, then just check to see
             // if it has a banner.
             if (root != null)
             {
-                return syntaxFacts.GetFileBanner(root);
+                return bannerService.GetFileBanner(root);
             }
 
             // Didn't have a tree.  Don't want to parse the file if we can avoid it.
@@ -101,15 +185,31 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             }
 
             var token = syntaxFacts.ParseToken(text.ToString());
-            return syntaxFacts.GetFileBanner(token);
+            return bannerService.GetFileBanner(token);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        protected sealed override async Task FixAllAsync(
+            Document document,
+            ImmutableArray<TextSpan> fixAllSpans,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider optionsProvider,
+            string? equivalenceKey,
+            CancellationToken cancellationToken)
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_file_banner, createChangedDocument)
-            {
-            }
+            Debug.Assert(equivalenceKey != null);
+
+            // Bail out if the document to fix already has an existing banner.
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (HasExistingBanner(document, root))
+                return;
+
+            // Get banner from the equivalence key.
+            var banner = GetBannerFromEquivalenceKey(equivalenceKey, document);
+            Debug.Assert(banner.Length > 0);
+
+            // Finally add the banner to the document to be fixed.
+            var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
+            editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
     }
 }

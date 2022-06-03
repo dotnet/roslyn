@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _containingType;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly bool _isStatic;
         private readonly ImmutableArray<PropertySymbol> _explicitInterfaceImplementations;
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol containingType,
             ImmutableArray<ParameterSymbol> parameters,
             RefKind refKind,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             ImmutableArray<CustomModifier> refCustomModifiers,
             bool isStatic,
             ImmutableArray<PropertySymbol> explicitInterfaceImplementations)
@@ -45,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind { get { return _refKind; } }
 
-        public override TypeSymbolWithAnnotations Type { get { return _type; } }
+        public override TypeWithAnnotations TypeWithAnnotations { get { return _type; } }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
@@ -73,13 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable; } }
 
-        public override bool IsOverride { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsOverride => false;
 
         public override bool IsAbstract { get { throw ExceptionUtilities.Unreachable; } }
 
         public override bool IsSealed { get { throw ExceptionUtilities.Unreachable; } }
 
         public override bool IsExtern { get { throw ExceptionUtilities.Unreachable; } }
+
+        internal override bool IsRequired => throw ExceptionUtilities.Unreachable;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData { get { throw ExceptionUtilities.Unreachable; } }
 

@@ -1,23 +1,28 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class ErrorKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ErrorOptionsAfterOnTest() As Task
+        Public Sub ErrorOptionsAfterOnTest()
             ' We can always exit a Sub/Function, so it should be there
-            Await VerifyRecommendationsAreExactlyAsync(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
-        End Function
+            VerifyRecommendationsAreExactly(<MethodBody>On |</MethodBody>, "Error Resume Next", "Error GoTo")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ErrorStatementInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Error")
-        End Function
+        Public Sub ErrorStatementInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Error")
+        End Sub
 
+        <Fact>
         <WorkItem(899057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899057")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ErrorStatementInLambdaTest() As Task
+        Public Sub ErrorStatementInLambdaTest()
             Dim code = <File>
 Public Class Z
     Public Sub Main()
@@ -25,7 +30,7 @@ Public Class Z
     End Sub
 End Class</File>
 
-            Await VerifyRecommendationsContainAsync(code, "Error")
-        End Function
+            VerifyRecommendationsContain(code, "Error")
+        End Sub
     End Class
 End Namespace

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -9,20 +13,21 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
-    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind>
+    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind, TSimplifierOptions>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
+        where TSimplifierOptions : SimplifierOptions
     {
-        private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind> _analyzer;
+        private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> _analyzer;
 
         protected AbstractSimplifyTypeNamesCodeFixProvider(
-            SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind> analyzer)
+            SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> analyzer)
         {
             _analyzer = analyzer;
         }
@@ -36,24 +41,35 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                 IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 
-        private SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, TextSpan span, OptionSet optionSet, out string diagnosticId, CancellationToken cancellationToken)
+        private (SyntaxNode, string diagnosticId) GetNodeToSimplify(
+            SyntaxNode root, SemanticModel model, TextSpan span,
+            TSimplifierOptions options, CancellationToken cancellationToken)
         {
-            diagnosticId = null;
             var token = root.FindToken(span.Start, findInsideTrivia: true);
             if (!token.Span.IntersectsWith(span))
             {
-                return null;
+                return default;
             }
 
-            foreach (var n in token.GetAncestors<SyntaxNode>())
+            SyntaxNode topmostSimplifiableNode = null;
+            string topmostDiagnosticId = null;
+            foreach (var node in token.GetAncestors<SyntaxNode>())
             {
-                if (n.Span.IntersectsWith(span) && CanSimplifyTypeNameExpression(model, n, optionSet, span, out diagnosticId, cancellationToken))
+                if (node.Span.IntersectsWith(span) && CanSimplifyTypeNameExpression(model, node, options, span, out var diagnosticId, cancellationToken))
                 {
-                    return n;
+                    // keep overwriting the best simplifiable node as long as we keep finding them.
+                    topmostSimplifiableNode = node;
+                    topmostDiagnosticId = diagnosticId;
+                }
+                else if (topmostSimplifiableNode != null)
+                {
+                    // if we have found something simplifiable, but hit something that isn't, then
+                    // return the best thing we've found.
+                    break;
                 }
             }
 
-            return null;
+            return (topmostSimplifiableNode, topmostDiagnosticId);
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -64,42 +80,40 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
-            var node = GetNodeToSimplify(
-                root, model, span, documentOptions, out var diagnosticId, cancellationToken);
+            var (node, diagnosticId) = GetNodeToSimplify(
+                root, model, span, options, cancellationToken);
             if (node == null)
-            {
                 return;
-            }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
 
-            context.RegisterCodeFix(new MyCodeAction(
-                title,
-                c => this.FixAsync(context.Document, context.Diagnostics[0], c),
-                diagnosticId), context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    title,
+                    GetDocumentUpdater(context),
+                    diagnosticId),
+                context.Diagnostics);
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
-                var node = GetNodeToSimplify(
+                var (node, _) = GetNodeToSimplify(
                     root, model, diagnostic.Location.SourceSpan,
-                    documentOptions, out var diagnosticId, cancellationToken);
+                    simplifierOptions, cancellationToken);
 
                 if (node == null)
-                {
                     return;
-                }
 
                 editor.ReplaceNode(
                     node,
@@ -107,34 +121,17 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
         }
 
-        private async Task<Document> SimplifyTypeNameAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            return document.WithSyntaxRoot(
-                root.ReplaceNode(node, AddSimplificationAnnotationTo(node)));
-        }
-
-        private bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)
+        private bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, TSimplifierOptions options, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)
         {
             diagnosticId = null;
             if (!_analyzer.IsCandidate(node) ||
                 !_analyzer.CanSimplifyTypeNameExpression(
-                    model, node, optionSet, out var issueSpan, out diagnosticId, out var inDeclaration, cancellationToken))
+                    model, node, options, out var issueSpan, out diagnosticId, out _, cancellationToken))
             {
                 return false;
             }
 
             return issueSpan.Equals(span);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(
-                string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

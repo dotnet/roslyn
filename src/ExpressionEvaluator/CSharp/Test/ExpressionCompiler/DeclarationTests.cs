@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class DeclarationTests : ExpressionCompilerTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Declarations()
         {
             var source =
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeconstructionDeclaration()
         {
             var source = @"
@@ -155,7 +159,7 @@ class C
                });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeconstructionDeclarationWithDiscard()
         {
             var source = @"
@@ -221,7 +225,7 @@ class C
                });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_ExpressionStatement_01()
         {
             var source =
@@ -277,7 +281,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
@@ -316,7 +320,7 @@ class C
                 bool V_1,
                 object V_2,
                 System.Guid V_3,
-                object V_4)
+                int V_4)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""z""
@@ -326,14 +330,14 @@ class C
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldarg.0
-  IL_001f:  dup
-  IL_0020:  stloc.s    V_4
-  IL_0022:  isinst     ""int""
-  IL_0027:  brfalse.s  IL_003e
-  IL_0029:  ldstr      ""z""
-  IL_002e:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0033:  ldloc.s    V_4
-  IL_0035:  unbox.any  ""int""
+  IL_001f:  isinst     ""int""
+  IL_0024:  brfalse.s  IL_003e
+  IL_0026:  ldarg.0
+  IL_0027:  unbox.any  ""int""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldstr      ""z""
+  IL_0033:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0038:  ldloc.s    V_4
   IL_003a:  stind.i4
   IL_003b:  ldc.i4.1
   IL_003c:  br.s       IL_003f
@@ -344,7 +348,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_Assignment_01()
         {
             var source =
@@ -401,7 +405,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ExpressionLocals_LocalDeclarationStatement_01()
         {
             var source =
@@ -469,7 +473,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void References()
         {
             var source =
@@ -505,7 +509,7 @@ class C
                     out error,
                     testData);
 
-                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       78 (0x4e)
@@ -544,7 +548,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Address()
         {
             var source =
@@ -616,7 +620,7 @@ class C
 
                 // Expression with format specifiers with ';' as statement.
                 result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS1073: Unexpected token ','");
+                Assert.Equal("error CS1073: Unexpected token ','", error);
                 Assert.Null(result);
 
                 // Assignment without ';' as statement.
@@ -629,27 +633,27 @@ class C
 
                 // Statement without ';' as statement.
                 result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
 
                 // Neither statement nor expression as statement.
                 result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS1026: ) expected");
+                Assert.Equal("error CS1026: ) expected", error);
 
                 // Statement without ';' as expression.
                 result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
 
                 // Statement with ';' as expression.
                 result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
 
                 // Neither statement nor expression as expression.
                 result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-                Assert.Equal(error, "error CS1026: ) expected");
+                Assert.Equal("error CS1026: ) expected", error);
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void BaseType()
         {
             var source =
@@ -697,7 +701,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Var()
         {
             var source =
@@ -739,8 +743,8 @@ class C
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
         public void Dynamic()
         {
             var source =
@@ -812,7 +816,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS0103: The name 'F' does not exist in the current context");
+                Assert.Equal("error CS0103: The name 'F' does not exist in the current context", error);
             });
         }
 
@@ -837,7 +841,7 @@ class C
                     NoAliases,
                     out error);
 
-                Assert.Equal(error, "error CS0818: Implicitly-typed variables must be initialized");
+                Assert.Equal("error CS0818: Implicitly-typed variables must be initialized", error);
             });
         }
 
@@ -862,7 +866,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS0815: Cannot assign <null> to an implicitly-typed variable");
+                Assert.Equal("error CS0815: Cannot assign <null> to an implicitly-typed variable", error);
             });
         }
 
@@ -887,11 +891,11 @@ class C
                     NoAliases,
                     out error);
 
-                Assert.Equal(error, "error CS0815: Cannot assign void to an implicitly-typed variable");
+                Assert.Equal("error CS0815: Cannot assign void to an implicitly-typed variable", error);
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ReferenceInNextDeclaration()
         {
             var source =
@@ -952,8 +956,8 @@ class C
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(1094107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
-        [Fact]
         public void ReferenceInSameDeclaration()
         {
             var source =
@@ -1058,7 +1062,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS0841: Cannot use local variable 'y' before it is declared");
+                Assert.Equal("error CS0841: Cannot use local variable 'y' before it is declared", error);
             });
         }
 
@@ -1083,7 +1087,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "...");
+                Assert.Equal("...", error);
             });
         }
 
@@ -1109,7 +1113,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "...");
+                Assert.Equal("...", error);
             });
         }
 
@@ -1134,7 +1138,7 @@ class C
                     DkmEvaluationFlags.None,
                     ImmutableArray.Create(VariableAlias("z", typeof(int))),
                     out error);
-                Assert.Equal(error, "...");
+                Assert.Equal("...", error);
             });
         }
 
@@ -1159,11 +1163,11 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Keyword()
         {
             var source =
@@ -1217,7 +1221,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Constant()
         {
             var source =
@@ -1263,7 +1267,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Generic()
         {
             var source =
@@ -1333,7 +1337,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
 
                 // $exception
                 context.CompileExpression(
@@ -1341,7 +1345,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
 
                 // $ReturnValue
                 context.CompileExpression(
@@ -1349,7 +1353,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
 
                 // $x
                 context.CompileExpression(
@@ -1357,7 +1361,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
             });
         }
 
@@ -1365,7 +1369,7 @@ class C
         /// Local declarations inside a lambda should
         /// not be considered pseudo-variables.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Lambda()
         {
             var source =
@@ -1435,15 +1439,15 @@ class C
                 string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+                Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
                 testData = new CompilationTestData();
                 context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+                Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
         public void GenericType_Identifier()
         {
             var source = @"
@@ -1488,8 +1492,8 @@ class Generic<T>
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
         public void GenericType_Keyword()
         {
             var source = @"
@@ -1534,8 +1538,8 @@ class Generic<T>
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
         public void PointerType_Identifier()
         {
             var source = @"
@@ -1581,8 +1585,8 @@ struct S
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
         public void PointerType_Keyword()
         {
             var source = @"
@@ -1624,8 +1628,8 @@ class C
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
         public void NullableType_Identifier()
         {
             var source = @"
@@ -1673,8 +1677,8 @@ struct S
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
-        [Fact]
         public void NullableType_Keyword()
         {
             var source = @"
@@ -1746,7 +1750,7 @@ class C
             flags = resultProperties.Flags;
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_01()
         {
             var source =
@@ -1778,14 +1782,14 @@ class C
                 testData = new CompilationTestData();
                 context.CompileAssignment("x", "Test(x is int i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+    @"{
   // Code size       71 (0x47)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
                 object V_2,
                 System.Guid V_3,
-                object V_4)
+                int V_4)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
@@ -1795,14 +1799,14 @@ class C
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldarg.0
-  IL_001f:  dup
-  IL_0020:  stloc.s    V_4
-  IL_0022:  isinst     ""int""
-  IL_0027:  brfalse.s  IL_003e
-  IL_0029:  ldstr      ""i""
-  IL_002e:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0033:  ldloc.s    V_4
-  IL_0035:  unbox.any  ""int""
+  IL_001f:  isinst     ""int""
+  IL_0024:  brfalse.s  IL_003e
+  IL_0026:  ldarg.0
+  IL_0027:  unbox.any  ""int""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldstr      ""i""
+  IL_0033:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0038:  ldloc.s    V_4
   IL_003a:  stind.i4
   IL_003b:  ldc.i4.1
   IL_003c:  br.s       IL_003f
@@ -1814,7 +1818,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_02()
         {
             var source =
@@ -1847,7 +1851,7 @@ class C
                 context.CompileAssignment("x", "Test(x is string i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       63 (0x3f)
+  // Code size       67 (0x43)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
@@ -1862,24 +1866,26 @@ class C
   IL_0017:  ldloc.3
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_001e:  ldstr      ""i""
-  IL_0023:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
-  IL_0028:  ldarg.0
-  IL_0029:  isinst     ""string""
-  IL_002e:  dup
-  IL_002f:  stloc.s    V_4
-  IL_0031:  stind.ref
-  IL_0032:  ldloc.s    V_4
-  IL_0034:  ldnull
-  IL_0035:  cgt.un
-  IL_0037:  call       ""object C.Test(bool)""
-  IL_003c:  starg.s    V_0
-  IL_003e:  ret
+  IL_001e:  ldarg.0
+  IL_001f:  isinst     ""string""
+  IL_0024:  stloc.s    V_4
+  IL_0026:  ldloc.s    V_4
+  IL_0028:  brfalse.s  IL_003a
+  IL_002a:  ldstr      ""i""
+  IL_002f:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  stind.ref
+  IL_0037:  ldc.i4.1
+  IL_0038:  br.s       IL_003b
+  IL_003a:  ldc.i4.0
+  IL_003b:  call       ""object C.Test(bool)""
+  IL_0040:  starg.s    V_0
+  IL_0042:  ret
 }");
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_03()
         {
             var source =
@@ -1912,13 +1918,12 @@ class C
                 context.CompileAssignment("x", "Test(x is object i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       58 (0x3a)
+  // Code size       57 (0x39)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
                 object V_2,
-                System.Guid V_3,
-                object V_4)
+                System.Guid V_3)
   IL_0000:  ldtoken    ""object""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
@@ -1927,23 +1932,23 @@ class C
   IL_0017:  ldloc.3
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_001e:  ldstr      ""i""
-  IL_0023:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<object>(string)""
-  IL_0028:  ldarg.0
-  IL_0029:  dup
-  IL_002a:  stloc.s    V_4
+  IL_001e:  ldarg.0
+  IL_001f:  brfalse.s  IL_0030
+  IL_0021:  ldstr      ""i""
+  IL_0026:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<object>(string)""
+  IL_002b:  ldarg.0
   IL_002c:  stind.ref
-  IL_002d:  ldloc.s    V_4
-  IL_002f:  ldnull
-  IL_0030:  cgt.un
-  IL_0032:  call       ""object C.Test(bool)""
-  IL_0037:  starg.s    V_0
-  IL_0039:  ret
+  IL_002d:  ldc.i4.1
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.0
+  IL_0031:  call       ""object C.Test(bool)""
+  IL_0036:  starg.s    V_0
+  IL_0038:  ret
 }");
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_04()
         {
             var source =
@@ -2002,7 +2007,7 @@ class C
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_05()
         {
             var source =
@@ -2035,7 +2040,7 @@ class C
                 context.CompileAssignment("x", "Test(x is int i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       67 (0x43)
+  // Code size       74 (0x4a)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
@@ -2043,7 +2048,7 @@ class C
                 int V_3,
                 object V_4,
                 System.Guid V_5,
-                int? V_6)
+                int V_6)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
@@ -2052,23 +2057,27 @@ class C
   IL_0017:  ldloc.s    V_5
   IL_0019:  ldnull
   IL_001a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_001f:  ldarg.0
-  IL_0020:  stloc.s    V_6
-  IL_0022:  ldstr      ""i""
-  IL_0027:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_002c:  ldloca.s   V_6
-  IL_002e:  call       ""int int?.GetValueOrDefault()""
-  IL_0033:  stind.i4
-  IL_0034:  ldloca.s   V_6
-  IL_0036:  call       ""bool int?.HasValue.get""
-  IL_003b:  call       ""int? C.Test(bool)""
-  IL_0040:  starg.s    V_0
-  IL_0042:  ret
+  IL_001f:  ldarga.s   V_0
+  IL_0021:  call       ""bool int?.HasValue.get""
+  IL_0026:  brfalse.s  IL_0041
+  IL_0028:  ldarga.s   V_0
+  IL_002a:  call       ""int int?.GetValueOrDefault()""
+  IL_002f:  stloc.s    V_6
+  IL_0031:  ldstr      ""i""
+  IL_0036:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_003b:  ldloc.s    V_6
+  IL_003d:  stind.i4
+  IL_003e:  ldc.i4.1
+  IL_003f:  br.s       IL_0042
+  IL_0041:  ldc.i4.0
+  IL_0042:  call       ""int? C.Test(bool)""
+  IL_0047:  starg.s    V_0
+  IL_0049:  ret
 }");
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_LocalDeclarationStatement_01()
         {
             var source =
@@ -2107,7 +2116,7 @@ class C
                 bool V_1,
                 object V_2,
                 System.Guid V_3,
-                object V_4)
+                int V_4)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""z""
@@ -2127,14 +2136,14 @@ class C
   IL_003c:  ldstr      ""z""
   IL_0041:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_0046:  ldarg.0
-  IL_0047:  dup
-  IL_0048:  stloc.s    V_4
-  IL_004a:  isinst     ""int""
-  IL_004f:  brfalse.s  IL_0066
-  IL_0051:  ldstr      ""i""
-  IL_0056:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_005b:  ldloc.s    V_4
-  IL_005d:  unbox.any  ""int""
+  IL_0047:  isinst     ""int""
+  IL_004c:  brfalse.s  IL_0066
+  IL_004e:  ldarg.0
+  IL_004f:  unbox.any  ""int""
+  IL_0054:  stloc.s    V_4
+  IL_0056:  ldstr      ""i""
+  IL_005b:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0060:  ldloc.s    V_4
   IL_0062:  stind.i4
   IL_0063:  ldc.i4.1
   IL_0064:  br.s       IL_0067

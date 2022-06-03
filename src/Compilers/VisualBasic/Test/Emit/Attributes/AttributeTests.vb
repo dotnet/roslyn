@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -4365,7 +4367,7 @@ End Class
             Dim emitResult2 = compilation2.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
             Assert.False(emitResult2.Success)
             AssertTheseDiagnostics(emitResult2.Diagnostics, <![CDATA[
-BC36970: Failed to emit module 'Test.dll'.
+BC36970: Failed to emit module 'Test.dll': Module has invalid attributes.
 ]]>)
 
             ' Use different mscorlib to test retargeting scenario
@@ -4651,6 +4653,29 @@ End Namespace
             CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
+        End Sub
+
+        <Fact>
+        Public Sub AttributeWithOptionalNullableParameter_NullIsPassed()
+            Dim code = "
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(Optional x As Integer? = 0)
+    End Sub
+End Class
+
+<My(Nothing)>
+Class C
+End Class
+"
+            CreateCompilation(code).AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30045: Attribute constructor has a parameter of type 'Integer?', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(Nothing)>
+ ~~
+]]></expected>)
         End Sub
     End Class
 End Namespace

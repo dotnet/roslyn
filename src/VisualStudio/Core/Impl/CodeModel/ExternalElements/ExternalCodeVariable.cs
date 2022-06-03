@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -62,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                var fieldSymbol = LookupSymbol() as IFieldSymbol;
-                if (fieldSymbol == null)
+                if (LookupSymbol() is not IFieldSymbol fieldSymbol)
                 {
                     return false;
                 }
@@ -101,8 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                var fieldSymbol = LookupSymbol() as IFieldSymbol;
-                if (fieldSymbol == null)
+                if (LookupSymbol() is not IFieldSymbol fieldSymbol)
                 {
                     return EnvDTE80.vsCMConstKind.vsCMConstKindNone;
                 }
@@ -132,8 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get
             {
                 // TODO: C# checks whether the field Type is generic. What does VB do?
-                var namedType = GetSymbolType() as INamedTypeSymbol;
-                return namedType != null
+                return GetSymbolType() is INamedTypeSymbol namedType
                     ? namedType.IsGenericType
                     : false;
             }

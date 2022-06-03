@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -129,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim testExpression As BoundExpression = node.TestExpression
             Dim testExpressionType As TypeSymbol = testExpression.Type
             Dim rewrittenTestExpression As BoundExpression = VisitExpression(testExpression)
-            Debug.Assert(testExpressionType = rewrittenTestExpression.Type)
+            Debug.Assert(TypeSymbol.Equals(testExpressionType, rewrittenTestExpression.Type, TypeCompareKind.ConsiderEverything))
 
             Dim rewrittenWhenTrue As BoundExpression = Nothing
 
@@ -144,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             testExpressionType.GetNullableUnderlyingTypeOrSelf)
                 End If
             Else
-                Debug.Assert(node.TestExpressionPlaceholder Is Nothing OrElse node.TestExpressionPlaceholder.Type = testExpressionType.GetNullableUnderlyingTypeOrSelf)
+                Debug.Assert(node.TestExpressionPlaceholder Is Nothing OrElse TypeSymbol.Equals(node.TestExpressionPlaceholder.Type, testExpressionType.GetNullableUnderlyingTypeOrSelf, TypeCompareKind.ConsiderEverything))
                 rewrittenWhenTrue = VisitExpressionNode(convertedTestExpression,
                                                         node.TestExpressionPlaceholder,
                                                         If(testExpressionType.IsNullableType,
@@ -187,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' TODO: Checking type equality of test and else is not strictly needed.
             '       Consider removing this requirement.
-            If testExpr.IsConstant AndAlso (testExpr.Type = elseExpr.Type) Then
+            If testExpr.IsConstant AndAlso (TypeSymbol.Equals(testExpr.Type, elseExpr.Type, TypeCompareKind.ConsiderEverything)) Then
                 '  the only valid IF(...) with the first constant are: IF("abc", <expr>) or IF(Nothing, <expr>)
                 If testExpr.ConstantValueOpt.IsNothing Then
                     ' CASE: IF(Nothing, <expr>) 
