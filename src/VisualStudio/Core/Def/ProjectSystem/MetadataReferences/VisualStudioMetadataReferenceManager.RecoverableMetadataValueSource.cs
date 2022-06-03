@@ -75,13 +75,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private static ModuleMetadata GetModuleMetadata(ITemporaryStreamStorage storage)
             {
-                var stream = storage.ReadStream(CancellationToken.None);
-
                 // In VS host, direct access should be supported through an UnmanagedMemoryStream
-                Contract.ThrowIfFalse(stream is UnmanagedMemoryStream unmanagedStream);
+                var stream = (UnmanagedMemoryStream)storage.ReadStream(CancellationToken.None);
 
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                return ModuleMetadata.CreateFromMetadata(unmanagedStream, leaveOpen: false);
+                return ModuleMetadata.CreateFromMetadata(stream, leaveOpen: false);
             }
         }
     }
