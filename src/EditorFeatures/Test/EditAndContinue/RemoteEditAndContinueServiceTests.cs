@@ -177,16 +177,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
-            // HasChanges
-
-            mockEncService.HasChangesImpl = (solution, activeStatementSpanProvider, sourceFilePath) =>
-            {
-                Assert.Equal("proj", solution.Projects.Single().Name);
-                Assert.Equal("test.cs", sourceFilePath);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
-                return true;
-            };
-
             // EmitSolutionUpdate
 
             var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
