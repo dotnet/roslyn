@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type);
                         }
-                        if (data.Scope(i) == DeclarationScope.ValueScoped && !type.IsValidScopedType())
+                        if (data.Scope(i) == DeclarationScope.ValueScoped && !type.IsErrorTypeOrRefLikeType())
                         {
                             diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
                         }

@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsValidScopedType())
+            if (localSymbol.Scope == DeclarationScope.ValueScoped && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }

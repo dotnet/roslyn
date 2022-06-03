@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
 
-            if (parameter.Scope == DeclarationScope.ValueScoped && !parameter.Type.IsValidScopedType())
+            if (parameter.Scope == DeclarationScope.ValueScoped && !parameter.Type.IsErrorTypeOrRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }
