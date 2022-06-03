@@ -441,19 +441,19 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
 
-        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag)
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0)
             where T : CSharpSyntaxNode
         {
 #if DEBUG
             var tree = comp.SyntaxTrees.First();
-            var node = tree.GetRoot().DescendantNodes().OfType<T>().First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var binder = model.GetEnclosingBinder(node.SpanStart);
             var decisionDag = node switch
             {
-                SwitchStatementSyntax n => ((BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded)).DecisionDag,
-                SwitchExpressionSyntax n => ((BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
-                IsPatternExpressionSyntax n => ((BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                SwitchStatementSyntax n => ((BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
+                SwitchExpressionSyntax n => ((BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
+                IsPatternExpressionSyntax n => ((BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 

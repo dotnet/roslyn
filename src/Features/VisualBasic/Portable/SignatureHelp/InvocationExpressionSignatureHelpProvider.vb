@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = ")"c
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim expression As InvocationExpressionSyntax = Nothing
             If TryGetInvocationExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, expression) AndAlso
                 currentSpan.Start = GetSignatureHelpSpan(expression.ArgumentList).Start Then

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -128,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new RefKeywordRecommender(),
                 new RegionKeywordRecommender(),
                 new RemoveKeywordRecommender(),
+                new RequiredKeywordRecommender(),
                 new RestoreKeywordRecommender(),
                 new ReturnKeywordRecommender(),
                 new SByteKeywordRecommender(),

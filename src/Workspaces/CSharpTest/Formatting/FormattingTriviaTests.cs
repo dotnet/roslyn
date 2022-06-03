@@ -11,6 +11,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -1751,10 +1752,10 @@ class Program
             // replace all EOL trivia with elastic markers to force the formatter to add EOL back
             tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.EndOfLineTrivia)), (o, r) => SyntaxFactory.ElasticMarker);
 
-            var options = SyntaxFormattingOptions.Create(
-                workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"),
-                workspace.Services,
-                tree.Language);
+            var options = new CSharpSyntaxFormattingOptions()
+            {
+                Common = new SyntaxFormattingOptions.CommonOptions { LineFormatting = new LineFormattingOptions { NewLine = "\n" } }
+            };
 
             var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
 
@@ -1799,10 +1800,13 @@ class F
 
             using var workspace = new AdhocWorkspace();
 
-            var options = SyntaxFormattingOptions.Create(
-                workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true),
-                workspace.Services,
-                tree.Language);
+            var options = new CSharpSyntaxFormattingOptions()
+            {
+                Common = new SyntaxFormattingOptions.CommonOptions
+                {
+                    LineFormatting = new LineFormattingOptions { UseTabs = true }
+                }
+            };
 
             var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
 

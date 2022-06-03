@@ -33,21 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
-                diagnostic);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Remove_unnessary_discard, nameof(CSharpAnalyzersResources.Remove_unnessary_discard));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var generator = editor.Generator;
 
@@ -93,15 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Remove_unnessary_discard, createChangedDocument, CSharpAnalyzersResources.Remove_unnessary_discard)
-            {
-            }
         }
     }
 }

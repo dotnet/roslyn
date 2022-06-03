@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
-                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol);
+                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol, containingSymbol.ContainingType);
                 typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
@@ -997,6 +997,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             out isReadOnlyAttribute,
                             filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
                             out _,
+                            default,
+                            out _,
                             default);
 
                     if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil)
@@ -1060,13 +1062,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        public override bool IsNullChecked => false;
 
         public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
             return other is NativeIntegerParameterSymbol nps ?
                 nps.Equals(this, compareKind) :
                 base.Equals(other, compareKind);
+        }
+
+#nullable enable
+        internal DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic(MetadataDecoder decoder)
+            => PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, (PEModuleSymbol)ContainingModule, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None, decoder);
+
+        public override bool HasUnsupportedMetadata
+        {
+            get
+            {
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                var decoder = ContainingSymbol switch
+                {
+                    PEMethodSymbol method => new MetadataDecoder(containingModule, method),
+                    PEPropertySymbol => new MetadataDecoder(containingModule, (PENamedTypeSymbol)ContainingType),
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.ContainingSymbol.Kind)
+                };
+
+                return DeriveCompilerFeatureRequiredDiagnostic(decoder) is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } || base.HasUnsupportedMetadata;
+            }
         }
     }
 }

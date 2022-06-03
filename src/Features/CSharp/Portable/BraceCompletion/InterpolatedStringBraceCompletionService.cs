@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
     /// other double quote completions.
     /// </summary>
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class InterpolatedStringBraceCompletionService : AbstractBraceCompletionService
+    internal class InterpolatedStringBraceCompletionService : AbstractCSharpBraceCompletionService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         }
 
         protected override char OpeningBrace => DoubleQuote.OpenCharacter;
-
         protected override char ClosingBrace => DoubleQuote.CloseCharacter;
 
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken rightToken)
             => rightToken.IsKind(SyntaxKind.InterpolatedStringEndToken);
 
-        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
-            => Task.FromResult(IsValidOpeningBraceToken(token) && token.Span.End - 1 == position);
+        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
+            => IsValidOpeningBraceToken(token) && token.Span.End - 1 == position;
 
         /// <summary>
         /// Returns true when the input position could be starting an interpolated string if opening quotes were typed.
@@ -59,33 +59,35 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var start = position - 1;
             if (start < 0)
-            {
                 return false;
-            }
 
             // Check if the user is typing an interpolated or interpolated verbatim string.
             // If the preceding character(s) are not '$' or '$@' then we can't be starting an interpolated string.
             if (text[start] == '@')
             {
-                start--;
-
-                if (start < 0)
-                {
+                if (--start < 0)
                     return false;
-                }
             }
 
             if (text[start] != '$')
+                return false;
+
+            // Verify that we are actually in an location allowed for an interpolated string.
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var token = root.FindToken(start);
+            if (token.Kind() is not SyntaxKind.InterpolatedStringStartToken and
+                                not SyntaxKind.InterpolatedVerbatimStringStartToken and
+                                not SyntaxKind.StringLiteralToken and
+                                not SyntaxKind.IdentifierToken)
             {
                 return false;
             }
 
-            // Verify that we are actually in an location allowed for an interpolated string.
-            // Note that the quote has not yet been typed so we don't actually know if we're in an interpolated string.
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(start);
-            return root.SyntaxTree.IsExpressionContext(start, token, attributes: false, cancellationToken: cancellationToken)
-                || root.SyntaxTree.IsStatementContext(start, token, cancellationToken);
+            var previousToken = token.GetPreviousToken();
+
+            return root.SyntaxTree.IsExpressionContext(token.SpanStart, previousToken, attributes: true, cancellationToken)
+                || root.SyntaxTree.IsStatementContext(token.SpanStart, previousToken, cancellationToken);
         }
     }
 }

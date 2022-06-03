@@ -3,20 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
-using StreamJsonRpc;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
@@ -24,85 +17,124 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
     [UseExportProvider]
     public class LanguageServerTargetTests : AbstractLanguageServerProtocolTests
     {
+        protected override TestComposition Composition => base.Composition.AddParts(typeof(StatefulLspServiceFactory), typeof(StatelessLspService));
+
         [Fact]
         public async Task LanguageServerQueueEmptyOnShutdownMessage()
         {
-            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc);
-            AssertServerAlive(languageServerTarget);
+            var server = await CreateTestLspServerAsync("");
+            AssertServerAlive(server);
 
-            await languageServerTarget.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
-            await AssertServerQueueClosed(languageServerTarget).ConfigureAwait(false);
-            Assert.False(jsonRpc.IsDisposed);
+            server.GetServerAccessor().ShutdownServer();
+            await AssertServerQueueClosed(server).ConfigureAwait(false);
+            Assert.False(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
 
         [Fact]
         public async Task LanguageServerCleansUpOnExitMessage()
         {
-            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc);
-            AssertServerAlive(languageServerTarget);
+            var server = await CreateTestLspServerAsync("");
+            AssertServerAlive(server);
 
-            await languageServerTarget.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
-            await languageServerTarget.ExitAsync(CancellationToken.None).ConfigureAwait(false);
-            await AssertServerQueueClosed(languageServerTarget).ConfigureAwait(false);
-            Assert.True(jsonRpc.IsDisposed);
+            server.GetServerAccessor().ShutdownServer();
+            server.GetServerAccessor().ExitServer();
+            await AssertServerQueueClosed(server).ConfigureAwait(false);
+            Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
 
         [Fact]
         public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync()
         {
-            await using var languageServerTarget = CreateLanguageServer(out var jsonRpc);
-            AssertServerAlive(languageServerTarget);
+            using var server = await CreateTestLspServerAsync("");
+            AssertServerAlive(server);
 
-            jsonRpc.Dispose();
-            await AssertServerQueueClosed(languageServerTarget).ConfigureAwait(false);
-            Assert.True(jsonRpc.IsDisposed);
+            server.GetServerAccessor().GetServerRpc().Dispose();
+            await AssertServerQueueClosed(server).ConfigureAwait(false);
+            Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
 
-        private static void AssertServerAlive(LanguageServerTarget server)
+        [Fact]
+        public async Task LanguageServerHasSeparateServiceInstances()
         {
-            Assert.False(server.HasShutdownStarted);
-            Assert.False(server.GetTestAccessor().GetQueueAccessor().IsComplete());
+            using var serverOne = await CreateTestLspServerAsync("");
+            using var serverTwo = await CreateTestLspServerAsync("");
+
+            // Get an LSP service and verify each server has its own instance per server.
+            Assert.NotSame(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
+            Assert.Same(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverOne.GetRequiredLspService<LspWorkspaceManager>());
+            Assert.Same(serverTwo.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
+
+            // Get a stateless request handler and verify each server has the same instance.
+            Assert.Same(serverOne.GetRequiredLspService<DidOpenHandler>(), serverTwo.GetRequiredLspService<DidOpenHandler>());
         }
 
-        private static async Task AssertServerQueueClosed(LanguageServerTarget server)
+        [Fact]
+        public async Task LanguageServerDisposesOfServicesOnShutdown()
         {
-            await server.GetTestAccessor().GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
-            Assert.True(server.HasShutdownStarted);
-            Assert.True(server.GetTestAccessor().GetQueueAccessor().IsComplete());
+            using var server = await CreateTestLspServerAsync("");
+
+            var statefulService = server.GetRequiredLspService<StatefulLspService>();
+            var statelessService = server.GetRequiredLspService<StatelessLspService>();
+
+            Assert.False(statefulService.IsDisposed);
+            Assert.False(statelessService.IsDisposed);
+
+            server.GetServerAccessor().ShutdownServer();
+            server.GetServerAccessor().ExitServer();
+
+            // Only the stateful service should be disposed of on server shutdown.
+            Assert.True(statefulService.IsDisposed);
+            Assert.False(statelessService.IsDisposed);
         }
 
-        private LanguageServerTarget CreateLanguageServer(out JsonRpc serverJsonRpc)
+        private static void AssertServerAlive(TestLspServer server)
         {
-            using var workspace = TestWorkspace.CreateCSharp("", composition: Composition);
+            Assert.False(server.GetServerAccessor().HasShutdownStarted());
+            Assert.False(server.GetQueueAccessor().IsComplete());
+        }
 
-            var (_, serverStream) = FullDuplexStream.CreatePair();
-            var dispatcherFactory = workspace.GetService<RequestDispatcherFactory>();
-            var lspWorkspaceRegistrationService = workspace.GetService<LspWorkspaceRegistrationService>();
-            var capabilitiesProvider = workspace.GetService<DefaultCapabilitiesProvider>();
-            var globalOptions = workspace.GetService<IGlobalOptionService>();
-            var listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
+        private static async Task AssertServerQueueClosed(TestLspServer server)
+        {
+            await server.GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
+            Assert.True(server.GetServerAccessor().HasShutdownStarted());
+            Assert.True(server.GetQueueAccessor().IsComplete());
+        }
 
-            serverJsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream))
+        [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]
+        internal class StatefulLspServiceFactory : ILspServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public StatefulLspServiceFactory()
             {
-                ExceptionStrategy = ExceptionProcessing.ISerializable,
-            };
+            }
 
-            var languageServer = new LanguageServerTarget(
-                dispatcherFactory,
-                serverJsonRpc,
-                capabilitiesProvider,
-                lspWorkspaceRegistrationService,
-                new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
-                globalOptions,
-                listenerProvider,
-                NoOpLspLogger.Instance,
-                ProtocolConstants.RoslynLspLanguages,
-                clientName: null,
-                userVisibleServerName: string.Empty,
-                telemetryServerTypeName: string.Empty);
+            public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new StatefulLspService();
+        }
 
-            serverJsonRpc.StartListening();
-            return languageServer;
+        internal class StatefulLspService : ILspService, IDisposable
+        {
+            public bool IsDisposed { get; private set; } = false;
+            public void Dispose()
+            {
+                IsDisposed = true;
+            }
+        }
+
+        [ExportCSharpVisualBasicStatelessLspService(typeof(StatelessLspService)), Shared]
+        internal class StatelessLspService : ILspService, IDisposable
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public StatelessLspService()
+            {
+            }
+
+            public bool IsDisposed { get; private set; } = false;
+            public void Dispose()
+            {
+                IsDisposed = true;
+            }
         }
     }
 }

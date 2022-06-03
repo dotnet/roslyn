@@ -4,10 +4,12 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractClass
 {
@@ -86,29 +88,29 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingTypeDeclarationNode = selectedMemberNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+            Contract.ThrowIfNull(containingTypeDeclarationNode);
 
-            return new ExtractClassWithDialogCodeAction(document, span, optionsService, containingType, containingTypeDeclarationNode!, selectedMember);
+            // Treat the entire node's span as the span of interest here.  That way if the user's location is closer to
+            // a refactoring with a narrower span (for example, a span just on the name/parameters of a member, then it
+            // will take precedence over us).
+            return new ExtractClassWithDialogCodeAction(
+                document, selectedMemberNode.Span, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMember);
         }
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
             var selectedClassNode = await GetSelectedClassDeclarationAsync(context).ConfigureAwait(false);
             if (selectedClassNode is null)
-            {
                 return null;
-            }
 
             var (document, span, cancellationToken) = context;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var originalType = semanticModel.GetDeclaredSymbol(selectedClassNode, cancellationToken) as INamedTypeSymbol;
-
-            if (originalType is null)
-            {
+            if (semanticModel.GetDeclaredSymbol(selectedClassNode, cancellationToken) is not INamedTypeSymbol originalType)
                 return null;
-            }
 
-            return new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType, selectedClassNode);
+            return new ExtractClassWithDialogCodeAction(
+                document, span, optionsService, originalType, selectedClassNode, context.Options, selectedMember: null);
         }
     }
 }

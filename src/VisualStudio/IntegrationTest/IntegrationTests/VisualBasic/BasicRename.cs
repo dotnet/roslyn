@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -11,7 +12,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -25,6 +25,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         public BasicRename(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(BasicRename))
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
+            // reset relevant global options to default values:
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInComments, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInStrings, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameOverloads, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile, language: null, value: true);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]

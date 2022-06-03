@@ -224,7 +224,25 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
-        public async Task NotOnGenericClass()
+        public async Task NotInGenericType()
+        {
+            var text = @"class Test
+{
+    class Goo<T> 
+    { 
+        void M() 
+        {
+            _ = typeof(Goo<int>).Name;
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(text, text);
+        }
+
+        [WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        public async Task NestedInGenericType()
         {
             var text = @"class Test
 {
@@ -234,17 +252,60 @@ class Test
         { 
             void M() 
             {
-                _ = typeof(Bar).Name;
+                _ = [|typeof(Bar).Name|];
             }
         }
     }
 }
 ";
-            await VerifyCS.VerifyCodeFixAsync(text, text);
+            var expected = @"class Test
+{
+    class Goo<T> 
+    { 
+        class Bar 
+        { 
+            void M() 
+            {
+                _ = nameof(Bar);
+            }
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
+        [WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        public async Task NestedInGenericType2()
+        {
+            var text = @"using System;
+using System.Collections.Generic;
+
+class Test
+{
+    public void M()
+    {
+        Console.WriteLine([|typeof(List<int>.Enumerator).Name|]);
+    }
+}
+";
+            var expected = @"using System;
+using System.Collections.Generic;
+
+class Test
+{
+    public void M()
+    {
+        Console.WriteLine(nameof(List<Int32>.Enumerator));
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
+        }
+
         [WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task NotOnVoid()
         {
             var text = @"

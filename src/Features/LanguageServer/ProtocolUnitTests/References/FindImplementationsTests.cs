@@ -125,10 +125,32 @@ class {|implementation:C|} : A { }";
             AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
+        [Fact]
+        public async Task TestFindImplementationAsync_NoMetadataResults()
+        {
+            var markup = @"
+using System;
+class C : IDisposable
+{
+    public void {|implementation:Dispose|}()
+    {
+        IDisposable d;
+        d.{|caret:|}Dispose();
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+            // At the moment we only support source results here, so verify we haven't accidentally
+            // broken that without work to make sure they display nicely
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
+        }
+
         private static async Task<LSP.Location[]> RunFindImplementationAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentImplementationName,
-                           CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                           CreateTextDocumentPositionParams(caret), CancellationToken.None);
         }
     }
 }

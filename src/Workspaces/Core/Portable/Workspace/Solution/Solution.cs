@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
         internal SolutionServices Services => _state.Services;
+
+        internal BranchId BranchId => _state.BranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 
@@ -1754,6 +1756,21 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
             var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
             return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
+        }
+
+        /// <summary>
+        /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
+        /// to have it's real output again.
+        /// </summary>
+        internal Solution WithoutFrozenSourceGeneratedDocuments()
+        {
+            var newState = _state.WithoutFrozenSourceGeneratedDocuments();
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
         }
 
         /// <summary>

@@ -25,11 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
         Public Sub New()
         End Sub
 
-#If CODE_STYLE Then
-        Protected Overrides Function GetSyntaxFormattingService() As ISyntaxFormattingService
-            Return VisualBasicSyntaxFormattingService.Instance
+        Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
+            Return VisualBasicSyntaxFormatting.Instance
         End Function
-#End If
 
         Protected Overrides Function WrapWithBlockIfNecessary(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
             ' Unreachable code path as VB statements don't need to be wrapped in special BlockSyntax.

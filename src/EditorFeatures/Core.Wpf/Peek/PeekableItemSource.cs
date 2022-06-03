@@ -4,9 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Peek;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -23,17 +27,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         private readonly ITextBuffer _textBuffer;
         private readonly IPeekableItemFactory _peekableItemFactory;
         private readonly IPeekResultFactory _peekResultFactory;
+        private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         public PeekableItemSource(
             ITextBuffer textBuffer,
             IPeekableItemFactory peekableItemFactory,
             IPeekResultFactory peekResultFactory,
+            IThreadingContext threadingContext,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _textBuffer = textBuffer;
             _peekableItemFactory = peekableItemFactory;
             _peekResultFactory = peekResultFactory;
+            _threadingContext = threadingContext;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
@@ -58,63 +65,65 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
             _uiThreadOperationExecutor.Execute(EditorFeaturesResources.Peek, EditorFeaturesResources.Loading_Peek_information, allowCancellation: true, showProgress: false, action: context =>
             {
-                var cancellationToken = context.UserCancellationToken;
-                var services = document.Project.Solution.Workspace.Services;
-
-                IEnumerable<IPeekableItem> results;
-
-                if (!document.SupportsSemanticModel)
-                {
-                    // For documents without semantic models, just try to use the goto-def service
-                    // as a reasonable place to peek at.
-                    var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
-                    if (goToDefinitionService == null)
-                    {
-                        return;
-                    }
-
-                    var navigableItems = goToDefinitionService.FindDefinitionsAsync(document, triggerPoint.Value.Position, cancellationToken)
-                                                              .WaitAndGetResult(cancellationToken);
-
-                    results = GetPeekableItemsForNavigableItems(navigableItems, document.Project, _peekResultFactory, cancellationToken);
-                }
-                else
-                {
-                    var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-                    var symbol = SymbolFinder.GetSemanticInfoAtPositionAsync(
-                        semanticModel,
-                        triggerPoint.Value.Position,
-                        services,
-                        cancellationToken).WaitAndGetResult(cancellationToken)
-                                          .GetAnySymbol(includeType: true);
-
-                    if (symbol == null)
-                    {
-                        return;
-                    }
-
-                    symbol = symbol.GetOriginalUnreducedDefinition();
-
-                    // Get the symbol back from the originating workspace
-                    var symbolMappingService = services.GetRequiredService<ISymbolMappingService>();
-
-                    var mappingResult = symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken)
-                                                            .WaitAndGetResult(cancellationToken);
-
-                    mappingResult ??= new SymbolMappingResult(document.Project, symbol);
-
-                    results = _peekableItemFactory.GetPeekableItemsAsync(mappingResult.Symbol, mappingResult.Project, _peekResultFactory, cancellationToken)
-                                                 .WaitAndGetResult(cancellationToken);
-                }
-
-                peekableItems.AddRange(results);
+                _threadingContext.JoinableTaskFactory.Run(() => AugumentPeekSessionAsync(peekableItems, context, triggerPoint.Value, document));
             });
         }
 
-        private static IEnumerable<IPeekableItem> GetPeekableItemsForNavigableItems(
+        private async Task AugumentPeekSessionAsync(
+            IList<IPeekableItem> peekableItems, IUIThreadOperationContext context, SnapshotPoint triggerPoint, Document document)
+        {
+            var cancellationToken = context.UserCancellationToken;
+            var services = document.Project.Solution.Workspace.Services;
+
+            if (!document.SupportsSemanticModel)
+            {
+                // For documents without semantic models, just try to use the goto-def service
+                // as a reasonable place to peek at.
+                var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
+                if (goToDefinitionService == null)
+                {
+                    return;
+                }
+
+                var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, triggerPoint.Position, cancellationToken).ConfigureAwait(false);
+                await foreach (var item in GetPeekableItemsForNavigableItemsAsync(
+                    navigableItems, document.Project, _peekResultFactory, cancellationToken).ConfigureAwait(false))
+                {
+                    peekableItems.Add(item);
+                }
+            }
+            else
+            {
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(
+                    semanticModel,
+                    triggerPoint.Position,
+                    services,
+                    cancellationToken).ConfigureAwait(false);
+                var symbol = semanticInfo.GetAnySymbol(includeType: true);
+                if (symbol == null)
+                {
+                    return;
+                }
+
+                symbol = symbol.GetOriginalUnreducedDefinition();
+
+                // Get the symbol back from the originating workspace
+                var symbolMappingService = services.GetRequiredService<ISymbolMappingService>();
+
+                var mappingResult = await symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
+
+                mappingResult ??= new SymbolMappingResult(document.Project, symbol);
+
+                peekableItems.AddRange(await _peekableItemFactory.GetPeekableItemsAsync(
+                    mappingResult.Symbol, mappingResult.Project, _peekResultFactory, cancellationToken).ConfigureAwait(false));
+            }
+        }
+
+        private static async IAsyncEnumerable<IPeekableItem> GetPeekableItemsForNavigableItemsAsync(
             IEnumerable<INavigableItem>? navigableItems, Project project,
             IPeekResultFactory peekResultFactory,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (navigableItems != null)
             {
@@ -124,9 +133,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 foreach (var item in navigableItems)
                 {
                     var document = item.Document;
-                    if (navigationService.CanNavigateToPosition(workspace, document.Id, item.SourceSpan.Start, cancellationToken))
+                    if (await navigationService.CanNavigateToPositionAsync(
+                            workspace, document.Id, item.SourceSpan.Start, cancellationToken).ConfigureAwait(false))
                     {
-                        var text = document.GetTextSynchronously(cancellationToken);
+                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
                         if (document.FilePath != null)
                         {

@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -568,8 +569,7 @@ if (true)
             int position)
         {
             var provider = CreateProvider();
-            var options = SymbolDescriptionOptions.From(document.Project);
-            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None)));
+            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, SymbolDescriptionOptions.Default, CancellationToken.None)));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -580,8 +580,7 @@ if (true)
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider();
-            var options = SymbolDescriptionOptions.From(document.Project);
-            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, options, CancellationToken.None));
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, SymbolDescriptionOptions.Default, CancellationToken.None));
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);
 
@@ -591,7 +590,7 @@ if (true)
             var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
             var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(
                 trackingSpan.Object, info, document,
-                threadingContext, operationExecutor,
+                ClassificationOptions.Default, threadingContext, operationExecutor,
                 AsynchronousOperationListenerProvider.NullListener,
                 streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;

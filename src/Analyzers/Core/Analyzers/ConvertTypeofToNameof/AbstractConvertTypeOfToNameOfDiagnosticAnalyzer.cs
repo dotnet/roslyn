@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
                 return false;
             }
 
-            return typeofOperation.TypeOperand is INamedTypeSymbol namedType && !namedType.IsGenericType;
+            return typeofOperation.TypeOperand is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 0;
         }
     }
 }

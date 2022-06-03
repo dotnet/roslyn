@@ -9,11 +9,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -22,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private partial class CSharpCodeGenerator
         {
-            private class ExpressionCodeGenerator : CSharpCodeGenerator
+            private sealed class ExpressionCodeGenerator : CSharpCodeGenerator
             {
                 public ExpressionCodeGenerator(
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
-                    OptionSet options,
+                    CSharpCodeGenerationOptions options,
                     bool localFunction)
                     : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
                 {

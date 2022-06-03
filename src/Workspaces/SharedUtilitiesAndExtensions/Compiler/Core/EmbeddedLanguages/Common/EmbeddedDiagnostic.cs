@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             => Message == other.Message &&
                Span.Equals(other.Span);
 
+        public override string ToString()
+            => Message;
+
         public override int GetHashCode()
         {
             unchecked

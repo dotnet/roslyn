@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override bool IsEnabledByDefault
         {
-            // All compiler errors and warnings are enabled by default.
-            get { return true; }
+            get { return this.Info.Descriptor.IsEnabledByDefault; }
         }
 
         public override bool IsSuppressed
@@ -140,11 +139,6 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Hash.Combine(this.Location.GetHashCode(), this.Info.GetHashCode());
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as Diagnostic);
         }
 
         public override bool Equals(Diagnostic? obj)

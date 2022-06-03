@@ -430,7 +430,7 @@ End Namespace
 
 #End Region
 
-        Private Function GetGenericExtender(codeElement As EnvDTE80.CodeInterface2) As IVBGenericExtender
+        Private Shared Function GetGenericExtender(codeElement As EnvDTE80.CodeInterface2) As IVBGenericExtender
             Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
 

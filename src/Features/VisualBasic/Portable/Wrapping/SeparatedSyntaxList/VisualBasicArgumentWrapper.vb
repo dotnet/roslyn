@@ -19,6 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         Protected Overrides ReadOnly Property Wrap_every_item As String = FeaturesResources.Wrap_every_argument
         Protected Overrides ReadOnly Property Wrap_long_list As String = FeaturesResources.Wrap_long_argument_list
 
+        Public Overrides ReadOnly Property Supports_UnwrapGroup_WrapFirst_IndentRest As Boolean = True
+        Public Overrides ReadOnly Property Supports_WrapEveryGroup_UnwrapFirst As Boolean = True
+        Public Overrides ReadOnly Property Supports_WrapLongGroup_UnwrapFirst As Boolean = True
+
+        Protected Overrides ReadOnly Property ShouldMoveCloseBraceToNewLine As Boolean = False
+
         Protected Overrides Function GetListItems(listSyntax As ArgumentListSyntax) As SeparatedSyntaxList(Of ArgumentSyntax)
             Return listSyntax.Arguments
         End Function
@@ -29,8 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         End Function
 
         Protected Overrides Function PositionIsApplicable(
-                root As SyntaxNode, position As Integer,
-                declaration As SyntaxNode, listSyntax As ArgumentListSyntax) As Boolean
+                root As SyntaxNode, position As Integer, declaration As SyntaxNode, containsSyntaxError As Boolean, listSyntax As ArgumentListSyntax) As Boolean
+
+            If containsSyntaxError Then
+                Return False
+            End If
 
             Dim startToken = listSyntax.GetFirstToken()
 

@@ -4,11 +4,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <!-- The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub targeting .Net Core -->
+    <!--
+    The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub and C# and VB features layer targeting .Net Core.
+    -->
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
@@ -22,13 +26,23 @@
       <_ExcludedFiles Include="$(PublishDir)**\*.pdb" />
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_ExcludedFiles Include="$(PublishDir)\runtimes\**\*.*" />
-      <!-- For binaries below, we want to use the version provided by the runtime, not the ones from the NuGet packages -->
-      <_ExcludedFiles Include="$(PublishDir)\Microsoft.Win32.Registry.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Diagnostics.DiagnosticSource.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Runtime.CompilerServices.Unsafe.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Security.AccessControl.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Security.Principal.Windows.dll'" />
-      <_ExcludedFiles Include="$(PublishDir)\System.Threading.Tasks.Dataflow.dll'" />
+      <!-- For binaries below, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
+      However, we can't safely exclude shared dependencies from ServiceHub host folder: we might be referencing a higher version,
+      or back-compat might not be guaranteed in the version shipped by host. -->
+      <_ExcludedFiles Include="$(PublishDir)\Microsoft.Win32.Registry.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\Microsoft.Win32.SystemEvents.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.CodeDom.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Configuration.ConfigurationManager.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Diagnostics.DiagnosticSource.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Diagnostics.PerformanceCounter.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Drawing.Common.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Runtime.CompilerServices.Unsafe.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Security.AccessControl.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Security.Cryptography.ProtectedData.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Security.Permissions.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Security.Principal.Windows.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Threading.Tasks.Dataflow.dll" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Windows.Extensions.dll" />
     </ItemGroup>
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->

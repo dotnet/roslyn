@@ -67,6 +67,21 @@
         <target state="translated">整個解決方案</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="translated">無(&amp;N)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="translated">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="translated">無</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
         <target state="translated">開啟文件(&amp;O)</target>

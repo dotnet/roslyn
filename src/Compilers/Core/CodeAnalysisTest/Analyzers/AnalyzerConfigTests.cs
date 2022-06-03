@@ -2536,6 +2536,29 @@ a = b
             }
         }
 
+
+        [Fact]
+        public void CorrectlyMergeGlobalConfigWithEscapedPaths()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+[/Test.cs]
+a = a
+[/\Test.cs]
+b = b
+", "/.editorconfig"));
+
+            var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            var options = configSet.GetOptionsForSourcePath("/Test.cs");
+
+            Assert.Equal(2, options.AnalyzerOptions.Count);
+            Assert.Equal("a", options.AnalyzerOptions["a"]);
+            Assert.Equal("b", options.AnalyzerOptions["b"]);
+        }
+
         #endregion
     }
 }

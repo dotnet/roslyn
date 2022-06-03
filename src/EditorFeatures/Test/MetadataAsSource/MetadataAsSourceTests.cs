@@ -17,6 +17,11 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using System.Threading;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
@@ -61,7 +66,7 @@ Public Class [|C|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -76,7 +81,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -119,7 +124,7 @@ Public Interface [|I|]
 End Interface",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public interface [|I|]
@@ -134,7 +139,7 @@ public interface [|I|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public interface [|I|]
@@ -178,7 +183,7 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -193,7 +198,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -241,7 +246,7 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -259,7 +264,7 @@ public class C
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -310,7 +315,7 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -326,7 +331,7 @@ public class C
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -376,16 +381,12 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
 {{
-    public string [|S|]
-    {{
-        get;
-        protected set;
-    }}
+    public string [|S|] {{ get; protected set; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -396,16 +397,12 @@ public class C
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
 {{
-    public string [|S|]
-    {{
-        get;
-        protected set;
-    }}
+    public string [|S|] {{ get; protected set; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -455,7 +452,7 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -473,7 +470,7 @@ public class C
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -529,7 +526,7 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -547,7 +544,7 @@ public class C
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -599,7 +596,7 @@ Public Enum [|E|]
 End Enum",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum [|E|]
@@ -617,7 +614,7 @@ public enum [|E|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum [|E|]
@@ -669,7 +666,7 @@ Public Enum E
 End Enum",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E
@@ -687,7 +684,7 @@ public enum E
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E
@@ -739,7 +736,7 @@ Public Enum E As Short
 End Enum",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E : short
@@ -757,7 +754,7 @@ public enum E : short
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E : short
@@ -805,7 +802,7 @@ Public Enum E As ULong
 End Enum",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E : ulong
@@ -821,7 +818,7 @@ public enum E : ulong
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E : ulong
@@ -870,7 +867,7 @@ Public Enum E As Short
 End Enum",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E : short
@@ -888,7 +885,7 @@ public enum E : short
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public enum E : short
@@ -941,7 +938,7 @@ Namespace N
 End Namespace",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 namespace N
@@ -959,7 +956,7 @@ namespace N
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 namespace N
@@ -990,10 +987,6 @@ namespace N
             using var context = TestContext.Create(
                 LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
 
-            context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.NamespaceDeclarations,
-                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
-
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
@@ -1004,7 +997,8 @@ namespace N;
 public class [|C|]
 {{
     public C();
-}}");
+}}",
+                fileScopedNamespaces: true);
         }
 
         [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
@@ -1015,10 +1009,6 @@ public class [|C|]
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "9");
-
-            context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.NamespaceDeclarations,
-                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -1031,7 +1021,7 @@ namespace N
     {{
         public C();
     }}
-}}");
+}}", fileScopedNamespaces: true);
         }
 
         [WorkItem(546198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
@@ -1042,10 +1032,6 @@ namespace N
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
-
-            context.Workspace.SetOptions(context.Workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.NamespaceDeclarations,
-                new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent)));
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -1091,7 +1077,7 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -1107,7 +1093,7 @@ public class C
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -1165,7 +1151,7 @@ Public Class [|C|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 [MyType(typeof(string))]
@@ -1181,7 +1167,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 [MyType(typeof(string))]
@@ -1225,7 +1211,7 @@ Public Structure [|S|]
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -1243,7 +1229,7 @@ public struct [|S|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -1294,7 +1280,7 @@ Public Class [|C|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -1313,7 +1299,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]
@@ -1366,7 +1352,7 @@ Public Class [|G|](Of SomeType)
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|G|]<SomeType>
@@ -1382,7 +1368,7 @@ public class [|G|]<SomeType>
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|G|]<SomeType>
@@ -1439,7 +1425,7 @@ Public Class [|C|](Of T)
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]<[My] T>
@@ -1457,7 +1443,7 @@ public class [|C|]<[My] T>
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|C|]<[My] T>
@@ -1515,7 +1501,7 @@ Public Interface [|C|](Of T)
 End Interface",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public interface [|C|]<T>
@@ -1531,7 +1517,7 @@ public interface [|C|]<T>
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public interface [|C|]<T>
@@ -1580,7 +1566,7 @@ Public Class C
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -1596,7 +1582,7 @@ public class C
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class C
@@ -1661,7 +1647,7 @@ Public Class [|C|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using N;
@@ -1679,7 +1665,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using N;
@@ -1794,7 +1780,7 @@ public class [|C|]
             using var context = TestContext.Create(LanguageNames.CSharp);
             var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
             var document = context.GetDocument(file);
-            await Formatter.FormatAsync(document);
+            await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
@@ -1986,7 +1972,7 @@ Public Class [|C|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -2000,11 +1986,7 @@ public class [|C|]
     public int field1;
 
     [Obsolete]
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     [Obsolete]
     public int prop2
@@ -2078,7 +2060,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -2092,11 +2074,7 @@ public class [|C|]
     public int field1;
 
     [Obsolete]
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     [Obsolete]
     public int prop2
@@ -2264,7 +2242,7 @@ Public Class [|C|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -2276,11 +2254,7 @@ public class [|C|]
 
     public int field2;
 
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     public int prop2
     {{
@@ -2347,7 +2321,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -2359,11 +2333,7 @@ public class [|C|]
 
     public int field2;
 
-    public int prop1
-    {{
-        get;
-        set;
-    }}
+    public int prop1 {{ get; set; }}
 
     public int prop2
     {{
@@ -2497,18 +2467,14 @@ Public Interface [|IGoo|]
 End Interface",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -2525,18 +2491,14 @@ public interface [|IGoo|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -2598,7 +2560,7 @@ Public Class [|Test|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.IO;
@@ -2618,7 +2580,7 @@ public class [|Test|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.IO;
@@ -2685,7 +2647,7 @@ Public Class [|TestAttribute|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -2706,7 +2668,7 @@ public class [|TestAttribute|] : Attribute
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -2867,7 +2829,7 @@ Public Class [|Program|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|Program|]
@@ -2897,7 +2859,7 @@ public class [|Program|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public class [|Program|]
@@ -2982,7 +2944,7 @@ Public Interface [|IComImport|]
 End Interface",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -2991,10 +2953,7 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop
-    {{
-        get;
-    }}
+    int Prop {{ get; }}
 
     void MOverload();
 
@@ -3011,7 +2970,7 @@ public interface [|IComImport|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3020,10 +2979,7 @@ using System.Runtime.InteropServices;
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
 public interface [|IComImport|]
 {{
-    int Prop
-    {{
-        get;
-    }}
+    int Prop {{ get; }}
 
     void MOverload();
 
@@ -3082,7 +3038,7 @@ Public Class [|C|]
 End Class",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Threading;
@@ -3102,7 +3058,7 @@ public class [|C|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Threading;
@@ -3196,18 +3152,14 @@ Public Interface [|IGoo|]
 End Interface",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -3224,18 +3176,14 @@ public interface [|IGoo|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
 
 public interface [|IGoo|]
 {{
-    Uri Prop1
-    {{
-        get;
-        set;
-    }}
+    Uri Prop1 {{ get; set; }}
 
     Uri Method1();
 }}
@@ -3509,7 +3457,7 @@ Public Structure [|S|]
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public readonly struct [|S|]
@@ -3525,7 +3473,7 @@ public readonly struct [|S|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public readonly struct [|S|]
@@ -3576,7 +3524,7 @@ Public Structure [|S|]
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct [|S|]
@@ -3592,7 +3540,7 @@ public struct [|S|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct [|S|]
@@ -3643,7 +3591,7 @@ Public Structure [|S|]
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3661,7 +3609,7 @@ public ref struct [|S|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3714,7 +3662,7 @@ Public Structure [|S|]
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3732,7 +3680,7 @@ public readonly ref struct [|S|]
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3786,7 +3734,7 @@ Public Structure S <IsReadOnlyAttribute>
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3807,7 +3755,7 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3865,7 +3813,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3886,7 +3834,7 @@ public readonly struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -3942,15 +3890,12 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -3961,15 +3906,12 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -4015,15 +3957,12 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -4034,15 +3973,12 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -4095,15 +4031,12 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -4114,15 +4047,12 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -4170,15 +4100,12 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public readonly struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 6)}
@@ -4189,15 +4116,12 @@ public readonly struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 public readonly struct S
 {{
-    public int [|P|]
-    {{
-        get;
-    }}
+    public int [|P|] {{ get; }}
 }}
 #if false // {CSharpEditorResources.Decompilation_log}
 {string.Format(CSharpEditorResources._0_items_in_cache, 9)}
@@ -4243,7 +4167,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4271,7 +4195,7 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4334,7 +4258,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4362,7 +4286,7 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4425,7 +4349,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4453,7 +4377,7 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4522,7 +4446,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4541,7 +4465,7 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4601,7 +4525,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4629,7 +4553,7 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -4696,7 +4620,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -4724,7 +4648,7 @@ public struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -4792,7 +4716,7 @@ Public Structure S
 End Structure",
                 (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;
@@ -4820,7 +4744,7 @@ public readonly struct S
 #endif",
                 (OriginatingProjectLanguage.VisualBasic, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System;

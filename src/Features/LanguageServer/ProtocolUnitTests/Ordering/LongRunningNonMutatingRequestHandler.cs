@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,24 +15,17 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(LongRunningNonMutatingRequestHandler.MethodName)]
-    internal class LongRunningNonMutatingRequestHandlerProvider : AbstractRequestHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LongRunningNonMutatingRequestHandlerProvider()
-        {
-        }
-
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers() => ImmutableArray.Create<IRequestHandler>(new LongRunningNonMutatingRequestHandler());
-    }
-
+    [ExportCSharpVisualBasicStatelessLspService(typeof(LongRunningNonMutatingRequestHandler)), PartNotDiscoverable, Shared]
+    [Method(MethodName)]
     internal class LongRunningNonMutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(LongRunningNonMutatingRequestHandler);
 
-        public string Method => MethodName;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LongRunningNonMutatingRequestHandler()
+        {
+        }
 
         public bool MutatesSolutionState => false;
 

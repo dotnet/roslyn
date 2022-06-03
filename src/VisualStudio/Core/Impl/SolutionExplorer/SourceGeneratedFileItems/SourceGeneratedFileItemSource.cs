@@ -145,7 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         }
                     }
 
-                    _items.Insert(low, new SourceGeneratedFileItem(document.Id, document.HintName, document.Project.Language, _workspace));
+                    _items.Insert(low, new SourceGeneratedFileItem(
+                        _threadingContext, document.Id, document.HintName, document.Project.Language, _workspace));
                 }
             }
             finally

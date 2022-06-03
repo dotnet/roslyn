@@ -4,10 +4,11 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.GoToDefinition
+Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
@@ -16,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
     <[UseExportProvider]>
     Public Class GoToDefinitionApiTests
 
-        Private Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
+        Private Shared Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -40,21 +41,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 Assert.NotNull(symbolInfo.Symbol)
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Exit Sub)
+                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() Exit Sub)
 
-                WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinitionAsync)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
-                Dim success = Await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+                WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.GetDefinitionLocationAsync)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
+                Dim location = Await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                     symbolInfo.Symbol, document.Project.Solution,
                     threadingContext,
                     presenter,
                     thirdPartyNavigationAllowed:=True,
                     cancellationToken:=CancellationToken.None)
+                Dim success = location IsNot Nothing AndAlso
+                    Await location.NavigateToAsync(NavigationOptions.Default, CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using
         End Function
 
-        Private Function TestSuccessAsync(workspaceDefinition As XElement) As Tasks.Task
+        Private Shared Function TestSuccessAsync(workspaceDefinition As XElement) As Tasks.Task
             Return TestAsync(workspaceDefinition, True)
         End Function
 

@@ -10,12 +10,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
+        private readonly BranchId _primaryBranchId;
 
         private readonly IOptionService _optionService;
 
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
         protected Workspace(HostServices host, string? workspaceKind)
         {
+            _primaryBranchId = BranchId.GetNextId();
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
@@ -89,12 +91,10 @@ namespace Microsoft.CodeAnalysis
                 _optionService, ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
-
-            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create());
         }
 
-        internal void LogTestMessage(string message)
-            => _testMessageLogger?.Invoke(message);
+        internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
+            => _testMessageLogger?.Invoke(messageFactory(state));
 
         /// <summary>
         /// Sets an internal logger that will receive some messages.
@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis
         /// Services provider by the host for implementing workspace features.
         /// </summary>
         public HostWorkspaceServices Services => _services;
+
+        /// <summary>
+        /// primary branch id that current solution has
+        /// </summary>
+        internal BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
@@ -1185,14 +1190,30 @@ namespace Microsoft.CodeAnalysis
                 // If the workspace has already accepted an update, then fail
                 if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
                 {
-                    Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: Workspace has already been updated");
+                    Logger.Log(
+                        FunctionId.Workspace_ApplyChanges,
+                        static (oldSolution, newSolution) =>
+                        {
+                            // 'oldSolution' is the current workspace solution; if we reach this point we know
+                            // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
+                            var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
+                            var newWorkspaceVersion = newSolution.WorkspaceVersion;
+                            return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                        },
+                        oldSolution,
+                        newSolution);
                     return false;
                 }
 
                 // make sure that newSolution is a branch of the current solution
 
-                if (oldSolution == newSolution)
+                // the given solution must be a branched one.
+                // otherwise, there should be no change to apply.
+                if (oldSolution.BranchId == newSolution.BranchId)
+                {
+                    CheckNoChanges(oldSolution, newSolution);
                     return true;
+                }
 
                 var solutionChanges = newSolution.GetChanges(oldSolution);
                 this.CheckAllowedSolutionChanges(solutionChanges);
@@ -1615,6 +1636,15 @@ namespace Microsoft.CodeAnalysis
                     documentId,
                     new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
+        }
+
+        [Conditional("DEBUG")]
+        private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
+        {
+            var changes = newSolution.GetChanges(oldSolution);
+            Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
+            Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
+            Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
         }
 
         private static ProjectInfo CreateProjectInfo(Project project)

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             };
 
             var result = await testLspServer.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
-                LSP.Methods.WorkspaceExecuteCommandName, command, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                LSP.Methods.WorkspaceExecuteCommandName, command, CancellationToken.None);
             Contract.ThrowIfNull(result);
             return (bool)result;
         }

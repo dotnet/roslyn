@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(VSInternalMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
+    [ExportStatelessXamlLspService(typeof(OnAutoInsertHandler)), Shared]
+    [Method(VSInternalMethods.OnAutoInsertName)]
+    internal class OnAutoInsertHandler : IRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,14 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override string Method => VSInternalMethods.OnAutoInsertName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
-
-        public override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)

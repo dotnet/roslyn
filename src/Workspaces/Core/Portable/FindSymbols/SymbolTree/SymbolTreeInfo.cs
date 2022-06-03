@@ -330,13 +330,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<SymbolTreeInfo>> s_metadataIdToInfo = new();
 
         private static Task<SpellChecker> GetSpellCheckerAsync(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, StorageDatabase database, string filePath, ImmutableArray<Node> sortedNodes)
+            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, string filePath, ImmutableArray<Node> sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(services, solutionKey, checksum, database, filePath, sortedNodes));
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(services, solutionKey, checksum, filePath, sortedNodes));
         }
 
         private static Task<SpellChecker> CreateSpellCheckerAsync(
@@ -493,14 +493,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, StorageDatabase database,
+            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum,
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo> simpleMethods)
         {
             SortNodes(unsortedNodes, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerAsync(
-                services, solutionKey, checksum, database, filePath, sortedNodes);
+                services, solutionKey, checksum, filePath, sortedNodes);
 
             return new SymbolTreeInfo(
                 checksum, sortedNodes, createSpellCheckerTask, inheritanceMap, simpleMethods);

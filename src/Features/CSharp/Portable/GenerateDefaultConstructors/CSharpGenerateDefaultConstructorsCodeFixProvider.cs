@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -26,5 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS1729, CS7036, CS8983);
+
+        protected override SyntaxToken? TryGetTypeName(SyntaxNode typeDeclaration)
+            => (typeDeclaration as BaseTypeDeclarationSyntax)?.Identifier;
     }
 }

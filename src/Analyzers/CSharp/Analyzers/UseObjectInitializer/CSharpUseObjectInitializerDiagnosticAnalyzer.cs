@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
-            ObjectCreationExpressionSyntax,
+            BaseObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>

@@ -16,10 +16,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)CSharpFormatter.Values.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpFormatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpResultProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameConstants.cs">
+      <Link>Compiler\Symbols\Synthesized\GeneratedNameConstants.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameKind.cs">
+      <Link>Compiler\Symbols\Synthesized\GeneratedNameKind.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameParser.cs">
+      <Link>Compiler\Symbols\Synthesized\GeneratedNameParser.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml">
-      <SubType>Designer</SubType>
-    </VsdConfigXmlFiles>
+    <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml" />
   </ItemGroup>
 </Project>
