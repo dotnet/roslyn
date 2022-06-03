@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;
-            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution);
+            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution = workspace.CurrentSolution);
             var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_noActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
             var updates = moduleUpdates.Updates.SelectAsArray(
