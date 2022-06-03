@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis
         private ModuleMetadata(PEReader peReader, IDisposable? owner, bool disposeOwner)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
+            // If we've been asked to dispose the owner, then we better have an owner to dispose.
+            Debug.Assert(!disposeOwner || owner is not null);
+
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
             _owner = owner;
             _disposeOwner = disposeOwner;
