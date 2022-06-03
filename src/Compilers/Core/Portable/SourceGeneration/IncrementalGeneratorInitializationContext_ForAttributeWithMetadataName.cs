@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-internal readonly struct GeneratorAttributeSyntaxContext
+public readonly struct GeneratorAttributeSyntaxContext
 {
     /// <summary>
     /// The syntax node the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would
@@ -81,7 +81,7 @@ public partial struct IncrementalGeneratorInitializationContext
     /// langword="true"/> for <paramref name="predicate"/> and which have a matching <see cref="AttributeData"/> whose
     /// <see cref="AttributeData.AttributeClass"/> has the same fully qualified, metadata name as <paramref
     /// name="fullyQualifiedMetadataName"/>.</param>
-    internal IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
+    public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
         string fullyQualifiedMetadataName,
         Func<SyntaxNode, CancellationToken, bool> predicate,
         Func<GeneratorAttributeSyntaxContext, CancellationToken, T> transform)

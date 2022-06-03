@@ -1,6 +1,12 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 abstract Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultResult.get -> TResult
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
+Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext
+Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.Attributes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AttributeData!>
+Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.GeneratorAttributeSyntaxContext() -> void
+Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
+Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode.get -> Microsoft.CodeAnalysis.SyntaxNode!
+Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol.get -> Microsoft.CodeAnalysis.ISymbol!
 Microsoft.CodeAnalysis.IFieldSymbol.IsRequired.get -> bool
 Microsoft.CodeAnalysis.IImportScope
 Microsoft.CodeAnalysis.IImportScope.Aliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
@@ -24,6 +30,7 @@ Microsoft.CodeAnalysis.GeneratorTimingInfo
 Microsoft.CodeAnalysis.GeneratorTimingInfo.ElapsedTime.get -> System.TimeSpan
 Microsoft.CodeAnalysis.GeneratorTimingInfo.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorTimingInfo.GeneratorTimingInfo() -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.ForAttributeWithMetadataName<T>(string! fullyQualifiedMetadataName, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, System.Threading.CancellationToken, bool>! predicate, System.Func<Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext, System.Threading.CancellationToken, T>! transform) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<T>
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
