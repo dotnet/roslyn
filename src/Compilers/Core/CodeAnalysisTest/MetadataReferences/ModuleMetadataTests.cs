@@ -174,6 +174,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public unsafe void CreateFromUnmanagedMemoryStream_LeaveOpenTrue()
         {
+            if (true)
+                throw new Exception();
+
             var assembly = TestResources.Basic.Members;
             fixed (byte* assemblyPtr = assembly)
             {
@@ -201,8 +204,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
-        public unsafe void CreateFromUnmanagedMemoryStream_Prefetch_LeaveOpenFalse()
+        [Theory]
+        [InlineData(PEStreamOptions.PrefetchEntireImage)]
+        [InlineData(PEStreamOptions.PrefetchMetadata)]
+        [InlineData(PEStreamOptions.PrefetchEntireImage | PEStreamOptions.PrefetchMetadata)]
+        public unsafe void CreateFromUnmanagedMemoryStream_Prefetch_LeaveOpenFalse(PEStreamOptions options)
         {
             var assembly = TestResources.Basic.Members;
             fixed (byte* assemblyPtr = assembly)
@@ -215,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     OnSeek = (_, _) => seeked = true,
                 };
 
-                var metadata = ModuleMetadata.CreateFromStream(stream, PEStreamOptions.PrefetchMetadata);
+                var metadata = ModuleMetadata.CreateFromStream(stream, options);
 
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
 
@@ -229,8 +235,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
-        public unsafe void CreateFromUnmanagedMemoryStream_Prefetch_LeaveOpenTrue()
+        [Theory]
+        [InlineData(PEStreamOptions.PrefetchEntireImage)]
+        [InlineData(PEStreamOptions.PrefetchMetadata)]
+        [InlineData(PEStreamOptions.PrefetchEntireImage | PEStreamOptions.PrefetchMetadata)]
+        public unsafe void CreateFromUnmanagedMemoryStream_Prefetcha_LeaveOpenTrue(PEStreamOptions options)
         {
             var assembly = TestResources.Basic.Members;
             fixed (byte* assemblyPtr = assembly)
@@ -243,7 +252,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     OnSeek = (_, _) => seeked = true,
                 };
 
-                var metadata = ModuleMetadata.CreateFromStream(stream, PEStreamOptions.PrefetchMetadata | PEStreamOptions.LeaveOpen);
+                var metadata = ModuleMetadata.CreateFromStream(stream, options | PEStreamOptions.LeaveOpen);
 
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
 
