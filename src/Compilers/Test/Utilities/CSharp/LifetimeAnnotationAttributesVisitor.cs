@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public override void VisitMethod(MethodSymbol method)
         {
             var parameters = method.Parameters;
-            if (!parameters.Any(p => GetLifetimeAnnotationAttribute(p.GetAttributes()) is { }))
+            if (!parameters.Any(p => TryGetLifetimeAnnotationAttribute((PEParameterSymbol)p, out _)))
             {
                 return;
             }
@@ -82,76 +82,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             foreach (var parameter in parameters)
             {
                 _builder.Append("    ");
-                if (GetLifetimeAnnotationAttribute(parameter.GetAttributes()) is { } attribute)
+                if (TryGetLifetimeAnnotationAttribute((PEParameterSymbol)parameter, out var pair))
                 {
-                    _builder.Append(ReportAttribute(attribute));
-                    _builder.Append(" ");
+                    _builder.Append($"[LifetimeAnnotation({pair.IsRefScoped}, {pair.IsValueScoped})] ");
                 }
                 _builder.AppendLine(parameter.ToTestDisplayString());
             }
         }
 
-        private static string ReportAttribute(CSharpAttributeData attribute)
+        private bool TryGetLifetimeAnnotationAttribute(PEParameterSymbol parameter, out (bool IsRefScoped, bool IsValueScoped) pair)
         {
-            var builder = new StringBuilder();
-            builder.Append("[");
-
-            var name = attribute.AttributeClass.Name;
-            if (name.EndsWith("Attribute")) name = name.Substring(0, name.Length - 9);
-            builder.Append(name);
-
-            var arguments = attribute.ConstructorArguments.ToImmutableArray();
-            if (arguments.Length > 0)
-            {
-                builder.Append("(");
-                printValues(builder, arguments);
-                builder.Append(")");
-            }
-
-            builder.Append("]");
-            return builder.ToString();
-
-            static void printValues(StringBuilder builder, ImmutableArray<TypedConstant> values)
-            {
-                for (int i = 0; i < values.Length; i++)
-                {
-                    if (i > 0)
-                    {
-                        builder.Append(", ");
-                    }
-                    printValue(builder, values[i]);
-                }
-            }
-
-            static void printValue(StringBuilder builder, TypedConstant value)
-            {
-                if (value.Kind == TypedConstantKind.Array)
-                {
-                    builder.Append("{ ");
-                    printValues(builder, value.Values);
-                    builder.Append(" }");
-                }
-                else
-                {
-                    builder.Append(value.Value);
-                }
-            }
-        }
-
-        private static CSharpAttributeData GetLifetimeAnnotationAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
-            GetAttribute(attributes, "System.Runtime.CompilerServices", "LifetimeAnnotationAttribute");
-
-        private static CSharpAttributeData GetAttribute(ImmutableArray<CSharpAttributeData> attributes, string namespaceName, string name)
-        {
-            foreach (var attribute in attributes)
-            {
-                var containingType = attribute.AttributeConstructor.ContainingType;
-                if (containingType.Name == name && containingType.ContainingNamespace.QualifiedName == namespaceName)
-                {
-                    return attribute;
-                }
-            }
-            return null;
+            var module = ((PEModuleSymbol)parameter.ContainingModule).Module;
+            return module.HasLifetimeAnnotationAttribute(parameter.Handle, out pair);
         }
     }
 }
