@@ -604,38 +604,6 @@ public class FileModifierTests : CSharpTestBase
         var c = comp.GetMember("C");
         Assert.Equal("C@My_File", c.ToTestDisplayString());
         Assert.Equal(expectedMetadataName, c.MetadataName);
-        verifier.VerifyPdb("""
-            <symbols>
-            <files>
-                <file id="1" name="path/to/My+File.cs" language="C#" checksumAlgorithm="SHA1" checksum="4A-CE-A3-26-DC-DB-B3-CD-0C-7A-A7-68-97-D9-DD-43-FF-14-37-F0" />
-            </files>
-            <entryPoint declaringType="Program" methodName="&lt;Main&gt;$" parameterNames="args" />
-            <methods>
-                <method containingType="Program" name="&lt;Main&gt;$" parameterNames="args">
-                <customDebugInfo>
-                    <using>
-                    <namespace usingCount="1" />
-                    </using>
-                </customDebugInfo>
-                <sequencePoints>
-                    <entry offset="0x0" startLine="3" startColumn="1" endLine="3" endColumn="7" document="1" />
-                </sequencePoints>
-                <scope startOffset="0x0" endOffset="0x6">
-                    <namespace name="System" />
-                </scope>
-                </method>
-                <method containingType="&lt;My_File&gt;F0__C" name="M">
-                <customDebugInfo>
-                    <forward declaringType="Program" methodName="&lt;Main&gt;$" parameterNames="args" />
-                </customDebugInfo>
-                <sequencePoints>
-                    <entry offset="0x0" startLine="7" startColumn="30" endLine="7" endColumn="47" document="1" />
-                    <entry offset="0x6" startLine="7" startColumn="48" endLine="7" endColumn="49" document="1" />
-                </sequencePoints>
-                </method>
-            </methods>
-            </symbols>
-            """.NormalizeLineEndings());
 
         void validateSymbols(ModuleSymbol module)
         {
