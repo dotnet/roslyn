@@ -48,10 +48,21 @@ namespace Microsoft.CodeAnalysis
             _disposeOwner = disposeOwner;
         }
 
-        private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
+        private ModuleMetadata(
+            IntPtr metadata,
+            int size,
+            bool includeEmbeddedInteropTypes,
+            bool ignoreAssemblyRefs,
+            IDisposable? owner,
+            bool disposeOwner)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
+            // If we've been asked to dispose the owner, then we better have an owner to dispose.
+            Debug.Assert(!disposeOwner || owner is not null);
+
             _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes, ignoreAssemblyRefs: ignoreAssemblyRefs);
+            _owner = owner;
+            _disposeOwner = disposeOwner;
         }
 
         // creates a copy
@@ -85,14 +96,39 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false, owner: null, disposeOwner: false);
+        }
+
+        /// <summary>
+        /// Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
+        /// Only manifest modules are currently supported.
+        /// </summary>
+        /// <param name="stream">Stream containing raw memory.</param>
+        /// <param name="leaveOpen">
+        /// False to close the stream upon disposal of the metadata (the responsibility for disposal of the stream is
+        /// transferred upon entry of the constructor unless the arguments given are invalid).
+        /// </param>
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
+        public static unsafe ModuleMetadata CreateFromMetadata(UnmanagedMemoryStream stream, bool leaveOpen = false)
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
+        {
+            if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
+
+            return new ModuleMetadata(
+                (IntPtr)stream.PositionPointer,
+                (int)Math.Min(stream.Length, int.MaxValue),
+                includeEmbeddedInteropTypes: false,
+                ignoreAssemblyRefs: false,
+                owner: stream,
+                disposeOwner: !leaveOpen);
         }
 
         internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs = false)
         {
             Debug.Assert(metadata != IntPtr.Zero);
             Debug.Assert(size > 0);
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
+            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes, ignoreAssemblyRefs, owner: null, disposeOwner: false);
         }
 
         /// <summary>

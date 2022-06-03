@@ -490,10 +490,10 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
         {
-            if (stream is UnmanagedMemoryStream)
+            if (stream is UnmanagedMemoryStream unmanagedStream)
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
+                metadata = ModuleMetadata.CreateFromMetadata(unmanagedStream, leaveOpen: false);
                 lifeTimeObject = null;
                 return;
             }

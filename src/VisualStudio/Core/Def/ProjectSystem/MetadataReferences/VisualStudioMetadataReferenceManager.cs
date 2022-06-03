@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream);
 
             // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-            var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
+            var metadata = ModuleMetadata.CreateFromMetadata(stream, leaveOpen: false);
 
             // hold onto storage if requested
             storages?.Add(storage);
