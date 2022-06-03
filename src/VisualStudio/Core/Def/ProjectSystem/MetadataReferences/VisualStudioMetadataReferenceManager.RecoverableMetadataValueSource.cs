@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class RecoverableMetadataValueSource : ValueSource<Optional<AssemblyMetadata>>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
-            private readonly List<ITemporaryStreamStorage> _storages;
+            private readonly List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage> _storages;
 
-            public RecoverableMetadataValueSource(AssemblyMetadata value, List<ITemporaryStreamStorage> storages)
+            public RecoverableMetadataValueSource(AssemblyMetadata value, List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage> storages)
             {
                 Contract.ThrowIfFalse(storages.Count > 0);
 
@@ -73,13 +73,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return metadata;
             }
 
-            private static ModuleMetadata GetModuleMetadata(ITemporaryStreamStorage storage)
+            private static ModuleMetadata GetModuleMetadata(
+                TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage storage)
             {
-                // In VS host, direct access should be supported through an UnmanagedMemoryStream
-                var stream = (UnmanagedMemoryStream)storage.ReadStream(CancellationToken.None);
-
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                return ModuleMetadata.CreateFromMetadata(stream, leaveOpen: false);
+                return ModuleMetadata.CreateFromMetadata(storage.ReadStream(CancellationToken.None), leaveOpen: false);
             }
         }
     }
