@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 {
@@ -170,10 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode)
         {
             if (originalVarPattern is not VarPatternSyntax pattern)
-            {
-                Debug.Fail($"The given {nameof(originalVarPattern)} node is not a var pattern, but {originalVarPattern.Kind()}");
-                return newNameNode;
-            }
+                throw ExceptionUtilities.Unreachable;
 
             // If the replacement node is DiscardDesignationSyntax
             // then we need to just change the incoming var's pattern designation
@@ -181,17 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             {
                 return pattern.WithDesignation(discardDesignation.WithTriviaFrom(pattern.Designation));
             }
-            // Otherwise replacement node must be DiscardPatternSyntax.
-            // This means the whole var pattern can be replaced
-            else if (newNameNode is DiscardPatternSyntax)
-            {
-                return newNameNode;
-            }
-            else
-            {
-                Debug.Fail($"The given {nameof(newNameNode)} node is not a discard pattern or designation, but {newNameNode.Kind()}");
-                return newNameNode;
-            }
+
+            // Otherwise just return new node as a replacement.
+            // This would be the default behaviour if there was no special case described above
+            return newNameNode;
         }
     }
 }
