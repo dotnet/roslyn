@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             var trailing = _trailingTriviaCache;
 
-            return Create(ref tokenInfo, leading, trailing, errors);
+            return Create(in tokenInfo, leading, trailing, errors);
         }
 
         internal SyntaxTriviaList LexSyntaxLeadingTrivia()
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
-        private SyntaxToken Create(ref TokenInfo info, SyntaxListBuilder? leading, SyntaxListBuilder? trailing, SyntaxDiagnosticInfo[]? errors)
+        private SyntaxToken Create(in TokenInfo info, SyntaxListBuilder? leading, SyntaxListBuilder? trailing, SyntaxDiagnosticInfo[]? errors)
         {
             Debug.Assert(info.Kind != SyntaxKind.IdentifierToken || info.StringValue != null);
 
@@ -2842,7 +2842,7 @@ top:
             this.ScanDirectiveToken(ref info);
             var errors = this.GetErrors(leadingTriviaWidth: 0);
             var trailing = this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken);
-            return Create(ref info, null, trailing, errors);
+            return Create(in info, null, trailing, errors);
         }
 
         private bool ScanDirectiveToken(ref TokenInfo info)
@@ -3143,7 +3143,7 @@ top:
             this.ScanXmlToken(ref xmlTokenInfo);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref xmlTokenInfo, leading, null, errors);
+            return Create(in xmlTokenInfo, leading, null, errors);
         }
 
         private bool ScanXmlToken(ref TokenInfo info)
@@ -3510,7 +3510,7 @@ top:
                 }
             }
 
-            return Create(ref tagInfo, leading, null, errors);
+            return Create(in tagInfo, leading, null, errors);
         }
 
         private bool ScanXmlElementTagToken(ref TokenInfo info)
@@ -3685,7 +3685,7 @@ top:
             this.ScanXmlAttributeTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlAttributeTextToken(ref TokenInfo info)
@@ -3839,7 +3839,7 @@ top:
             this.ScanXmlCharacter(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         /// <summary>
@@ -3895,7 +3895,7 @@ top:
             this.ScanXmlCrefToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         /// <summary>
@@ -4307,7 +4307,7 @@ top:
             this.ScanXmlCDataSectionTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlCDataSectionTextToken(ref TokenInfo info)
@@ -4429,7 +4429,7 @@ top:
             this.ScanXmlCommentTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlCommentTextToken(ref TokenInfo info)
@@ -4559,7 +4559,7 @@ top:
             this.ScanXmlProcessingInstructionTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         // CONSIDER: This could easily be merged with ScanXmlCDataSectionTextToken
