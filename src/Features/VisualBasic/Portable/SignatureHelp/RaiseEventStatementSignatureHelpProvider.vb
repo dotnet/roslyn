@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return False
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim statement As RaiseEventStatementSyntax = Nothing
             If TryGetRaiseEventStatement(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, statement) AndAlso
                 currentSpan.Start = statement.Name.SpanStart Then
@@ -64,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             document As Document,
             position As Integer,
             triggerInfo As SignatureHelpTriggerInfo,
+            options As SignatureHelpOptions,
             cancellationToken As CancellationToken
         ) As Task(Of SignatureHelpItems)
 
@@ -86,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso Equals(s.ContainingType, containingType)).
                                        OfType(Of IEventSymbol)().
                                        ToImmutableArrayOrEmpty().
-                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                        Sort(semanticModel, raiseEventStatement.SpanStart)
 
             Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()

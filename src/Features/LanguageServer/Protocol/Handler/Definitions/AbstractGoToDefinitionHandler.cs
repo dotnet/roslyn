@@ -3,33 +3,38 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
+    internal abstract class AbstractGoToDefinitionHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IGlobalOptionService _globalOptions;
 
-        public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
-            => _metadataAsSourceFileService = metadataAsSourceFileService;
+        public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
+        {
+            _metadataAsSourceFileService = metadataAsSourceFileService;
+            _globalOptions = globalOptions;
+        }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+
+        public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
         protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
@@ -40,8 +45,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var definitions = await GetDefinitions(document, position, cancellationToken).ConfigureAwait(false);
-            if (definitions?.Any() == true)
+            var findDefinitionService = document.GetRequiredLanguageService<IFindDefinitionService>();
+
+            var definitions = await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (definitions.Any())
             {
                 foreach (var definition in definitions)
                 {
@@ -59,11 +66,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
+                if (symbol != null && _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, false, cancellationToken).ConfigureAwait(false);
+                        var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.LanguageServices);
+                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
@@ -125,17 +133,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     default:
                         return false;
                 }
-            }
-
-            static async Task<IEnumerable<INavigableItem>?> GetDefinitions(Document document, int position, CancellationToken cancellationToken)
-            {
-                // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
-                var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
-                return findDefinitionService != null
-                    ? await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false)
-                    // Some partners may implement the old IGoToDefinitionService, but currently we only support C# and VB definitions from the LSP server.
-                    // To support other languages from here, https://github.com/dotnet/roslyn/issues/50391 would need to be completed.
-                    : null;
             }
         }
     }

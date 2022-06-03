@@ -1688,13 +1688,13 @@ new public bool this[int index] { get; }
             CreateCompilation(test).VerifyDiagnostics(
                 // (1,13): error CS1003: Syntax error, '[' expected
                 // string this ="";
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[", "=").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("[").WithLocation(1, 13),
                 // (1,13): error CS1001: Identifier expected
                 // string this ="";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 13),
                 // (1,16): error CS1003: Syntax error, ']' expected
                 // string this ="";
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(1, 16),
                 // (1,16): error CS1514: { expected
                 // string this ="";
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 16),
@@ -1953,15 +1953,15 @@ partial void Goo(){};
         public void EnumDeclaration()
         {
             var test = @"
-partial enum en {};
+partial enum @en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial enum en {};
+                // partial enum @en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial enum en {};
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
+                // partial enum @en {};
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "@en").WithLocation(2, 14));
         }
 
         [Fact]

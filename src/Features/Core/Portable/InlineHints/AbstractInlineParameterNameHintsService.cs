@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,27 +33,28 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
+        protected abstract string GetReplacementText(string parameterName);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            // TODO: https://github.com/dotnet/roslyn/issues/57283
+            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
 
-            var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
-
-            var enabledForParameters = displayAllOverride || options.GetOption(InlineHintsOptions.EnabledForParameters);
+            var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var literalParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForLiteralParameters);
-            var objectCreationParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForObjectCreationParameters);
-            var otherParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForOtherParameters);
+            var literalParameters = displayAllOverride || options.ForLiteralParameters;
+            var objectCreationParameters = displayAllOverride || options.ForObjectCreationParameters;
+            var otherParameters = displayAllOverride || options.ForOtherParameters;
             if (!literalParameters && !objectCreationParameters && !otherParameters)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var indexerParameters = displayAllOverride || options.GetOption(InlineHintsOptions.ForIndexerParameters);
-            var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix);
-            var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchMethodIntent);
-            var suppressForParametersThatMatchArgumentName = !displayAllOverride && options.GetOption(InlineHintsOptions.SuppressForParametersThatMatchArgumentName);
+            var indexerParameters = displayAllOverride || options.ForIndexerParameters;
+            var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.SuppressForParametersThatDifferOnlyBySuffix;
+            var suppressForParametersThatMatchMethodIntent = !displayAllOverride && options.SuppressForParametersThatMatchMethodIntent;
+            var suppressForParametersThatMatchArgumentName = !displayAllOverride && options.SuppressForParametersThatMatchArgumentName;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -96,10 +98,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
+                        var inlineHintText = GetReplacementText(parameter.Name);
+                        var textSpan = new TextSpan(position, 0);
                         result.Add(new InlineHint(
-                            new TextSpan(position, 0),
+                            textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken))));
+                            new TextChange(textSpan, inlineHintText),
+                            InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }
             }
@@ -208,8 +213,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
             // Methods like `SetColor(color: "y")` `FromResult(result: "x")` `Enable/DisablePolling(bool)` don't need
             // parameter names to improve clarity.  The parameter is clear from the context of the method name.
 
-            // First, this only applies to methods (as we're looking at the method name itself) so filter down to those.
-            if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary } method })
+            // First, this only applies to methods/local functions (as we're looking at the method name itself) so filter down to those.
+            if (parameter is not { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.LocalFunction } method })
                 return false;
 
             // We only care when dealing with the first parameter.  Note: we don't have to worry parameter reordering

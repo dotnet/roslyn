@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -27,7 +28,10 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
-    internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
+    internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions>
+        : DiagnosticAnalyzer, IBuiltInAnalyzer
+        where TLanguageKindEnum : struct
+        where TSimplifierOptions : SimplifierOptions
     {
 #if LOG
         private static string _logFile = @"c:\temp\simplifytypenames.txt";
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         internal abstract bool IsCandidate(SyntaxNode node);
         internal abstract bool CanSimplifyTypeNameExpression(
-            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            SemanticModel model, SyntaxNode node, TSimplifierOptions options,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken);
 
@@ -84,15 +88,14 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-        public bool OpenFileOnly(OptionSet options)
+        public bool OpenFileOnly(SimplifierOptions? options)
         {
-            var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
-            var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
+            // analyzer is only active in C# and VB projects
+            Contract.ThrowIfNull(options);
 
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption2.Warning || preferTypeKeywordInDeclarationOption == NotificationOption2.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption2.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption2.Error);
+            return
+                !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+                  options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -124,10 +127,10 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         protected abstract string GetLanguageName();
 
-        public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
+        public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, CancellationToken cancellationToken)
         {
             if (!CanSimplifyTypeNameExpression(
-                    model, node, optionSet,
+                    model, node, options,
                     out var issueSpan, out var diagnosticId, out var inDeclaration,
                     cancellationToken))
             {
@@ -141,13 +144,12 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 return false;
             }
 
-            diagnostic = CreateDiagnostic(model, optionSet, issueSpan, diagnosticId, inDeclaration);
+            diagnostic = CreateDiagnostic(model, options, issueSpan, diagnosticId, inDeclaration);
             return true;
         }
 
-        internal static Diagnostic CreateDiagnostic(SemanticModel model, OptionSet optionSet, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
+        internal static Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
         {
-            PerLanguageOption2<CodeStyleOption2<bool>> option;
             DiagnosticDescriptor descriptor;
             ReportDiagnostic severity;
             switch (diagnosticId)
@@ -163,12 +165,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     break;
 
                 case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
-                    option = inDeclaration
-                        ? CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration
-                        : CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
-                    descriptor = s_descriptorPreferBuiltinOrFrameworkType;
+                    var optionValue = inDeclaration
+                        ? options.PreferPredefinedTypeKeywordInDeclaration
+                        : options.PreferPredefinedTypeKeywordInMemberAccess;
 
-                    var optionValue = optionSet.GetOption(option, model.Language)!;
+                    descriptor = s_descriptorPreferBuiltinOrFrameworkType;
                     severity = optionValue.Notification.Severity;
                     break;
                 default:
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         private class AnalyzerImpl
         {
-            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> _analyzer;
+            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> _analyzer;
 
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation. Each syntax tree has the properties:
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
                 = new();
 
-            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> analyzer)
+            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> analyzer)
                 => _analyzer = analyzer;
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)

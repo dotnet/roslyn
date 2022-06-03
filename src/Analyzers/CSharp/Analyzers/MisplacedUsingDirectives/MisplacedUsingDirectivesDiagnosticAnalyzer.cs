@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             if (option.Value != AddImportPlacement.OutsideNamespace)
                 return;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
             if (option.Value != AddImportPlacement.InsideNamespace

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                base.DecodeWellKnownAttribute(ref arguments);
+                base.DecodeWellKnownAttributeImpl(ref arguments);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
 
-            if (Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
                 compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Name == WellKnownMemberNames.EnumBackingFieldName;
             }
         }
+
+        internal override bool IsRequired => (Modifiers & DeclarationModifiers.Required) != 0;
     }
 
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol

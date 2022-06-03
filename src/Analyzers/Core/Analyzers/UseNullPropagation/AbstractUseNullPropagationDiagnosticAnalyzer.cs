@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation
 {
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     return;
                 }
 
-                var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                var expressionTypeOpt = startContext.Compilation.ExpressionOfTType();
 
                 var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
                 var referenceEqualsMethodOpt = objectType?.GetMembers(nameof(ReferenceEquals))
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferNullPropagation, conditionalExpression.Language);
+            var option = context.GetAnalyzerOptions().PreferNullPropagation;
             if (!option.Value)
             {
                 return;

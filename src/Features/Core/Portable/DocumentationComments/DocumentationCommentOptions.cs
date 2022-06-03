@@ -2,30 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
+using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.CodeAnalysis.DocumentationComments
+namespace Microsoft.CodeAnalysis.DocumentationComments;
+
+[DataContract]
+internal readonly record struct DocumentationCommentOptions
 {
-    internal static class DocumentationCommentOptions
+    public static readonly DocumentationCommentOptions Default = new();
+
+    [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
+    [DataMember] public bool AutoXmlDocCommentGeneration { get; init; } = true;
+
+    public DocumentationCommentOptions()
     {
-        public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(nameof(DocumentationCommentOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
     }
 
-    [ExportOptionProvider, Shared]
-    internal sealed class DocumentationCommentOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentationCommentOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(DocumentationCommentOptions.AutoXmlDocCommentGeneration);
-    }
+    public bool UseTabs => LineFormatting.UseTabs;
+    public int TabSize => LineFormatting.TabSize;
+    public string NewLine => LineFormatting.NewLine;
 }

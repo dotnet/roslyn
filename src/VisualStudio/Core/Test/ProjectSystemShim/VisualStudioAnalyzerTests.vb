@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim exportProvider = composition.ExportProviderFactory.CreateExportProvider()
 
             Using workspace = New TestWorkspace(composition:=composition)
-                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspaceImpl)(
+                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
                                     Function()
                                         Return Nothing
                                     End Function)
@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Dim composition = s_compositionWithMockDiagnosticUpdateSourceRegistrationService
             Dim exportProvider = composition.ExportProviderFactory.CreateExportProvider()
 
-            Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspaceImpl)(
+            Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
                                     Function()
                                         Return Nothing
                                     End Function)

@@ -5,9 +5,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
 {
@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
                 // Dotted property patterns are only available in C# 10.0 and above.  Don't offer this refactoring
                 // in projects targeting a lesser version.
 
-                var compilation = compilationContext.Compilation;
-                if (((CSharpCompilation)compilation).LanguageVersion < LanguageVersion.CSharp10)
+                if (compilationContext.Compilation.LanguageVersion() < LanguageVersion.CSharp10)
                     return;
 
                 context.RegisterSyntaxNodeAction(AnalyzeSubpattern, SyntaxKind.Subpattern);
@@ -53,12 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
 
         private void AnalyzeSubpattern(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            var cancellationToken = syntaxContext.CancellationToken;
-
             // Bail immediately if the user has disabled this feature.
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferExtendedPropertyPattern, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferExtendedPropertyPattern;
             if (!styleOption.Value)
                 return;
 

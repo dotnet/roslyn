@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -15,8 +16,50 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected static readonly SymbolDisplayFormat s_minimalWithoutExpandedTuples = SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(
             SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
 
-        public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
+        private static readonly SymbolDisplayFormat s_delegateDisplay =
+            s_minimalWithoutExpandedTuples.WithMemberOptions(s_minimalWithoutExpandedTuples.MemberOptions & ~SymbolDisplayMemberOptions.IncludeContainingType);
+
+        protected abstract ISyntaxFacts SyntaxFactsService { get; }
+        protected abstract ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
+
+        public ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
+            => anonymousType.IsAnonymousDelegateType()
+                ? GetDelegateAnonymousTypeParts(anonymousType, semanticModel, position)
+                : GetNormalAnonymousTypeParts(anonymousType, semanticModel, position);
+
+        private ImmutableArray<SymbolDisplayPart> GetDelegateAnonymousTypeParts(
+            INamedTypeSymbol anonymousType,
+            SemanticModel semanticModel,
+            int position)
+        {
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
+
+            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable;
+
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null,
+                SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)));
+            parts.AddRange(Space());
+            parts.AddRange(MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(
+                semanticModel, position, s_delegateDisplay)));
+
+            return parts.ToImmutable();
+        }
+
+        private static ImmutableArray<SymbolDisplayPart> MassageDelegateParts(
+            IMethodSymbol invokeMethod,
+            ImmutableArray<SymbolDisplayPart> parts)
+        {
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
+
+            // Ugly hack.  Remove the "Invoke" name the compiler layer adds to the parts.
+            foreach (var part in parts)
+            {
+                if (!Equals(invokeMethod, part.Symbol))
+                    result.Add(part);
+            }
+
+            return result.ToImmutable();
+        }
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
@@ -47,9 +90,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 var structuralType = transitiveStructuralTypeReferences[i];
                 typeParts.AddRange(Space(count: 4));
-                typeParts.Add(Part(
-                    structuralType.IsValueType ? SymbolDisplayPartKind.StructName : SymbolDisplayPartKind.ClassName,
-                    structuralType, structuralType.Name));
+
+                var kind =
+                    structuralType.IsValueType ? SymbolDisplayPartKind.StructName :
+                    structuralType.IsDelegateType() ? SymbolDisplayPartKind.DelegateName : SymbolDisplayPartKind.ClassName;
+
+                typeParts.Add(Part(kind, structuralType, structuralType.Name));
                 typeParts.AddRange(Space());
                 typeParts.Add(PlainText(FeaturesResources.is_));
                 typeParts.AddRange(Space());
@@ -63,9 +109,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     typeParts.AddRange(GetAnonymousTypeParts(structuralType, semanticModel, position));
                 }
             }
-
-            // Now, inline any delegate anonymous types we've got.
-            typeParts = this.InlineDelegateAnonymousTypes(typeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
             var structuralTypeToName = GenerateStructuralTypeNames(transitiveStructuralTypeReferences);

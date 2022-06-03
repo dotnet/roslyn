@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -28,10 +29,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           workspace As Workspace,
+                           services As HostWorkspaceServices,
                            structuralTypeDisplayService As IStructuralTypeDisplayService,
+                           options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)
-                MyBase.New(semanticModel, position, workspace, structuralTypeDisplayService, cancellationToken)
+                MyBase.New(semanticModel, position, services, structuralTypeDisplayService, options, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()
@@ -157,8 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
                     If semanticModel IsNot Nothing Then
                         Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            semanticModel, equalsValue.Value.Span,
-                            Me.Workspace, cancellationToken:=Me.CancellationToken).ConfigureAwait(False)
+                            Services, semanticModel, equalsValue.Value.Span, Options.ClassificationOptions, CancellationToken).ConfigureAwait(False)
                     End If
                 End If
 
@@ -173,23 +174,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
             End Sub
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormat
-                End Get
-            End Property
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat = s_minimallyQualifiedFormat
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormatWithConstants
-                End Get
-            End Property
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants
 
-            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat
-                Get
-                    Return s_minimallyQualifiedFormatWithConstantsAndModifiers
-                End Get
-            End Property
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstantsAndModifiers
         End Class
     End Class
 End Namespace

@@ -22,12 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal readonly bool HasTypeArgumentInferredFromFunctionType;
 
-        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool hasTypeArgumentInferredFromFunctionType = false)
+        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool hasTypeArgumentInferredFromFunctionType)
         {
             _member = member;
             _leastOverriddenMember = leastOverriddenMember;
             _result = result;
             HasTypeArgumentInferredFromFunctionType = hasTypeArgumentInferredFromFunctionType;
+        }
+
+        internal MemberResolutionResult<TMember> WithResult(MemberAnalysisResult result)
+        {
+            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, result, HasTypeArgumentInferredFromFunctionType);
         }
 
         internal bool IsNull
@@ -92,12 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal MemberResolutionResult<TMember> Worse()
         {
-            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worse());
+            return WithResult(MemberAnalysisResult.Worse());
         }
 
         internal MemberResolutionResult<TMember> Worst()
         {
-            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worst());
+            return WithResult(MemberAnalysisResult.Worst());
         }
 
         internal bool HasUseSiteDiagnosticToReport

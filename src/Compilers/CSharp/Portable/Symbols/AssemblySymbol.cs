@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
@@ -439,7 +440,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces);
         }
 
-        private bool RuntimeSupportsFeature(SpecialMember feature)
+        /// <summary>
+        /// Whether the target runtime supports numeric IntPtr types.
+        /// This test hook should be removed once TargetFramework.Net70 is added.
+        /// Tracked by https://github.com/dotnet/roslyn/issues/61235
+        /// </summary>
+        internal virtual bool RuntimeSupportsNumericIntPtr
+        {
+            get
+            {
+                // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
+                // Tracked by https://github.com/dotnet/roslyn/issues/61262
+                return CorLibrary?.RuntimeSupportsNumericIntPtr == true;
+            }
+
+            set => CorLibrary.RuntimeSupportsNumericIntPtr = value;
+        }
+
+        protected bool RuntimeSupportsFeature(SpecialMember feature)
         {
             Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
             return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
@@ -565,12 +583,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetSpecialType(SpecialTypes.GetTypeFromMetadataName(type));
         }
 
+#nullable enable
         /// <summary>
         /// Lookup a type within the assembly using the canonical CLR metadata name of the type.
         /// </summary>
         /// <param name="fullyQualifiedMetadataName">Type name.</param>
         /// <returns>Symbol for the type or null if type cannot be found or is ambiguous. </returns>
-        public NamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
+        public NamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
             if (fullyQualifiedMetadataName == null)
             {
@@ -606,16 +625,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// In cases a type could not be found because of ambiguity, we return two of the candidates that caused the ambiguity.
         /// </param>
         /// <returns>Null if the type can't be found.</returns>
-        internal NamedTypeSymbol GetTypeByMetadataName(
+        internal NamedTypeSymbol? GetTypeByMetadataName(
             string metadataName,
             bool includeReferences,
             bool isWellKnownType,
             out (AssemblySymbol, AssemblySymbol) conflicts,
             bool useCLSCompliantNameArityEncoding = false,
-            DiagnosticBag warnings = null,
+            DiagnosticBag? warnings = null,
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
-            NamedTypeSymbol type;
+            NamedTypeSymbol? type;
             MetadataTypeName mdName;
 
             if (metadataName.IndexOf('+') >= 0)
@@ -626,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType,
                     conflicts: out conflicts, warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
 
-                for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
+                for (int i = 1; type is object && !type.IsErrorType() && i < parts.Length; i++)
                 {
                     mdName = MetadataTypeName.FromTypeName(parts[i]);
                     NamedTypeSymbol temp = type.LookupMetadataType(ref mdName);
@@ -640,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     conflicts: out conflicts, warnings: warnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
             }
 
-            return ((object)type == null || type.IsErrorType()) ? null : type;
+            return (type is null || type.IsErrorType()) ? null : type;
         }
 
         private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
@@ -652,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="type">The type to resolve.</param>
         /// <param name="includeReferences">Use referenced assemblies for resolution.</param>
         /// <returns>The resolved symbol if successful or null on failure.</returns>
-        internal TypeSymbol GetTypeByReflectionType(Type type, bool includeReferences)
+        internal TypeSymbol? GetTypeByReflectionType(Type type, bool includeReferences)
         {
             System.Reflection.TypeInfo typeInfo = type.GetTypeInfo();
 
@@ -663,8 +682,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeInfo.IsArray)
             {
-                TypeSymbol symbol = GetTypeByReflectionType(typeInfo.GetElementType(), includeReferences);
-                if ((object)symbol == null)
+                TypeSymbol? symbol = GetTypeByReflectionType(typeInfo.GetElementType()!, includeReferences);
+                if (symbol is null)
                 {
                     return null;
                 }
@@ -675,8 +694,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (typeInfo.IsPointer)
             {
-                TypeSymbol symbol = GetTypeByReflectionType(typeInfo.GetElementType(), includeReferences);
-                if ((object)symbol == null)
+                TypeSymbol? symbol = GetTypeByReflectionType(typeInfo.GetElementType()!, includeReferences);
+                if (symbol is null)
                 {
                     return null;
                 }
@@ -707,8 +726,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int i = nestedTypes.Count - 1;
-                var symbol = (NamedTypeSymbol)GetTypeByReflectionType(nestedTypes[i].AsType(), includeReferences);
-                if ((object)symbol == null)
+                var symbol = (NamedTypeSymbol?)GetTypeByReflectionType(nestedTypes[i].AsType(), includeReferences);
+                if (symbol is null)
                 {
                     return null;
                 }
@@ -719,13 +738,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     MetadataTypeName mdName = MetadataTypeName.FromTypeName(nestedTypes[i].Name, forcedArity: forcedArity);
 
                     symbol = symbol.LookupMetadataType(ref mdName);
-                    if ((object)symbol == null || symbol.IsErrorType())
+                    if (symbol is null || symbol.IsErrorType())
                     {
                         return null;
                     }
 
                     symbol = ApplyGenericArguments(symbol, genericArguments, ref typeArgumentIndex, includeReferences);
-                    if ((object)symbol == null)
+                    if (symbol is null)
                     {
                         return null;
                     }
@@ -744,9 +763,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeInfo.Name,
                     forcedArity: typeInfo.GenericTypeArguments.Length);
 
-                NamedTypeSymbol symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences, isWellKnownType: false, conflicts: out var _);
+                NamedTypeSymbol? symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences, isWellKnownType: false, conflicts: out var _);
 
-                if ((object)symbol == null || symbol.IsErrorType())
+                if (symbol is null || symbol.IsErrorType())
                 {
                     return null;
                 }
@@ -759,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamedTypeSymbol ApplyGenericArguments(NamedTypeSymbol symbol, Type[] typeArguments, ref int currentTypeArgument, bool includeReferences)
+        private NamedTypeSymbol? ApplyGenericArguments(NamedTypeSymbol symbol, Type[] typeArguments, ref int currentTypeArgument, bool includeReferences)
         {
             int remainingTypeArguments = typeArguments.Length - currentTypeArgument;
 
@@ -776,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
-                if ((object)argSymbol == null)
+                if (argSymbol is null)
                 {
                     return null;
                 }
@@ -786,13 +805,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.ConstructIfGeneric(typeArgumentSymbols.ToImmutableAndFree());
         }
 
-        internal NamedTypeSymbol GetTopLevelTypeByMetadataName(
+        internal NamedTypeSymbol? GetTopLevelTypeByMetadataName(
             ref MetadataTypeName metadataName,
-            AssemblyIdentity assemblyOpt,
+            AssemblyIdentity? assemblyOpt,
             bool includeReferences,
             bool isWellKnownType,
             out (AssemblySymbol, AssemblySymbol) conflicts,
-            DiagnosticBag warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
+            DiagnosticBag? warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
             // Type from this assembly always wins.
@@ -805,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(warnings is null || isWellKnownType);
 
             conflicts = default;
-            NamedTypeSymbol result;
+            NamedTypeSymbol? result;
 
             // First try this assembly
             result = GetTopLevelTypeByMetadataName(this, ref metadataName, assemblyOpt);
@@ -816,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // ignore any types of the same name that might be in referenced assemblies (prefer the current assembly):
-            if ((object)result != null || !includeReferences)
+            if (result is object || !includeReferences)
             {
                 return result;
             }
@@ -829,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !CorLibrary.IsMissing &&
                 !isWellKnownTypeBeforeCSharp7 && !ignoreCorLibraryDuplicatedTypes)
             {
-                NamedTypeSymbol corLibCandidate = GetTopLevelTypeByMetadataName(CorLibrary, ref metadataName, assemblyOpt);
+                NamedTypeSymbol? corLibCandidate = GetTopLevelTypeByMetadataName(CorLibrary, ref metadataName, assemblyOpt);
                 skipCorLibrary = true;
 
                 if (isValidCandidate(corLibCandidate, isWellKnownType))
@@ -863,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                NamedTypeSymbol candidate = GetTopLevelTypeByMetadataName(assembly, ref metadataName, assemblyOpt);
+                NamedTypeSymbol? candidate = GetTopLevelTypeByMetadataName(assembly, ref metadataName, assemblyOpt);
 
                 if (!isValidCandidate(candidate, isWellKnownType))
                 {
@@ -872,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything));
 
-                if ((object)result != null)
+                if (result is object)
                 {
                     // duplicate
                     if (ignoreCorLibraryDuplicatedTypes)
@@ -910,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             assemblies.Free();
             return result;
 
-            bool isValidCandidate(NamedTypeSymbol candidate, bool isWellKnownType)
+            bool isValidCandidate([NotNullWhen(true)] NamedTypeSymbol? candidate, bool isWellKnownType)
             {
                 return candidate is not null
                     && (!isWellKnownType || IsValidWellKnownType(candidate))
@@ -923,9 +942,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)type.ContainingAssembly == CorLibrary;
         }
 
-        private bool IsValidWellKnownType(NamedTypeSymbol result)
+        private bool IsValidWellKnownType(NamedTypeSymbol? result)
         {
-            if ((object)result == null || result.TypeKind == TypeKind.Error)
+            if (result is null || result.TypeKind == TypeKind.Error)
             {
                 return false;
             }
@@ -936,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.DeclaredAccessibility == Accessibility.Public || IsSymbolAccessible(result, this);
         }
 
-        private static NamedTypeSymbol GetTopLevelTypeByMetadataName(AssemblySymbol assembly, ref MetadataTypeName metadataName, AssemblyIdentity assemblyOpt)
+        private static NamedTypeSymbol? GetTopLevelTypeByMetadataName(AssemblySymbol assembly, ref MetadataTypeName metadataName, AssemblyIdentity? assemblyOpt)
         {
             var result = assembly.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
             if (!IsAcceptableMatchForGetTypeByMetadataName(result))
@@ -956,6 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return candidate.Kind != SymbolKind.ErrorType || !(candidate is MissingMetadataTypeSymbol);
         }
+#nullable disable
 
         /// <summary>
         /// Lookup member declaration in predefined CorLib type in this Assembly. Only valid if this 

@@ -17,6 +17,11 @@
         <target state="translated">Riferimenti a CodeLens</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">Disponibilità semantica del progetto</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">Conversione della tupla nel refactoring dello struct</target>
@@ -89,7 +94,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_ProcessTelemetry">
         <source>Process telemetry</source>
-        <target state="new">Process telemetry</target>
+        <target state="translated">Processo di telemetria</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
@@ -107,14 +112,14 @@
         <target state="translated">Classificazione semantica</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Cache della classificazione semantica</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Provider di asset</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Esplora analisi dello stack</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

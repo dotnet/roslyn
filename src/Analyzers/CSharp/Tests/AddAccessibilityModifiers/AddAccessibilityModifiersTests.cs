@@ -377,7 +377,7 @@ namespace Outer
                 },
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -399,7 +399,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -421,7 +421,7 @@ namespace Test
 }",
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -437,7 +437,7 @@ internal class [|C1|] { }",
 class C1 { }",
                 Options =
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault },
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault },
                 },
             }.RunAsync();
         }
@@ -577,6 +577,36 @@ public partial class C
                 TestCode = source,
                 FixedCode = fixedSource,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        public async Task TestStaticOperatorInInterface()
+        {
+            var source = @"
+internal interface I<T> where T : I<T>
+{
+    abstract static int operator +(T x);
+}
+
+internal class C : I<C>
+{
+    static int I<C>.operator +(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
             };
 
             await test.RunAsync();

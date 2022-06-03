@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -46,18 +44,18 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
-        /// Suggestion mode disables autoselection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
+        /// Suggestion mode disables auto-selection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
         /// Specifying a <see cref="SuggestionModeItem"/> is a request that the completion host operate in suggestion mode.
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
-        public CompletionItem SuggestionModeItem { get; }
+        public CompletionItem? SuggestionModeItem { get; }
 
         private CompletionList(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             Span = defaultSpan;
@@ -84,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static CompletionList Create(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules = null,
-            CompletionItem suggestionModeItem = null)
+            CompletionRules? rules = null,
+            CompletionItem? suggestionModeItem = null)
         {
             return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false);
         }
@@ -93,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Completion
         internal static CompletionList Create(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);
@@ -158,6 +156,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionList Empty = new(
             default, default, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
+
+        internal bool IsEmpty => Items.IsEmpty && SuggestionModeItem is null;
 
         internal TestAccessor GetTestAccessor()
             => new(this);

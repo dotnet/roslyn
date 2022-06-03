@@ -1019,10 +1019,10 @@ struct S1
             comp.VerifyDiagnostics(
                 // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 20),
                 // (11,44): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     in int this[in int i] => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 44)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithLocation(11, 44)
             );
         }
 

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1013,12 +1014,12 @@ class D
 </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = TestWorkspace.Create(changedDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
+                Using changedWorkspace = TestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
 
-                    Dim changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents(0).Id)
+                    Dim changeDocument = changedWorkspace.CurrentSolution.GetDocument(changedWorkspace.Documents(0).Id)
                     Dim changeTree = Await changeDocument.GetSyntaxTreeAsync()
 
                     Dim codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
@@ -1253,6 +1254,57 @@ class C
                     ' so the underlying node key is still valid.
                     Assert.Equal("D", codeElement.Name)
                 End Sub)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub CanAccessPartialPartsInSourceGeneratedFiles()
+            Dim code =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <Document>partial class C { }</Document>
+        <DocumentFromSourceGenerator>partial class C { void M() { } }</DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Using state = CreateCodeModelTestState(code)
+                Dim workspace = state.VisualStudioWorkspace
+                Dim fileCodeModel = state.FileCodeModel
+
+                Dim codeClass = DirectCast(Assert.Single(fileCodeModel.CodeElements()), EnvDTE80.CodeClass2)
+                Dim parts = codeClass.Parts.Cast(Of EnvDTE.CodeClass).ToList()
+                Assert.Equal(2, parts.Count)
+
+                ' Grab the part that isn't the one we started with
+                Dim generatedPart = Assert.Single(parts, Function(p) p IsNot codeClass)
+
+                ' Confirm we can inspect members
+                Dim member = DirectCast(Assert.Single(generatedPart.Members), EnvDTE.CodeFunction)
+                Assert.Equal("M", member.Name)
+
+                ' We are unable to change things in generated files
+                Assert.Throws(Of COMException)(Sub() member.AddParameter("Test", "System.Object"))
+            End Using
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RequestingCodeModelForAdditionalFileThrowsCorrectExceptionType()
+            Dim code =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <AdditionalDocument FilePath="Z:\Additional.txt"></AdditionalDocument>
+    </Project>
+</Workspace>
+
+            Using state = CreateCodeModelTestState(code)
+                Dim workspace = state.VisualStudioWorkspace
+                Dim projectCodeModelFactory = state.Workspace.GetService(Of ProjectCodeModelFactory)()
+                Dim projectCodeModel = projectCodeModelFactory.GetProjectCodeModel(workspace.CurrentSolution.ProjectIds.Single())
+
+                Assert.Throws(Of NotImplementedException)(
+                    Sub()
+                        projectCodeModel.GetOrCreateFileCodeModel("Z:\Additional.txt", parent:=Nothing)
+                    End Sub)
+            End Using
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

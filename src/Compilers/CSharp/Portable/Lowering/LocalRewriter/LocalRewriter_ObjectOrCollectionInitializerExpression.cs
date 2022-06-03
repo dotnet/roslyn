@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt,
                 ref rewrittenReceiver,
                 out ArrayBuilder<LocalSymbol>? temps);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
 
             var rewrittenType = VisitType(initializer.Type);
 
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, ref discardedUseSiteInfo).IsImplicit);
+            Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif
 

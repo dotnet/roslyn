@@ -5,17 +5,15 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
     internal interface IRecommendationService : ILanguageService
     {
-        RecommendedSymbols GetRecommendedSymbolsAtPosition(
-            Document document,
-            SemanticModel semanticModel,
-            int position,
-            OptionSet options,
+        RecommendedSymbols GetRecommendedSymbolsInContext(
+            SyntaxContext syntaxContext,
+            RecommendationServiceOptions options,
             CancellationToken cancellationToken);
     }
 

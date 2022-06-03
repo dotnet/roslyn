@@ -24,10 +24,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+        protected abstract string GetTitle(bool negated, ParseOptions options);
 
-        protected abstract string GetIsNullTitle();
-        protected abstract string GetIsNotNullTitle();
         protected abstract SyntaxNode CreateNullCheck(TExpressionSyntax argument, bool isUnconstrainedGeneric);
         protected abstract SyntaxNode CreateNotNullCheck(TExpressionSyntax argument);
 
@@ -40,10 +38,9 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             if (IsSupportedDiagnostic(diagnostic))
             {
                 var negated = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
-                var title = negated ? GetIsNotNullTitle() : GetIsNullTitle();
-
+                var title = GetTitle(negated, diagnostic.Location.SourceTree!.Options);
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c)),
+                    CodeAction.Create(title, GetDocumentUpdater(context), title),
                     context.Diagnostics);
             }
 
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -62,9 +59,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
                 if (!IsSupportedDiagnostic(diagnostic))
-                {
                     continue;
-                }
 
                 var invocation = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 var negate = diagnostic.Properties.ContainsKey(UseIsNullConstants.Negated);
@@ -86,14 +81,6 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

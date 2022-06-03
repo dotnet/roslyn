@@ -126,8 +126,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 // uri of the DB on disk we're associating this in-memory cache with.  This throws on at least OSX for
                 // reasons that aren't fully understood yet.  If more details/fixes emerge in that linked issue, we can
                 // ideally remove this and perform the attachment uniformly on all platforms.
+
+                // From: https://www.sqlite.org/lang_expr.html
+                //
+                // A string constant is formed by enclosing the string in single quotes ('). A single quote within the
+                // string can be encoded by putting two single quotes in a row - as in Pascal. C-style escapes using the
+                // backslash character are not supported because they are not standard SQL.
                 var attachString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? $"attach database '{new Uri(databasePath).AbsoluteUri}?mode=memory&cache=shared' as {Database.WriteCache.GetName()};"
+                    ? $"attach database '{new Uri(databasePath.Replace("'", "''")).AbsoluteUri}?mode=memory&cache=shared' as {Database.WriteCache.GetName()};"
                     : $"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};";
 
                 connection.ExecuteCommand(attachString);

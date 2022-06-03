@@ -30,6 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property MultiLineDocCommentTrivia As Integer? Implements ISyntaxKinds.MultiLineDocCommentTrivia
         Public ReadOnly Property ShebangDirectiveTrivia As Integer? Implements ISyntaxKinds.ShebangDirectiveTrivia
 
+        Public ReadOnly Property IfDirectiveTrivia As Integer = SyntaxKind.IfDirectiveTrivia Implements ISyntaxKinds.IfDirectiveTrivia
+
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
         Public ReadOnly Property ColonToken As Integer = SyntaxKind.ColonToken Implements ISyntaxKinds.ColonToken
         Public ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken Implements ISyntaxKinds.CharacterLiteralToken
@@ -37,8 +39,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken Implements ISyntaxKinds.InterpolatedStringTextToken
         Public ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken Implements ISyntaxKinds.QuestionToken
         Public ReadOnly Property StringLiteralToken As Integer = SyntaxKind.StringLiteralToken Implements ISyntaxKinds.StringLiteralToken
+        Public ReadOnly Property SingleLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.SingleLineRawStringLiteralToken
+        Public ReadOnly Property MultiLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.MultiLineRawStringLiteralToken
+        Public ReadOnly Property UTF8StringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.UTF8StringLiteralToken
+        Public ReadOnly Property UTF8SingleLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.UTF8SingleLineRawStringLiteralToken
+        Public ReadOnly Property UTF8MultiLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.UTF8MultiLineRawStringLiteralToken
 
+        Public ReadOnly Property XmlTextLiteralToken As Integer = SyntaxKind.XmlTextLiteralToken Implements ISyntaxKinds.XmlTextLiteralToken
+
+        Public ReadOnly Property DelegateKeyword As Integer = SyntaxKind.DelegateKeyword Implements ISyntaxKinds.DelegateKeyword
         Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKinds.IfKeyword
+        Public ReadOnly Property TrueKeyword As Integer = SyntaxKind.TrueKeyword Implements ISyntaxKinds.TrueKeyword
+        Public ReadOnly Property FalseKeyword As Integer = SyntaxKind.FalseKeyword Implements ISyntaxKinds.FalseKeyword
 
         Public ReadOnly Property GenericName As Integer = SyntaxKind.GenericName Implements ISyntaxKinds.GenericName
         Public ReadOnly Property IdentifierName As Integer = SyntaxKind.IdentifierName Implements ISyntaxKinds.IdentifierName
@@ -55,11 +67,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property TrueLiteralExpression As Integer = SyntaxKind.TrueLiteralExpression Implements ISyntaxKinds.TrueLiteralExpression
 
         Public ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression Implements ISyntaxKinds.AnonymousObjectCreationExpression
+        Public ReadOnly Property ArrayCreationExpression As Integer = SyntaxKind.ArrayCreationExpression Implements ISyntaxKinds.ArrayCreationExpression
         Public ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression Implements ISyntaxKinds.AwaitExpression
         Public ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression Implements ISyntaxKinds.BaseExpression
         Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKinds.ConditionalAccessExpression
         Public ReadOnly Property ConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.ConditionalExpression
+        Public ReadOnly Property ImplicitArrayCreationExpression As Integer? = Nothing Implements ISyntaxKinds.ImplicitArrayCreationExpression
         Public ReadOnly Property ImplicitObjectCreationExpression As Integer? = Nothing Implements ISyntaxKinds.ImplicitObjectCreationExpression
+        Public ReadOnly Property IndexExpression As Integer? = Nothing Implements ISyntaxKinds.IndexExpression
         Public ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression Implements ISyntaxKinds.InvocationExpression
         Public ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression Implements ISyntaxKinds.LogicalAndExpression
         Public ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression Implements ISyntaxKinds.LogicalOrExpression
@@ -67,6 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property ObjectCreationExpression As Integer = SyntaxKind.ObjectCreationExpression Implements ISyntaxKinds.ObjectCreationExpression
         Public ReadOnly Property ParenthesizedExpression As Integer = SyntaxKind.ParenthesizedExpression Implements ISyntaxKinds.ParenthesizedExpression
         Public ReadOnly Property QueryExpression As Integer = SyntaxKind.QueryExpression Implements ISyntaxKinds.QueryExpression
+        Public ReadOnly Property RangeExpression As Integer? = Nothing Implements ISyntaxKinds.RangeExpression
         Public ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression Implements ISyntaxKinds.ReferenceEqualsExpression
         Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKinds.ReferenceNotEqualsExpression
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
@@ -95,6 +111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
+        Public ReadOnly Property RecordDeclaration As Integer? = Nothing Implements ISyntaxKinds.RecordDeclaration
+        Public ReadOnly Property RecordStructDeclaration As Integer? = Nothing Implements ISyntaxKinds.RecordStructDeclaration
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter
         Public ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint Implements ISyntaxKinds.TypeConstraint
         Public ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator Implements ISyntaxKinds.VariableDeclarator

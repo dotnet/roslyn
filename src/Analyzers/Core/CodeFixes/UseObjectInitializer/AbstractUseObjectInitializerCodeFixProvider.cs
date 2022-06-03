@@ -39,22 +39,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Object-Initializers 
             // could be arbitrarily nested, we have to make sure that any edits we make
@@ -64,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // feature to keep track of all the object creation nodes as we make edits to
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
-            var workspace = document.Project.Solution.Workspace;
+            var services = document.Project.Solution.Workspace.Services;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var originalRoot = editor.OriginalRoot;
@@ -88,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var originalObjectCreation = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, syntaxFacts, objectCreation, cancellationToken);
 
                 if (matches == null || matches.Value.Length == 0)
@@ -102,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-                var subEditor = new SyntaxEditor(currentRoot, workspace);
+                var subEditor = new SyntaxEditor(currentRoot, services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
@@ -121,13 +117,5 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected abstract TStatementSyntax GetNewStatement(
             TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Object_initialization_can_be_simplified))
-            {
-            }
-        }
     }
 }

@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             if (missingComparableTypes.Count == 1)
             {
                 var missingType = missingComparableTypes[0];
-                context.RegisterRefactoring(new MyCodeAction(
+                context.RegisterRefactoring(CodeAction.Create(
                     FeaturesResources.Generate_comparison_operators,
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
                     nameof(FeaturesResources.Generate_comparison_operators)));
                 return;
             }
@@ -107,13 +107,13 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             {
                 var typeArg = missingType.TypeArguments[0];
                 var displayString = typeArg.ToMinimalDisplayString(semanticModel, textSpan.Start);
-                nestedActions.Add(new MyCodeAction(
+                nestedActions.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Generate_for_0, displayString),
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
                     nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
                 FeaturesResources.Generate_comparison_operators,
                 nestedActions.ToImmutable(),
                 isInlinable: false));
@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             Document document,
             SyntaxNode typeDeclaration,
             INamedTypeSymbol comparableType,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var containingType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
@@ -149,14 +149,12 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 generator, semanticModel.Compilation, containingType, comparableType,
                 GenerateLeftExpression(generator, comparableType, compareMethod));
 
-            return await codeGenService.AddMembersAsync(
+            var solutionContext = new CodeGenerationSolutionContext(
                 document.Project.Solution,
-                containingType,
-                operators,
-                new CodeGenerationOptions(
-                    contextLocation: typeDeclaration.GetLocation(),
-                    options: options,
-                    parseOptions: typeDeclaration.SyntaxTree.Options), cancellationToken).ConfigureAwait(false);
+                new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation()),
+                fallbackOptions);
+
+            return await codeGenService.AddMembersAsync(solutionContext, containingType, operators, cancellationToken).ConfigureAwait(false);
         }
 
         private static SyntaxNode GenerateLeftExpression(
@@ -266,13 +264,5 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.GreaterThanOrEqual => WellKnownMemberNames.GreaterThanOrEqualOperatorName,
                 _ => throw ExceptionUtilities.Unreachable,
             };
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
     }
 }

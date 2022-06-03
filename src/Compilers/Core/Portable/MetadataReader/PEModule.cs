@@ -1107,11 +1107,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
+        internal const string RequiredMembersMarker = "Constructors of types with required members are not supported in this version of your compiler.";
 
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder decoder,
-            bool ignoreByRefLikeMarker)
+            bool ignoreByRefLikeMarker,
+            bool ignoreRequiredMemberMarker)
         {
             AttributeInfo info;
 
@@ -1129,6 +1131,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
                         return null;
+                    case RequiredMembersMarker when ignoreRequiredMemberMarker:
+                        return null;
                 }
                 return obsoleteData;
             }
@@ -1145,6 +1149,60 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
+        {
+            List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
+
+            if (infos == null)
+            {
+                return null;
+            }
+
+            foreach (var info in infos)
+            {
+                if (!info.HasValue || !TryGetAttributeReader(info.Handle, out BlobReader sigReader) || !CrackStringInAttributeValue(out string? featureName, ref sigReader))
+                {
+                    continue;
+                }
+
+                bool isOptional = false;
+                if (sigReader.RemainingBytes >= 2)
+                {
+                    try
+                    {
+                        var numNamedArgs = sigReader.ReadUInt16();
+                        for (uint i = 0; i < numNamedArgs; i++)
+                        {
+                            (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) namedArgValues =
+                                attributeNamedArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+
+                            if (namedArgValues is ({ Key: "IsOptional" }, isProperty: true, typeCode: SerializationTypeCode.Boolean, _))
+                            {
+                                isOptional = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception e) when (e is UnsupportedSignatureContent or BadImageFormatException) { }
+                }
+
+                if (!isOptional && (allowedFeatures & getFeatureKind(featureName)) == 0)
+                {
+                    return featureName;
+                }
+            }
+
+            return null;
+
+            static CompilerFeatureRequiredFeatures getFeatureKind(string? feature)
+                => feature switch
+                {
+                    nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
+                    nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
+                    _ => CompilerFeatureRequiredFeatures.None,
+                };
+        }
+
         internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder attributeArgumentDecoder,
@@ -1209,6 +1267,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (TryExtractStringArrayValueFromAttribute(targetAttribute.Handle, out var paramNames))
             {
+                Debug.Assert(!paramNames.IsDefault);
                 return (paramNames.NullToEmpty(), true);
             }
 
@@ -1721,6 +1780,11 @@ namespace Microsoft.CodeAnalysis
         }
 #nullable disable
 
+        internal bool HasStateMachineAttribute(MethodDefinitionHandle handle, out string stateMachineTypeName)
+            => HasStringValuedAttribute(handle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
+               HasStringValuedAttribute(handle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName) ||
+               HasStringValuedAttribute(handle, AttributeDescription.AsyncIteratorStateMachineAttribute, out stateMachineTypeName);
+
         internal bool HasStringValuedAttribute(EntityHandle token, AttributeDescription description, out string value)
         {
             AttributeInfo info = FindTargetAttribute(token, description);
@@ -1903,7 +1967,15 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 var stringArray = new string?[arrayLen];
+
                 for (int i = 0; i < arrayLen; i++)
                 {
                     if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
@@ -1918,6 +1990,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = default;
+            return false;
+        }
+
+        private static bool IsArrayNull(uint length)
+        {
+            // Null arrays are represented in metadata by a length of 0xFFFF_FFFF. See ECMA 335 II.23.3.
+            const uint NullArray = 0xFFFF_FFFF;
+
+            if (length == NullArray)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -2035,6 +2120,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var boolArrayBuilder = ArrayBuilder<bool>.GetInstance((int)arrayLen);
@@ -2057,6 +2149,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var byteArrayBuilder = ArrayBuilder<byte>.GetInstance((int)arrayLen);
@@ -2093,9 +2192,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal List<AttributeInfo> FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
+#nullable enable
+        internal List<AttributeInfo>? FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
         {
-            List<AttributeInfo> result = null;
+            List<AttributeInfo>? result = null;
 
             try
             {
@@ -2119,6 +2219,7 @@ namespace Microsoft.CodeAnalysis
 
             return result;
         }
+#nullable disable
 
         internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -2120,7 +2119,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void M()
     {
-#ifA || B
+#if A || B
 #endif
     }
 }",
@@ -2149,6 +2148,32 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }",
 offeredWhenRequireForClarityIsEnabled: true, index: 1);
+        }
+
+        [WorkItem(57768, "https://github.com/dotnet/roslyn/issues/57768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundPPDirective3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+#if C
+#elif$$(A || B)
+#endif
+    }
+}",
+@"class C
+{
+    void M()
+    {
+#if C
+#elif A || B
+#endif
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
@@ -2674,6 +2699,301 @@ public class C
     }    
 }
 ", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestElementAccessOfSuppressedExpression1()
+        {
+            await TestAsync(
+@"
+public class C
+{
+    public void M(string[] Strings)
+    {
+        var v = $$(Strings!)[Strings.Count - 1];
+    }
+}
+",
+@"
+public class C
+{
+    public void M(string[] Strings)
+    {
+        var v = Strings![Strings.Count - 1];
+    }
+}
+", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestElementAccessOfSuppressedExpression2()
+        {
+            await TestAsync(
+@"
+public class C
+{
+    string[] Strings;
+
+    public void M()
+    {
+        var v = $$(this.Strings!)[Strings.Count - 1];
+    }
+}
+",
+@"
+public class C
+{
+    string[] Strings;
+
+    public void M()
+    {
+        var v = this.Strings![Strings.Count - 1];
+    }
+}
+", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        public async Task TestArithmeticOverflow1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int a)
+    {
+        checked
+        {
+            return a + $$(int.MaxValue + -int.MaxValue);
+        }
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        public async Task TestArithmeticOverflow1_CompilationOption()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int a)
+    {
+        return a + $$(int.MaxValue + -int.MaxValue);
+    }
+}", parameters: new TestParameters(
+    options: RemoveAllUnnecessaryParentheses,
+    compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow: true)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        public async Task TestArithmeticOverflow2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int a)
+    {
+        return a + $$(int.MaxValue + -int.MaxValue);
+    }
+}",
+@"class C
+{
+    void M(int a)
+    {
+        return a + int.MaxValue + -int.MaxValue;
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestTupleArgumentsBecomeGenericSyntax1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ($$(N < T), (U > (5 + 0)));
+    }
+}",
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = (N < T, (U > (5 + 0)));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestTupleArgumentsBecomeGenericSyntax2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ((N < T), (U > (5 + 0)$$));
+    }
+}",
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ((N < T), U > (5 + 0));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestTupleArgumentsBecomeGenericSyntax3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ({|FixAllInDocument:$$(N < T), (U > (5 + 0))|});
+    }
+}",
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = (N < T, (U > (5 + 0)));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestTupleArgumentsBecomeGenericSyntax4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ({|FixAllInDocument:(N < T), (U > (5 + 0)$$)|});
+    }
+}",
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = ((N < T), U > (5 + 0));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestMethodArgumentsBecomeGenericSyntax1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = Goo($$(N < T), (U > (5 + 0)));
+    }
+}",
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = Goo(N < T, (U > (5 + 0)));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestMethodArgumentsBecomeGenericSyntax2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = Goo((N < T), (U > (5 + 0)$$));
+    }
+}",
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = Goo((N < T), U > (5 + 0));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(43934, "https://github.com/dotnet/roslyn/issues/43934")]
+        public async Task TestMethodArgumentsBecomeGenericSyntax3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = Goo({|FixAllInDocument:$$(N < T), (U > (5 + 0))|});
+    }
+}",
+@"using System;
+public class C {
+    public void M()
+    {
+        var T = 1;
+        var U = 8;
+        var N = 9;
+        var x = Goo(N < T, (U > (5 + 0)));
+    }
+}");
         }
     }
 }

@@ -62,5 +62,10 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// C# and VB. Tuple element names for local variables and constants.
         /// </summary>
         TupleElementNames = 8,
+
+        /// <summary>
+        /// C# and VB. Syntax offsets of nodes associated with state machine states in an async/iterator method and their corresponding state numbers.
+        /// </summary>
+        EditAndContinueStateMachineStateMap = 9,
     }
 }

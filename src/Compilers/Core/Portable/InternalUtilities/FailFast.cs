@@ -6,17 +6,21 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class FailFast
     {
+        /// <summary>
+        /// A pre-created delegate to assign to <see cref="FatalError.ErrorReporterHandler" /> if needed.
+        /// </summary>
+        internal static readonly FatalError.ErrorReporterHandler Handler = static (e, _, _) => OnFatalException(e);
+
         [DebuggerHidden]
         [DoesNotReturn]
-#if !NETSTANDARD1_3
         [MethodImpl(MethodImplOptions.Synchronized)]
-#endif
         internal static void OnFatalException(Exception exception)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
@@ -27,14 +31,12 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-#if !NET20
             // don't fail fast with an aggregate exception that is masking true exception
             if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1)
             {
                 exception = aggregate.InnerExceptions[0];
             }
 
-#endif
             DumpStackTrace(exception: exception);
 
             Environment.FailFast(exception.ToString(), exception);
@@ -43,9 +45,7 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerHidden]
         [DoesNotReturn]
-#if !NETSTANDARD1_3
         [MethodImpl(MethodImplOptions.Synchronized)]
-#endif
         internal static void Fail(string message)
         {
             DumpStackTrace(message: message);
@@ -76,11 +76,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-#if !NET20 && !NETSTANDARD1_3
             Console.WriteLine("Stack trace of handler");
             var stackTrace = new StackTrace();
             Console.WriteLine(stackTrace.ToString());
-#endif
 
             Console.Out.Flush();
         }

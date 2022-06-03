@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -43,10 +43,12 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         public static string GetResource(string keyword)
             => keyword switch
             {
+                "enum" => FeaturesResources.enum_,
                 "class" => FeaturesResources.class_,
-                "struct" => CSharpFeaturesResources.struct_,
                 "interface" => FeaturesResources.interface_,
-                "record" => CSharpFeaturesResources.record_,
+                "delegate" => FeaturesResources.delegate_,
+                "struct" => CSharpFeaturesResources.struct_,
+                "record" or "record class" => CSharpFeaturesResources.record_,
                 "record struct" => CSharpFeaturesResources.record_struct,
                 _ => throw ExceptionUtilities.UnexpectedValue(keyword)
             };

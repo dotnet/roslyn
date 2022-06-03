@@ -57,6 +57,11 @@
         <target state="translated">Reglas de formato de C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="new">Collapse usings on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
         <target state="translated">Finalización</target>
@@ -124,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Prefer_extended_property_pattern">
         <source>Prefer extended property pattern</source>
-        <target state="new">Prefer extended property pattern</target>
+        <target state="translated">Preferir patrón de propiedad extendido</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">

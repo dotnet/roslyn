@@ -6,6 +6,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Project project,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
+                CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -35,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
                 else if (documentOpt != null && !SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(diagnostic))
                 {
-                    return PragmaRemoveAction.Create(suppressionTargetInfo, documentOpt, diagnostic, fixer);
+                    var formattingOptions = await documentOpt.GetSyntaxFormattingOptionsAsync(options, cancellationToken).ConfigureAwait(false);
+                    return PragmaRemoveAction.Create(suppressionTargetInfo, documentOpt, formattingOptions, diagnostic, fixer);
                 }
                 else
                 {

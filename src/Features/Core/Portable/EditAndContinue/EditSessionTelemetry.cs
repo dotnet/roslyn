@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind)> RudeEdits;
             public readonly ImmutableArray<string> EmitErrorIds;
+            public readonly ImmutableArray<Guid> ProjectsWithValidDelta;
             public readonly EditAndContinueCapabilities Capabilities;
             public readonly bool HadCompilationErrors;
             public readonly bool HadRudeEdits;
@@ -23,31 +25,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public readonly bool HadValidInsignificantChanges;
             public readonly bool InBreakState;
             public readonly bool IsEmpty;
+            public readonly bool Committed;
 
             public Data(EditSessionTelemetry telemetry)
             {
+                Contract.ThrowIfNull(telemetry._inBreakState);
+
                 RudeEdits = telemetry._rudeEdits.AsImmutable();
                 EmitErrorIds = telemetry._emitErrorIds.AsImmutable();
+                ProjectsWithValidDelta = telemetry._projectsWithValidDelta.AsImmutable();
                 HadCompilationErrors = telemetry._hadCompilationErrors;
                 HadRudeEdits = telemetry._hadRudeEdits;
                 HadValidChanges = telemetry._hadValidChanges;
                 HadValidInsignificantChanges = telemetry._hadValidInsignificantChanges;
-                InBreakState = telemetry._inBreakState;
+                InBreakState = telemetry._inBreakState.Value;
                 Capabilities = telemetry._capabilities;
                 IsEmpty = telemetry.IsEmpty;
+                Committed = telemetry._committed;
             }
         }
 
         private readonly object _guard = new();
 
+        // Limit the number of reported items to limit the size of the telemetry event (max total size is 64K).
+        private const int MaxReportedProjectIds = 20;
+
         private readonly HashSet<(ushort, ushort)> _rudeEdits = new();
         private readonly HashSet<string> _emitErrorIds = new();
+        private readonly HashSet<Guid> _projectsWithValidDelta = new();
 
         private bool _hadCompilationErrors;
         private bool _hadRudeEdits;
         private bool _hadValidChanges;
         private bool _hadValidInsignificantChanges;
-        private bool _inBreakState;
+        private bool? _inBreakState;
+        private bool _committed;
 
         private EditAndContinueCapabilities _capabilities;
 
@@ -58,24 +70,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var data = new Data(this);
                 _rudeEdits.Clear();
                 _emitErrorIds.Clear();
+                _projectsWithValidDelta.Clear();
                 _hadCompilationErrors = false;
                 _hadRudeEdits = false;
                 _hadValidChanges = false;
                 _hadValidInsignificantChanges = false;
-                _inBreakState = false;
+                _inBreakState = null;
                 _capabilities = EditAndContinueCapabilities.None;
+                _committed = false;
                 return data;
             }
         }
 
         public bool IsEmpty => !(_hadCompilationErrors || _hadRudeEdits || _hadValidChanges || _hadValidInsignificantChanges);
 
-        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, ImmutableArray<string> errorsIds, bool inBreakState)
+        public void SetBreakState(bool value)
+            => _inBreakState = value;
+
+        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<string> errorsIds)
         {
             lock (_guard)
             {
                 _emitErrorIds.AddRange(errorsIds);
-                _inBreakState = inBreakState;
 
                 switch (summary)
                 {
@@ -92,6 +108,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     case ProjectAnalysisSummary.ValidChanges:
                         _hadValidChanges = true;
+
+                        if (errorsIds.IsEmpty && _projectsWithValidDelta.Count < MaxReportedProjectIds)
+                        {
+                            _projectsWithValidDelta.Add(projectTelemetryId);
+                        }
+
                         break;
 
                     case ProjectAnalysisSummary.ValidInsignificantChanges:
@@ -104,8 +126,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, ImmutableArray<Diagnostic> emitDiagnostics, bool inBreakState)
-            => LogProjectAnalysisSummary(summary, emitDiagnostics.SelectAsArray(d => d.Severity == DiagnosticSeverity.Error, d => d.Id), inBreakState);
+        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<Diagnostic> emitDiagnostics)
+            => LogProjectAnalysisSummary(summary, projectTelemetryId, emitDiagnostics.SelectAsArray(d => d.Severity == DiagnosticSeverity.Error, d => d.Id));
 
         public void LogRudeEditDiagnostics(ImmutableArray<RudeEditDiagnostic> diagnostics)
         {
@@ -126,5 +148,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _capabilities = capabilities;
             }
         }
+
+        internal void LogCommitted()
+            => _committed = true;
     }
 }

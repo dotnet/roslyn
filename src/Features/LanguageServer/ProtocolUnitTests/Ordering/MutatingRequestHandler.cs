@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,28 +13,18 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(MutatingRequestHandler.MethodName)]
-    internal class MutatingRequestHandlerProvider : AbstractRequestHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MutatingRequestHandlerProvider()
-        {
-        }
-
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
-        {
-            return ImmutableArray.Create<IRequestHandler>(new MutatingRequestHandler());
-        }
-    }
-
+    [ExportCSharpVisualBasicStatelessLspService(typeof(MutatingRequestHandler)), PartNotDiscoverable, Shared]
+    [Method(MethodName)]
     internal class MutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(MutatingRequestHandler);
         private const int Delay = 100;
 
-        public string Method => MethodName;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MutatingRequestHandler()
+        {
+        }
 
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
@@ -46,7 +35,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
             var response = new TestResponse
             {
-                Solution = context.Solution,
                 StartTime = DateTime.UtcNow
             };
 

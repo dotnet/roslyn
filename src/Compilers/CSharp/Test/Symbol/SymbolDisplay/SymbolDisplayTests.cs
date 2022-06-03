@@ -2744,6 +2744,7 @@ namespace N1 {
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                 memberOptions:
+                    SymbolDisplayMemberOptions.IncludeModifiers |
                     SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeType |
                     SymbolDisplayMemberOptions.IncludeParameters |
@@ -7946,15 +7947,84 @@ End Class";
             var name = tree.GetRoot().DescendantNodes().OfType<VisualBasic.Syntax.VariableDeclaratorSyntax>().Single();
             var type = ((ILocalSymbol)model.GetDeclaredSymbol(name.Names[0])).Type;
 
-            Verify(SymbolDisplay.ToDisplayParts(type), "<empty anonymous type>",
-                SymbolDisplayPartKind.ClassName);
+            Verify(SymbolDisplay.ToDisplayParts(type), "<anonymous delegate>",
+                SymbolDisplayPartKind.DelegateName);
 
-            Verify(SymbolDisplay.ToDisplayParts(type, s_fullDelegateFormat), "AnonymousType string <empty anonymous type>",
-                SymbolDisplayPartKind.AnonymousTypeIndicator,
+            Verify(SymbolDisplay.ToDisplayParts(type, s_fullDelegateFormat), "delegate string <anonymous delegate>(ref int i)",
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ClassName);
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestNullCheckedParameter()
+        {
+            var source = @"
+class C
+{
+    void M(string s!!)
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            var methodSymbol = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+
+            Verify(methodSymbol.ToDisplayParts(s_memberSignatureDisplayFormat), "void C.M(string s)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestRequiredProperty()
+        {
+            var source = @"
+class C
+{
+    required int Prop { get; set; }
+}
+";
+
+            var comp = CreateCompilation(source);
+            var propertySymbol = comp.GetMember<PropertySymbol>("C.Prop").GetPublicSymbol();
+
+            Verify(propertySymbol.ToDisplayParts(s_memberSignatureDisplayFormat), "required int C.Prop { get; set; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
         }
     }
 }

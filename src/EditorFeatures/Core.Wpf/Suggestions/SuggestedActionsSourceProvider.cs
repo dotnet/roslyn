@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -33,8 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [Order]
     [SuggestedActionPriority(DefaultOrderings.Highest)]
     [SuggestedActionPriority(DefaultOrderings.Default)]
+    [SuggestedActionPriority(DefaultOrderings.Lowest)]
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
+        public static readonly ImmutableArray<string> Orderings = ImmutableArray.Create(
+            DefaultOrderings.Highest,
+            DefaultOrderings.Default,
+            DefaultOrderings.Lowest);
+
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
         private static readonly Guid s_visualBasicSourceGuid = new Guid("4de30e93-3e0c-40c2-a4ba-1124da4539f6");
         private static readonly Guid s_xamlSourceGuid = new Guid("a0572245-2eab-4c39-9f61-06a6d8c5ddda");
@@ -90,9 +96,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            return _globalOptions.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag)
-                ? new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)
-                : new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
+            // if user has explicitly set the option defer to that.  otherwise, we are enabled by default (unless our
+            // A/B escape hatch disables us).
+            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) is bool b ? b : !_globalOptions.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
+
+            return asyncEnabled
+                ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)
+                : new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
+
+        private static CodeActionRequestPriority? TryGetPriority(string priority)
+            => priority switch
+            {
+                DefaultOrderings.Highest => CodeActionRequestPriority.High,
+                DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
+                _ => (CodeActionRequestPriority?)null,
+            };
     }
 }

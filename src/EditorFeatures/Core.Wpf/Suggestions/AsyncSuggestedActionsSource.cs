@@ -97,33 +97,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // items should be pushed higher up, and less important items shouldn't take up that much space.
                     var currentActionCount = 0;
 
+                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
+
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
-                        var priority = collector.Priority switch
-                        {
-                            VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
-                            VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
-                            _ => (CodeActionRequestPriority?)null,
-                        };
+                        var priority = TryGetPriority(collector.Priority);
 
                         if (priority != null)
                         {
-                            // Only request suppression fixes if we're in the lowest priority group.  The other groups
-                            // should not show suppressions them as that would cause them to not appear at the end.
-
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
                                 range, selection,
                                 addOperationScope: _ => null,
-                                includeSuppressionFixes: priority.Value == CodeActionRequestPriority.Normal,
                                 priority.Value,
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
                             {
-                                currentActionCount += set.Actions.Count();
-                                collector.Add(set);
+                                if (priority == CodeActionRequestPriority.High && set.Priority == SuggestedActionSetPriority.Low)
+                                {
+                                    // if we're processing the high pri bucket, but we get action sets for lower pri
+                                    // groups, then keep track of them and add them in later when we get to that group.
+                                    lowPrioritySets.Add(set);
+                                }
+                                else
+                                {
+                                    currentActionCount += set.Actions.Count();
+                                    collector.Add(set);
+                                }
+                            }
+
+                            if (priority == CodeActionRequestPriority.Normal)
+                            {
+                                // now, add any low pri items we've been waiting on to the final group.
+                                foreach (var set in lowPrioritySets)
+                                {
+                                    currentActionCount += set.Actions.Count();
+                                    collector.Add(set);
+                                }
                             }
                         }
 
@@ -143,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
-                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -151,12 +162,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
+                var options = GlobalOptions.GetCodeActionOptionsProvider();
+
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, includeSuppressionFixes, priority, isBlocking: false, cancellationToken);
+                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
-                    addOperationScope, priority, isBlocking: false, cancellationToken);
+                    addOperationScope, priority, options, isBlocking: false, cancellationToken);
 
                 await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
 

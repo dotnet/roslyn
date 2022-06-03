@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool hasAnyDiagnostics;
-            (attributeData, boundAttribute) = arguments.Binder.GetAttribute(syntax, type, out hasAnyDiagnostics);
+            (attributeData, boundAttribute) = arguments.Binder.GetAttribute(syntax, type, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
             if (!attributeData.HasErrors)
             {
                 obsoleteData = attributeData.DecodeObsoleteAttribute(kind);
@@ -209,7 +209,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this (base) method.
         /// </para>
         /// </remarks>
-        internal virtual void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+#nullable enable
+        protected void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.Diagnostics.DiagnosticBag is not null);
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+            if (arguments.Attribute.IsTargetAttribute(this, AttributeDescription.CompilerFeatureRequiredAttribute))
+            {
+                // Do not use '{FullName}'. This is reserved for compiler usage.
+                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.CompilerFeatureRequiredAttribute.FullName);
+                return;
+            }
+
+            DecodeWellKnownAttributeImpl(ref arguments);
+        }
+#nullable disable
+
+        protected virtual void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
         }
 
@@ -267,6 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="earlyDecodingOnly">Indicates that only early decoding should be performed.  WARNING: the resulting bag will not be sealed.</param>
         /// <param name="binderOpt">Binder to use. If null, <see cref="DeclaringCompilation"/> GetBinderFactory will be used.</param>
         /// <param name="attributeMatchesOpt">If specified, only load attributes that match this predicate, and any diagnostics produced will be dropped.</param>
+        /// <param name="beforeAttributePartBound">If specified, invoked before any part of the attribute syntax is bound.</param>
+        /// <param name="afterAttributePartBound">If specified, invoked after any part of the attribute syntax is bound.</param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
@@ -274,7 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
             Binder? binderOpt = null,
-            Func<AttributeSyntax, bool>? attributeMatchesOpt = null)
+            Func<AttributeSyntax, bool>? attributeMatchesOpt = null,
+            Action<AttributeSyntax>? beforeAttributePartBound = null,
+            Action<AttributeSyntax>? afterAttributePartBound = null)
         {
             var diagnostics = BindingDiagnosticBag.GetInstance();
             Debug.Assert(diagnostics.DiagnosticBag is not null);
@@ -303,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Bind the attribute types and then early decode them.
                 var attributeTypesBuilder = new NamedTypeSymbol[totalAttributesCount];
 
-                Binder.BindAttributeTypes(binders, attributesToBind, this, attributeTypesBuilder, diagnostics);
+                Binder.BindAttributeTypes(binders, attributesToBind, this, attributeTypesBuilder, beforeAttributePartBound, afterAttributePartBound, diagnostics);
 
                 bool interestedInDiagnostics = !earlyDecodingOnly && attributeMatchesOpt is null;
                 if (interestedInDiagnostics)
@@ -341,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Bind attributes.
-                Binder.GetAttributes(binders, attributesToBind, boundAttributeTypes, attributeDataArray, boundAttributeArray, diagnostics);
+                Binder.GetAttributes(binders, attributesToBind, boundAttributeTypes, attributeDataArray, boundAttributeArray, beforeAttributePartBound, afterAttributePartBound, diagnostics);
                 boundAttributes = attributeDataArray.AsImmutableOrNull();
 
                 // All attributes must be bound by now.
@@ -650,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This method validates attribute usage for each bound attribute and calls <see cref="DecodeWellKnownAttribute"/>
+        /// This method validates attribute usage for each bound attribute and calls <see cref="DecodeWellKnownAttributeImpl"/>
         /// on attributes with valid attribute usage.
         /// This method is called by the binder when it is finished binding a set of attributes on the symbol so that
         /// the symbol can extract data from the attribute arguments and potentially perform validation specific to

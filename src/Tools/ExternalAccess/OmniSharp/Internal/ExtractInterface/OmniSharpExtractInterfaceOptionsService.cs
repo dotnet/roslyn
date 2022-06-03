@@ -6,12 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterface
 {
@@ -28,7 +34,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterf
             _omniSharpExtractInterfaceOptionsService = omniSharpExtractInterfaceOptionsService;
         }
 
-        public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(ISyntaxFactsService syntaxFactsService, INotificationService notificationService, List<ISymbol> extractableMembers, string defaultInterfaceName, List<string> conflictingTypeNames, string defaultNamespace, string generatedNameTypeParameterSuffix, string languageName)
+        public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+            ISyntaxFactsService syntaxFactsService,
+            INotificationService notificationService,
+            List<ISymbol> extractableMembers,
+            string defaultInterfaceName,
+            List<string> conflictingTypeNames,
+            string defaultNamespace,
+            string generatedNameTypeParameterSuffix,
+            string languageName,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             var result = await _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptionsAsync(extractableMembers, defaultInterfaceName).ConfigureAwait(false);
             return new(
@@ -36,7 +52,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterf
                 result.IncludedMembers,
                 result.InterfaceName,
                 result.FileName,
-                (ExtractInterfaceOptionsResult.ExtractLocation)result.Location);
+                (ExtractInterfaceOptionsResult.ExtractLocation)result.Location,
+                fallbackOptions);
         }
     }
 }

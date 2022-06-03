@@ -11,23 +11,10 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
-    internal class SplitStringLiteralOptions
+    internal sealed class SplitStringLiteralOptions
     {
         public static PerLanguageOption2<bool> Enabled =
             new(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
-    }
-
-    [ExportOptionProvider(LanguageNames.CSharp), Shared]
-    internal class SplitStringLiteralOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SplitStringLiteralOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SplitStringLiteralOptions.Enabled);
     }
 }

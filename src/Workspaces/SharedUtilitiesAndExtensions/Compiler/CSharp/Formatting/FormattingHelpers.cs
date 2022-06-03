@@ -48,17 +48,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode? node)
             => node.GetBraces();
 
-        public static bool IsValidBracePair(this (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
+        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBracketPair(this SyntaxNode? node)
+            => node.GetBrackets();
+
+        public static bool IsValidBracketOrBracePair(this (SyntaxToken openBracketOrBrace, SyntaxToken closeBracketOrBrace) bracketOrBracePair)
         {
-            if (bracePair.openBrace.IsKind(SyntaxKind.None) ||
-                bracePair.openBrace.IsMissing ||
-                bracePair.closeBrace.IsKind(SyntaxKind.None))
+            if (bracketOrBracePair.openBracketOrBrace.IsKind(SyntaxKind.None) ||
+                bracketOrBracePair.openBracketOrBrace.IsMissing ||
+                bracketOrBracePair.closeBracketOrBrace.IsKind(SyntaxKind.None))
             {
                 return false;
             }
 
-            // don't check whether token is actually braces as long as it is not none.
-            return true;
+            if (bracketOrBracePair.openBracketOrBrace.IsKind(SyntaxKind.OpenBraceToken))
+            {
+                return bracketOrBracePair.closeBracketOrBrace.IsKind(SyntaxKind.CloseBraceToken);
+            }
+
+            if (bracketOrBracePair.openBracketOrBrace.IsKind(SyntaxKind.OpenBracketToken))
+            {
+                return bracketOrBracePair.closeBracketOrBrace.IsKind(SyntaxKind.CloseBracketToken);
+            }
+
+            return false;
         }
 
         public static bool IsOpenParenInParameterListOfAConversionOperatorDeclaration(this SyntaxToken token)
@@ -387,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                if (parent is ObjectCreationExpressionSyntax)
+                if (parent is BaseObjectCreationExpressionSyntax)
                 {
                     if (initializer.Expressions.Count <= 0)
                     {
@@ -426,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                if (parent is ObjectCreationExpressionSyntax)
+                if (parent is BaseObjectCreationExpressionSyntax)
                 {
                     return !IsInitializerForObjectOrAnonymousObjectCreationExpression(initializer);
                 }
@@ -439,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (parent is ArrayCreationExpressionSyntax ||
                     parent is ImplicitArrayCreationExpressionSyntax ||
                     parent is EqualsValueClauseSyntax ||
-                    parent is ObjectCreationExpressionSyntax ||
+                    parent is BaseObjectCreationExpressionSyntax ||
                     parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     return true;

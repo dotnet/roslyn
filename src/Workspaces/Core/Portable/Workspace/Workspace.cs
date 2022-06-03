@@ -10,12 +10,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -91,12 +91,10 @@ namespace Microsoft.CodeAnalysis
                 _optionService, ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
-
-            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create());
         }
 
-        internal void LogTestMessage(string message)
-            => _testMessageLogger?.Invoke(message);
+        internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
+            => _testMessageLogger?.Invoke(messageFactory(state));
 
         /// <summary>
         /// Sets an internal logger that will receive some messages.
@@ -1192,7 +1190,18 @@ namespace Microsoft.CodeAnalysis
                 // If the workspace has already accepted an update, then fail
                 if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
                 {
-                    Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: Workspace has already been updated");
+                    Logger.Log(
+                        FunctionId.Workspace_ApplyChanges,
+                        static (oldSolution, newSolution) =>
+                        {
+                            // 'oldSolution' is the current workspace solution; if we reach this point we know
+                            // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
+                            var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
+                            var newWorkspaceVersion = newSolution.WorkspaceVersion;
+                            return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                        },
+                        oldSolution,
+                        newSolution);
                     return false;
                 }
 

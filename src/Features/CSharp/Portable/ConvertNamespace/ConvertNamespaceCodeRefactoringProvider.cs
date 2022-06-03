@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -44,16 +45,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (!IsValidPosition(namespaceDecl, position))
                 return;
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+
             var info =
-                CanOfferUseBlockScoped(optionSet, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
-                CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
+                CanOfferUseBlockScoped(options.NamespaceDeclarations, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
+                CanOfferUseFileScoped(options.NamespaceDeclarations, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
                 ((string title, string equivalenceKey)?)null;
             if (info == null)
                 return;
 
-            context.RegisterRefactoring(new MyCodeAction(
-                info.Value.title, c => ConvertAsync(document, namespaceDecl, c), info.Value.equivalenceKey));
+            context.RegisterRefactoring(CodeAction.Create(
+                info.Value.title, c => ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), c), info.Value.equivalenceKey));
         }
 
         private static bool IsValidPosition(BaseNamespaceDeclarationSyntax baseDeclaration, int position)
@@ -68,14 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return position <= namespaceDeclaration.Name.Span.End;
 
             throw ExceptionUtilities.UnexpectedValue(baseDeclaration.Kind());
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

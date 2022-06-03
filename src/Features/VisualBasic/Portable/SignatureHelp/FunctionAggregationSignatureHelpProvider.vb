@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = ")"c
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim functionAggregation As FunctionAggregationSyntax = Nothing
             If TryGetFunctionAggregation(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, functionAggregation) AndAlso
                 functionAggregation.SpanStart = currentSpan.Start Then
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 functionAggregation)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim functionAggregation As FunctionAggregationSyntax = Nothing
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim accessibleMethods = methods.WhereAsArray(Function(m) m.IsAccessibleWithin(within)).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                             Sort(semanticModel, functionAggregation.SpanStart)
 
             If Not accessibleMethods.Any() Then

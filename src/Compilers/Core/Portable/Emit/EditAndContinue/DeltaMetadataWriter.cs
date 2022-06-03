@@ -217,7 +217,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
-                synthesizedDelegates: ((IPEDeltaAssemblyBuilder)module).GetSynthesizedDelegates(),
+                anonymousDelegates: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegates(),
+                anonymousDelegatesWithFixedTypes: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegatesWithFixedTypes(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
                 debugInformationProvider: _previousGeneration.DebugInformationProvider,
@@ -758,7 +759,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 body.ClosureDebugInfo,
                 body.StateMachineTypeName,
                 body.StateMachineHoistedLocalSlots,
-                body.StateMachineAwaiterSlots);
+                body.StateMachineAwaiterSlots,
+                body.StateMachineStatesDebugInfo);
 
             _addedOrChangedMethods.Add(body.MethodDefinition, info);
 

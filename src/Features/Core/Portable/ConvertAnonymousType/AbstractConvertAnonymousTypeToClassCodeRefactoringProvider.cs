@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -61,19 +62,23 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.SupportsRecord(anonymousObject.SyntaxTree.Options))
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    FeaturesResources.Convert_to_record,
-                    c => ConvertAsync(document, textSpan, isRecord: true, c)),
+                context.RegisterRefactoring(
+                    CodeAction.Create(
+                        FeaturesResources.Convert_to_record,
+                        c => ConvertAsync(document, textSpan, context.Options, isRecord: true, c),
+                        nameof(FeaturesResources.Convert_to_record)),
                     anonymousObject.Span);
             }
 
-            context.RegisterRefactoring(new MyCodeAction(
+            context.RegisterRefactoring(
+                CodeAction.Create(
                     FeaturesResources.Convert_to_class,
-                c => ConvertAsync(document, textSpan, isRecord: false, c)),
+                    c => ConvertAsync(document, textSpan, context.Options, isRecord: false, c),
+                    nameof(FeaturesResources.Convert_to_class)),
                 anonymousObject.Span);
         }
 
-        private async Task<Document> ConvertAsync(Document document, TextSpan span, bool isRecord, CancellationToken cancellationToken)
+        private async Task<Document> ConvertAsync(Document document, TextSpan span, CodeActionOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
         {
             var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
 
@@ -81,7 +86,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             Debug.Assert(anonymousType != null);
 
             var position = span.Start;
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -122,21 +126,20 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 containingMember, anonymousObject,
                 anonymousType, cancellationToken).ConfigureAwait(false);
 
+            var context = new CodeGenerationContext(
+                generateMembers: true,
+                sortMembers: false,
+                autoInsertionLocation: false);
+
+            var codeGenOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+            var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
+
             // Then, actually insert the new class in the appropriate container.
             var container = anonymousObject.GetAncestor<TNamespaceDeclarationSyntax>() ?? root;
             editor.ReplaceNode(container, (currentContainer, _) =>
-            {
-                var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-                var codeGenOptions = new CodeGenerationOptions(
-                    generateMembers: true,
-                    sortMembers: false,
-                    autoInsertionLocation: false,
-                    options: options,
-                    parseOptions: root.SyntaxTree.Options);
-
-                return codeGenService.AddNamedType(
-                    currentContainer, namedTypeSymbol, codeGenOptions, cancellationToken);
-            });
+                codeGenService.AddNamedType(currentContainer, namedTypeSymbol, codeGenOptions.GetInfo(context, document.Project), cancellationToken));
 
             var updatedDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
 
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             // follow any special formatting rules specific to them.
             var equalsAndGetHashCodeService = document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
             return await equalsAndGetHashCodeService.FormatDocumentAsync(
-                updatedDocument, cancellationToken).ConfigureAwait(false);
+                updatedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ReplacePropertyReferencesAsync(
@@ -400,14 +403,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 className, parameters, assignmentStatements);
 
             return constructor;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

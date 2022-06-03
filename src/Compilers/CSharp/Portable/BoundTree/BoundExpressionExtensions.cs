@@ -111,13 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static FunctionTypeSymbol? GetFunctionType(this BoundExpression expr)
         {
-            var lazyType = expr switch
+            return expr switch
             {
                 BoundMethodGroup methodGroup => methodGroup.FunctionType,
                 UnboundLambda unboundLambda => unboundLambda.FunctionType,
                 _ => null
             };
-            return lazyType?.GetValue();
         }
 
         public static bool MethodGroupReceiverIsDynamic(this BoundMethodGroup node)

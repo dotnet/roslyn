@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Null if no specific marshalling information is available for the parameter.
         /// </summary>
         /// <remarks>PE symbols don't provide this information and always return null.</remarks>
-        internal abstract MarshalPseudoCustomAttributeData MarshallingInformation { get; }
+        internal abstract MarshalPseudoCustomAttributeData? MarshallingInformation { get; }
 
         /// <summary>
         /// Returns the marshalling type of this parameter, or 0 if marshalling information isn't available.
@@ -190,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// 
         /// The default value can be obtained with <see cref="ExplicitDefaultValue"/> property.
         /// </remarks>
+        [MemberNotNullWhen(true, nameof(ExplicitDefaultConstantValue))]
         public bool HasExplicitDefaultValue
         {
             get
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         /// <exception cref="InvalidOperationException">The parameter has no default value.</exception>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public object ExplicitDefaultValue
+        public object? ExplicitDefaultValue
         {
             get
             {
@@ -232,7 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable enable
         /// <summary>
         /// Returns the default value constant of the parameter, 
         /// or null if the parameter doesn't have a default value or 
@@ -245,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (i.e. even non-optional parameters can have default values).
         /// </remarks>
         internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
-#nullable disable
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -380,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -417,21 +415,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
-        protected sealed override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BogusType;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
-        public sealed override bool HasUnsupportedMetadata
+        public override bool HasUnsupportedMetadata
         {
             get
             {
                 UseSiteInfo<AssemblySymbol> info = default;
                 DeriveUseSiteInfoFromParameter(ref info, this);
-                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
+                return info.DiagnosticInfo?.Code is (int)ErrorCode.ERR_BogusType or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 

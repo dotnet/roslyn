@@ -4,6 +4,8 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
+Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Remote.Testing
@@ -50,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspaceXml As XElement,
                 renameTo As String,
                 host As RenameTestHost,
-                Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
+                Optional renameOptions As SymbolRenameOptions = Nothing,
                 Optional expectFailure As Boolean = False,
                 Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
 
@@ -67,6 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
             End If
 
+            Dim success = False
             Dim engineResult As RenameEngineResult = Nothing
             Try
                 If workspace.Documents.Where(Function(d) d.CursorPosition.HasValue).Count <> 1 Then
@@ -83,15 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
                 End If
 
-                Dim optionSet = workspace.Options
-
-                If changedOptionSet IsNot Nothing Then
-                    For Each entry In changedOptionSet
-                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
-                    Next
-                End If
-
-                Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, optionSet, host)
+                Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, renameOptions, host)
 
                 If expectFailure Then
                     Assert.NotNull(result.ErrorMessage)
@@ -102,15 +97,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
-            Catch
-                ' Something blew up, so we still own the test workspace
-                If engineResult IsNot Nothing Then
-                    engineResult.Dispose()
-                Else
-                    workspace.Dispose()
+                success = True
+            Finally
+                If Not success Then
+                    ' Something blew up, so we still own the test workspace
+                    If engineResult IsNot Nothing Then
+                        engineResult.Dispose()
+                    Else
+                        workspace.Dispose()
+                    End If
                 End If
-
-                Throw
             End Try
 
             Return engineResult
@@ -120,17 +116,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 renameTo As String,
                 solution As Solution,
                 symbol As ISymbol,
-                optionSet As OptionSet,
+                renameOptions As SymbolRenameOptions,
                 host As RenameTestHost) As ConflictResolution
-
-            Dim renameOptions = RenameOptionSet.From(solution, optionSet)
 
             If host = RenameTestHost.OutOfProcess_SplitCall Then
                 ' This tests that each portion of rename can properly marshal to/from the OOP process. It validates
                 ' features that need to call each part independently and operate on the intermediary values.
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameOptions, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
 
                 Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
             Else
@@ -138,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolAsync(
-                    solution, symbol, renameTo, renameOptions,
+                    solution, symbol, renameTo, renameOptions, CodeActionOptions.DefaultProvider,
                     nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!this.isFirstSymbolVisited)
                 {
-                    AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
+                    AddCustomModifiersIfNeeded(arrayType.CustomModifiers, leadingSpace: true);
                 }
 
                 AddArrayRank(arrayType);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.isFirstSymbolVisited)
             {
-                AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true);
+                AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true);
             }
             AddPunctuation(SyntaxKind.AsteriskToken);
         }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.isFirstSymbolVisited)
             {
-                AddTypeParameterVarianceIfRequired(symbol);
+                AddTypeParameterVarianceIfNeeded(symbol);
             }
 
             //variance and constraints are handled by methods and named types
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         typeArg.Accept(this.NotFirstVisitor);
-                        AddCustomModifiersIfRequired(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfNeeded(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
 
                         AddPunctuation(SyntaxKind.QuestionToken);
 
@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var invokeMethod = symbol.DelegateInvokeMethod;
                     if (invokeMethod.ReturnsByRef)
                     {
-                        AddRefIfRequired();
+                        AddRefIfNeeded();
                     }
                     else if (invokeMethod.ReturnsByRefReadonly)
                     {
-                        AddRefReadonlyIfRequired();
+                        AddRefReadonlyIfNeeded();
                     }
 
                     if (invokeMethod.ReturnsVoid)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddNameAndTypeArgumentsOrParameters(INamedTypeSymbol symbol)
         {
-            if (symbol.IsAnonymousType)
+            if (symbol.IsAnonymousType && symbol.TypeKind != TypeKind.Delegate)
             {
                 AddAnonymousTypeName(symbol);
                 return;
@@ -335,14 +335,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (symbolName is null && symbol.IsAnonymousType && symbol.TypeKind == TypeKind.Delegate)
+            {
+                symbolName = "<anonymous delegate>";
+            }
+
             var partKind = GetPartKind(symbol);
 
             symbolName ??= symbol.Name;
-
-            var renderSimpleAnonymousDelegate =
-                symbol.TypeKind == TypeKind.Delegate &&
-                !symbol.CanBeReferencedByName &&
-                !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
 
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
                 partKind == SymbolDisplayPartKind.ErrorTypeName &&
@@ -350,13 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(CreatePart(partKind, symbol, "?"));
             }
-            else if (renderSimpleAnonymousDelegate)
-            {
-                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.DelegateName, null, "<anonymous delegate>"));
-            }
             else
             {
-                symbolName = RemoveAttributeSufficeIfNecessary(symbol, symbolName);
+                symbolName = RemoveAttributeSuffixIfNecessary(symbol, symbolName);
                 builder.Add(CreatePart(partKind, symbol, symbolName));
             }
 
@@ -370,9 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MetadataHelpers.GetAritySuffix(symbol.Arity)));
                 }
             }
-            else if (!renderSimpleAnonymousDelegate &&
-                     symbol.Arity > 0 &&
-                     format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
+            else if (symbol.Arity > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
                 // It would be nice to handle VB symbols too, but it's not worth the effort.
                 if (underlyingTypeSymbol is UnsupportedMetadataTypeSymbol || underlyingTypeSymbol is MissingMetadataTypeSymbol || symbol.IsUnboundGenericType)
@@ -432,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var method = symbol.DelegateInvokeMethod;
                     AddPunctuation(SyntaxKind.OpenParenToken);
-                    AddParametersIfRequired(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
+                    AddParametersIfNeeded(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
                     AddPunctuation(SyntaxKind.CloseParenToken);
                 }
             }
@@ -660,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isFirstSymbolVisited && format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeTypeKeyword))
             {
-                if (symbol.IsAnonymousType)
+                if (symbol.IsAnonymousType && symbol.TypeKind != TypeKind.Delegate)
                 {
                     builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "AnonymousType"));
                     AddSpace();
@@ -737,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddTypeParameterVarianceIfRequired(ITypeParameterSymbol symbol)
+        private void AddTypeParameterVarianceIfNeeded(ITypeParameterSymbol symbol)
         {
             if (format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeVariance))
             {
@@ -791,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeParam = (ITypeParameterSymbol)typeArg;
 
-                        AddTypeParameterVarianceIfRequired(typeParam);
+                        AddTypeParameterVarianceIfNeeded(typeParam);
 
                         visitor = this.NotFirstVisitor;
                     }
@@ -804,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!modifiers.IsDefault)
                     {
-                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfNeeded(modifiers[i], leadingSpace: true, trailingSpace: false);
                     }
                 }
 

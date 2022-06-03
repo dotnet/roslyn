@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 
         public override string Name => Value;
         public override string DisplayName => ServicesVSResources.Value;
-        public override double MinWidth => 120;
+        public override double MinWidth => 160;
         public override bool DefaultVisible => false;
         public override bool IsFilterable => false;
         public override bool IsSortable => false;
@@ -39,7 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
                 return false;
             }
 
-            var control = new CodeStyleValueControl(severity);
+            var viewModel = new CodeStyleValueViewModel(severity);
+            var control = new CodeStyleValueControl(viewModel);
             content = control;
             return true;
         }

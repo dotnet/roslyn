@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
@@ -59,6 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
                 case SyntaxKind.IndexerDeclaration:
                     return ((IndexerDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.OperatorDeclaration:
+                    return ((OperatorDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return ((ConversionOperatorDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
 
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)declaration;

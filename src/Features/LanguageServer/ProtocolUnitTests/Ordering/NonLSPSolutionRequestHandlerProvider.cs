@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,27 +15,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(NonLSPSolutionRequestHandler.MethodName)]
-    internal class NonLSPSolutionRequestHandlerProvider : AbstractRequestHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NonLSPSolutionRequestHandlerProvider()
-        {
-        }
-
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
-        {
-            return ImmutableArray.Create<IRequestHandler>(new NonLSPSolutionRequestHandler());
-        }
-    }
-
+    [ExportCSharpVisualBasicStatelessLspService(typeof(NonLSPSolutionRequestHandler)), PartNotDiscoverable, Shared]
+    [Method(MethodName)]
     internal class NonLSPSolutionRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(NonLSPSolutionRequestHandler);
 
-        public string Method => MethodName;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NonLSPSolutionRequestHandler()
+        {
+        }
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => false;

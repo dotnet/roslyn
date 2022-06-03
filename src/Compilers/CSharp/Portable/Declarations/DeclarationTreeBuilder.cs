@@ -750,6 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
+            bool anyRequiredMembers = false;
 
             var memberNameBuilder = s_memberNameBuilderPool.Allocate();
 
@@ -769,6 +770,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     anyMemberHasAttributes = true;
                 }
+
+                if (!anyRequiredMembers && checkPropertyOrFieldMemberForRequiredModifier(member))
+                {
+                    anyRequiredMembers = true;
+                }
             }
 
             if (anyMethodHadExtensionSyntax)
@@ -786,7 +792,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
+            if (anyRequiredMembers)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasRequiredMembers;
+            }
+
             return ToImmutableAndFree(memberNameBuilder);
+
+            static bool checkPropertyOrFieldMemberForRequiredModifier(Syntax.InternalSyntax.CSharpSyntaxNode member)
+            {
+                var modifiers = member switch
+                {
+                    Syntax.InternalSyntax.FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers,
+                    Syntax.InternalSyntax.PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers,
+                    _ => default
+                };
+
+                return modifiers.Any((int)SyntaxKind.RequiredKeyword);
+            }
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)

@@ -5,17 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
-using Microsoft.CodeAnalysis.Notification;
-using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API. Initializes ServiceHub process global state.
         /// </summary>
-        public ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, CancellationToken cancellationToken)
+        public ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, bool logDelta, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
@@ -55,12 +58,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 // adds property to each event reported from this session
                 telemetrySession.SetSharedProperty("VS.Core.Version", Environment.GetEnvironmentVariable("VisualStudioVersion"));
 
-                telemetryService.InitializeTelemetrySession(telemetrySession);
+                telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
                 telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
-                WatsonReporter.InitializeFatalErrorHandlers();
+                FaultReporter.InitializeFatalErrorHandlers();
 
                 // log telemetry that service hub started
-                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m => m["Host"] = hostProcessId));
+                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
+                {
+                    m["Host"] = hostProcessId;
+                    m["Framework"] = RuntimeInformation.FrameworkDescription;
+                }));
 
 #if DEBUG
                 // start performance reporter
@@ -103,6 +110,20 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
             }
+        }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask InitializeWorkspaceConfigurationOptionsAsync(WorkspaceConfigurationOptions options, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
+                service.InitializeOptions(options);
+
+                return ValueTaskFactory.CompletedTask;
+            }, cancellationToken);
         }
     }
 }

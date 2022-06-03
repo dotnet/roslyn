@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
 
- _
+                       _
         ' test
         Console.WriteLine("")";
 
@@ -398,9 +398,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Console.WriteLine() _
- _
+                            _
         ' test
- _
+        _
         Console.WriteLine()";
 
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Dim i = _
- _
+                _
                 1 +
                 2";
 
@@ -811,7 +811,7 @@ End Module|]";
 
             var expected = @"Module Program
     Sub Main(
- _
+             _
         args _
         As String)
     End Sub
@@ -1475,7 +1475,7 @@ End Class";
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic, langVersion);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation or PredefinedCodeCleanupProviderNames.Format);
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], CodeCleanupOptions.GetDefault(document.Project.LanguageServices), codeCleanups);
 
             var actualResult = (await cleanDocument.GetSyntaxRootAsync()).ToFullString();
             Assert.Equal(expectedResult, actualResult);

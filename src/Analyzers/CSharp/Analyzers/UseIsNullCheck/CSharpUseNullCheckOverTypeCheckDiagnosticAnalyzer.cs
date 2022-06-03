@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -31,19 +32,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp9)
-                {
+                var compilation = context.Compilation;
+                if (compilation.LanguageVersion() < LanguageVersion.CSharp9)
                     return;
-                }
 
-                context.RegisterOperationAction(c => AnalyzeIsTypeOperation(c), OperationKind.IsType);
+                var expressionType = compilation.ExpressionOfTType();
+                context.RegisterOperationAction(c => AnalyzeIsTypeOperation(c, expressionType), OperationKind.IsType);
                 context.RegisterOperationAction(c => AnalyzeNegatedPatternOperation(c), OperationKind.NegatedPattern);
             });
         }
 
         private static bool ShouldAnalyze(OperationAnalysisContext context, out ReportDiagnostic severity)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, context.Operation.Syntax.SyntaxTree, context.CancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferNullCheckOverTypeCheck;
             if (!option.Value)
             {
                 severity = ReportDiagnostic.Default;
@@ -81,15 +82,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
         }
 
-        private void AnalyzeIsTypeOperation(OperationAnalysisContext context)
+        private void AnalyzeIsTypeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
         {
-            if (!ShouldAnalyze(context, out var severity) ||
-                context.Operation.Syntax is not BinaryExpressionSyntax)
-            {
-                return;
-            }
+            var operation = context.Operation;
+            var syntax = operation.Syntax;
 
-            var isTypeOperation = (IIsTypeOperation)context.Operation;
+            if (!ShouldAnalyze(context, out var severity) || syntax is not BinaryExpressionSyntax)
+                return;
+
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, syntax, expressionType, context.CancellationToken))
+                return;
+
+            var isTypeOperation = (IIsTypeOperation)operation;
+
             // Matches 'x is MyType'
             // isTypeOperation.TypeOperand is 'MyType'
             // isTypeOperation.ValueOperand.Type is the type of 'x'.
@@ -100,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             {
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
-                        Descriptor, context.Operation.Syntax.GetLocation(), severity, additionalLocations: null, properties: null));
+                        Descriptor, syntax.GetLocation(), severity, additionalLocations: null, properties: null));
             }
         }
     }

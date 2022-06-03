@@ -152,6 +152,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention,
         System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses,
         System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces,
+        System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr,
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
 

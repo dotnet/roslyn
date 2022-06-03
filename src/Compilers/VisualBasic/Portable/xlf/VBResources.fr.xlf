@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="new">A shared abstract interface member cannot be accessed.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="needs-review-translation">Impossible d’accéder à un membre d’interface abstract partagé.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Impossible d'incorporer le type '{0}', car il a un membre non abstrait. Affectez la valeur false à la propriété 'Incorporer les types interop'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="new">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="needs-review-translation">{0} ' {1} 'ne peut pas implémenter l’interface' {3} ', car il contient un abstract partagé' {2} '.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">L'attribut 'UnmanagedCallersOnly' n'est pas pris en charge.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -520,7 +530,7 @@
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre « {0} » n’aura aucun effet. Il est appliqué avec un nom de paramètre non valide.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
@@ -3992,7 +4002,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">]]&gt;' fermant attendu pour une section CDATA XML.</target>
+        <target state="translated">']]&gt;' fermant attendu pour une section CDATA XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -4007,7 +4017,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">&lt;' ouvrant attendu pour une balise XML.</target>
+        <target state="translated">'&lt;' ouvrant attendu pour une balise XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">

@@ -13,17 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
 
-        Private Shared Function GetNormalTypeConstructors(document As Document,
-                                                   objectCreationExpression As ObjectCreationExpressionSyntax,
-                                                   semanticModel As SemanticModel,
-                                                   structuralTypeDisplayService As IStructuralTypeDisplayService,
-                                                   normalType As INamedTypeSymbol,
-                                                   within As ISymbol,
-                                                   cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
+        Private Shared Function GetNormalTypeConstructors(
+            document As Document,
+            objectCreationExpression As ObjectCreationExpressionSyntax,
+            semanticModel As SemanticModel,
+            structuralTypeDisplayService As IStructuralTypeDisplayService,
+            normalType As INamedTypeSymbol,
+            within As ISymbol,
+            options As SignatureHelpOptions, cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
 
             Dim accessibleConstructors = normalType.InstanceConstructors.
                                                     WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
-                                                    FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                                    FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                                     Sort(semanticModel, objectCreationExpression.SpanStart)
 
             If Not accessibleConstructors.Any() Then

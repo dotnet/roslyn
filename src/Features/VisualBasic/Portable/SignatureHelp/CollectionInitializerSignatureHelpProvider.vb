@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return expression.Span.Contains(token.SpanStart) AndAlso token <> expression.CloseBraceToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim collectionInitializer As CollectionInitializerSyntax = Nothing
             If Not TryGetInitializerExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService)(), triggerInfo.TriggerReason, cancellationToken, collectionInitializer) Then
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim addMethods = Await CommonSignatureHelpUtilities.GetCollectionInitializerAddMethodsAsync(
-                document, collectionInitializer.Parent, cancellationToken).ConfigureAwait(False)
+                document, collectionInitializer.Parent, options, cancellationToken).ConfigureAwait(False)
             If addMethods.IsDefaultOrEmpty Then
                 Return Nothing
             End If
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim expression As CollectionInitializerSyntax = Nothing
             If TryGetInitializerExpression(
                         root,

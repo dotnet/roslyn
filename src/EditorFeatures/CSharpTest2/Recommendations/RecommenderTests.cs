@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions options = null, int? matchPriority = null)
         {
-            MarkupTestFile.GetPosition(markup, out var code, out int position);
+            Testing.TestFileMarkupParser.GetPosition(markup, out var code, out var position);
             await VerifyAtPositionAsync(code, position, absent, options: options, matchPriority: matchPriority);
             await VerifyInFrontOfCommentAsync(code, position, absent, options: options, matchPriority: matchPriority);
             await VerifyAtEndOfFileAsync(code, position, absent, options: options, matchPriority: matchPriority);
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             builder.AppendLine("  {");
             builder.Append("    ").Append(text);
             builder.AppendLine("  }");
-            builder.Append("}");
+            builder.Append('}');
 
             return builder.ToString();
         }

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
     {
-        private static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
+        protected static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
@@ -30,18 +31,19 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, InlineTypeHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            // TODO: https://github.com/dotnet/roslyn/issues/57283
+            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
 
-            var displayAllOverride = options.GetOption(InlineHintsOptions.DisplayAllOverride);
-            var enabledForTypes = options.GetOption(InlineHintsOptions.EnabledForTypes);
+            var enabledForTypes = options.EnabledForTypes;
             if (!enabledForTypes && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
-            var forImplicitVariableTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
-            var forLambdaParameterTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
-            var forImplicitObjectCreation = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitObjectCreation);
+            var forImplicitVariableTypes = enabledForTypes && options.ForImplicitVariableTypes;
+            var forLambdaParameterTypes = enabledForTypes && options.ForLambdaParameterTypes;
+            var forImplicitObjectCreation = enabledForTypes && options.ForImplicitObjectCreation;
             if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 if (hintOpt == null)
                     continue;
 
-                var (type, span, prefix, suffix) = hintOpt.Value;
+                var (type, span, textChange, prefix, suffix) = hintOpt.Value;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
                 finalParts.AddRange(prefix);
@@ -76,10 +78,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     continue;
 
                 finalParts.AddRange(suffix);
+                var taggedText = finalParts.ToTaggedText();
 
                 result.Add(new InlineHint(
-                    span, finalParts.ToTaggedText(),
-                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken))));
+                    span, taggedText, textChange,
+                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
             }
 
             return result.ToImmutable();

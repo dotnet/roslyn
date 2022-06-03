@@ -5,7 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
@@ -16,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public _triedSymbolNavigationNotify As Boolean
         Public _wouldNavigateToSymbol As Boolean
 
-        Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
+        Public Function GetNavigableLocationAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements ISymbolNavigationService.GetNavigableLocationAsync
             _triedNavigationToSymbol = True
-            Return True
+            Return NavigableLocation.TestAccessor.Create(True)
         End Function
 
         Public Function TrySymbolNavigationNotifyAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TrySymbolNavigationNotifyAsync
@@ -26,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Return SpecializedTasks.True
         End Function
 
-        Public Function WouldNavigateToSymbolAsync(definitionItem As DefinitionItem, cancellationToken As CancellationToken) As Task(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?) Implements ISymbolNavigationService.WouldNavigateToSymbolAsync
+        Public Function GetExternalNavigationSymbolLocationAsync(definitionItem As DefinitionItem, cancellationToken As CancellationToken) As Task(Of (filePath As String, linePosition As LinePosition)?) Implements ISymbolNavigationService.GetExternalNavigationSymbolLocationAsync
             _wouldNavigateToSymbol = True
-            Return Task.FromResult(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?)(Nothing)
+            Return Task.FromResult(Of (filePath As String, linePosition As LinePosition)?)(Nothing)
         End Function
     End Class
 End Namespace
