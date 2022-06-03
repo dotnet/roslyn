@@ -103,7 +103,7 @@ class Hello
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
 
             bool holdsMutex;
-            using (var mutex = new Mutex(initiallyOwned: true,
+            using (var mutex = BuildServerConnection.OpenOrCreateMutex(
                                          name: mutexName,
                                          createdNew: out holdsMutex))
             {
@@ -119,7 +119,7 @@ class Hello
                 }
                 finally
                 {
-                    mutex.ReleaseMutex();
+                    mutex.Dispose();
                 }
             }
         }

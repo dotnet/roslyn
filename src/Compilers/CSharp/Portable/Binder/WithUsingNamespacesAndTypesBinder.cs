@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             // If we are looking only for labels we do not need to search through the imports.
             if ((options & LookupOptions.LabelsOnly) == 0)
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withImportChainEntry)
                 : base(next, withImportChainEntry)
             {
-                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration);
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
             }

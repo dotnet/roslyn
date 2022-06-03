@@ -271,9 +271,9 @@ class C
                 // error CS1056: Unexpected character '$'
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("$"),
                 // error CS1003: Syntax error, ',' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(","),
                 // error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", "")
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]")
                 );
         }
 
@@ -1870,19 +1870,22 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(1, 21),
                 // (1,21): error CS1514: { expected
                 // class c { int this[ }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 21),
                 // (1,22): error CS1513: } expected
                 // class c { int this[ }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 22),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,19): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -1983,12 +1986,15 @@ class C
                 // (1,21): error CS1056: Unexpected character '$'
                 // class c { int this[ $ ] { } }
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 21),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ $ ] { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,23): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ $ ] { } }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -2067,19 +2073,22 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (1,21): error CS1003: Syntax error, ']' expected
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]", "public").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]").WithLocation(1, 21),
                 // (1,21): error CS1514: { expected
                 // class c { int this[ public void m() { } }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "public").WithLocation(1, 21),
                 // (1,21): error CS1513: } expected
                 // class c { int this[ public void m() { } }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 21),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,19): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -3913,6 +3922,9 @@ class C
                 // (1,31): error CS1026: ) expected
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed(t v;").WithLocation(1, 22),
@@ -4169,7 +4181,7 @@ class C
             Assert.Equal(SyntaxKind.DoStatement, ms.Body.Statements[0].Kind());
             file.Errors().Verify(
                 // error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]").WithLocation(1, 1),
                 // error CS1026: ) expected
                 Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
                 );
@@ -4339,7 +4351,7 @@ class C
             Assert.Equal(SyntaxKind.ForStatement, ms.Body.Statements[0].Kind());
             file.Errors().Verify(
                 // error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]").WithLocation(1, 1),
                 // error CS1026: ) expected
                 Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
                 );
@@ -6252,6 +6264,30 @@ class A
         }
 
         [Fact]
+        public void TestFileScopedNamespaceDeclarationInUsingDirective()
+        {
+            var text = @"using namespace Goo;";
+            var file = this.ParseTree(text);
+
+            Assert.Equal(text, file.ToFullString());
+            file.GetDiagnostics().Verify(
+                // (1,7): error CS1041: Identifier expected; 'namespace' is a keyword
+                // using namespace Goo;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace").WithLocation(1, 7));
+
+            var usings = file.Usings;
+            Assert.Equal(1, usings.Count);
+            Assert.True(usings[0].Name.IsMissing);
+
+            var members = file.Members;
+            Assert.Equal(1, members.Count);
+
+            var namespaceDeclaration = members[0];
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, namespaceDeclaration.Kind());
+            Assert.False(((FileScopedNamespaceDeclarationSyntax)namespaceDeclaration).Name.IsMissing);
+        }
+
+        [Fact]
         public void TestContextualKeywordAsFromVariable()
         {
             var text = @"
@@ -6718,13 +6754,13 @@ _ _::this
             syntaxTree.GetDiagnostics().Verify(
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments("."),
                 // (2,10): error CS1003: Syntax error, '[' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("["),
                 // (2,10): error CS1003: Syntax error, ']' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]"),
                 // (2,10): error CS1514: { expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
@@ -6735,13 +6771,13 @@ _ _::this
             CreateCompilation(text).VerifyDiagnostics(
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::").WithLocation(2, 4),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".").WithLocation(2, 4),
                 // (2,10): error CS1003: Syntax error, '[' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", "").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[").WithLocation(2, 10),
                 // (2,10): error CS1003: Syntax error, ']' expected
                 // _ _::this
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(2, 10),
                 // (2,10): error CS1514: { expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 10),
@@ -6865,6 +6901,10 @@ class C {}");
             AssertEqualRoundtrip(
 @"/// <see cref=""operator}}=""/>
 class C {}");
+
+            AssertEqualRoundtrip(
+@"/// <see cref=""operator}}}=""/>
+class C {}");
         }
 
         private void AssertEqualRoundtrip(string source)
@@ -6896,7 +6936,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "<"),
                 // (4,24): error CS1003: Syntax error, '>' expected
                 //     int I./*missing*/< {
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">", "{"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">"),
                 // (4,25): error CS1513: } expected
                 //     int I./*missing*/< {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
@@ -6927,7 +6967,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "<"),
                 // (4,28): error CS1003: Syntax error, '>' expected
                 //     event D I./*missing*/< {
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">", "{"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">"),
                 // (4,26): error CS7002: Unexpected use of a generic name
                 //     event D I./*missing*/< {
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "<"),
@@ -7054,6 +7094,27 @@ static
             var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
+        }
+
+
+        [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
+        [Fact]
+        public void MissingOpenBraceForClassFileScopedNamespace()
+        {
+            var source = @"namespace n;
+
+class c
+";
+            var root = SyntaxFactory.ParseSyntaxTree(source).GetRoot();
+
+            Assert.Equal(source, root.ToFullString());
+            // Verify incomplete class decls don't eat tokens of surrounding nodes
+            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            Assert.False(classDecl.Identifier.IsMissing);
+            Assert.True(classDecl.OpenBraceToken.IsMissing);
+            Assert.True(classDecl.CloseBraceToken.IsMissing);
+            var ns = root.DescendantNodes().OfType<FileScopedNamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.SemicolonToken.IsMissing);
         }
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]

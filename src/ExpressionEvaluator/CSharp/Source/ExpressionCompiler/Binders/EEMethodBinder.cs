@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal EEMethodBinder(EEMethodSymbol method, MethodSymbol containingMethod, Binder next) : base(next, next.Flags | BinderFlags.InEEMethodBinder)
         {
+            Debug.Assert(method.DeclaringCompilation is not null);
+
             // There are a lot of method symbols floating around and we're doing some subtle things with them.
             //   1) method is the EEMethodSymbol that we're going to synthesize and hand to the debugger to evaluate.
             //   2) containingMethod is the method that we are conceptually in, e.g. the method containing the
@@ -56,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // should be found by WithMethodTypeParametersBinder instead.
                 var parameter = (ParameterSymbol)symbols[i];
                 Debug.Assert(parameter.ContainingSymbol == _sourceBinder.ContainingMemberOrLambda);
-                Debug.Assert(GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.None);
+                Debug.Assert(GeneratedNameParser.GetKind(parameter.Name) == GeneratedNameKind.None);
                 symbols[i] = _targetParameters[parameter.Ordinal + _parameterOffset];
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
             throw new NotImplementedException();
         }

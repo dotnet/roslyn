@@ -4,20 +4,18 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal sealed class UnitTestingHotReloadService
     {
-        private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
+        private sealed class DebuggerService : IManagedHotReloadService
         {
             private readonly ImmutableArray<string> _capabilities;
 
@@ -26,17 +24,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 _capabilities = capabilities;
             }
 
-            public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+            public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
-            public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-                => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
+            public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
-            public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => Task.FromResult(_capabilities);
+            public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(_capabilities);
 
-            public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
-                => Task.CompletedTask;
+            public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
+                => ValueTaskFactory.CompletedTask;
         }
 
         public readonly struct Update
@@ -45,18 +43,31 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             public readonly ImmutableArray<byte> ILDelta;
             public readonly ImmutableArray<byte> MetadataDelta;
             public readonly ImmutableArray<byte> PdbDelta;
+            public readonly ImmutableArray<int> UpdatedMethods;
+            public readonly ImmutableArray<int> UpdatedTypes;
 
-            public Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta)
+            public Update(
+                Guid moduleId,
+                ImmutableArray<byte> ilDelta,
+                ImmutableArray<byte> metadataDelta,
+                ImmutableArray<byte> pdbDelta,
+                ImmutableArray<int> updatedMethods,
+                ImmutableArray<int> updatedTypes)
             {
                 ModuleId = moduleId;
                 ILDelta = ilDelta;
                 MetadataDelta = metadataDelta;
                 PdbDelta = pdbDelta;
+                UpdatedMethods = updatedMethods;
+                UpdatedTypes = updatedTypes;
             }
         }
 
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+
+        private static readonly ImmutableArray<Update> EmptyUpdate = ImmutableArray.Create<Update>();
+        private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = ImmutableArray.Create<Diagnostic>();
 
         private readonly IEditAndContinueWorkspaceService _encService;
         private DebuggingSessionId _sessionId;
@@ -72,7 +83,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
         {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, new DebuggerService(capabilities), captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var newSessionId = await _encService.StartDebuggingSessionAsync(
+                solution,
+                new DebuggerService(capabilities),
+                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureAllMatchingDocuments: true,
+                reportDiagnostics: false,
+                cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfFalse(_sessionId == default, "Session already started");
             _sessionId = newSessionId;
         }
@@ -93,7 +111,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var sessionId = _sessionId;
             Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-            var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var results = await _encService
+                .EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken)
+                .ConfigureAwait(false);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
@@ -107,8 +127,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 }
             }
 
+            if (results.SyntaxError is not null)
+            {
+                // We do not need to acquire any updates or other
+                // diagnostics if there is a syntax error.
+                return (EmptyUpdate, EmptyDiagnostic.Add(results.SyntaxError));
+            }
+
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
-                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta));
+                update => new Update(
+                    update.Module,
+                    update.ILDelta,
+                    update.MetadataDelta,
+                    update.PdbDelta,
+                    update.UpdatedMethods,
+                    update.UpdatedTypes));
 
             var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 

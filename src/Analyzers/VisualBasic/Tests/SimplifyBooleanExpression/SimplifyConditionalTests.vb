@@ -263,5 +263,101 @@ class C
     private function Y() as boolean
 end class")
         End Function
+
+        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestValueEqualityOnReferenceType1() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = [|If(name = """", True, False)|]
+    end sub
+end class",
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = name = """"
+    end sub
+end class")
+        End Function
+
+        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestValueEqualityOnReferenceType2() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = [|If(name = """", False, True)|]
+    end sub
+end class",
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = name <> """"
+    end sub
+end class")
+        End Function
+
+        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestValueEqualityOnReferenceType3() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = [|If(name Is """", True, False)|]
+    end sub
+end class",
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = name Is """"
+    end sub
+end class")
+        End Function
+
+        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        Public Async Function TestValueEqualityOnReferenceType4() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = [|If(name IsNot """", False, True)|]
+    end sub
+end class",
+"
+Imports System
+
+class C
+    sub M()
+        Dim name As String = ""goober""
+        Dim hasName As Boolean = name Is """"
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // Check if we have any relevant global attributes in this document.
             var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
-            if (!info.ContainsGlobalAttributes)
+            if (!info.ContainsGlobalSuppressMessageAttribute)
                 return ImmutableArray<FinderLocation>.Empty;
 
             var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();

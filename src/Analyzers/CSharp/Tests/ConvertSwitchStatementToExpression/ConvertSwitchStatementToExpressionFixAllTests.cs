@@ -194,12 +194,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             // 1
             // 2
             _ => () =>
-                              {
-                                  return j switch
-                                  {
-                                      _ => 3,
-                                  };
-                              }
+                            {
+                                return j switch
+                                {
+                                    _ => 3,
+                                };
+                            }
 
             ,
         };

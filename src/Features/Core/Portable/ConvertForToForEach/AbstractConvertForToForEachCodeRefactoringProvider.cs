@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         protected abstract SyntaxNode ConvertForNode(
             TForStatementSyntax currentFor, TTypeNode? typeNode, SyntaxToken foreachIdentifier,
-            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType, OptionSet options);
+            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -146,11 +146,14 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Looks good.  We can convert this.
+            var title = GetTitle();
             context.RegisterRefactoring(
-                new MyCodeAction(GetTitle(),
+                CodeAction.Create(
+                    title,
                     c => ConvertForToForEachAsync(
                         document, forStatement, iterationVariable, collectionExpression,
-                        containingType, collectionType.Type, iterationType, c)),
+                        containingType, collectionType.Type, iterationType, c),
+                    title),
                 forStatement.Span);
 
             return;
@@ -347,12 +350,11 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                     SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia);
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
                 forStatement,
                 (currentFor, _) => ConvertForNode(
                     (TForStatementSyntax)currentFor, typeNode, foreachIdentifier,
-                    collectionExpression, iterationType, options));
+                    collectionExpression, iterationType));
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
 
@@ -423,7 +425,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                         var shouldWarn = syntaxFacts.IsArgument(current.Parent);
                         shouldWarn |= semanticFacts.IsWrittenTo(semanticModel, current, cancellationToken);
                         shouldWarn |=
-                            syntaxFacts.IsAnyMemberAccessExpression(current.Parent) &&
+                            syntaxFacts.IsMemberAccessExpression(current.Parent) &&
                             syntaxFacts.IsInvocationExpression(current.Parent.Parent);
 
                         if (shouldWarn)
@@ -450,7 +452,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             bool CrossesFunctionBoundary(SyntaxNode node)
             {
                 var containingFunction = node.AncestorsAndSelf().FirstOrDefault(
-                    n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunction(n));
+                    n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunctionExpression(n));
 
                 if (containingFunction == null)
                 {
@@ -494,13 +496,5 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             => property.IsIndexer &&
                property.Parameters.Length == 1 &&
                property.Parameters[0].Type?.SpecialType == SpecialType.System_Int32;
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 }

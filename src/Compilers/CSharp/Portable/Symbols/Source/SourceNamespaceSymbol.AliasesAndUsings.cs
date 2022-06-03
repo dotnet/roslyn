@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
-                case NamespaceDeclarationSyntax namespaceDecl:
+                case BaseNamespaceDeclarationSyntax namespaceDecl:
                     if (!namespaceDecl.Externs.Any() && !namespaceDecl.Usings.Any())
                     {
 #if DEBUG
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
-                case NamespaceDeclarationSyntax namespaceDecl:
+                case BaseNamespaceDeclarationSyntax namespaceDecl:
                     if (!namespaceDecl.Externs.Any())
                     {
 #if DEBUG
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
-                case NamespaceDeclarationSyntax namespaceDecl:
+                case BaseNamespaceDeclarationSyntax namespaceDecl:
                     if (!namespaceDecl.Usings.Any())
                     {
 #if DEBUG
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
-                case NamespaceDeclarationSyntax namespaceDecl:
+                case BaseNamespaceDeclarationSyntax namespaceDecl:
                     if (!namespaceDecl.Usings.Any())
                     {
 #if DEBUG
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
-                case NamespaceDeclarationSyntax namespaceDecl:
+                case BaseNamespaceDeclarationSyntax namespaceDecl:
                     if (!namespaceDecl.Usings.Any())
                     {
 #if DEBUG
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             externAliasDirectives = compilationUnit.Externs;
                             break;
 
-                        case NamespaceDeclarationSyntax namespaceDecl:
+                        case BaseNamespaceDeclarationSyntax namespaceDecl:
                             externAliasDirectives = namespaceDecl.Externs;
                             break;
 
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             usingDirectives = compilationUnit.Usings;
                             break;
 
-                        case NamespaceDeclarationSyntax namespaceDecl:
+                        case BaseNamespaceDeclarationSyntax namespaceDecl:
                             Debug.Assert(!onlyGlobal);
                             applyIsGlobalFilter = null; // Global Using directives are not allowed in namespaces, treat them as regular, an error is reported elsewhere.
                             usingDirectives = namespaceDecl.Usings;
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_NoAliasHere, location);
                             }
 
-                            SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, compilation, diagnostics, location);
+                            SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, compilation, diagnostics, location);
 
                             string identifierValueText = identifier.ValueText;
                             bool skipInLookup = false;

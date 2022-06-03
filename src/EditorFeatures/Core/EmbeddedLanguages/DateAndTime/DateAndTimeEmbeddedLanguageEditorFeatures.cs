@@ -6,11 +6,11 @@
 
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal class DateAndTimeEmbeddedLanguageEditorFeatures : DateAndTimeEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
+    internal sealed class DateAndTimeEmbeddedLanguageEditorFeatures : DateAndTimeEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
     {
         public IBraceMatcher BraceMatcher { get; }
 

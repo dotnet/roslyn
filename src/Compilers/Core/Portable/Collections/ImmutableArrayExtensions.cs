@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 
 #if DEBUG
 using System.Linq;
@@ -481,6 +482,19 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
+        public static TValue? FirstOrDefault<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var val in array)
+            {
+                if (predicate(val, arg))
+                {
+                    return val;
+                }
+            }
+
+            return default;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>
@@ -544,6 +558,16 @@ namespace Microsoft.CodeAnalysis
         {
             return array.IsDefault ? ImmutableArray<T>.Empty : array;
         }
+
+        /// <summary>
+        /// Returns an empty array if the input nullable value type is null or the underlying array is null (default)
+        /// </summary>
+        public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T>? array)
+            => array switch
+            {
+                null or { IsDefault: true } => ImmutableArray<T>.Empty,
+                { } underlying => underlying
+            };
 
         /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.
@@ -714,27 +738,6 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct ImmutableArrayProxy<T>
-        {
-            internal T[] MutableArray;
-        }
-
-        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
-        // provides a Span API
-        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
-            => Unsafe.As<ImmutableArray<T>, ImmutableArrayProxy<T>>(ref array).MutableArray;
-
-        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
-            => array.DangerousGetUnderlyingArray();
-
-        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
-        {
-            var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
-            array = null!;
-            return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
-        }
-
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
@@ -837,6 +840,34 @@ namespace Microsoft.CodeAnalysis
         {
             int low = 0;
             int high = array.Length - 1;
+
+            while (low <= high)
+            {
+                int middle = low + ((high - low) >> 1);
+                int comparison = comparer(array[middle], value);
+
+                if (comparison == 0)
+                {
+                    return middle;
+                }
+
+                if (comparison > 0)
+                {
+                    high = middle - 1;
+                }
+                else
+                {
+                    low = middle + 1;
+                }
+            }
+
+            return ~low;
+        }
+
+        internal static int BinarySearch<TElement, TValue>(this ImmutableSegmentedList<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
+        {
+            int low = 0;
+            int high = array.Count - 1;
 
             while (low <= high)
             {

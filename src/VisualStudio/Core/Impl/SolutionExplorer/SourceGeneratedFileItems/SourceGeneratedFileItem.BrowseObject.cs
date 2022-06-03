@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public BrowseObject(SourceGeneratedFileItem sourceGeneratedFileItem)
             {
-                this._sourceGeneratedFileItem = sourceGeneratedFileItem;
+                _sourceGeneratedFileItem = sourceGeneratedFileItem;
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]

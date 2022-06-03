@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../Strings.resx">
     <body>
@@ -100,6 +100,11 @@
       <trans-unit id="Argument_InvalidOffLen">
         <source>Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</source>
         <target state="translated">Offset und Länge für das Array liegen außerhalb des gültigen Bereichs, oder die Anzahl ist größer als die Anzahl der Elemente vom Index bis zum Ende der Quellsammlung.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotFindOldValue">
+        <source>Cannot find the old value</source>
+        <target state="translated">Der alte Wert wurde nicht gefunden.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperation_ConcurrentOperationsNotSupported">

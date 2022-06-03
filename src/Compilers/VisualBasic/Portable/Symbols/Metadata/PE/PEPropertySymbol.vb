@@ -9,6 +9,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -149,6 +150,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -538,11 +545,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                Dim errorInfo = useSiteInfo.DiagnosticInfo
+                DeriveCompilerFeatureRequiredDiagnostic(errorInfo)
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
+
+        Private Sub DeriveCompilerFeatureRequiredDiagnostic(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
+            Dim containingModule = _containingType.ContainingPEModule
+            Dim decoder = New MetadataDecoder(containingModule, _containingType)
+            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(
+                Me,
+                containingModule,
+                Handle,
+                CompilerFeatureRequiredFeatures.None,
+                decoder)
+
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
+            For Each param In Parameters
+                errorInfo = DirectCast(param, PEParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
+                If errorInfo IsNot Nothing Then
+                    Return
+                End If
+            Next
+
+            errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
+        End Sub
 
         Friend ReadOnly Property Handle As PropertyDefinitionHandle
             Get

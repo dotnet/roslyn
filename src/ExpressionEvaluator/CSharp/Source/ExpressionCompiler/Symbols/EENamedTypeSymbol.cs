@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        internal override bool HasDeclaredRequiredMembers => false;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return _methods.Cast<MethodSymbol, Symbol>();
@@ -351,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsRecord => false;
         internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
+        internal override bool IsInterpolatedStringHandlerType => false;
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

@@ -44,7 +44,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// whitespace.
         /// </summary>
         public static int? GetFirstNonWhitespaceOffset(this TextLine line)
-            => line.ToString().GetFirstNonWhitespaceOffset();
+        {
+            var text = line.Text;
+            if (text != null)
+            {
+                for (var i = line.Start; i < line.End; i++)
+                {
+                    if (!char.IsWhiteSpace(text[i]))
+                        return i - line.Start;
+                }
+            }
+
+            return null;
+        }
 
         public static string GetLeadingWhitespace(this TextLine line)
             => line.ToString().GetLeadingWhitespace();

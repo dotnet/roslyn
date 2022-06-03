@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal static class ICocoaDifferenceViewerExtensions
     {
-        private class SizeToFitHelper : ForegroundThreadAffinitizedObject
+        private class SizeToFitHelper
         {
+            private readonly IThreadingContext _threadingContext;
             private readonly ICocoaDifferenceViewer _diffViewer;
 
             private readonly double _minWidth;
@@ -28,19 +29,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             private double _height;
 
             public SizeToFitHelper(IThreadingContext threadingContext, ICocoaDifferenceViewer diffViewer, double minWidth)
-                : base(threadingContext)
             {
+                _threadingContext = threadingContext;
                 _diffViewer = diffViewer;
                 _minWidth = minWidth;
             }
 
             public async Task SizeToFitAsync(CancellationToken cancellationToken)
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-                await CalculateSizeAsync(cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                await CalculateSizeAsync(cancellationToken).ConfigureAwait(true);
 
                 // We have the height and width required to display the inline diff snapshot now.
                 // Set the height and width of the ICocoaDifferenceViewer accordingly.
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             private async Task CalculateSizeAsync(CancellationToken cancellationToken)
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 ICocoaTextView textView;
                 ITextSnapshot snapshot;
@@ -102,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 else
                 {
                     textView = _diffViewer.InlineView;
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-                    snapshot = await GetInlineBufferSnapshotAsync(cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                    snapshot = await GetInlineBufferSnapshotAsync(cancellationToken).ConfigureAwait(true);
                 }
 
                 // Perform a layout without actually rendering the content on the screen so that

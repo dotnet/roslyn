@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             string optionString, CodeStyleOption2<AddImportPlacement> @default)
         {
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
-                optionString, @default.Notification, out var value, out var notification))
+                    optionString, @default.Notification, out var value, out var notification))
             {
                 return value switch
                 {
@@ -70,6 +70,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             {
                 AddImportPlacement.InsideNamespace => $"inside_namespace{notificationString}",
                 AddImportPlacement.OutsideNamespace => $"outside_namespace{notificationString}",
+                _ => throw new NotSupportedException(),
+            };
+        }
+
+        public static CodeStyleOption2<NamespaceDeclarationPreference> ParseNamespaceDeclaration(
+            string optionString, CodeStyleOption2<NamespaceDeclarationPreference> @default)
+        {
+            if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
+                    optionString, @default.Notification, out var value, out var notification))
+            {
+                return value switch
+                {
+                    "block_scoped" => new(NamespaceDeclarationPreference.BlockScoped, notification),
+                    "file_scoped" => new(NamespaceDeclarationPreference.FileScoped, notification),
+                    _ => throw new NotSupportedException(),
+                };
+            }
+
+            return @default;
+        }
+
+        public static string GetNamespaceDeclarationEditorConfigString(CodeStyleOption2<NamespaceDeclarationPreference> value, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue)
+        {
+            var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
+            return value.Value switch
+            {
+                NamespaceDeclarationPreference.BlockScoped => $"block_scoped{notificationString}",
+                NamespaceDeclarationPreference.FileScoped => $"file_scoped{notificationString}",
                 _ => throw new NotSupportedException(),
             };
         }

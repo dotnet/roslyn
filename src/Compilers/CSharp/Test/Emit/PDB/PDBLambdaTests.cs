@@ -91,7 +91,7 @@ class Test
     }
 
     static public int M(int p)
-    <M><C:0>{
+    <M:0><C:0>{
         Func<int, int> f1 = delegate(int x)
         <C:1><L:0.0>{
             int q = 2;
@@ -554,7 +554,7 @@ class C
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
-<symbols>
+ <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -589,14 +589,6 @@ class C
         <local name=""x"" il_index=""1"" il_start=""0x0"" il_end=""0x7a"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;M&gt;b__0"" parameterNames=""a"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""M"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""30"" document=""1"" />
-      </sequencePoints>
-    </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_1"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""M"" />
@@ -611,6 +603,14 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;M&gt;b__0"" parameterNames=""a"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""M"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""30"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1833,7 +1833,7 @@ record R(int X);
 class Test
 {
     public static void M(int a)
-    <M><C:0>{
+    <M:0><C:0>{
         var x = new R(1);
         var y = x with
         {
@@ -1859,7 +1859,7 @@ record R(int X, int Y);
 class Test
 {
     public static void M(int a)
-    <M><C:0>{
+    <M:0><C:0>{
         var x = new R(1, 2);
         var b = 1;
         var y = x with
@@ -1888,7 +1888,7 @@ record Z(int A, R R);
 class Test
 {
     public static void M(int a)
-    <M><C:0>{
+    <M:0><C:0>{
         var r = new R(1, 2);
         var x = new Z(1, new R(2, 3));
         var b = 1;

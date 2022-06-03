@@ -174,6 +174,24 @@ $$");
 @"ref readonly $$ int Function();"));
         }
 
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync))]
+        public async Task TestAfterKeywordIndicatingLocalFunctionWithoutAsync(string keyword)
+        {
+            await VerifyKeywordAsync(AddInsideMethod($@"
+{keyword} $$"));
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunctionWithAsync))]
+        public async Task TestNotAfterKeywordIndicatingLocalFunctionWithAsync(string keyword)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod($@"
+{keyword} $$"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterRefExpression()
         {
@@ -717,6 +735,12 @@ class C { }
 ");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterAsync()
+            => await VerifyAbsenceAsync(@"class c { async $$ }");
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsyncAsType()
             => await VerifyAbsenceAsync(@"class c { async async $$ }");

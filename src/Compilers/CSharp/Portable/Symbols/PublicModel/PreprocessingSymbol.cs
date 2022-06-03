@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new System.NotSupportedException();
 
+        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => throw new System.NotSupportedException();
+
         string ISymbol.GetDocumentationCommentId() => null;
 
         string ISymbol.GetDocumentationCommentXml(CultureInfo preferredCulture, bool expandIncludes, CancellationToken cancellationToken) => null;
@@ -102,6 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         string ISymbol.Name => _name;
 
         string ISymbol.MetadataName => _name;
+
+        int ISymbol.MetadataToken => 0;
 
         IAssemblySymbol ISymbol.ContainingAssembly => null;
 

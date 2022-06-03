@@ -255,6 +255,36 @@ class C
 }");
         }
 
+        [Fact]
+        public void GetBreakpointSequence_InstanceContructor_NoBody()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
+class Class
+{
+    [|Clas$$s()|]
+}");
+        }
+
+        [Fact]
+        public void GetBreakpointSequence_StaticContructor_NoBody()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
+class Class
+{
+    static Clas$$s()
+}");
+        }
+
+        [Fact]
+        public void GetBreakpointSequence_Method_NoBody()
+        {
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
+class Class
+{
+    int F$$unction()
+}");
+        }
+
         #region Switch Expression
 
         [Fact]
@@ -4273,6 +4303,16 @@ $$    using ([|var vv = goo()|])
         }
 
         [Fact]
+        public void InstanceConstructor_NoBody()
+        {
+            TestSpan(
+@"class Class
+{
+    [|Cla$$ss()|]
+}");
+        }
+
+        [Fact]
         public void InstanceConstructor_NoInitializer_ExpressionBody_All()
         {
             VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
@@ -4507,6 +4547,16 @@ $$    using ([|var vv = goo()|])
 @"class C
 {
     static C() => [|$$F()|];
+}");
+        }
+
+        [Fact]
+        public void StaticConstructor_NoBody()
+        {
+            TestMissing(
+@"class Class
+{
+    static Cla$$ss()
 }");
         }
 
@@ -5147,5 +5197,38 @@ $$        int Local(object[] a) => [|a.Length|];
   }
 }");
         }
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatements()
+        {
+            VerifyAllSpansInDeclaration<CompilationUnitSyntax>(@"
+$$[|int d = 5;|]
+[|int a = 1|], [|b = 2|], [|c = 3|];
+for ([|int i = 0|], [|j = 1|], [|k = 2|]; [|i < 10|]; [|i++|], [|j++|], [|k--|])
+    [|while (b > 0)|]
+    [|{|]
+        [|if (c < b)|]
+            try
+            [|{|]
+                [|System.Console.WriteLine(a);|]
+            [|}|]
+            [|catch (Exception e)|]
+            [|{|]
+                [|System.Console.WriteLine(e);|]   
+            [|}|]
+            finally
+            [|{|]
+            [|}|]
+        else [|if (b < 10)|]
+            [|System.Console.WriteLine(b);|]
+        else
+            [|System.Console.WriteLine(c);|]
+    [|}|]
+");
+        }
+
+        #endregion
     }
 }

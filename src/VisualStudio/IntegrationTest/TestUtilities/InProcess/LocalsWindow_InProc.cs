@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             throw new Exception($"\nCould not find the local named {localHierarchicalName}.\nAll available locals are: \n{allLocalsString}");
         }
 
-        private bool TryGetEntryInternal(string entryName, EnvDTE.Expressions expressions, out EnvDTE.Expression expression)
+        private static bool TryGetEntryInternal(string entryName, EnvDTE.Expressions expressions, out EnvDTE.Expression expression)
         {
             expression = expressions.Cast<EnvDTE.Expression>().FirstOrDefault(e => e.Name == entryName);
             if (expression != null)

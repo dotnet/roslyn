@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions WithoutCovariantReturns = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
 
         public static readonly CSharpParseOptions RegularWithExtendedPartialMethods = RegularPreview;
+        public static readonly CSharpParseOptions RegularWithFileScopedNamespaces = Regular.WithLanguageVersion(MessageID.IDS_FeatureFileScopedNamespace.RequiredVersion());
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions RegularWithoutPatternCombinators = Regular8;
         public static readonly CSharpParseOptions RegularWithPatternCombinators = RegularPreview;
         public static readonly CSharpParseOptions RegularWithExtendedPropertyPatterns = RegularPreview;
+        public static readonly CSharpParseOptions RegularWithListPatterns = RegularPreview;
 
         public static readonly CSharpCompilationOptions ReleaseDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Release);

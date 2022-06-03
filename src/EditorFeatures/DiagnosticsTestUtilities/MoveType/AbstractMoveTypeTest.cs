@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 expectedChangedDocumentId: null);
         }
 
-        protected async Task TestMoveTypeToNewFileAsync(
+        private protected async Task TestMoveTypeToNewFileAsync(
             string originalCode,
             string expectedSourceTextAfterRefactoring,
             string expectedDocumentName,
@@ -153,14 +153,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             ImmutableArray<string> destinationDocumentContainers = default,
             bool expectedCodeAction = true,
             int index = 0,
-            Action<Workspace> onAfterWorkspaceCreated = null)
+            OptionsCollection options = null)
         {
-            var testOptions = new TestParameters(index: index);
+            var testOptions = new TestParameters(index: index, options: options);
             if (expectedCodeAction)
             {
                 using var workspace = CreateWorkspaceFromOptions(originalCode, testOptions);
-
-                onAfterWorkspaceCreated?.Invoke(workspace);
 
                 // replace with default values on null.
                 destinationDocumentContainers = destinationDocumentContainers.NullToEmpty();

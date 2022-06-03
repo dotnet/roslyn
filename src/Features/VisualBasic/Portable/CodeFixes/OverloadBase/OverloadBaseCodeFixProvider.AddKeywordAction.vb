@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
@@ -19,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
             Private ReadOnly _node As SyntaxNode
             Private ReadOnly _title As String
             Private ReadOnly _modifier As SyntaxKind
+            Private ReadOnly _fallbackOptions As SyntaxFormattingOptionsProvider
 
             Public Overrides ReadOnly Property Title As String
                 Get
@@ -32,23 +34,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 End Get
             End Property
 
-            Public Sub New(document As Document, node As SyntaxNode, title As String, modifier As SyntaxKind)
+            Public Sub New(document As Document, node As SyntaxNode, title As String, modifier As SyntaxKind, fallbackOptions As SyntaxFormattingOptionsProvider)
                 _document = document
                 _node = node
                 _title = title
                 _modifier = modifier
+                _fallbackOptions = fallbackOptions
             End Sub
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+                Dim options = Await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(False)
 
-                Dim newNode = Await GetNewNodeAsync(_document, _node, cancellationToken).ConfigureAwait(False)
+                Dim newNode = Await GetNewNodeAsync(_document, _node, options, cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(_node, newNode)
 
                 Return _document.WithSyntaxRoot(newRoot)
             End Function
 
-            Private Async Function GetNewNodeAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Private Async Function GetNewNodeAsync(document As Document, node As SyntaxNode, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
                 Dim newNode As SyntaxNode = Nothing
                 Dim trivia As SyntaxTriviaList = node.GetLeadingTrivia()
                 node = node.WithoutLeadingTrivia()
@@ -70,7 +74,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 Dim cleanupService = document.GetLanguageService(Of ICodeCleanerService)
 
                 If cleanupService IsNot Nothing AndAlso newNode IsNot Nothing Then
-                    newNode = Await cleanupService.CleanupAsync(newNode, ImmutableArray.Create(newNode.Span), document.Project.Solution.Workspace, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
+                    Dim services = document.Project.Solution.Workspace.Services
+                    newNode = Await cleanupService.CleanupAsync(newNode, ImmutableArray.Create(newNode.Span), options, services, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
                 End If
 
                 Return newNode.WithAdditionalAnnotations(Formatter.Annotation)

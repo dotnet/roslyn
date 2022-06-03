@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
             var semanticModel = context.SemanticModel;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
+            var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
             if (!option.Value)
             {
                 return;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(
+            var properties = ImmutableDictionary<string, string?>.Empty.Add(
                 UseIsNullConstants.Kind, UseIsNullConstants.ReferenceEqualsKey);
 
             var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
