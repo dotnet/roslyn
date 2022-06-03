@@ -159,11 +159,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool hasMissingCases, bool hasMissingDefaultCase,
             TSwitchSyntax switchNode, TSwitchOperation switchOperation)
         {
-            var enumType = GetSwitchType(switchOperation);
-
-            // Take real value of the enum if it is nullable
-            if (enumType.IsNullable())
-                enumType = enumType.GetTypeArguments()[0];
+            var enumType = GetSwitchType(switchOperation).RemoveNullableIfPresent();
 
             var generator = editor.Generator;
 
