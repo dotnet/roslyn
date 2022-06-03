@@ -837,6 +837,11 @@
         <target state="translated">La valeur de directive #line est manquante ou hors limites</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset and before the file name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
         <target state="translated">Les modèles de liste ne peuvent pas être utilisés pour une valeur de type '{0}'. Aucune propriété 'Longueur' ou 'Compte' appropriée n’a été trouvée.</target>

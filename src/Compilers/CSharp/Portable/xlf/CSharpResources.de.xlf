@@ -837,6 +837,11 @@
         <target state="translated">Der Wert der #line-Anweisung fehlt oder liegt außerhalb des gültigen Bereichs.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset and before the file name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
         <target state="translated">Listenmuster dürfen nicht für einen Wert vom Typ „{0}“ verwendet werden. Es wurde keine geeignete Längen- oder Anzahl-Eigenschaft gefunden.</target>

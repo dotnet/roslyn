@@ -2088,6 +2088,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ObsoleteMembersShouldNotBeRequired = 9042,
         ERR_RefReturningPropertiesCannotBeRequired = 9043,
 
+        ERR_LineSpanDirectiveRequiresSpace = 9028,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

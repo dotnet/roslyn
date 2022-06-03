@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -241,6 +242,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = @"#line(1,2)-(3,4)""file.cs""";
 
+            UsingLineDirective(source, options: null,
+                // (1,6): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line(1,2)-(3,4)"file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, "(1,2)").WithLocation(1, 6),
+                // (1,17): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line(1,2)-(3,4)"file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, @"""file.cs""").WithLocation(1, 17));
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LineDirective_05_WithRequiredSpaces()
+        {
+            string source = @"#line (1,2)-(3,4) ""file.cs""";
+
             UsingLineDirective(source, options: null);
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
@@ -274,6 +315,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LineDirective_06()
         {
             string source = @"#line(1,2)-(3,4)5""file.cs""";
+
+            UsingLineDirective(source, options: null,
+                // (1,6): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line(1,2)-(3,4)5"file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, "(1,2)").WithLocation(1, 6),
+                // (1,17): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line(1,2)-(3,4)5"file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, "5").WithLocation(1, 17),
+                // (1,18): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line(1,2)-(3,4)5"file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, @"""file.cs""").WithLocation(1, 18)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.NumericLiteralToken, "5");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
+        public void LineDirective_06_WithRequiredSpaces()
+        {
+            string source = @"#line (1,2)-(3,4) 5 ""file.cs""";
 
             UsingLineDirective(source, options: null);
 
@@ -2238,6 +2324,237 @@ file.cs
                 // (1,21): error CS1578: Quoted file name, single-line comment or end-of-line expected
                 // #line (1, 2)-(3, 4) @"""file.cs"""u8
                 Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 21)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.StringLiteralToken);
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
+        public void RequireSpace_BeforeFirstParen()
+        {
+            string source = @"#line(1, 2) - (3, 4) ""file.cs""";
+
+            UsingLineDirective(source, TestOptions.Regular10,
+                // (1,6): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line(1, 2) - (3, 4) "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, "(1, 2)").WithLocation(1, 6)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
+        public void RequireSpace_BeforeCharacterOffset()
+        {
+            string source = @"#line (1, 2) - (3, 4)5 ""file.cs""";
+
+            UsingLineDirective(source, TestOptions.Regular10,
+                // (1,22): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line (1, 2) - (3, 4)5 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, "5").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.NumericLiteralToken, "5");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
+        public void RequireSpace_BeforeFilename()
+        {
+            string source = @"#line (1, 2) - (3, 4) 5""file.cs""";
+
+            UsingLineDirective(source, TestOptions.Regular10,
+                // (1,24): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line (1, 2) - (3, 4) 5"file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, @"""file.cs""").WithLocation(1, 24)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.NumericLiteralToken, "5");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
+        public void RequireSpace_BeforeFilename_WithoutCharacterOffset()
+        {
+            string source = @"#line (1, 2) - (3, 4)""file.cs""";
+
+            UsingLineDirective(source, TestOptions.Regular10,
+                // (1,22): error CS9028: The #line span directive requires space before the first parenthesis, before the character offset and before the file name
+                // #line (1, 2) - (3, 4)"file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveRequiresSpace, @"""file.cs""").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
+        public void RequireSpace_MissingFilename()
+        {
+            string source = @"#line (1, 2) - (3, 4) 5";
+
+            UsingLineDirective(source, TestOptions.Regular10,
+                // (1,24): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line (1, 2) - (3, 4) 5
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "").WithLocation(1, 24)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.NumericLiteralToken, "5");
+                M(SyntaxKind.StringLiteralToken);
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61663, "https://github.com/dotnet/roslyn/issues/61663")]
+        public void RequireSpace_MissingFilename_WithoutCharacterOffset()
+        {
+            string source = @"#line (1, 2) - (3, 4)";
+
+            UsingLineDirective(source, TestOptions.Regular10,
+                // (1,22): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line (1, 2) - (3, 4)
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "").WithLocation(1, 22)
                 );
 
             N(SyntaxKind.LineSpanDirectiveTrivia);

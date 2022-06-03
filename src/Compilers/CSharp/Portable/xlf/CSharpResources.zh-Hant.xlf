@@ -837,6 +837,11 @@
         <target state="translated">#Line 指示詞值遺漏或超出範圍</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset and before the file name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
         <target state="translated">清單模式不能用於型別 '{0}' 的值。找不到適當的 'Length' 或 'Count' 屬性。</target>
