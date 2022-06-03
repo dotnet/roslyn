@@ -183,7 +183,7 @@ using System;
         var runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
-            step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()));
+            step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.Single()));
     }
 
     [Fact]
