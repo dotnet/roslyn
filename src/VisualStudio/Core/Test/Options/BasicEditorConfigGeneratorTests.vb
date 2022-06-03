@@ -73,6 +73,7 @@ dotnet_style_prefer_auto_properties = true
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 dotnet_style_prefer_inferred_anonymous_type_member_names = true
 dotnet_style_prefer_inferred_tuple_names = true
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true
@@ -99,6 +100,7 @@ visual_basic_preferred_modifier_order = partial,default,private,protected,public
 
 # Expression-level preferences
 visual_basic_style_prefer_isnot_expression = true
+visual_basic_style_prefer_simplified_object_creation = true
 visual_basic_style_unused_value_assignment_preference = unused_local_variable
 visual_basic_style_unused_value_expression_statement_preference = unused_local_variable
 
@@ -210,6 +212,7 @@ dotnet_style_prefer_auto_properties = true
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 dotnet_style_prefer_inferred_anonymous_type_member_names = true
 dotnet_style_prefer_inferred_tuple_names = true
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true
@@ -236,6 +239,7 @@ visual_basic_preferred_modifier_order = partial,default,private,protected,public
 
 # Expression-level preferences
 visual_basic_style_prefer_isnot_expression = true
+visual_basic_style_prefer_simplified_object_creation = true
 visual_basic_style_unused_value_assignment_preference = unused_local_variable
 visual_basic_style_unused_value_expression_statement_preference = unused_local_variable
 

@@ -8,6 +8,10 @@ using System.Runtime.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -18,18 +22,24 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class MessagePackFormatters
     {
-        private static readonly ImmutableArray<IMessagePackFormatter> s_formatters = ImmutableArray.Create<IMessagePackFormatter>(
+        internal static readonly ImmutableArray<IMessagePackFormatter> Formatters = ImmutableArray.Create<IMessagePackFormatter>(
             SolutionIdFormatter.Instance,
             ProjectIdFormatter.Instance,
-            DocumentIdFormatter.Instance);
+            DocumentIdFormatter.Instance,
+            // ForceTypelessFormatter<T> needs to be listed here for each Roslyn abstract type T that is being serialized OOP.
+            // TODO: add a resolver that provides these https://github.com/dotnet/roslyn/issues/60724
+            new ForceTypelessFormatter<SimplifierOptions>(),
+            new ForceTypelessFormatter<SyntaxFormattingOptions>(),
+            new ForceTypelessFormatter<CodeGenerationOptions>(),
+            new ForceTypelessFormatter<IdeCodeStyleOptions>());
 
         private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
             StandardResolverAllowPrivate.Instance);
 
-        internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(s_formatters, s_resolvers);
+        internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(Formatters, s_resolvers);
 
         internal static IFormatterResolver CreateResolver(ImmutableArray<IMessagePackFormatter> additionalFormatters, ImmutableArray<IFormatterResolver> additionalResolvers)
-            => (additionalFormatters.IsEmpty && additionalResolvers.IsEmpty) ? DefaultResolver : CompositeResolver.Create(s_formatters.AddRange(additionalFormatters), s_resolvers.AddRange(additionalResolvers));
+            => (additionalFormatters.IsEmpty && additionalResolvers.IsEmpty) ? DefaultResolver : CompositeResolver.Create(Formatters.AddRange(additionalFormatters), s_resolvers.AddRange(additionalResolvers));
 
         internal sealed class SolutionIdFormatter : IMessagePackFormatter<SolutionId?>
         {
@@ -82,6 +92,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             public static readonly ProjectIdFormatter Instance = new ProjectIdFormatter();
 
+            /// <summary>
+            /// Keep a copy of the most recent project ID to avoid duplicate instances when many consecutive IDs
+            /// reference the same project.
+            /// </summary>
+            /// <remarks>
+            /// Synchronization is not required for this field, since it's only intended to be an opportunistic (lossy)
+            /// cache.
+            /// </remarks>
+            private ProjectId? _previousProjectId;
+
             public ProjectId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
                 try
@@ -95,7 +115,13 @@ namespace Microsoft.CodeAnalysis.Remote
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
                     var debugName = reader.ReadString();
 
-                    return ProjectId.CreateFromSerialized(id, debugName);
+                    var previousId = _previousProjectId;
+                    if (previousId is not null && previousId.Id == id && previousId.DebugName == debugName)
+                        return previousId;
+
+                    var currentId = ProjectId.CreateFromSerialized(id, debugName);
+                    _previousProjectId = currentId;
+                    return currentId;
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)
                 {

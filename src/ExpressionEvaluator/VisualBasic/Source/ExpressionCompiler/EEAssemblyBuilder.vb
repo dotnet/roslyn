@@ -70,9 +70,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+        Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
             Get
-                Return 0
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+            Get
+                Return Nothing
             End Get
         End Property
 
@@ -183,6 +189,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, <Out> ByRef lambdaId As DebugId) As Boolean
                 lambdaId = Nothing
                 Return False
+            End Function
+
+            Public Overrides Function TryGetPreviousStateMachineState(awaitOrYieldSyntax As SyntaxNode, ByRef stateOrdinal As Integer) As Boolean
+                stateOrdinal = 0
+                Return False
+            End Function
+
+            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As Integer?
+                Return Nothing
             End Function
 
             Public Overrides ReadOnly Property PreviousStateMachineTypeName As String

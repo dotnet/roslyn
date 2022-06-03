@@ -493,7 +493,7 @@ class D
 @"
 class C
 {
-    public C(object p, int i) { }
+    public C(object value, int i) { }
 }
 
 class D
@@ -1068,7 +1068,6 @@ class C1
         M1(1, 2);
     }
 }");
-            //Should fix to: void M1<T>(T arg, T v) { }
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1199,7 +1198,7 @@ class C1
     @"
 class C1
 {
-    void M1((int, int) t1, (int, string) p)
+    void M1((int, int) t1, (int, string) value)
     {
     }
     void M2()
@@ -2848,6 +2847,86 @@ namespace r
             => new Abc().Act(param3: 123);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        public async Task TestPositionalRecord()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+record R(int A);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+record R(int A, string b);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(54408, "https://github.com/dotnet/roslyn/issues/54408")]
+        public async Task TestPositionalRecordStruct()
+        {
+            await TestInRegularAndScriptAsync(@"
+var b = ""B"";
+var r = [|new R(1, b)|];
+
+record struct R(int A);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", @"
+var b = ""B"";
+var r = new R(1, b);
+
+record struct R(int A, string b);
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record Test();
+", @"new Test(""repro"");
+
+record Test(string V);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions_RecordStruct()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record struct Test();
+", @"new Test(""repro"");
+
+record struct Test(string V);
+");
         }
     }
 }

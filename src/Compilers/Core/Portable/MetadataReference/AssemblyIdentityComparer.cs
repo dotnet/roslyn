@@ -86,17 +86,17 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal ComparisonResult Compare(AssemblyIdentity? reference, string? referenceDisplayName, AssemblyIdentity definition, out bool unificationApplied, bool ignoreVersion)
         {
-            Debug.Assert((reference != null) ^ (referenceDisplayName != null));
+            Debug.Assert((reference is not null) ^ (referenceDisplayName != null));
             unificationApplied = false;
             AssemblyIdentityParts parts;
 
-            if (reference != null)
+            if (reference is not null)
             {
                 // fast path
                 bool? eq = TriviallyEquivalent(reference, definition);
                 if (eq.HasValue)
                 {
-                    return eq.Value ? ComparisonResult.Equivalent : ComparisonResult.NotEquivalent;
+                    return eq.GetValueOrDefault() ? ComparisonResult.Equivalent : ComparisonResult.NotEquivalent;
                 }
 
                 parts = AssemblyIdentityParts.Name | AssemblyIdentityParts.Version | AssemblyIdentityParts.Culture | AssemblyIdentityParts.PublicKeyToken;

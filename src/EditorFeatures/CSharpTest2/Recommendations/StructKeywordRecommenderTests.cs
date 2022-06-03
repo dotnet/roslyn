@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -52,6 +50,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -82,10 +87,26 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNamespace()
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -138,6 +159,14 @@ $$");
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"$$
 using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -204,6 +233,14 @@ using Goo;");
 using Goo;");
         }
 
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
@@ -260,13 +297,6 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterData()
-        {
-            await VerifyKeywordAsync(
-@"data $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAbstract()
             => await VerifyAbsenceAsync(@"abstract $$");
 
@@ -299,6 +329,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRecord()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"record $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSealed()
             => await VerifyAbsenceAsync(@"sealed $$");
 
@@ -313,5 +350,83 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStruct()
             => await VerifyAbsenceAsync(@"struct $$");
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterClassTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+@"class C<T> where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T> where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterClassTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"class C<T>
+    where T : $$
+    where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T>
+    where T : IList<$$
+    where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterMethodTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    void Goo<T>()
+      where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo<T>()
+      where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterMethodTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    void Goo<T>()
+      where T : $$
+      where U : T");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo<T>()
+      where T : IList<$$
+      where U : T");
+        }
     }
 }

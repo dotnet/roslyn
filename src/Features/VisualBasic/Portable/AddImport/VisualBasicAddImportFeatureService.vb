@@ -5,8 +5,8 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
@@ -47,12 +47,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                     If parent Is Nothing Then
                         Return False
                     End If
+
                     Dim method = TryCast(parent.Expression, MemberAccessExpressionSyntax)
                     If method IsNot Nothing Then
                         node = method.Name
                     Else
                         node = parent.Expression
                     End If
+
                     Exit Select
                 Case AddImportDiagnosticIds.BC36719
                     If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
@@ -171,8 +173,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 If simpleName IsNot Nothing Then
                     Return simpleName
                 End If
+
                 qn = TryCast(left, QualifiedNameSyntax)
             End While
+
             Return Nothing
         End Function
 
@@ -181,11 +185,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function GetDescription(
-                document As Document,
-                symbol As INamespaceOrTypeSymbol,
-                semanticModel As SemanticModel,
-                root As SyntaxNode,
-                cancellationToken As CancellationToken) As (description As String, hasExistingImport As Boolean)
+            document As Document,
+            options As AddImportPlacementOptions,
+            symbol As INamespaceOrTypeSymbol,
+            semanticModel As SemanticModel,
+            root As SyntaxNode,
+            cancellationToken As CancellationToken) As (description As String, hasExistingImport As Boolean)
 
             Dim importsStatement = GetImportsStatement(symbol)
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
@@ -274,28 +279,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
-                placeSystemNamespaceFirst As Boolean,
-                allowInHiddenRegions As Boolean,
+                options As AddImportPlacementOptions,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim importsStatement = GetImportsStatement(symbol)
 
-            Return Await AddImportAsync(
-                contextNode, document, placeSystemNamespaceFirst, allowInHiddenRegions,
-                importsStatement, cancellationToken).ConfigureAwait(False)
+            Return Await AddImportAsync(contextNode, document, importsStatement, options, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Overloads Shared Async Function AddImportAsync(
-                contextNode As SyntaxNode, document As Document,
-                placeSystemNamespaceFirst As Boolean, allowInHiddenRegions As Boolean,
-                importsStatement As ImportsStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+                contextNode As SyntaxNode,
+                document As Document,
+                importsStatement As ImportsStatementSyntax,
+                options As AddImportPlacementOptions,
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim importService = document.GetLanguageService(Of IAddImportsService)
             Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, options, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
@@ -306,16 +310,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 contextNode As SyntaxNode,
                 nameSpaceParts As IReadOnlyList(Of String),
                 document As Document,
-                placeSystemNamespaceFirst As Boolean,
-                allowInHiddenRegions As Boolean,
+                options As AddImportPlacementOptions,
                 cancellationToken As CancellationToken) As Task(Of Document)
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
             Dim importsStatement = GetImportsStatement(nameSyntax)
 
-            Return AddImportAsync(
-                contextNode, document,
-                placeSystemNamespaceFirst, allowInHiddenRegions,
-                importsStatement, cancellationToken)
+            Return AddImportAsync(contextNode, document, importsStatement, options, cancellationToken)
         End Function
 
         Private Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax

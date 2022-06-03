@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -36,10 +38,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), caretLocation.Range, new LSP.TextDocumentIdentifier
+            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
             {
                 Uri = caretLocation.Uri
             });
@@ -65,7 +67,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             };
 
             var result = await testLspServer.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
-                LSP.Methods.WorkspaceExecuteCommandName, command, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                LSP.Methods.WorkspaceExecuteCommandName, command, CancellationToken.None);
+            Contract.ThrowIfNull(result);
             return (bool)result;
         }
     }

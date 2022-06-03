@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return results.OfType(Of ITypeSymbol)().ToList()
                 End If
             End If
+
             Return SpecializedCollections.EmptyList(Of ITypeSymbol)()
         End Function
 
@@ -32,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If expression IsNot Nothing Then
                 Return semanticModel.LookupName(expression, namespacesAndTypesOnly, cancellationToken)
             End If
+
             Return SpecializedCollections.EmptyList(Of ISymbol)()
         End Function
 
@@ -171,13 +173,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Accessibility.Private
         End Function
 
-        <Extension()>
+        <Extension>
         Public Iterator Function GetAliasSymbols(semanticModel As SemanticModel) As IEnumerable(Of IAliasSymbol)
-            semanticModel = DirectCast(semanticModel.GetOriginalSemanticModel(), SemanticModel)
+            semanticModel = semanticModel.GetOriginalSemanticModel()
 
             Dim root = semanticModel.SyntaxTree.GetCompilationUnitRoot()
             For Each importsClause In root.GetAliasImportsClauses()
-                Dim [alias] = DirectCast(semanticModel.GetDeclaredSymbol(importsClause), IAliasSymbol)
+                Dim [alias] = semanticModel.GetDeclaredSymbol(importsClause)
                 If [alias] IsNot Nothing Then
                     Yield [alias]
                 End If

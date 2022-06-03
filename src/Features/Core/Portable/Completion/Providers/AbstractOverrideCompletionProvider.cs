@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public abstract SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken);
-        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType);
+        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol? returnType);
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
-            var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
+            var syntaxFactory = newDocument.GetRequiredLanguageService<SyntaxGenerator>();
 
             var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
             var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.RequiresUnsafeModifier());
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SyntaxToken startToken,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            out ITypeSymbol returnType,
+            out ITypeSymbol? returnType,
             out SyntaxToken nextToken);
 
         protected static bool IsOnStartLine(int position, SourceText text, int startLine)

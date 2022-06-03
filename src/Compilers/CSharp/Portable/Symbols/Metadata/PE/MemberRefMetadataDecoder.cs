@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     internal sealed class MemberRefMetadataDecoder : MetadataDecoder
     {
         /// <summary>
-        /// Type context for resolving generic type arguments.
+        /// Type context for resolving generic type parameters.
         /// </summary>
         private readonly TypeSymbol _containingType;
 
@@ -52,40 +52,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// This override changes two things:
-        ///     1) Return type arguments instead of type parameters.
-        ///     2) Handle non-PE types.
+        /// This override can handle non-PE types.
         /// </summary>
         protected override TypeSymbol GetGenericTypeParamSymbol(int position)
         {
             PENamedTypeSymbol peType = _containingType as PENamedTypeSymbol;
             if ((object)peType != null)
             {
-                while ((object)peType != null && (peType.MetadataArity - peType.Arity) > position)
-                {
-                    peType = peType.ContainingSymbol as PENamedTypeSymbol;
-                }
-
-                if ((object)peType == null || peType.MetadataArity <= position)
-                {
-                    return new UnsupportedMetadataTypeSymbol(); // position of type parameter too large
-                }
-
-                position -= peType.MetadataArity - peType.Arity;
-                Debug.Assert(position >= 0 && position < peType.Arity);
-
-                return peType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[position].Type; //NB: args, not params
+                return base.GetGenericTypeParamSymbol(position);
             }
 
             NamedTypeSymbol namedType = _containingType as NamedTypeSymbol;
             if ((object)namedType != null)
             {
                 int cumulativeArity;
-                TypeSymbol typeArgument;
-                GetGenericTypeArgumentSymbol(position, namedType, out cumulativeArity, out typeArgument);
-                if ((object)typeArgument != null)
+                TypeParameterSymbol typeParameter;
+                GetGenericTypeParameterSymbol(position, namedType, out cumulativeArity, out typeParameter);
+                if ((object)typeParameter != null)
                 {
-                    return typeArgument;
+                    return typeParameter;
                 }
                 else
                 {
@@ -97,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return new UnsupportedMetadataTypeSymbol(); // associated type does not have type parameters
         }
 
-        private static void GetGenericTypeArgumentSymbol(int position, NamedTypeSymbol namedType, out int cumulativeArity, out TypeSymbol typeArgument)
+        private static void GetGenericTypeParameterSymbol(int position, NamedTypeSymbol namedType, out int cumulativeArity, out TypeParameterSymbol typeArgument)
         {
             cumulativeArity = namedType.Arity;
             typeArgument = null;
@@ -108,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if ((object)containingType != null)
             {
                 int containingTypeCumulativeArity;
-                GetGenericTypeArgumentSymbol(position, containingType, out containingTypeCumulativeArity, out typeArgument);
+                GetGenericTypeParameterSymbol(position, containingType, out containingTypeCumulativeArity, out typeArgument);
                 cumulativeArity += containingTypeCumulativeArity;
                 arityOffset = containingTypeCumulativeArity;
             }
@@ -117,25 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 Debug.Assert((object)typeArgument == null);
 
-                typeArgument = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[position - arityOffset].Type;
+                typeArgument = namedType.TypeParameters[position - arityOffset];
             }
         }
 
         /// <summary>
-        /// Search through the members of a given type symbol to find the method that matches a particular
+        /// Search through the members of the <see cref="_containingType"/> type symbol to find the method that matches a particular
         /// signature.
         /// </summary>
-        /// <param name="targetTypeSymbol">Type containing the desired method symbol.</param>
         /// <param name="memberRef">A MemberRef handle that can be used to obtain the name and signature of the method</param>
         /// <param name="methodsOnly">True to only return a method.</param>
         /// <returns>The matching method symbol, or null if the inputs do not correspond to a valid method.</returns>
-        internal Symbol FindMember(TypeSymbol targetTypeSymbol, MemberReferenceHandle memberRef, bool methodsOnly)
+        internal Symbol FindMember(MemberReferenceHandle memberRef, bool methodsOnly)
         {
-            if ((object)targetTypeSymbol == null)
-            {
-                return null;
-            }
-
             try
             {
                 string memberName = Module.GetMemberRefNameOrThrow(memberRef);
@@ -150,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     case (byte)SignatureCallingConvention.VarArgs:
                         int typeParamCount;
                         ParamInfo<TypeSymbol>[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount);
-                        return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo);
+                        return FindMethodBySignature(_containingType, memberName, signatureHeader, typeParamCount, targetParamInfo);
 
                     case (byte)SignatureKind.Field:
                         if (methodsOnly)
@@ -161,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
                         TypeSymbol type = this.DecodeFieldSignature(ref signaturePointer, out customModifiers);
-                        return FindFieldBySignature(targetTypeSymbol, memberName, customModifiers, type);
+                        return FindFieldBySignature(_containingType, memberName, customModifiers, type);
 
                     default:
                         // error: unexpected calling convention

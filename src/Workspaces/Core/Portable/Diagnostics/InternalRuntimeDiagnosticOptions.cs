@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class InternalRuntimeDiagnosticOptions
     {
-        public static readonly Option<bool> Syntax = new(nameof(InternalRuntimeDiagnosticOptions), nameof(Syntax), defaultValue: false);
-        public static readonly Option<bool> Semantic = new(nameof(InternalRuntimeDiagnosticOptions), nameof(Semantic), defaultValue: false);
-        public static readonly Option<bool> ScriptSemantic = new(nameof(InternalRuntimeDiagnosticOptions), nameof(ScriptSemantic), defaultValue: false);
+        public static readonly Option2<bool> Syntax = new(nameof(InternalRuntimeDiagnosticOptions), nameof(Syntax), defaultValue: false);
+        public static readonly Option2<bool> Semantic = new(nameof(InternalRuntimeDiagnosticOptions), nameof(Semantic), defaultValue: false);
+        public static readonly Option2<bool> ScriptSemantic = new(nameof(InternalRuntimeDiagnosticOptions), nameof(ScriptSemantic), defaultValue: false);
     }
 }

@@ -11,9 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class InterpolatedStringExpressionStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of InterpolatedStringExpressionSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As InterpolatedStringExpressionSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As InterpolatedStringExpressionSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
             If node.DollarSignDoubleQuoteToken.IsMissing OrElse
                node.DoubleQuoteToken.IsMissing Then

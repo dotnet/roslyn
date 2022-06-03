@@ -673,7 +673,7 @@ end class
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestParameterReferencedInSourceGeneratedDocument(kind As TestKind) As Task
+        Public Async Function TestParameterReferencedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -697,11 +697,11 @@ end class
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestParameterDefinedInSourceGeneratedDocument(kind As TestKind) As Task
+        Public Async Function TestParameterDefinedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -725,7 +725,175 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordParameter1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:$$y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordParameter2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordParameterWithExplicitProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:$$y|})
+{
+    public int y { get; } = [|y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordParameterWithExplicitProperty2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:y|})
+{
+    public int y { get; } = [|$$y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordParameterWithExplicitProperty3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:y|})
+{
+    public int y { get; } = [|y|];
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordParameterWithNotPrimaryConstructor(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int y)
+{
+    public Goo(int {|Definition:$$y|}) { }
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo([|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

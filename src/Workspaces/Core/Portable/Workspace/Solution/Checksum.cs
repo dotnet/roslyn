@@ -125,11 +125,11 @@ namespace Microsoft.CodeAnalysis
         public static Checksum ReadFrom(ObjectReader reader)
             => new(HashData.ReadFrom(reader));
 
-        public static string GetChecksumLogInfo(Checksum checksum)
-            => checksum.ToString();
+        public static Func<Checksum, string> GetChecksumLogInfo { get; }
+            = checksum => checksum.ToString();
 
-        public static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
-            => string.Join("|", checksums.Select(c => c.ToString()));
+        public static Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo { get; }
+            = checksums => string.Join("|", checksums.Select(c => c.ToString()));
 
         /// <summary>
         /// This structure stores the 20-byte hash as an inline value rather than requiring the use of

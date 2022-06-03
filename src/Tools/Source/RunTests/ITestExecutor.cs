@@ -13,20 +13,20 @@ namespace RunTests
         internal string DotnetFilePath { get; }
         internal ProcDumpInfo? ProcDumpInfo { get; }
         internal string TestResultsDirectory { get; }
-        internal string? Trait { get; }
-        internal string? NoTrait { get; }
+        internal string? TestFilter { get; }
         internal bool IncludeHtml { get; }
         internal bool Retry { get; }
+        internal bool CollectDumps { get; }
 
-        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? trait, string? noTrait, bool includeHtml, bool retry)
+        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? testFilter, bool includeHtml, bool retry, bool collectDumps)
         {
             DotnetFilePath = dotnetFilePath;
             ProcDumpInfo = procDumpInfo;
             TestResultsDirectory = testResultsDirectory;
-            Trait = trait;
-            NoTrait = noTrait;
+            TestFilter = testFilter;
             IncludeHtml = includeHtml;
             Retry = retry;
+            CollectDumps = collectDumps;
         }
     }
 

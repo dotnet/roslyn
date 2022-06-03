@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), Shared]
     internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
             ExpressionSyntax,

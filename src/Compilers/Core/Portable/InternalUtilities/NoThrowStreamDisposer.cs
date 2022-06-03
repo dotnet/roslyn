@@ -27,7 +27,7 @@ namespace Roslyn.Utilities
         public Stream Stream { get; }
 
         /// <summary>
-        /// True iff an exception was thrown during a call to <see cref="Dispose"/>
+        /// True if and only if an exception was thrown during a call to <see cref="Dispose"/>
         /// </summary>
         public bool HasFailedToDispose
         {

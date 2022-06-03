@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1190,8 +1191,9 @@ class Program
                     };
 
                     var substitutedSource = subst(substitutedSource0);
-                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
                     string expectedOutput;
+                    Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
                     if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
                     {
                         // Correct runtime behavior with no warning
@@ -2555,7 +2557,7 @@ public class Test
             // from assembly 'Dev10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // is overriding a method that is not visible from that assembly.
 
-            CompileAndVerify(outerCompilation, verify: Verification.Fails).VerifyIL("Test.Main", @"
+            CompileAndVerify(outerCompilation, verify: Verification.FailsPEVerify).VerifyIL("Test.Main", @"
 {
   // Code size       65 (0x41)
   .maxstack  4
@@ -4120,11 +4122,29 @@ class B : A
 
                 if (isFromMetadata)
                 {
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                    VerifyParamArrayAttribute(parameterB);
                 };
             };
 
             var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
+        }
+
+        private static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
+        {
+            Assert.Equal(expected, parameter.IsParams);
+
+            var peParameter = (PEParameterSymbol)parameter;
+            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
+            var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
+
+            if (expected)
+            {
+                Assert.Equal(1, paramArrayAttributes.Count());
+            }
+            else
+            {
+                Assert.Empty(paramArrayAttributes);
+            }
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]

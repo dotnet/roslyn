@@ -481,6 +481,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsRecord => false;
 
+        internal override bool IsRecordStruct => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 
         /// </summary>

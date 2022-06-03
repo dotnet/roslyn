@@ -110,13 +110,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            bool isInterface = ContainingType.IsInterface;
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: isInterface, modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
             if (methodKind == MethodKind.StaticConstructor)
             {
-                if ((mods & DeclarationModifiers.AccessibilityMask) != 0)
+                // Don't report ERR_StaticConstructorWithAccessModifiers if the ctor symbol name doesn't match the containing type name.
+                // This avoids extra unnecessary errors.
+                // There will already be a diagnostic saying Method must have a return type.
+                if ((mods & DeclarationModifiers.AccessibilityMask) != 0 &&
+                    ContainingType.Name == ((ConstructorDeclarationSyntax)this.SyntaxNode).Identifier.ValueText)
                 {
                     diagnostics.Add(ErrorCode.ERR_StaticConstructorWithAccessModifiers, location, this);
                     mods = mods & ~DeclarationModifiers.AccessibilityMask;
@@ -125,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 mods |= DeclarationModifiers.Private; // we mark static constructors private in the symbol table
 
-                if (this.ContainingType.IsInterface)
+                if (isInterface)
                 {
                     ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                                 DeclarationModifiers.Extern,

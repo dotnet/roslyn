@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Diagnostics;
@@ -72,11 +73,33 @@ namespace Microsoft.CodeAnalysis.Remote
             var mismatch6 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromIncrementalSolution.Keys)).ConfigureAwait(false);
             AppendMismatch(mismatch6, "assets only in the request but not in incremental solution", sb);
 
+            AppendOptionSets();
+
             var result = sb.ToString();
             if (result.Length > 0)
             {
                 Logger.Log(FunctionId.SolutionCreator_AssetDifferences, result);
                 Debug.Fail("Differences detected in solution checksum: " + result);
+            }
+
+            return;
+
+            void AppendOptionSets()
+            {
+                var seenChecksums = new HashSet<Checksum>();
+                foreach (var list in new[] { mismatch1, mismatch2, mismatch3, mismatch4, mismatch5, mismatch6 })
+                {
+                    foreach (var (checksum, val) in list)
+                    {
+                        if (seenChecksums.Add(checksum) && val is SerializableOptionSet optionSet)
+                        {
+                            sb.AppendLine($"Checksum: {checksum}");
+                            sb.AppendLine("Options:");
+                            sb.AppendLine(optionSet.GetDebugString());
+                            sb.AppendLine();
+                        }
+                    }
+                }
             }
 
             static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
@@ -158,15 +181,29 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        public static async Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+        public static Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+            => AppendAssetMapAsync(solution, map, projectId: null, cancellationToken);
+
+        public static async Task AppendAssetMapAsync(
+            this Solution solution, Dictionary<Checksum, object> map, ProjectId? projectId, CancellationToken cancellationToken)
         {
-            var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-            await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
-
-            foreach (var project in solution.Projects)
+            if (projectId == null)
             {
+                var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+
+                foreach (var project in solution.Projects)
+                    await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                var solutionChecksums = await solution.State.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+
+                var project = solution.GetRequiredProject(projectId);
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+                foreach (var dep in solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(projectId))
+                    await solution.GetRequiredProject(dep).AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -203,7 +240,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (child is Checksum checksum)
                 {
-                    set.Add(checksum);
+                    if (checksum != Checksum.Null)
+                        set.Add(checksum);
                 }
 
                 if (child is ChecksumCollection collection)

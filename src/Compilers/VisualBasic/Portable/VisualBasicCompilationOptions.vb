@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
-            SyntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
+            syntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
@@ -349,6 +349,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
             Return importNames.ToImmutableAndFree()
+        End Function
+
+        Friend Overrides Function CreateDeterministicKeyBuilder() As DeterministicKeyBuilder
+            Return VisualBasicDeterministicKeyBuilder.Instance
         End Function
 
         ''' <summary>

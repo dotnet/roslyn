@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Report conflicts between Static variables.
-                ReportNameConfictsBetweenStaticLocals(blockBinder, diagnostics)
+                ReportNameConflictsBetweenStaticLocals(blockBinder, diagnostics)
             Else
                 statements.Add(exitLabelStatement)
             End If
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If (containsOnError OrElse containsResume) AndAlso walker._containsTry Then
                     For Each node In walker._tryOnErrorResume
-                        binder.ReportDiagnostic(diagnostics, node.Syntax, ERRID.ERR_TryAndOnErrorDoNotMix)
+                        Binder.ReportDiagnostic(diagnostics, node.Syntax, ERRID.ERR_TryAndOnErrorDoNotMix)
                     Next
 
                     reportedAnError = True
@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-        Private Shared Sub ReportNameConfictsBetweenStaticLocals(methodBlockBinder As Binder, diagnostics As BindingDiagnosticBag)
+        Private Shared Sub ReportNameConflictsBetweenStaticLocals(methodBlockBinder As Binder, diagnostics As BindingDiagnosticBag)
             Dim currentBinder As Binder = methodBlockBinder
             Dim bodyBinder As MethodBodyBinder
 
@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 #End If
 
-                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer))
+                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer, Me))
                 End If
             Next
 
@@ -1940,7 +1940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    InternalSyntax.Feature.InitOnlySettersUsage)
                         End If
 
-                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+                        ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, setMethod, node)
 
                         If ReportUseSite(diagnostics, op1.Syntax, setMethod) Then
                             isError = True
@@ -3864,10 +3864,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       diagnostics)
                     End If
 
-                    Dim membertUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                    Dim memberUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
 
-                    If member IsNot Nothing AndAlso membertUseSiteInfo.DiagnosticInfo Is Nothing Then
-                        diagnostics.AddDependencies(membertUseSiteInfo)
+                    If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                        diagnostics.AddDependencies(memberUseSiteInfo)
                         collectionPlaceholder = New BoundRValuePlaceholder(collectionSyntax,
                                                                            If(collectionType IsNot Nothing AndAlso collectionType.IsStringType, collectionType, collection.Type))
                         Dim methodOrPropertyGroup As BoundMethodOrPropertyGroup
@@ -3891,9 +3891,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         member = GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext,
                                                       collectionSyntax,
                                                       diagnostics)
-                        membertUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
-                        If member IsNot Nothing AndAlso membertUseSiteInfo.DiagnosticInfo Is Nothing Then
-                            diagnostics.AddDependencies(membertUseSiteInfo)
+                        memberUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                        If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                            diagnostics.AddDependencies(memberUseSiteInfo)
                             methodOrPropertyGroup = New BoundMethodGroup(collectionSyntax,
                                                                          Nothing,
                                                                          ImmutableArray.Create(DirectCast(member, MethodSymbol)),
@@ -3925,9 +3925,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           diagnostics)
                         End If
 
-                        membertUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
-                        If member IsNot Nothing AndAlso membertUseSiteInfo.DiagnosticInfo Is Nothing Then
-                            diagnostics.AddDependencies(membertUseSiteInfo)
+                        memberUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                        If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                            diagnostics.AddDependencies(memberUseSiteInfo)
                             methodOrPropertyGroup = New BoundPropertyGroup(collectionSyntax,
                                                                            ImmutableArray.Create(DirectCast(member, PropertySymbol)),
                                                                            LookupResultKind.Good,
@@ -5191,7 +5191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteInfo) Then
                         hasError = True
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException, exceptionType)
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException)
                     End If
 
                     diagnostics.Add(node, useSiteInfo)

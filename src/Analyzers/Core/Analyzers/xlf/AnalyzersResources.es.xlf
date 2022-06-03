@@ -22,6 +22,11 @@
         <target state="translated">Agregar modificadores de accesibilidad</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
         <target state="translated">Agregar paréntesis para claridad</target>
@@ -33,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Agregar cualificación 'this' o 'Me'.</target>
+        <source>Add 'this' or 'Me' qualification</source>
+        <target state="translated">Agregar calificación 'this' o 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
@@ -49,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Avoid_multiple_blank_lines">
         <source>Avoid multiple blank lines</source>
-        <target state="new">Avoid multiple blank lines</target>
+        <target state="translated">Evitar varias líneas en blanco</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
@@ -64,12 +69,12 @@
       </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
-        <target state="new">Blank line required between block and subsequent statement</target>
+        <target state="translated">Se requiere una línea en blanco entre el bloque y la instrucción subsiguiente</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_match_folder_structure">
         <source>Change namespace to match folder structure</source>
-        <target state="new">Change namespace to match folder structure</target>
+        <target state="translated">Cambiar namespace para que coincida con la estructura de carpetas</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
@@ -87,11 +92,6 @@
         <target state="translated">Convertir a expresión condicional</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Convertir a tupla</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">El valor de la expresión no se utiliza nunca.</target>
@@ -100,6 +100,11 @@
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
         <target state="translated">La inicialización de la recopilación se pueden simplificar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -164,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
         <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
-        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
+        <target state="translated">El espacio de nombres "{0}" no coincide con la estructura de carpetas, se esperaba "{1}"</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Namespace_does_not_match_folder_structure">
         <source>Namespace does not match folder structure</source>
-        <target state="new">Namespace does not match folder structure</target>
+        <target state="translated">El espacio de nombres no coincide con la estructura de carpetas</target>
         <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
@@ -228,13 +233,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Un miembro privado "{0}" puede retirarse porque el valor asignado a él no se lee nunca.</target>
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="translated">El miembro privado "{0}" puede quitarse porque el valor que tiene asignado no se lee nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Un miembro privado "{0}" está sin usar.</target>
+        <source>Private member '{0}' is unused</source>
+        <target state="translated">El miembro privado "{0}" no se usa</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -299,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
-        <target state="new">Simplify LINQ expression</target>
+        <target state="translated">Simplificar la expresión LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
@@ -390,6 +395,11 @@
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="translated">Usar expresión "throw"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="new">'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</target>
         <note />
       </trans-unit>
     </body>

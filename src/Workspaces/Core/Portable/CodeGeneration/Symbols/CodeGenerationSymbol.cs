@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal abstract class CodeGenerationSymbol : ISymbol
     {
-        protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable =
-            new();
+        protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable = new();
 
         private ImmutableArray<AttributeData> _attributes;
+        protected readonly string _documentationCommentXml;
 
         public Accessibility DeclaredAccessibility { get; }
         protected internal DeclarationModifiers Modifiers { get; }
@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
-            string name)
+            string name,
+            string documentationCommentXml = null)
         {
             this.ContainingAssembly = containingAssembly;
             this.ContainingType = containingType;
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.DeclaredAccessibility = declaredAccessibility;
             this.Modifiers = modifiers;
             this.Name = name;
+            _documentationCommentXml = documentationCommentXml;
         }
 
         protected abstract CodeGenerationSymbol Clone();
@@ -175,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
 
+        public abstract TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument);
+
         public string GetDocumentationCommentId()
             => null;
 
@@ -183,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool expandIncludes,
             CancellationToken cancellationToken)
         {
-            return "";
+            return _documentationCommentXml ?? "";
         }
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
@@ -205,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return this.Name;
             }
         }
+
+        public int MetadataToken => 0;
 
         public bool HasUnsupportedMetadata => false;
 

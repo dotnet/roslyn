@@ -7,6 +7,9 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -85,10 +88,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             protected override (string description, bool hasExistingImport) GetDescription(
-                Document document, SyntaxNode node,
+                Document document, CodeCleanupOptions options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var (description, hasExistingImport) = base.GetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, options, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return (null, false);

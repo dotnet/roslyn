@@ -751,23 +751,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' LanguageVersion should already be mapped to an effective version at this point
             Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
             WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+            WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionStrict, Options.OptionStrict.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionInfer, Options.OptionInfer.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionCompareText, Options.OptionCompareText.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionExplicit, Options.OptionExplicit.ToString())
+            WriteValue(builder, CompilationOptionNames.EmbedRuntime, Options.EmbedVbCoreRuntime.ToString())
 
-            If Options.CheckOverflow Then
-                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            If Options.GlobalImports.Length > 0 Then
+                WriteValue(builder, CompilationOptionNames.GlobalNamespaces, String.Join(";", Options.GlobalImports.Select(Function(x) x.Name)))
             End If
 
-            If Options.OptionStrict <> OptionStrict.Off Then
-                WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            If Not String.IsNullOrEmpty(Options.RootNamespace) Then
+                WriteValue(builder, CompilationOptionNames.RootNamespace, Options.RootNamespace)
             End If
 
             If Options.ParseOptions IsNot Nothing Then
-                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
-                                                                                              If (p.Value Is Nothing) Then
-                                                                                                  Return p.Key
-                                                                                              End If
-
-                                                                                              Return p.Key + "=" + p.Value.ToString()
-                                                                                          End Function)
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(
+                    Function(p) As String
+                        If TypeOf p.Value Is String Then
+                            Return p.Key + "=""" + p.Value.ToString() + """"
+                        ElseIf p.Value Is Nothing Then
+                            Return p.Key
+                        Else
+                            Return p.Key + "=" + p.Value.ToString()
+                        End If
+                    End Function)
                 WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
             End If
         End Sub
@@ -892,12 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Is the passed in syntax tree in this compilation?
         ''' </summary>
         Public Shadows Function ContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
-            If syntaxTree Is Nothing Then
-                Throw New ArgumentNullException(NameOf(syntaxTree))
-            End If
-
-            Dim vbtree = syntaxTree
-            Return vbtree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(vbtree)
+            Return syntaxTree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(syntaxTree)
         End Function
 
         Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
@@ -1244,6 +1248,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Can be used to get a total ordering on declarations, for example.
         ''' </summary>
         Friend Overrides Function CompareSourceLocations(first As SyntaxReference, second As SyntaxReference) As Integer
+            Return LexicalSortKey.Compare(first, second, Me)
+        End Function
+
+        ''' <summary>
+        ''' Compare two source locations, using their containing trees, and then by Span.First within a tree. 
+        ''' Can be used to get a total ordering on declarations, for example.
+        ''' </summary>
+        Friend Overrides Function CompareSourceLocations(first As SyntaxNode, second As SyntaxNode) As Integer
             Return LexicalSortKey.Compare(first, second, Me)
         End Function
 
@@ -1671,8 +1683,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
-            ReportUnusedImports(filterTree, New BindingDiagnosticBag(diagnostics), cancellationToken)
+        Friend Overrides Sub ReportUnusedImports(diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
+            ReportUnusedImports(filterTree:=Nothing, New BindingDiagnosticBag(diagnostics), cancellationToken)
         End Sub
 
         Private Overloads Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken)
@@ -2369,7 +2381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Debug.Assert(Not IsSubmission OrElse HasCodeToEmit() OrElse
-                         (emitOptions = emitOptions.Default AndAlso debugEntryPoint Is Nothing AndAlso sourceLinkStream Is Nothing AndAlso
+                         (emitOptions = EmitOptions.Default AndAlso debugEntryPoint Is Nothing AndAlso sourceLinkStream Is Nothing AndAlso
                           embeddedTexts Is Nothing AndAlso manifestResources Is Nothing AndAlso testData Is Nothing))
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
@@ -2491,18 +2503,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Overrides Function GenerateResourcesAndDocumentationComments(
+        Friend Overrides Function GenerateResources(
             moduleBuilder As CommonPEModuleBuilder,
-            xmlDocStream As Stream,
             win32Resources As Stream,
-            outputNameOverride As String,
+            useRawWin32Resources As Boolean,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As Boolean
+
+            cancellationToken.ThrowIfCancellationRequested()
 
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             Dim resourceDiagnostics = DiagnosticBag.GetInstance()
 
-            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics)
+            SetupWin32Resources(moduleBuilder, win32Resources, useRawWin32Resources, resourceDiagnostics)
 
             ' give the name of any added modules, but not the name of the primary module.
             ReportManifestResourceDuplicates(
@@ -2511,9 +2524,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics)
 
-            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken) Then
-                Return False
-            End If
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken)
+        End Function
+
+        Friend Overrides Function GenerateDocumentationComments(
+            xmlDocStream As Stream,
+            outputNameOverride As String,
+            diagnostics As DiagnosticBag,
+            cancellationToken As CancellationToken) As Boolean
 
             cancellationToken.ThrowIfCancellationRequested()
 
@@ -2549,7 +2567,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
-            updatedMethods As ICollection(Of MethodDefinitionHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2561,7 +2578,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 cancellationToken)
         End Function
@@ -2709,7 +2725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 
-        Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
+        Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
                 Return Me.SyntaxTrees
             End Get

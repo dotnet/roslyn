@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
     /// <summary>
     /// Base type of all C#/VB navigation bar items.  Only for use internally to roslyn.
     /// </summary>
-    internal abstract partial class RoslynNavigationBarItem
+    internal abstract partial class RoslynNavigationBarItem : IEquatable<RoslynNavigationBarItem>
     {
         public readonly RoslynNavigationBarItemKind Kind;
 
@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         public readonly bool Grayed;
         public readonly int Indent;
         public readonly ImmutableArray<RoslynNavigationBarItem> ChildItems;
-        public readonly ImmutableArray<TextSpan> Spans;
 
         protected RoslynNavigationBarItem(
             RoslynNavigationBarItemKind kind,
@@ -30,13 +29,11 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             bool bolded,
             bool grayed,
             int indent,
-            ImmutableArray<RoslynNavigationBarItem> childItems,
-            ImmutableArray<TextSpan> spans)
+            ImmutableArray<RoslynNavigationBarItem> childItems)
         {
             Kind = kind;
             Text = text;
             Glyph = glyph;
-            Spans = spans.NullToEmpty();
             ChildItems = childItems.NullToEmpty();
             Indent = indent;
             Bolded = bolded;
@@ -44,5 +41,20 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         }
 
         protected internal abstract SerializableNavigationBarItem Dehydrate();
+
+        public abstract override bool Equals(object? obj);
+        public abstract override int GetHashCode();
+
+        public bool Equals(RoslynNavigationBarItem? other)
+        {
+            return other != null &&
+                   Kind == other.Kind &&
+                   Text == other.Text &&
+                   Glyph == other.Glyph &&
+                   Bolded == other.Bolded &&
+                   Grayed == other.Grayed &&
+                   Indent == other.Indent &&
+                   ChildItems.SequenceEqual(other.ChildItems);
+        }
     }
 }

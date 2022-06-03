@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddAnonymousTypeMemberName), [Shared]>
     Friend Class VisualBasicAddAnonymousTypeMemberNameCodeFixProvider
         Inherits AbstractAddAnonymousTypeMemberNameCodeFixProvider(Of
             ExpressionSyntax,

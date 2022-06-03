@@ -542,7 +542,9 @@ namespace System
                 var symbol = comp.GetSpecialTypeMember(special);
                 if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
                 {
                     Assert.Null(symbol); // Not available
@@ -608,6 +610,11 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
                     case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
+                    case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute:
+                    case WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute:
+                    case WellKnownType.System_MemoryExtensions:
+                    case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -915,10 +922,13 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor:
-                    case WellKnownMember.System_Span_T__ctor:
+                    case WellKnownMember.System_Span_T__ctor_Pointer:
+                    case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
-                    case WellKnownMember.System_ReadOnlySpan_T__ctor:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Index__ctor:
@@ -961,6 +971,13 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
+                    case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor:
+                    case WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
+                    case WellKnownMember.System_MemoryExtensions__AsSpan_String:
+                    case WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -2400,7 +2417,7 @@ class C
         }
 
         [Fact]
-        public void System_Decimal__op_Implicit_FromInt32()
+        public void System_Decimal__op_Implicit_FromInt32_1()
         {
             var source =
 @"using System;
@@ -2427,6 +2444,74 @@ public class Test
                 // (16,78): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
                 //         Expression<Func<SampStruct?, decimal, decimal>> testExpr = (x, y) => x ?? y;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x ?? y").WithArguments("System.Decimal", "op_Implicit").WithLocation(16, 78)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_2()
+        {
+            var source =
+@"
+public class Test
+{
+    static void Main()
+    {
+        int x = 1;
+        decimal y = x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (7,21): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         decimal y = x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_3()
+        {
+            var source =
+@"
+public class Test
+{
+    static void Main()
+    {
+        int? x = 1;
+        decimal? y = x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (7,22): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         decimal? y = x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(7, 22)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_4()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        Expression<Func<int?, decimal?>> testExpr = (x) => x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (9,60): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         Expression<Func<int?, decimal?>> testExpr = (x) => x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(9, 60)
                 );
         }
 

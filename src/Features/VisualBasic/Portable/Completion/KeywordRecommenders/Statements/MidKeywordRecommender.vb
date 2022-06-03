@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                         New MidAssignmentDocumentation()))
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            Return If(context.IsSingleLineStatementContext, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
+            Return If(context.IsStatementContext, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

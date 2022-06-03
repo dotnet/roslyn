@@ -6,8 +6,10 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
@@ -810,6 +812,22 @@ GetIndentionColumn(30),
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [WorkItem(38986, "https://github.com/dotnet/roslyn/issues/38986")]
+        public async Task TestInConstructorWithSyntaxErrorAfter()
+        {
+            await TestInRegularAndScript1Async(
+@"class C {
+    public [||]C(int i, int j) : base(,) {
+    }
+}",
+@"class C {
+    public C(int i,
+             int j) : base(,) {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInIndexer()
         {
             await TestInRegularAndScript1Async(
@@ -922,6 +940,42 @@ GetIndentionColumn(30),
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecord_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"record R([||]int I, string S);",
+@"record R(int I,
+         string S);");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecord_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"record R([||]int I, string S) { }",
+@"record R(int I,
+         string S) { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecordStruct_Semicolon()
+        {
+            await TestInRegularAndScript1Async(
+"record struct R([||]int I, string S);",
+@"record struct R(int I,
+                string S);", new TestParameters(TestOptions.RegularPreview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestRecordStruct_Braces()
+        {
+            await TestInRegularAndScript1Async(
+"record struct R([||]int I, string S) { }",
+@"record struct R(int I,
+                string S) { }", new TestParameters(TestOptions.RegularPreview));
         }
     }
 }

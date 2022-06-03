@@ -4,10 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     Public Class GenerateConstructorTests
@@ -800,10 +799,10 @@ End Class",
     End Sub
 End Class
 Class A
-    Private p As Object
+    Private value As Object
 
-    Public Sub New(p As Object)
-        Me.p = p
+    Public Sub New(value As Object)
+        Me.value = value
     End Sub
 End Class")
         End Function
@@ -1435,7 +1434,7 @@ End Enum
 Public Class MyAttribute
     Inherits System.Attribute
 
-    Private vs As Short()
+    Private shorts As Short()
     Private a1 As A
     Private v1 As Boolean
     Private v2 As Integer
@@ -1447,8 +1446,8 @@ Public Class MyAttribute
     Private v8 As Single
     Private v9 As String
 
-    Public Sub New(vs() As Short, a1 As A, v1 As Boolean, v2 As Integer, v3 As Char, v4 As Short, v5 As Integer, v6 As Long, v7 As Double, v8 As Single, v9 As String)
-        Me.vs = vs
+    Public Sub New(shorts() As Short, a1 As A, v1 As Boolean, v2 As Integer, v3 As Char, v4 As Short, v5 As Integer, v6 As Long, v7 As Double, v8 As Single, v9 As String)
+        Me.shorts = shorts
         Me.a1 = a1
         Me.v1 = v1
         Me.v2 = v2
@@ -1578,23 +1577,72 @@ Class A
 End Class")
         End Function
 
-        Public Class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.Linq
+Class C
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C([|0|])",
+"Imports System
+Imports System.Linq
+Class C
+    Private v As Integer
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                        New GenerateConstructorCodeFixProvider())
-            End Function
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C(0)Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
+        End Function
 
-            <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-            Public Async Function TestGenerateConstructorInIncompleteLambda() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.Linq
+Class C
+    Private v As Integer
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New [|C|](0, 0)",
+"Imports System
+Imports System.Linq
+Class C
+    Private v As Integer
+    Private v1 As Integer
+
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C(0, 0)Public Sub New(v As Integer, v1 As Integer)
+        Me.New(v)
+        Me.v1 = v1
+    End Sub
+End Class
+")
+        End Function
+
+        <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/53238"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda_WithoutImport() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System.Linq
 Class C
     Sub New()
         Dim s As Action = Sub()
-                              Dim a = New [|C|](0)",
+                              Dim a = New C([|0|])",
 "Imports System.Linq
 Class C
     Private v As Integer
@@ -1606,12 +1654,12 @@ Class C
     End Sub
 End Class
 ")
-            End Function
+        End Function
 
-            <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
-            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-            Public Async Function TestGenerateConstructorInIncompleteLambda2() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/53238"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda2_WithoutImport() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System.Linq
 Class C
     Private v As Integer
@@ -1637,8 +1685,7 @@ Class C
     End Sub
 End Class
 ")
-            End Function
-        End Class
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateConstructorNotOfferedForDuplicate() As Task
@@ -2236,15 +2283,15 @@ End Class
 ",
 "Class C
     Private _a As Integer
-    Private p As Object
+    Private value As Object
 
     Public Sub New(Optional a As Integer = 1)
         Me._a = a
     End Sub
 
-    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+    Public Sub New(Optional a As Integer = 1, Optional value As Object = Nothing)
         Me.New(a)
-        Me.p = p
+        Me.value = value
     End Sub
 
     Public Function M() As C
@@ -2273,15 +2320,15 @@ End Class
 ",
 "Class C
     Private _a As Integer
-    Private p As Object
+    Private value As Object
 
     Public Sub New(Optional a As Integer = 1)
         Me._a = a
     End Sub
 
-    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+    Public Sub New(Optional a As Integer = 1, Optional value As Object = Nothing)
         Me.New(a)
-        Me.p = p
+        Me.value = value
     End Sub
 
     Public Function M() As C

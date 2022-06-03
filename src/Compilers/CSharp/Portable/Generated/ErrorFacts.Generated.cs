@@ -249,18 +249,19 @@
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                case ErrorCode.WRN_PartialMethodTypeDifference:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_PrecedenceInversion:
                 case ErrorCode.WRN_AnalyzerReferencesFramework:
                 case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                 case ErrorCode.WRN_RecordNamedDisallowed:
-                case ErrorCode.WRN_UnassignedThisAutoProperty:
-                case ErrorCode.WRN_UnassignedThis:
+                case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
                 case ErrorCode.WRN_ParamUnassigned:
                 case ErrorCode.WRN_UseDefViolationProperty:
                 case ErrorCode.WRN_UseDefViolationField:
-                case ErrorCode.WRN_UseDefViolationThis:
+                case ErrorCode.WRN_UseDefViolationThisUnsupportedVersion:
                 case ErrorCode.WRN_UseDefViolationOut:
                 case ErrorCode.WRN_UseDefViolation:
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
@@ -268,6 +269,25 @@
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
+                case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
+                case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                case ErrorCode.WRN_MethGrpToNonDel:
+                case ErrorCode.WRN_LowerCaseTypeName:
+                case ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
+                case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
+                case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
+                case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
+                case ErrorCode.WRN_UnassignedThisSupportedVersion:
+                case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                     return true;
                 default:
                     return false;
@@ -308,6 +328,7 @@
             {
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
+                case ErrorCode.HDN_DuplicateWithGlobalUsing:
                     return true;
                 default:
                     return false;

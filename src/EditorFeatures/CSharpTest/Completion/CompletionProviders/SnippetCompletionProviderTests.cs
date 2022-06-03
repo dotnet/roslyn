@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task ShowRegionSnippetWithHashRTyped()
             => await VerifyItemExistsAsync(@"#r$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SnippetsInLineSpanDirective()
+            => await VerifyItemIsAbsentAsync(@"#line (1, 2) - (3, 4) $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
+
         [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ShowSnippetsFromOtherContext()
@@ -144,19 +148,15 @@ class C
             }
 
             public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
-            {
-                return new List<SnippetInfo>
+                => new List<SnippetInfo>
                     {
                         new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
                         new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
                     };
-            }
 
             public bool SnippetShortcutExists_NonBlocking(string shortcut)
-            {
-                return string.Equals(shortcut, SnippetShortcut, StringComparison.OrdinalIgnoreCase) ||
-                       string.Equals(shortcut, PreProcessorSnippetShortcut, StringComparison.OrdinalIgnoreCase);
-            }
+                => string.Equals(shortcut, SnippetShortcut, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(shortcut, PreProcessorSnippetShortcut, StringComparison.OrdinalIgnoreCase);
 
             public bool ShouldFormatSnippet(SnippetInfo snippetInfo)
                 => false;

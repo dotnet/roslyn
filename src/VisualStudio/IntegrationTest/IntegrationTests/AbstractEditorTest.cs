@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -52,9 +51,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
                 // Winforms and XAML do not open text files on creation
                 // so these editor tasks will not work if that is the project template being used.
-                if (_projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.WpfApplication &&
-                    _projectTemplate != WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+                if (_projectTemplate is not WellKnownProjectTemplates.WinFormsApplication and
+                    not WellKnownProjectTemplates.WpfApplication and
+                    not WellKnownProjectTemplates.CSharpNetCoreClassLibrary and
+                    not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
                 {
                     VisualStudio.Editor.SetUseSuggestionMode(false);
                     ClearEditor();

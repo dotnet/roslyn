@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
@@ -21,7 +22,6 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -101,6 +101,45 @@ line"";
 }}");
                 }
 
+                [WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    void Method()
+    {
+        var s = $@""
+hi {[|new Session()|]}
+"";
+    }
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    void Method()
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        var s = $@""
+hi {{new Session()}}
+"";
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+    }}
+}}");
+                }
+
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestMultilineStatementPragmaWarningDirective()
                 {
@@ -121,8 +160,34 @@ class Class
     {{
 #pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
         int x = 0
-#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
               + 1;
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestMultilineStatementPragmaWarningDirective2()
+                {
+                    await TestAsync(
+        @"
+class Class
+{
+    void Method()
+    {
+        [|int x = 0,
+            y = 1;|]
+    }
+}",
+        $@"
+class Class
+{{
+    void Method()
+    {{
+#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
+        int x = 0,
+            y = 1;
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
                 }
@@ -177,6 +242,138 @@ sealed class Class
     protected void Method()
 #pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
     {{
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedMember1()
+                {
+                    await TestAsync(
+        @"
+sealed class Class
+{
+    [|protected int Method()|] => 1;
+}",
+        $@"
+sealed class Class
+{{
+#pragma warning disable CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+    protected int Method() => 1;
+#pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedMember2()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    string Method()
+        => @$""hi
+        {[|new Session()|]}
+        "";
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    string Method()
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        => @$""hi
+        {{new Session()}}
+        "";
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedLocalFunction()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    void M()
+    {
+        string Method()
+            => @$""hi
+            {[|new Session()|]}
+            "";
+    }
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    void M()
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        string Method()
+            => @$""hi
+            {{new Session()}}
+            "";
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningExpressionBodiedLambda()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    void M()
+    {
+        new Func<string>(()
+            => @$""hi
+            {[|new Session()|]}
+            "");
+    }
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    void M()
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        new Func<string>(()
+            => @$""hi
+            {{new Session()}}
+            "");
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
     }}
 }}");
                 }
@@ -270,7 +467,7 @@ class Class
                     var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
                     Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                    var allFixes = (await fixService.GetFixesAsync(document, span, includeConfigurationFixes: true, cancellationToken: CancellationToken.None))
+                    var allFixes = (await fixService.GetFixesAsync(document, span, CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None))
                         .SelectMany(fixCollection => fixCollection.Fixes);
 
                     var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219").ToArray();
@@ -381,11 +578,11 @@ class Class
 class Class
 {{
     void Method()
+#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
     {{
 
-        // Comment
-        // Comment
-#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
+// Comment
+// Comment
 #pragma abcde
 
     }}    // Comment   
@@ -568,7 +765,7 @@ class Class
                 internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
                     return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new FormattingDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                        new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
                 protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
@@ -782,10 +979,7 @@ class Class
 
         public abstract partial class CSharpGlobalSuppressMessageSuppressionTests : CSharpSuppressionTests
         {
-            protected sealed override int CodeActionIndex
-            {
-                get { return 1; }
-            }
+            protected sealed override int CodeActionIndex => 1;
 
             public class CompilerDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
@@ -813,7 +1007,7 @@ class Class
                 internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
                     return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new FormattingDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                        new CSharpFormattingAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
                 protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
@@ -874,7 +1068,7 @@ class Class
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
                     public static readonly DiagnosticDescriptor Descriptor =
-                        new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                        new("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                     {
@@ -923,10 +1117,11 @@ class Class
 
                             case SyntaxKind.EnumDeclaration:
                                 // Report diagnostic on each descendant comment trivia
-                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia || t.Kind() == SyntaxKind.MultiLineCommentTrivia))
+                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia))
                                 {
                                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, trivia.GetLocation()));
                                 }
+
                                 break;
                         }
                     }
@@ -1018,7 +1213,7 @@ using System.Diagnostics.CodeAnalysis;
 ";
 
                     var lines = Regex.Split(expected, "\r?\n");
-                    Assert.False(string.IsNullOrWhiteSpace(lines[lines.Length - 2]));
+                    Assert.False(string.IsNullOrWhiteSpace(lines[^2]));
 
                     await TestAsync(
             @"
@@ -1869,25 +2064,16 @@ using System.Diagnostics.CodeAnalysis;
 
         public abstract class CSharpLocalSuppressMessageSuppressionTests : CSharpSuppressionTests
         {
-            protected sealed override int CodeActionIndex
-            {
-                get { return 2; }
-            }
+            protected sealed override int CodeActionIndex => 2;
 
             public class UserInfoDiagnosticSuppressionTests : CSharpLocalSuppressMessageSuppressionTests
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
                     private readonly DiagnosticDescriptor _descriptor =
-                        new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                        new("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
-                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                    {
-                        get
-                        {
-                            return ImmutableArray.Create(_descriptor);
-                        }
-                    }
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
 
                     public override void Initialize(AnalysisContext context)
                         => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
@@ -2160,6 +2346,117 @@ namespace N
                     expected = expected.Replace("int Method()", "[|int Method()|]");
                     await TestMissingAsync(expected);
                 }
+
+                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnMethodWithXmlDoc()
+                {
+                    var initial = @"
+using System;
+
+namespace ClassLibrary10
+{
+    public class Class1
+    {
+        int x;
+
+        /// <summary>
+        /// This is a description
+        /// </summary>
+        [|public void Method(int unused)|] { }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace ClassLibrary10
+{{
+    public class Class1
+    {{
+        int x;
+
+        /// <summary>
+        /// This is a description
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        public void Method(int unused) {{ }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnMethodWithNoTrivia()
+                {
+                    var initial = @"
+using System;
+
+namespace ClassLibrary10
+{
+    public class Class1
+    {
+        int x;
+[|public void Method(int unused)|] { }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace ClassLibrary10
+{{
+    public class Class1
+    {{
+        int x;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        public void Method(int unused) {{ }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [WorkItem(47427, "https://github.com/dotnet/roslyn/issues/47427")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnMethodWithTriviaStartsOnTheSameLine()
+                {
+                    var initial = @"
+using System;
+
+namespace ClassLibrary10
+{
+    public class Class1
+    {
+        int x;
+        /*test*/[|public void Method(int unused)|] { }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace ClassLibrary10
+{{
+    public class Class1
+    {{
+        int x;
+        /*test*/
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        public void Method(int unused) {{ }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");
+                    await TestMissingAsync(expected);
+                }
             }
         }
 
@@ -2172,15 +2469,10 @@ namespace N
             private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public static readonly DiagnosticDescriptor Descriptor =
-                    new DiagnosticDescriptor("NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                    new("NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                {
-                    get
-                    {
-                        return ImmutableArray.Create(Descriptor);
-                    }
-                }
+                    => ImmutableArray.Create(Descriptor);
 
                 public override void Initialize(AnalysisContext context)
                     => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
@@ -2195,13 +2487,7 @@ namespace N
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
-            protected override int CodeActionIndex
-            {
-                get
-                {
-                    return 0;
-                }
-            }
+            protected override int CodeActionIndex => 0;
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem(1073825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073825")]

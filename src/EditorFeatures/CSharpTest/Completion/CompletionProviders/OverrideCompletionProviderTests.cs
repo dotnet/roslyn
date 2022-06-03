@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(OverrideCompletionProvider);
 
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        protected override OptionSet WithChangedNonCompletionOptions(OptionSet options)
         {
-            return options
+            return base.WithChangedNonCompletionOptions(options)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
         }
@@ -2700,6 +2701,191 @@ int bar;
             }
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitRequiredKeywordAdded()
+        {
+            var markupBeforeCommit = """
+                class Base
+                {
+                    public virtual required int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    override $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual required int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    public override required int Prop
+                    {
+                        get
+                        {
+                            return base.Prop;$$
+                        }
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Prop", expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("required override")]
+        [InlineData("override required")]
+        public async Task CommitRequiredKeywordPreserved(string ordering)
+        {
+            var markupBeforeCommit = $@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+        <Document>class Base
+{{
+    public virtual required int Prop {{ get; }}
+}}
+
+class Derived : Base
+{{
+    {ordering} $$
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual required int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    public override required int Prop
+                    {
+                        get
+                        {
+                            return base.Prop;$$
+                        }
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Prop", expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("required override")]
+        [InlineData("override required")]
+        public async Task CommitRequiredKeywordPreservedWhenBaseIsNotRequired(string ordering)
+        {
+            var markupBeforeCommit = $@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+        <Document>class Base
+{{
+    public virtual int Prop {{ get; }}
+}}
+
+class Derived : Base
+{{
+    {ordering} $$
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    public override required int Prop
+                    {
+                        get
+                        {
+                            return base.Prop;$$
+                        }
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Prop", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitRequiredKeywordRemovedForMethods()
+        {
+            var markupBeforeCommit = """
+                class Base
+                {
+                    public virtual void M() { }
+                }
+
+                class Derived : Base
+                {
+                    required override $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual void M() { }
+                }
+
+                class Derived : Base
+                {
+                    public override void M()
+                    {
+                        base.M();$$
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "M()", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitRequiredKeywordRemovedForIndexers()
+        {
+            var markupBeforeCommit = """
+                class Base
+                {
+                    public virtual int this[int i] { get { } set { } }
+                }
+
+                class Derived : Base
+                {
+                    required override $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual int this[int i] { get { } set { } }
+                }
+
+                class Derived : Base
+                {
+                    public override int this[int i]
+                    {
+                        get
+                        {
+                            return base[i];$$
+                        }
+
+                        set
+                        {
+                            base[i] = value;
+                        }
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "this[int i]", expectedCodeAfterCommit);
+        }
+
         #endregion
 
         #region "EditorBrowsable should be ignored"
@@ -2777,7 +2963,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, ExportProvider);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider: ExportProvider);
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
@@ -2979,7 +3165,7 @@ public class SomeClass : Base
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
             var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionList.Span, commitKey: null, disallowAddingImports: false, CancellationToken.None);
+            var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
@@ -3145,6 +3331,11 @@ record Program : Base
 {
     override $$
 }", "ToString()");
+        }
+
+        private Task VerifyItemExistsAsync(string markup, string expectedItem)
+        {
+            return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit: true);
         }
     }
 }

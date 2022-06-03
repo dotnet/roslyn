@@ -1481,7 +1481,7 @@ class D
 class B
 {
 }
-static class extension
+static class @extension
 {
     public static void Main(this B x, string[] args)
     { }
@@ -1495,10 +1495,10 @@ static class extension
             CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe.WithMainTypeName("extension")).VerifyDiagnostics(
                 // (7,24): warning CS0028: 'extension.Main(B, string[])' has the wrong signature to be an entry point
                 //     public static void Main(this B x, string[] args)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("extension.Main(B, string[])"),
-                // (5,14): error CS1558: 'extension' does not have a suitable static Main method
-                // static class extension
-                Diagnostic(ErrorCode.ERR_NoMainInClass, "extension").WithArguments("extension"));
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("extension.Main(B, string[])").WithLocation(7, 24),
+                // (5,14): error CS1558: 'extension' does not have a suitable static 'Main' method
+                // static class @extension
+                Diagnostic(ErrorCode.ERR_NoMainInClass, "@extension").WithArguments("extension").WithLocation(5, 14));
         }
 
         [Fact()]

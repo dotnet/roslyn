@@ -1383,6 +1383,8 @@ public sealed class C : IDisposable
             var options = Option(CodeStyleOptions2.UnusedParameters,
                 new CodeStyleOption2<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption2.Suggestion));
 
+            var parameters = new TestParameters(globalOptions: options, retainNonFixableDiagnostics: true);
+
             await TestDiagnosticMissingAsync(
 @"using System;
 using System.Threading.Tasks;
@@ -1402,7 +1404,7 @@ public sealed class C : IDisposable
     private void myAction() { }
 
     public void Dispose() => task.Result.MyAction -= myAction;
-}", options);
+}", parameters);
         }
 #endif
 
@@ -1503,6 +1505,36 @@ class C
 }");
         }
 
+        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic4()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private int Goo(int [|i|])
+        => throw new NotImplementedException();
+}");
+        }
+
+        [WorkItem(56317, "https://github.com/dotnet/roslyn/issues/56317")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NotImplementedException_NoDiagnostic5()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private int Goo(int [|i|])
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [WorkItem(41236, "https://github.com/dotnet/roslyn/issues/41236")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task NotImplementedException_MultipleStatements1()
@@ -1580,6 +1612,38 @@ record B(int X, int [|Y|]) : A(X);
             await TestDiagnosticMissingAsync(
 @"public record Base(int I) { }
 public record Derived(string [|S|]) : Base(42) { }
+");
+        }
+
+        [WorkItem(45743, "https://github.com/dotnet/roslyn/issues/45743")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RequiredGetInstanceMethodByICustomMarshaler()
+        {
+            await TestDiagnosticMissingAsync(@"
+using System;
+using System.Runtime.InteropServices;
+
+
+public class C : ICustomMarshaler
+{
+    public void CleanUpManagedData(object ManagedObj)
+        => throw new NotImplementedException();
+
+    public void CleanUpNativeData(IntPtr pNativeData)
+        => throw new NotImplementedException();
+
+    public int GetNativeDataSize()
+        => throw new NotImplementedException();
+
+    public IntPtr MarshalManagedToNative(object ManagedObj)
+        => throw new NotImplementedException();
+
+    public object MarshalNativeToManaged(IntPtr pNativeData)
+        => throw new NotImplementedException();
+
+    public static ICustomMarshaler GetInstance(string [|s|])
+        => null;
+}
 ");
         }
     }

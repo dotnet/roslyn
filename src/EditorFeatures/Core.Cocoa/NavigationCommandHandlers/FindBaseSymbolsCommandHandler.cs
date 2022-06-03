@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         AbstractNavigationCommandHandler<FindBaseSymbolsCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
 
         public override string DisplayName => nameof(FindBaseSymbolsCommandHandler);
 
@@ -36,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FindBaseSymbolsCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
             : base(streamingPresenters)
         {
             Contract.ThrowIfNull(listenerProvider);
 
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
+            _globalOptions = globalOptions;
         }
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
@@ -49,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = StreamingFindBaseSymbolsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = StreamingFindBaseSymbolsAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -59,39 +61,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         private async Task StreamingFindBaseSymbolsAsync(
             Document document, int caretPosition,
-            IStreamingFindUsagesPresenter presenter,
-            CancellationToken cancellationToken)
+            IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindBaseSymbolsAsync));
 
-                var context = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                    cancellationToken))
                 {
                     try
                     {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
                         var overriddenSymbol = relevantSymbol?.symbol.GetOverriddenMember();
 
                         while (overriddenSymbol != null)
                         {
-                            if (context.CancellationToken.IsCancellationRequested)
+                            if (cancellationToken.IsCancellationRequested)
                             {
                                 return;
                             }
 
-                            var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await context.OnDefinitionFoundAsync(definitionItem);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: true);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
                             // try getting the next one
                             overriddenSymbol = overriddenSymbol.GetOverriddenMember();
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     }
                     finally
                     {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

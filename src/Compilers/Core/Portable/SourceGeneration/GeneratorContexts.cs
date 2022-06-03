@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, string sourceExtension, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxReceiver = (syntaxReceiver as SyntaxContextReceiverAdaptor)?.Receiver;
             SyntaxContextReceiver = (syntaxReceiver is SyntaxContextReceiverAdaptor) ? null : syntaxReceiver;
             CancellationToken = cancellationToken;
-            _additionalSources = additionalSources;
+            _additionalSources = new AdditionalSourcesCollection(sourceExtension);
             _diagnostics = new DiagnosticBag();
         }
 
@@ -97,6 +98,18 @@ namespace Microsoft.CodeAnalysis
 
         internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
             => (_additionalSources.ToImmutableAndFree(), _diagnostics.ToReadOnlyAndFree());
+
+        internal void Free()
+        {
+            _additionalSources.Free();
+            _diagnostics.Free();
+        }
+
+        internal void CopyToProductionContext(SourceProductionContext ctx)
+        {
+            _additionalSources.CopyTo(ctx.Sources);
+            ctx.Diagnostics.AddRange(_diagnostics);
+        }
     }
 
     /// <summary>
@@ -107,7 +120,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
         {
             CancellationToken = cancellationToken;
-            InfoBuilder = new GeneratorInfo.Builder();
+            Callbacks = new CallbackHolder();
         }
 
         /// <summary>
@@ -115,13 +128,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal GeneratorInfo.Builder InfoBuilder { get; }
-
-        internal void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback)
-        {
-            CheckIsEmpty(InfoBuilder.EditCallback);
-            InfoBuilder.EditCallback = callback;
-        }
+        internal CallbackHolder Callbacks { get; }
 
         /// <summary>
         /// Register a <see cref="SyntaxReceiverCreator"/> for this generator, which can be used to create an instance of an <see cref="ISyntaxReceiver"/>.
@@ -141,8 +148,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="receiverCreator">A <see cref="SyntaxReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator)
         {
-            CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
-            InfoBuilder.SyntaxContextReceiverCreator = SyntaxContextReceiverAdaptor.Create(receiverCreator);
+            CheckIsEmpty(Callbacks.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
+            Callbacks.SyntaxContextReceiverCreator = SyntaxContextReceiverAdaptor.Create(receiverCreator);
         }
 
         /// <summary>
@@ -163,8 +170,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="receiverCreator">A <see cref="SyntaxContextReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxContextReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxContextReceiverCreator receiverCreator)
         {
-            CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
-            InfoBuilder.SyntaxContextReceiverCreator = receiverCreator;
+            CheckIsEmpty(Callbacks.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
+            Callbacks.SyntaxContextReceiverCreator = receiverCreator;
         }
 
         /// <summary>
@@ -178,13 +185,13 @@ namespace Microsoft.CodeAnalysis
         /// For example a generator may choose to add sources during PostInitialization. These will be added to the compilation before execution and
         /// will be visited by a registered <see cref="ISyntaxReceiver"/> and available for semantic analysis as part of the <see cref="GeneratorExecutionContext.Compilation"/>
         /// 
-        /// Note that any sources added during PostInitialization <i>will</i> be visible to the later phases of other generators operation on the compilation. 
+        /// Note that any sources added during PostInitialization <i>will</i> be visible to the later phases of other generators operating on the compilation. 
         /// </remarks>
         /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
         public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
         {
-            CheckIsEmpty(InfoBuilder.PostInitCallback);
-            InfoBuilder.PostInitCallback = callback;
+            CheckIsEmpty(Callbacks.PostInitCallback);
+            Callbacks.PostInitCallback = (context) => callback(new GeneratorPostInitializationContext(context.AdditionalSources, context.CancellationToken));
         }
 
         private static void CheckIsEmpty<T>(T x, string? typeName = null) where T : class?
@@ -194,6 +201,13 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeName ?? typeof(T).Name));
             }
         }
+
+        internal sealed class CallbackHolder
+        {
+            internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; set; }
+
+            internal Action<IncrementalGeneratorPostInitializationContext>? PostInitCallback { get; set; }
+        }
     }
 
     /// <summary>
@@ -201,10 +215,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorSyntaxContext
     {
-        internal GeneratorSyntaxContext(SyntaxNode node, SemanticModel semanticModel)
+        private readonly Lazy<SemanticModel>? _semanticModel;
+
+        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel)
         {
             Node = node;
-            SemanticModel = semanticModel;
+            _semanticModel = semanticModel;
         }
 
         /// <summary>
@@ -215,7 +231,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="CodeAnalysis.SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
         /// </summary>
-        public SemanticModel SemanticModel { get; }
+        public SemanticModel SemanticModel => _semanticModel!.Value;
     }
 
     /// <summary>
@@ -249,18 +265,5 @@ namespace Microsoft.CodeAnalysis
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
         public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
-    }
-
-    internal readonly struct GeneratorEditContext
-    {
-        internal GeneratorEditContext(AdditionalSourcesCollection sources, CancellationToken cancellationToken = default)
-        {
-            AdditionalSources = sources;
-            CancellationToken = cancellationToken;
-        }
-
-        public CancellationToken CancellationToken { get; }
-
-        public AdditionalSourcesCollection AdditionalSources { get; }
     }
 }

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
             if (!option.Value)
             {
                 return;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionNode = syntaxFacts.GetOperandOfPrefixUnaryExpression(conditionNode);
             }
 
-            if (!(conditionNode is TMemberAccessExpression conditionMemberAccess))
+            if (conditionNode is not TMemberAccessExpression conditionMemberAccess)
             {
                 return;
             }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             var whenPartToCheck = notHasValueExpression ? whenFalseNodeLow : whenTrueNodeLow;
-            if (!(whenPartToCheck is TMemberAccessExpression whenPartMemberAccess))
+            if (whenPartToCheck is not TMemberAccessExpression whenPartMemberAccess)
             {
                 return;
             }

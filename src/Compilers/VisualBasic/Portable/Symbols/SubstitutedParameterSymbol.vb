@@ -2,14 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -163,6 +158,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
                 Return _originalDefinition.IsCallerFilePath
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return _originalDefinition.CallerArgumentExpressionParameterIndex
             End Get
         End Property
 

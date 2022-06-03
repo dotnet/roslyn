@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((leftType.IsDynamic() || rightType.IsDynamic()) == returnType.IsDynamic());
             Debug.Assert(_containingType.IsDynamic() == returnType.IsDynamic());
 
-            _parameters = (new ParameterSymbol[] {new SynthesizedOperatorParameterSymbol(this, leftType, 0, "left"),
-                                                      new SynthesizedOperatorParameterSymbol(this, rightType, 1, "right")}).AsImmutableOrNull();
+            _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, leftType, 0, "left"),
+                                                      new SynthesizedOperatorParameterSymbol(this, rightType, 1, "right"));
             _isCheckedBuiltin = isCheckedBuiltin;
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = container;
             _name = name;
             _returnType = returnType;
-            _parameters = (new ParameterSymbol[] { new SynthesizedOperatorParameterSymbol(this, container, 0, "value") }).AsImmutableOrNull();
+            _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedOperatorParameterSymbol(this, container, 0, "value"));
             _isCheckedBuiltin = isCheckedBuiltin;
         }
 
@@ -422,6 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {

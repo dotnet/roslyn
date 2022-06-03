@@ -13,9 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class ObjectCreationInitializerStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of ObjectCreationInitializerSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As ObjectCreationInitializerSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As ObjectCreationInitializerSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
 
             ' ObjectCreationInitializerSyntax is either "With { ... }" or "From { ... }"
@@ -28,7 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             ' The collapsed textspan should be from the   )   to the   }
             '
             ' However, the hint span should be the entire object creation.
-            Dim previousToken = node.GetFirstToken().GetPreviousToken()
             spans.Add(New BlockSpan(
                 isCollapsible:=True,
                 textSpan:=TextSpan.FromBounds(previousToken.Span.End, node.Span.End),

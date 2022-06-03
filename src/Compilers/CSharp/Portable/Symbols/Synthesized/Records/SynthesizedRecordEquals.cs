@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -20,11 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedRecordEquals : SynthesizedRecordOrdinaryMethod
     {
-        private readonly PropertySymbol _equalityContract;
+        private readonly PropertySymbol? _equalityContract;
 
-        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, hasBody: true, memberOffset, diagnostics)
+        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, isReadOnly: containingType.IsRecordStruct, hasBody: true, memberOffset, diagnostics)
         {
+            Debug.Assert(equalityContract is null == containingType.IsRecordStruct);
             _equalityContract = equalityContract;
         }
 
@@ -35,15 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
+            MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, NullableAnnotation.Annotated),
-                                                                    ordinal: 0, RefKind.None, "other", isDiscard: false, Locations)),
+                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
+                                                                    ordinal: 0, RefKind.None, "other", Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
@@ -62,8 +61,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This method is the strongly-typed Equals method where the parameter type is
                 // the containing type.
 
-                if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+                bool isRecordStruct = ContainingType.IsRecordStruct;
+                if (isRecordStruct)
                 {
+                    // We'll produce:
+                    // bool Equals(T other) =>
+                    //     field1 == other.field1 && ... && fieldN == other.fieldN;
+                    // or simply true if no fields.
+                    retExpr = null;
+                }
+                else if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+                {
+                    Debug.Assert(_equalityContract is not null);
                     if (_equalityContract.GetMethod is null)
                     {
                         // The equality contract isn't usable, an error was reported elsewhere
@@ -145,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+
                 if (fields.Count > 0 && !foundBadField)
                 {
                     retExpr = MethodBodySynthesizer.GenerateFieldEquals(
@@ -153,9 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         fields,
                         F);
                 }
+                else if (retExpr is null)
+                {
+                    retExpr = F.Literal(true);
+                }
 
                 fields.Free();
-                retExpr = F.LogicalOr(F.ObjectEqual(F.This(), other), retExpr);
+
+                if (!isRecordStruct)
+                {
+                    retExpr = F.LogicalOr(F.ObjectEqual(F.This(), other), retExpr);
+                }
+
                 F.CloseMethod(F.Block(F.Return(retExpr)));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

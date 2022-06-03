@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -27,15 +26,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
             public readonly INamedTypeSymbol IndexType;
 
+            public readonly INamedTypeSymbol? ExpressionOfTType;
+
             /// <summary>
             /// Mapping from a method like <c>MyType.Get(int)</c> to the <c>Length</c>/<c>Count</c> property for
             /// <c>MyType</c> as well as the optional <c>MyType.Get(System.Index)</c> member if it exists.
             /// </summary>
-            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo =
-                new();
+            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo = new();
 
-            public InfoCache(Compilation compilation)
-                => IndexType = compilation.GetBestTypeByMetadataName("System.Index");
+            private InfoCache(INamedTypeSymbol indexType, INamedTypeSymbol? expressionOfTType)
+            {
+                IndexType = indexType;
+                ExpressionOfTType = expressionOfTType;
+            }
+
+            public static bool TryCreate(Compilation compilation, [NotNullWhen(true)] out InfoCache? infoCache)
+            {
+                var indexType = compilation.GetBestTypeByMetadataName(typeof(Index).FullName!);
+                if (indexType == null || !indexType.IsAccessibleWithin(compilation.Assembly))
+                {
+                    infoCache = null;
+                    return false;
+                }
+
+                infoCache = new InfoCache(indexType, compilation.ExpressionOfTType());
+                return true;
+            }
 
             public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
             {
@@ -58,9 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 var containingType = method.ContainingType;
                 var lengthLikeProperty = TryGetLengthOrCountProperty(containingType);
                 if (lengthLikeProperty == null)
-                {
                     return default;
-                }
 
                 if (method.MethodKind == MethodKind.PropertyGet)
                 {
@@ -71,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     // type itself has a System.Index-based indexer, or because the language just
                     // allows types to implicitly seem like they support this through:
                     //
-                    // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-index-support
+                    // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#implicit-index-support
                     return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                 }
                 else
@@ -81,9 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     // for an overload like: `SomeType MyType.Get(Range)`
                     var overloadedIndexMethod = GetOverload(method, IndexType);
                     if (overloadedIndexMethod != null)
-                    {
                         return new MemberInfo(lengthLikeProperty, overloadedIndexMethod);
-                    }
                 }
 
                 // A index-like method that we can't convert.

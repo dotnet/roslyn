@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void Overloads()
         {
             const int n = 3000;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void BinaryOperatorOverloads()
         {
             const int n = 3000;
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void ExtensionMethodsWithLambdaAndErrors()
         {
             const int n = 200;
@@ -287,7 +287,7 @@ static class Ext
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFactAttribute(typeof(IsRelease))]
+        [ConditionalFact(typeof(IsRelease))]
         [WorkItem(40495, "https://github.com/dotnet/roslyn/issues/40495")]
         public void NestedLambdas_01()
         {
@@ -311,9 +311,41 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// A variation of <see cref="NestedLambdas_01"/> but with
+        /// explicit parameter types and return type for the lambdas.
+        /// </summary>
+        [ConditionalFact(typeof(IsRelease))]
+        public void NestedLambdas_WithParameterAndReturnTypes()
+        {
+            var source =
+@"#nullable enable
+using System.Linq;
+class Program
+{
+    static void Main()
+    {
+        Enumerable.Range(0, 1).Sum(int (int a) =>
+            Enumerable.Range(0, 1).Sum(int (int b) =>
+            Enumerable.Range(0, 1).Sum(int (int c) =>
+            Enumerable.Range(0, 1).Sum(int (int d) =>
+            Enumerable.Range(0, 1).Sum(int (int e) =>
+            Enumerable.Range(0, 1).Sum(int (int f) =>
+            Enumerable.Range(0, 1).Sum(int (int g) =>
+            Enumerable.Range(0, 1).Sum(int (int h) =>
+            Enumerable.Range(0, 1).Sum(int (int i) =>
+            Enumerable.Range(0, 1).Sum(int (int j) =>
+            Enumerable.Range(0, 1).Sum(int (int k) =>
+            Enumerable.Range(0, 1).Count(l => true))))))))))));
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
         // Test should complete in several seconds if UnboundLambda.ReallyBind
         // uses results from _returnInferenceCache.
-        [ConditionalFactAttribute(typeof(IsRelease))]
+        [ConditionalFact(typeof(IsRelease))]
         [WorkItem(1083969, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1083969")]
         public void NestedLambdas_02()
         {
@@ -395,10 +427,11 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
-            int analyzed = comp.NullableAnalysisData.Where(pair => pair.Value.RequiredAnalysis).Count();
+            int analyzed = nullableAnalysisData.Data.Where(pair => pair.Value.RequiredAnalysis).Count();
             Assert.Equal(nMethods / 2, analyzed);
         }
 
@@ -424,11 +457,12 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F2");
-            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
+            Assert.Equal(1, nullableAnalysisData.Data[method].TrackedEntries);
         }
 
         [Fact]
@@ -453,11 +487,12 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            var nullableAnalysisData = new NullableWalker.NullableAnalysisData();
+            comp.TestOnlyCompilationData = nullableAnalysisData;
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember("Program.F");
-            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
+            Assert.Equal(1, nullableAnalysisData.Data[method].TrackedEntries);
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
@@ -550,6 +585,206 @@ class Program
                 // (16395,16): warning CS8603: Possible null reference return.
                 //         return value;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "value").WithLocation(16395, 16));
+        }
+
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
+        [ConditionalFact(typeof(IsRelease))]
+        public void NullableAnalysisNestedExpressionsInMethod()
+        {
+            const int nestingLevel = 40;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine("    C F(int i) => this;");
+            builder.AppendLine("    static void Main()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        C c = new C()");
+            for (int i = 0; i < nestingLevel; i++)
+            {
+                builder.AppendLine($"            .F({i})");
+            }
+            builder.AppendLine("            ;");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS8078: An expression is too long or complex to compile
+                //         C c = new C()
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "new").WithLocation(7, 15));
+        }
+
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
+        [ConditionalFact(typeof(IsRelease))]
+        public void NullableAnalysisNestedExpressionsInLocalFunction()
+        {
+            const int nestingLevel = 40;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine("    C F(int i) => this;");
+            builder.AppendLine("    static void Main()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        Local();");
+            builder.AppendLine("        static void Local()");
+            builder.AppendLine("        {");
+            builder.AppendLine("        C c = new C()");
+            for (int i = 0; i < nestingLevel; i++)
+            {
+                builder.AppendLine($"            .F({i})");
+            }
+            builder.AppendLine("            ;");
+            builder.AppendLine("        }");
+            builder.AppendLine("        Local();");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS8078: An expression is too long or complex to compile
+                //         C c = new C()
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "new").WithLocation(10, 15));
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        public void NullableAnalysis_CondAccess_ComplexRightSide()
+        {
+            var source1 = @"
+#nullable enable
+object? x = null;
+C? c = null;
+if (
+";
+            var source2 = @"
+    )
+{
+}
+
+class C
+{
+    public bool M(object? obj) => false;
+}
+";
+            var sourceBuilder = new StringBuilder();
+            sourceBuilder.Append(source1);
+            for (var i = 0; i < 15; i++)
+            {
+                sourceBuilder.AppendLine($"    c?.M(x = {i}) == (");
+            }
+            sourceBuilder.AppendLine("    c!.M(x)");
+
+            sourceBuilder.Append("    ");
+            for (var i = 0; i < 15; i++)
+            {
+                sourceBuilder.Append(")");
+            }
+
+            sourceBuilder.Append(source2);
+
+            var comp = CreateCompilation(sourceBuilder.ToString());
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(IsRelease))]
+        public void DefiniteAssignment_ManySwitchCasesAndLabels()
+        {
+            const int nLabels = 1500;
+
+            // #nullable enable
+            // class Program
+            // {
+            //     static int GetIndex() => 0;
+            //     static void Main()
+            //     {
+            //         int index = 0;
+            //         int tmp1;
+            //         int tmp2; // unused
+            //         goto L1498;
+            // L0:
+            //         if (index < 64) goto LSwitch;
+            // L1:
+            //         tmp1 = GetIndex();
+            //         if (index != tmp1)
+            //         {
+            //             if (index < 64) goto LSwitch;
+            //             goto L0;
+            //         }
+            // // repeat for L2:, ..., L1498:
+            // // ...
+            // L1499:
+            //         tmp1 = GetIndex();
+            //         return;
+            // LSwitch:
+            //         int tmp3 = index + 1;
+            //         switch (GetIndex())
+            //         {
+            //             case 0:
+            //                 index++;
+            //                 goto L0;
+            //             // repeat for case 1:, ..., case 1499:
+            //             // ...
+            //             default:
+            //                 break;
+            //         }
+            //     }
+            // }
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static int GetIndex() => 0;");
+            builder.AppendLine("    static void Main()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        int index = 0;");
+            builder.AppendLine("        int tmp1;");
+            builder.AppendLine("        int tmp2; // unused");
+            builder.AppendLine($"        goto L{nLabels - 2};");
+            builder.AppendLine("L0:");
+            builder.AppendLine("        if (index < 64) goto LSwitch;");
+            for (int i = 0; i < nLabels - 2; i++)
+            {
+                builder.AppendLine($"L{i + 1}:");
+                builder.AppendLine("        tmp1 = GetIndex();");
+                builder.AppendLine("        if (index != tmp1)");
+                builder.AppendLine("        {");
+                builder.AppendLine("            if (index < 64) goto LSwitch;");
+                builder.AppendLine($"            goto L{i};");
+                builder.AppendLine("        }");
+            }
+            builder.AppendLine($"L{nLabels - 1}:");
+            builder.AppendLine("        tmp1 = GetIndex();");
+            builder.AppendLine("        return;");
+            builder.AppendLine("LSwitch:");
+            builder.AppendLine("        int tmp3 = index + 1;");
+            builder.AppendLine("        switch (GetIndex())");
+            builder.AppendLine("        {");
+            for (int i = 0; i < nLabels; i++)
+            {
+                builder.AppendLine($"            case {i}:");
+                builder.AppendLine("                index++;");
+                builder.AppendLine($"                goto L{i};");
+            }
+            builder.AppendLine("            default:");
+            builder.AppendLine("                break;");
+            builder.AppendLine("        }");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS0168: The variable 'tmp2' is declared but never used
+                //         int tmp2; // unused
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "tmp2").WithArguments("tmp2").WithLocation(9, 13));
         }
     }
 }

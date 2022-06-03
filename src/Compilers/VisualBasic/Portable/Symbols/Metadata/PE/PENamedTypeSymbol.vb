@@ -19,6 +19,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports TypeAttributes = System.Reflection.TypeAttributes
 Imports FieldAttributes = System.Reflection.FieldAttributes
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -163,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If makeBad OrElse metadataArity < containerMetadataArity Then
-                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
+                _lazyCachedUseSiteInfo.Initialize(If(DeriveCompilerFeatureRequiredDiagnostic(), ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
             End If
 
             Debug.Assert(Not _mangleName OrElse _name.Length < name.Length)
@@ -237,6 +238,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend ReadOnly Property Handle As TypeDefinitionHandle
             Get
                 Return _handle
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -1187,7 +1194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 For Each methodDef In [module].GetMethodsOfTypeOrThrow(_handle)
-                    If [module].ShouldImportMethod(methodDef, moduleSymbol.ImportOptions) Then
+                    If [module].ShouldImportMethod(_handle, methodDef, moduleSymbol.ImportOptions) Then
                         methods.Add(methodDef, New PEMethodSymbol(moduleSymbol, Me, methodDef))
                     End If
                 Next
@@ -1207,8 +1214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Dim methods = [module].GetPropertyMethodsOrThrow(propertyDef)
 
 
-                        Dim getMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Getter)
-                        Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Setter)
+                        Dim getMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Getter)
+                        Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Setter)
 
                         If (getMethod IsNot Nothing) OrElse (setMethod IsNot Nothing) Then
                             members.Add(PEPropertySymbol.Create(moduleSymbol, Me, propertyDef, getMethod, setMethod))
@@ -1230,9 +1237,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Dim methods = [module].GetEventMethodsOrThrow(eventRid)
 
                         ' NOTE: C# ignores all other accessors (most notably, raise/fire).
-                        Dim addMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Adder)
-                        Dim removeMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Remover)
-                        Dim raiseMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Raiser)
+                        Dim addMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Adder)
+                        Dim removeMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Remover)
+                        Dim raiseMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Raiser)
 
                         ' VB ignores events that do not have both Add and Remove.
                         If (addMethod IsNot Nothing) AndAlso (removeMethod IsNot Nothing) Then
@@ -1245,14 +1252,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Try
         End Sub
 
-        Private Shared Function GetAccessorMethod(moduleSymbol As PEModuleSymbol, methodHandleToSymbol As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol), methodDef As MethodDefinitionHandle) As PEMethodSymbol
+        Private Shared Function GetAccessorMethod(moduleSymbol As PEModuleSymbol, methodHandleToSymbol As Dictionary(Of MethodDefinitionHandle, PEMethodSymbol), typeDef As TypeDefinitionHandle, methodDef As MethodDefinitionHandle) As PEMethodSymbol
             If methodDef.IsNil Then
                 Return Nothing
             End If
 
             Dim method As PEMethodSymbol = Nothing
             Dim found As Boolean = methodHandleToSymbol.TryGetValue(methodDef, method)
-            Debug.Assert(found OrElse Not moduleSymbol.Module.ShouldImportMethod(methodDef, moduleSymbol.ImportOptions))
+            Debug.Assert(found OrElse Not moduleSymbol.Module.ShouldImportMethod(typeDef, methodDef, moduleSymbol.ImportOptions))
             Return method
         End Function
 
@@ -1267,6 +1274,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
+            ' GetCompilerFeatureRequiredDiagnostic depends on this being the highest priority use-site diagnostic. If another
+            ' diagnostic was calculated first and cached, it will return incorrect results and assert in Debug mode.
+            Dim compilerFeatureRequiredDiagnostic = DeriveCompilerFeatureRequiredDiagnostic()
+            If compilerFeatureRequiredDiagnostic IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(compilerFeatureRequiredDiagnostic)
+            End If
+
             Dim useSiteInfo = CalculateUseSiteInfo()
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
@@ -1309,6 +1323,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Return useSiteInfo
+        End Function
+
+        Friend Function GetCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
+            Dim typeUseSiteInfo = GetUseSiteInfo()
+            If typeUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedCompilerFeature Then
+                Return typeUseSiteInfo.DiagnosticInfo
+            End If
+
+            Debug.Assert(DeriveCompilerFeatureRequiredDiagnostic() Is Nothing)
+
+            Return Nothing
+        End Function
+
+        Private Function DeriveCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
+            Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
+
+            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+
+            If diagnostic IsNot Nothing Then
+                Return diagnostic
+            End If
+
+            For Each typeParameter In TypeParameters
+                diagnostic = DirectCast(typeParameter, PETypeParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
+
+                If diagnostic IsNot Nothing Then
+                    Return diagnostic
+                End If
+            Next
+
+            Dim containingPEType = TryCast(ContainingType, PENamedTypeSymbol)
+
+            Return If(containingPEType IsNot Nothing, containingPEType.GetCompilerFeatureRequiredDiagnostic(), ContainingPEModule.GetCompilerFeatureRequiredDiagnostic())
         End Function
 
         ''' <summary>

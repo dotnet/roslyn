@@ -6,7 +6,9 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -24,11 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public StructureTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
+            IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, notificationService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
+            : base(threadingContext, editorOptionsFactoryService, projectionBufferFactoryService, globalOptions, visibilityTracker, listenerProvider)
         {
         }
 

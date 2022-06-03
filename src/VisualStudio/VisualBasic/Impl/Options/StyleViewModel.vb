@@ -386,8 +386,8 @@ Class Customer1
     Dim a, b, c As Integer
 //[
     ' {ServicesVSResources.Prefer_colon}
-    // {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
-    Public Overrides Function GetHashCodeAsInteger()
+    ' {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
+    Public Overrides Function GetHashCode() As Integer
         Return System.HashCode.Combine(a, b, c)
     End Function
 //]
@@ -396,7 +396,7 @@ Class Customer2
     Dim a, b, c As Integer
 //[
     ' {ServicesVSResources.Over_colon}
-    Public Overrides Function GetHashCodeAsInteger()
+    Public Overrides Function GetHashCode() As Integer
         Dim hashCode = 339610899
         hashCode = hashCode * -1521134295 + a.GetHashCode()
         hashCode = hashCode * -1521134295 + b.GetHashCode()
@@ -461,6 +461,24 @@ Class Customer
 //[
         ' {ServicesVSResources.Over_colon}
         Dim isSomething = Not value Is Nothing
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_preferSimplifiedObjectCreation As String = $"
+Imports System
+
+Class Customer
+    Sub M1()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim c As New Customer()
+//]
+    End Sub
+    Sub M2()
+//[
+        ' {ServicesVSResources.Over_colon}
+        Dim c As Customer = New Customer()
 //]
     End Sub
 End Class"
@@ -825,6 +843,7 @@ End Class
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, Me, optionStore, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(VisualBasicCodeStyleOptions.PreferIsNotExpression, BasicVSResources.Prefer_IsNot_expression, s_preferIsNotExpression, s_preferIsNotExpression, Me, optionStore, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, BasicVSResources.Prefer_simplified_object_creation, s_preferSimplifiedObjectCreation, s_preferSimplifiedObjectCreation, Me, optionStore, expressionPreferencesGroupTitle))
 
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle)
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
             var coalesceExpression = (BinaryExpressionSyntax)context.Node;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, coalesceExpression.Language);
+            var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
 
             // Bail immediately if the user has disabled this feature.
             if (!option.Value)
@@ -54,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var coalesceLeft = coalesceExpression.Left;
             var coalesceRight = coalesceExpression.Right;
 
-            if (!(coalesceRight is ParenthesizedExpressionSyntax parenthesizedExpr))
+            if (coalesceRight is not ParenthesizedExpressionSyntax parenthesizedExpr)
                 return;
 
-            if (!(parenthesizedExpr.Expression is AssignmentExpressionSyntax assignment))
+            if (parenthesizedExpr.Expression is not AssignmentExpressionSyntax assignment)
                 return;
 
             if (assignment.Kind() != SyntaxKind.SimpleAssignmentExpression)

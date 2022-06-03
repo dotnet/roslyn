@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -52,25 +50,23 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
             context.RegisterSyntaxNodeAction(AnalyzeCompilationUnitNode, SyntaxKind.CompilationUnit);
         }
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             if (option.Value != AddImportPlacement.OutsideNamespace)
-            {
                 return;
-            }
 
-            var namespaceDeclaration = (NamespaceDeclarationSyntax)context.Node;
+            var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)context.Node;
             ReportDiagnostics(context, s_outsideDiagnosticDescriptor, namespaceDeclaration.Usings, option);
         }
 
         private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
             if (option.Value != AddImportPlacement.InsideNamespace
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // Suppress if there are nodes other than usings and namespaces in the 
             // compilation unit (including ExternAlias).
             return compilationUnit.ChildNodes().Any(
-                t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration));
+                t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration));
         }
 
         private static void ReportDiagnostics(

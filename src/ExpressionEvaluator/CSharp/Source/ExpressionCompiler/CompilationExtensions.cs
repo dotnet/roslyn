@@ -34,24 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var method = GetMethod(compilation, moduleVersionId, methodHandle);
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)method.ContainingModule);
             var containingType = method.ContainingType;
-            string sourceMethodName;
-            if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(containingType.Name, GeneratedNameKind.StateMachineType, out sourceMethodName))
+            if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(containingType.Name, GeneratedNameKind.StateMachineType, out var sourceMethodName))
             {
                 foreach (var member in containingType.ContainingType.GetMembers(sourceMethodName))
                 {
-                    if (member is PEMethodSymbol candidateMethod)
+                    if (member is PEMethodSymbol candidateMethod &&
+                        metadataDecoder.Module.HasStateMachineAttribute(candidateMethod.Handle, out var stateMachineTypeName) &&
+                        metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
                     {
-                        var module = metadataDecoder.Module;
-                        methodHandle = candidateMethod.Handle;
-                        string stateMachineTypeName;
-                        if (module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
-                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName))
-                        {
-                            if (metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
-                            {
-                                return candidateMethod;
-                            }
-                        }
+                        return candidateMethod;
                     }
                 }
             }

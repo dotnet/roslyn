@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -25,7 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLocalFunctionToMethodCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLocalFunctionToMethod), Shared]
     internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
@@ -59,9 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactoring(
-                new MyCodeAction(
+                CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_method,
-                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)),
+                    c => UpdateDocumentAsync(root, document, parentBlock, localFunction, context.Options, c),
+                    nameof(CSharpFeaturesResources.Convert_to_method)),
                 localFunction.Span);
         }
 
@@ -70,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             Document document,
             BlockSyntax parentBlock,
             LocalFunctionStatementSyntax localFunction,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -126,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 typeParameters: typeParameters.ToImmutableArray(),
                 parameters: parameters.AddRange(capturesAsParameters));
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var defaultOptions = new CodeGenerationOptions(options: options);
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, root.SyntaxTree.Options);
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = (CSharpCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);
@@ -250,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         }
 
         private static bool SupportsNonTrailingNamedArguments(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
+            => options.LanguageVersion() >= LanguageVersion.CSharp7_2;
 
         private static SyntaxNode GenerateArgument(IParameterSymbol p, string name, bool shouldUseNamedArguments = false)
             => s_generator.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
@@ -313,14 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             return NameGenerator.EnsureUniqueness(
                 baseName: declaredSymbol.Name,
                 reservedNames: declaredSymbol.ContainingType.GetMembers().Select(m => m.Name));
-        }
-
-        private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

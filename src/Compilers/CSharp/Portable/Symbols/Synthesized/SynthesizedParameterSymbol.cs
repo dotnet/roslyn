@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -27,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
-            string name = "")
+            string name)
         {
-            RoslynDebug.Assert(type.HasType);
-            RoslynDebug.Assert(name != null);
-            RoslynDebug.Assert(ordinal >= 0);
+            Debug.Assert(type.HasType);
+            Debug.Assert(name != null);
+            Debug.Assert(ordinal >= 0);
 
             _container = container;
             _type = type;
@@ -84,27 +83,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsIDispatchConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (type.Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
@@ -171,6 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
@@ -285,5 +293,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
+
+        internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional == true;
+
+        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
+
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.FlowAnalysisAnnotations;
+            }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.NotNullIfParameterNotNull;
+            }
+        }
     }
 }

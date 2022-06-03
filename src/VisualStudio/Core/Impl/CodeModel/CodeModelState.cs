@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -38,6 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             Debug.Assert(languageServices != null);
             Debug.Assert(workspace != null);
 
+            // ⚠ This code runs on the main thread. Language services accessed here should be preloaded in
+            // ProjectCodemodelFactory to avoid blocking MEF operations.
             this.ThreadingContext = threadingContext;
             this.ServiceProvider = serviceProvider;
             this.CodeModelService = languageServices.GetService<ICodeModelService>();

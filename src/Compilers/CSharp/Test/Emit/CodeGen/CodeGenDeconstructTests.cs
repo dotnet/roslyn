@@ -2436,7 +2436,7 @@ static class D
         [Fact]
         public void DeconstructRefExtensionMethod()
         {
-            // https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
+            // https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-01-24.md
             string source = @"
 struct C
 {
@@ -3642,7 +3642,7 @@ class C
         System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -3735,7 +3735,7 @@ class C
         public void DeclarationWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()
@@ -3884,7 +3884,7 @@ class C
         }
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -4974,7 +4974,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string x, alias y) = (""hello"", 42);
 System.Console.Write($""{x} {y}"");
 ";
@@ -5678,7 +5678,7 @@ var (y1, y2) = (x1, x2);
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -5717,7 +5717,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return null; }
 }
@@ -5759,7 +5759,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 (var x1, (var x2, var x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -5805,7 +5805,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return new var(); }
     public override string ToString() { return ""var""; }
@@ -6168,12 +6168,12 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (@_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(@_, var x) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(@_, var x) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(6, 9),
                 // (6,10): error CS0103: The name '_' does not exist in the current context
                 //         (@_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_", isSuppressed: false).WithArguments("_").WithLocation(6, 10)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(6, 10)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -6716,21 +6716,21 @@ class C
 ";
             var compCSharp9 = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             compCSharp9.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (var x, x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(var x, x) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(var x, x) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(6, 9),
                 // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
                 //         (var x, x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x", isSuppressed: false).WithArguments("x").WithLocation(6, 17),
-                // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 17),
+                // (7,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(y, var y) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(y, var y) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(7, 9),
                 // (7,10): error CS0841: Cannot use local variable 'y' before it is declared
                 //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y", isSuppressed: false).WithArguments("y").WithLocation(7, 10)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 10)
                 );
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
                 //         (var x, x) = (1, 2);
@@ -6817,7 +6817,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string _, alias _) = (""hello"", 42);
 ";
 
@@ -7231,9 +7231,9 @@ class Program
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (8,14): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,14): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         for ((int x1, z) = t; ; )
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x1, z) = t", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(8, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x1, z) = t").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(8, 14));
 
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -7561,7 +7561,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, ',' expected
                 //         var (p2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 16),
                 // (6,16): error CS1001: Identifier expected
                 //         var (p2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 16)
@@ -7614,7 +7614,7 @@ class C
         }
 
         [Fact]
-        void InvokeVarForLvalueInParens()
+        public void InvokeVarForLvalueInParens()
         {
             var source = @"
 class Program
@@ -8900,12 +8900,12 @@ namespace System
                     // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
                     //         private T2 Item2;
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(14, 16),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(14, 16),
                     // (17,13): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                     //             Item2 = item2;
                     Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(17, 13)
@@ -9933,18 +9933,18 @@ class B
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (x1, string y1) = new A();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x1, string y1) = new A()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
-                // (9,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x1, string y1) = new A()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(7, 9),
+                // (9,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (int x2, y2) = new A();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x2, y2) = new A()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(9, 9),
-                // (11,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x2, y2) = new A()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(9, 9),
+                // (11,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (int x3, (string y3, z3)) = new B();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x3, (string y3, z3)) = new B()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(11, 9),
-                // (13,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x3, (string y3, z3)) = new B()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(11, 9),
+                // (13,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (x4, var (y4, z4)) = new B();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x4, var (y4, z4)) = new B()", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x4, var (y4, z4)) = new B()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(13, 9));
         }
 
         [Fact]
