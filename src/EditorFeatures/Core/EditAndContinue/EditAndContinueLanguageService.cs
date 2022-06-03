@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            _pendingUpdatedDesignTimeSolution = null;
+            Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null));
 
             try
             {
