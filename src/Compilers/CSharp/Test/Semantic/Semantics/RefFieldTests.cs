@@ -4516,6 +4516,47 @@ class Program
         }
 
         [Fact]
+        public void ParameterScope_10()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.LifetimeAnnotationAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool isRefScoped, bool isValueScoped) cil managed { ret }
+}
+.class public sealed R extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public int32& modreq(int32) F
+}
+.class public A
+{
+  .method public static void F(valuetype R r)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 00 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: false, isValueScoped: false)
+    ret
+  }
+}
+";
+            var ref0 = CompileIL(source0);
+
+            var source1 =
+@"class Program
+{
+    static void Main()
+    {
+        var r = new R();
+        A.F(r);
+    }
+}";
+            var comp = CreateCompilation(source1, references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+
+            var method = comp.GetMember<PEMethodSymbol>("A.F");
+            VerifyParameterSymbol(method.Parameters[0], "R r", RefKind.None, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
         public void ThisScope()
         {
             var source =

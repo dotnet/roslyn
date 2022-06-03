@@ -1016,61 +1016,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 bool filterIsReadOnlyAttribute = this.RefKind == RefKind.In;
-                bool filterLifetimeAnnotationAttribute = Scope != DeclarationScope.Unscoped;
 
-                if (filterOutParamArrayAttribute || filterOutConstantAttributeDescription.Signatures != null || filterIsReadOnlyAttribute || filterLifetimeAnnotationAttribute)
+                CustomAttributeHandle paramArrayAttribute;
+                CustomAttributeHandle constantAttribute;
+
+                ImmutableArray<CSharpAttributeData> attributes =
+                    containingPEModuleSymbol.GetCustomAttributesForToken(
+                        _handle,
+                        out paramArrayAttribute,
+                        filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default,
+                        out constantAttribute,
+                        filterOutConstantAttributeDescription,
+                        out _,
+                        filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
+                        out _,
+                        AttributeDescription.LifetimeAnnotationAttribute);
+
+                if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil)
                 {
-                    CustomAttributeHandle paramArrayAttribute;
-                    CustomAttributeHandle constantAttribute;
+                    var builder = ArrayBuilder<CSharpAttributeData>.GetInstance();
 
-                    ImmutableArray<CSharpAttributeData> attributes =
-                        containingPEModuleSymbol.GetCustomAttributesForToken(
-                            _handle,
-                            out paramArrayAttribute,
-                            filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default,
-                            out constantAttribute,
-                            filterOutConstantAttributeDescription,
-                            out _,
-                            filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
-                            out _,
-                            filterLifetimeAnnotationAttribute ? AttributeDescription.LifetimeAnnotationAttribute : default);
-
-                    if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil)
+                    if (!paramArrayAttribute.IsNil)
                     {
-                        var builder = ArrayBuilder<CSharpAttributeData>.GetInstance();
-
-                        if (!paramArrayAttribute.IsNil)
-                        {
-                            builder.Add(new PEAttributeData(containingPEModuleSymbol, paramArrayAttribute));
-                        }
-
-                        if (!constantAttribute.IsNil)
-                        {
-                            builder.Add(new PEAttributeData(containingPEModuleSymbol, constantAttribute));
-                        }
-
-                        ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, builder.ToImmutableAndFree());
-                    }
-                    else
-                    {
-                        ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, ImmutableArray<CSharpAttributeData>.Empty);
+                        builder.Add(new PEAttributeData(containingPEModuleSymbol, paramArrayAttribute));
                     }
 
-                    if (!_lazyIsParams.HasValue())
+                    if (!constantAttribute.IsNil)
                     {
-                        Debug.Assert(filterOutParamArrayAttribute);
-                        _lazyIsParams = (!paramArrayAttribute.IsNil).ToThreeState();
+                        builder.Add(new PEAttributeData(containingPEModuleSymbol, constantAttribute));
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(
-                        ref _lazyCustomAttributes,
-                        attributes);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, builder.ToImmutableAndFree());
                 }
                 else
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, ImmutableArray<CSharpAttributeData>.Empty);
-                    containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
                 }
+
+                if (!_lazyIsParams.HasValue())
+                {
+                    Debug.Assert(filterOutParamArrayAttribute);
+                    _lazyIsParams = (!paramArrayAttribute.IsNil).ToThreeState();
+                }
+
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref _lazyCustomAttributes,
+                    attributes);
             }
 
             Debug.Assert(!_lazyHiddenAttributes.IsDefault);
