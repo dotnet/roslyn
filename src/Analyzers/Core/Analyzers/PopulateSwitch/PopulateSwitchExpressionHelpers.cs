@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         private static void RemoveIfConstantPatternHasValue(IOperation operation, Dictionary<long, ISymbol> enumMembers)
         {
-            if (operation is IConstantPatternOperation { Value.ConstantValue: { HasValue: true, Value: var value } } && value is not null)
+            if (operation is IConstantPatternOperation { Value.ConstantValue: { HasValue: true, Value: not null and var value } })
                 enumMembers.Remove(IntegerUtilities.ToInt64(value));
         }
 

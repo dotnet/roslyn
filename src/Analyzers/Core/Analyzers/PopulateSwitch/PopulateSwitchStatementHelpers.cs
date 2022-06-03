@@ -72,10 +72,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 foreach (var clause in switchCase.Clauses)
                 {
-                    if (clause.CaseKind != CaseKind.SingleValue)
+                    if (clause is not ISingleValueCaseClauseOperation { Value: var value })
                         continue;
-
-                    var value = ((ISingleValueCaseClauseOperation)clause).Value;
 
                     if (value.ConstantValue is { HasValue: true, Value: null })
                         return true;
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                             }
 
                             // null will be casted to 0, which creates a bug,
-                            // when a switch with null arm will not add enum's 0 value equivalentю
+                            // when a switch with null arm will not add enum's 0 value equivalent.
                             // So we need to avoid it.
                             if (value.ConstantValue.Value is null)
                                 continue;
