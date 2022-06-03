@@ -82,11 +82,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
             await VerifyDiagnosticsAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), FilterTriggerSpanResults(testState.ExpectedDiagnostics).ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
 
-            if (CodeActionExpected())
-            {
-                await VerifyRefactoringAsync(testState, fixedState, GetTriggerSpanResult(testState.ExpectedDiagnostics), Verify, cancellationToken).ConfigureAwait(false);
-                await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), FilterTriggerSpanResults(fixedState.ExpectedDiagnostics).ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
-            }
+            Verify.True(CodeActionExpected(), $"Expected the refactoring test to specify the refactoring result in '{nameof(FixedState)}'");
+
+            await VerifyRefactoringAsync(testState, fixedState, GetTriggerSpanResult(testState.ExpectedDiagnostics), Verify, cancellationToken).ConfigureAwait(false);
+            await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), FilterTriggerSpanResults(fixedState.ExpectedDiagnostics).ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
 
             static IEnumerable<DiagnosticResult> FilterTriggerSpanResults(IEnumerable<DiagnosticResult> expected)
             {
