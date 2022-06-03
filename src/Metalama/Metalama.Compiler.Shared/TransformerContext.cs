@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Metalama.Compiler
 {
-   
     /// <summary>
     /// Context passed to a source transformer when <see cref="ISourceTransformer.Execute(TransformerContext)"/> is called.
     /// The implementation can modify the compilation using the methods <see cref="AddSyntaxTrees(Microsoft.CodeAnalysis.SyntaxTree[])"/>, <see cref="ReplaceSyntaxTree"/> or

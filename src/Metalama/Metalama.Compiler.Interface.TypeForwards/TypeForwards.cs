@@ -10,6 +10,7 @@ using Metalama.Compiler;
 [assembly: TypeForwardedTo(typeof(DiagnosticFilteringRequest))]
 [assembly: TypeForwardedTo(typeof(ManagedResource))]
 [assembly: TypeForwardedTo(typeof(MetalamaPlugInAttribute))]
+[assembly: TypeForwardedTo(typeof(MetalamaCompilerAnnotations))]
 
 namespace Metalama.Compiler.Interface.TypeForwards
 {
@@ -17,4 +18,5 @@ namespace Metalama.Compiler.Interface.TypeForwards
     {
         public static void Initialize() { }
     }
+    
 }

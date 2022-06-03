@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ManagedResource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AttachedProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerAnnotations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilteringRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Intrinsics.cs" />

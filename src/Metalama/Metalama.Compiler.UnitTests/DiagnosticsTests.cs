@@ -80,6 +80,31 @@ namespace Metalama.Compiler.UnitTests
         }
 
         [Fact]
+        public void ErrorsInGeneratedCodeAreWrapped()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
+
+            var args = new[] { "/t:library", src.Path };
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D : Xyz { }") }
+                .ToImmutableArray();
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args,  transformers: transformers);
+
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Equal(1, exitCode);
+
+            // Check that the message has been wrapped and that the origin has been found.
+            Assert.Contains("LAMA0611", output);
+            Assert.Contains("test-transformation-annotation", output);
+        }
+
+        [Fact]
         public void TransformersCanSuppressWarnings()
         {
             var dir = Temp.CreateDirectory();

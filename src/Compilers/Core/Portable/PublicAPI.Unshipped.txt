@@ -1,4 +1,8 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
+const Metalama.Compiler.MetalamaCompilerAnnotations.GeneratedCodeAnnotationKind = "Metalama.Compiler.GeneratedCode" -> string!
+const Metalama.Compiler.MetalamaCompilerAnnotations.OriginalLocationAnnotationKind = "Metalama.Compiler.OriginalLocation" -> string!
+const Metalama.Compiler.MetalamaCompilerAnnotations.SourceCodeAnnotationKind = "Metalama.Compiler.SourceCode" -> string!
+Metalama.Compiler.MetalamaCompilerAnnotations
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
@@ -27,4 +31,8 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Micr
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
+static Metalama.Compiler.MetalamaCompilerAnnotations.CreateGeneratedCodeAnnotation(string! origin) -> Microsoft.CodeAnalysis.SyntaxAnnotation!
+static Metalama.Compiler.MetalamaCompilerAnnotations.SourceCodeAnnotation -> Microsoft.CodeAnalysis.SyntaxAnnotation!
+static Metalama.Compiler.MetalamaCompilerAnnotations.WithOriginalLocationAnnotationFrom(this Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.SyntaxToken originalToken) -> Microsoft.CodeAnalysis.SyntaxToken
+static Metalama.Compiler.MetalamaCompilerAnnotations.WithOriginalLocationAnnotationFrom<T>(this T! node, Microsoft.CodeAnalysis.SyntaxNode! originalNode) -> T!
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!
