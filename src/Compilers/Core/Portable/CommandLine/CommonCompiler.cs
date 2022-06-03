@@ -1809,7 +1809,6 @@ namespace Microsoft.CodeAnalysis
                         
                         targetDiagnostics.Add(diagnosticWrapper);
                         
-                        // Continue the execution flow to map the diagnostic location.
                         continue;
 
                     }
