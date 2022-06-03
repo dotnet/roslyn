@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(cancellationToken =>
             {
                 var functionIdsSet = new HashSet<FunctionId>(functionIds);
-                bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
+                bool LogChecker(FunctionId id) => functionIdsSet.Contains(id);
 
                 // we only support 2 types of loggers
-                SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
-                SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
+                SetRoslynLogger(loggerTypeNames, () => new EtwLogger(LogChecker));
+                SetRoslynLogger(loggerTypeNames, () => new TraceLogger(LogChecker));
 
                 return ValueTaskFactory.CompletedTask;
             }, cancellationToken);

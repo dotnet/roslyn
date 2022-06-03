@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private static IEnumerable<IList<int>> GenerateAllSetCombinations(int sum, int numSubsets)
         {
             Assert.True(numSubsets > 0);
-            return GenerateAll(sum, 0, ImmutableList<int>.Empty);
+            return generateAll(sum, 0, ImmutableList<int>.Empty);
 
-            IEnumerable<ImmutableList<int>> GenerateAll(
+            IEnumerable<ImmutableList<int>> generateAll(
                 int remainingSum,
                 int setIndex, // 0-based index of subset we're generating
                 ImmutableList<int> setsSoFar)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     }
                     else
                     {
-                        foreach (var captures in GenerateAll(remainingSum - i,
+                        foreach (var captures in generateAll(remainingSum - i,
                                                              setIndex + 1,
                                                              newSets))
                         {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             int[] captures = { 1 }; // Capture 1 var at the 0 depth
             var expr = MakeCaptureExpression(captures, ctx);
             Assert.Equal("field_0", expr);
-            VerifyContext(new[]
+            verifyContext(new[]
             {
                 new[] { "field_0"}
             }, ctx.VariablesByScope);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             captures = new[] { 3 }; // Capture 3 vars at 0 depth
             expr = MakeCaptureExpression(captures, ctx);
             Assert.Equal("field_0 + field_1 + field_2", expr);
-            VerifyContext(new[]
+            verifyContext(new[]
             {
                 new[] { "field_0", "field_1", "field_2" }
             }, ctx.VariablesByScope);
@@ -199,14 +199,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             captures = new[] { 1, 1, 1 }; // Capture 1 var at each of 3 depths
             expr = MakeCaptureExpression(captures, ctx);
             Assert.Equal("field_2 + captureVar_0 + captureVar_1", expr);
-            VerifyContext(new[]
+            verifyContext(new[]
             {
                 new[] { "field_0", "field_1", "field_2"},
                 new[] { "captureVar_0"},
                 new[] { "captureVar_1"}
             }, ctx.VariablesByScope);
 
-            void VerifyContext(IList<IEnumerable<string>> expectedCtx, List<IList<string>> actualCtx)
+            void verifyContext(IList<IEnumerable<string>> expectedCtx, List<IList<string>> actualCtx)
             {
                 Assert.Equal(expectedCtx.Count, ctx.VariablesByScope.Count);
                 for (int depth = 0; depth < expectedCtx.Count; depth++)
@@ -236,21 +236,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             {
                 if (_current.depth < 0)
                 {
-                    return FindNonEmptyDepth(0, _layout, out _current);
+                    return findNonEmptyDepth(0, _layout, out _current);
                 }
                 else
                 {
                     int newIndex = _current.localFuncIndex + 1;
                     if (newIndex == _layout[_current.depth])
                     {
-                        return FindNonEmptyDepth(_current.depth + 1, _layout, out _current);
+                        return findNonEmptyDepth(_current.depth + 1, _layout, out _current);
                     }
 
                     _current = (_current.depth, newIndex);
                     return true;
                 }
 
-                bool FindNonEmptyDepth(int startingDepth, IList<int> layout, out (int depth, int localFuncIndex) newCurrent)
+                bool findNonEmptyDepth(int startingDepth, IList<int> layout, out (int depth, int localFuncIndex) newCurrent)
                 {
                     for (int depth = startingDepth; depth < layout.Count; depth++)
                     {
@@ -308,12 +308,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
 
             var methods = new List<MethodInfo>();
-            DfsLayout(enumerator, new MethodInfo(MaxCaptures), 0);
+            dfsLayout(enumerator, new MethodInfo(MaxCaptures), 0);
             return methods;
 
             // Note that the enumerator is a struct, so every new var
             // is a copy
-            void DfsLayout(LayoutEnumerator e, MethodInfo methodSoFar, int localFuncNameIndex)
+            void dfsLayout(LayoutEnumerator e, MethodInfo methodSoFar, int localFuncNameIndex)
             {
                 var (depth, localFuncIndex) = e.Current;
 
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
                     if (!isLastFunc)
                     {
-                        DfsLayout(e, copy, localFuncNameIndex + 1);
+                        dfsLayout(e, copy, localFuncNameIndex + 1);
                     }
                     else
                     {
@@ -440,13 +440,13 @@ using System;
 public class C
 {{
     {0}";
-            StringBuilder GetClassStart()
+            StringBuilder getClassStart()
                 => new StringBuilder(string.Format(ClassFmt,
                     string.Join("\r\n", fields.Select(f => $"public int {f} = 0;"))));
 
             Parallel.ForEach(Partitioner.Create(0, methods.Count, PartitionSize), (range, state) =>
             {
-                var methodsText = GetClassStart();
+                var methodsText = getClassStart();
 
                 for (int methodIndex = range.Item1; methodIndex < range.Item2; methodIndex++)
                 {

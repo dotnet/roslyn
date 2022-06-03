@@ -63,21 +63,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             var builder = new StringBuilder();
             builder.Append("Error ");
-            AppendException(exception);
+            appendException(exception);
 
             int innerExceptionLevel = 0;
             Exception? e = exception.InnerException;
             while (e != null)
             {
                 builder.Append($"Inner exception[{innerExceptionLevel}]  ");
-                AppendException(e);
+                appendException(e);
                 e = e.InnerException;
                 innerExceptionLevel += 1;
             }
 
             logger.Log(builder.ToString());
 
-            void AppendException(Exception exception)
+            void appendException(Exception exception)
             {
                 builder.AppendLine($"Error: '{exception.GetType().Name}' '{exception.Message}' occurred during '{reason}'");
                 builder.AppendLine("Stack trace:");

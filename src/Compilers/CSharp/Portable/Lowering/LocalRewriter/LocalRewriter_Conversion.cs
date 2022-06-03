@@ -555,20 +555,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            SpecialType GetUnderlyingSpecialType(TypeSymbol type) =>
+            SpecialType getUnderlyingSpecialType(TypeSymbol type) =>
                 type.StrippedType().EnumUnderlyingTypeOrSelf().SpecialType;
 
-            bool IsInRange(SpecialType type, SpecialType low, SpecialType high) =>
+            bool isInRange(SpecialType type, SpecialType low, SpecialType high) =>
                 low <= type && type <= high;
 
-            SpecialType sourceST = GetUnderlyingSpecialType(source);
-            SpecialType targetST = GetUnderlyingSpecialType(target);
+            SpecialType sourceST = getUnderlyingSpecialType(source);
+            SpecialType targetST = getUnderlyingSpecialType(target);
 
             // integral to double or float is never checked, but float/double to integral
             // may be checked.
             return (explicitCastInCode || sourceST != targetST) &&
-                IsInRange(sourceST, SpecialType.System_Char, SpecialType.System_Double) &&
-                IsInRange(targetST, SpecialType.System_Char, SpecialType.System_UInt64);
+                isInRange(sourceST, SpecialType.System_Char, SpecialType.System_Double) &&
+                isInRange(targetST, SpecialType.System_Char, SpecialType.System_UInt64);
         }
 
         /// <summary>

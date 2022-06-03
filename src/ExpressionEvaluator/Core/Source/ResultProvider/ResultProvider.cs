@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(index >= numRows);
             Debug.Assert(initialRequestSize >= numRows);
             var initialChildren = new DkmEvaluationResult[numRows];
-            void onException(Exception e) => completionRoutine(DkmGetChildrenAsyncResult.CreateErrorResult(e));
-            var wl = new WorkList(workList, onException);
+            void OnException(Exception e) => completionRoutine(DkmGetChildrenAsyncResult.CreateErrorResult(e));
+            var wl = new WorkList(workList, OnException);
             wl.ContinueWith(() =>
                 GetEvaluationResultsAndContinue(evaluationResult, rows, initialChildren, 0, numRows, wl, inspectionContext,
                     () =>
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             completionRoutine(new DkmGetChildrenAsyncResult(initialChildren, enumContext));
                             rows.Free();
                         }),
-                    onException));
+                    OnException));
         }
 
         void IDkmClrResultProvider.GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
@@ -179,8 +179,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var numRows = rows.Count;
             Debug.Assert(count >= numRows);
             var results = new DkmEvaluationResult[numRows];
-            void onException(Exception e) => completionRoutine(DkmEvaluationEnumAsyncResult.CreateErrorResult(e));
-            var wl = new WorkList(workList, onException);
+            void OnException(Exception e) => completionRoutine(DkmEvaluationEnumAsyncResult.CreateErrorResult(e));
+            var wl = new WorkList(workList, OnException);
             wl.ContinueWith(() =>
                 GetEvaluationResultsAndContinue(evaluationResult, rows, results, 0, numRows, wl, inspectionContext,
                     () =>
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             completionRoutine(new DkmEvaluationEnumAsyncResult(results));
                             rows.Free();
                         }),
-                    onException));
+                    OnException));
         }
 
         string IDkmClrResultProvider.GetUnderlyingString(DkmEvaluationResult result)
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (value.TryGetDebuggerDisplayInfo(out DebuggerDisplayInfo displayInfo))
             {
-                void onException(Exception e) => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
+                void OnException(Exception e) => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
 
                 if (displayInfo.Name != null)
                 {
@@ -805,9 +805,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             displayType =>
                                 workList.ContinueWith(() =>
                                     completionRoutine(GetResult(inspectionContext, result, declaredType, declaredTypeInfo, displayName.Result, displayValue.Result, displayType.Result, useDebuggerDisplay))),
-                            onException),
-                        onException),
-                    onException);
+                            OnException),
+                        OnException),
+                    OnException);
             }
             else
             {
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> onCompleted,
             CompletionRoutine<Exception> onException)
         {
-            void completionRoutine(DkmEvaluateDebuggerDisplayStringAsyncResult result)
+            void CompletionRoutine(DkmEvaluateDebuggerDisplayStringAsyncResult result)
             {
                 try
                 {
@@ -836,11 +836,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             if (displayInfo == null)
             {
-                completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
+                CompletionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
             }
             else
             {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, displayInfo.TargetType, displayInfo.Value, completionRoutine);
+                value.EvaluateDebuggerDisplayString(workList, inspectionContext, displayInfo.TargetType, displayInfo.Value, CompletionRoutine);
             }
         }
 
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine onCompleted,
             CompletionRoutine<Exception> onException)
         {
-            void completionRoutine(DkmEvaluationAsyncResult result)
+            void CompletionRoutine(DkmEvaluationAsyncResult result)
             {
                 try
                 {
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     parent,
                     workList,
                     rows[index],
-                    child => workList.ContinueWith(() => completionRoutine(child)));
+                    child => workList.ContinueWith(() => CompletionRoutine(child)));
             }
             else
             {

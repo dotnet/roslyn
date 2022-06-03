@@ -84,11 +84,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         add = true;
                     }
 
-                    SyntaxToken getNewStartToken(SyntaxToken startToken, TextSpan currentDiagnosticSpan) => includeStartTokenChange
+                    SyntaxToken GetNewStartToken(SyntaxToken startToken, TextSpan currentDiagnosticSpan) => includeStartTokenChange
                         ? GetNewTokenWithModifiedPragma(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true, cancellationToken)
                         : startToken;
 
-                    SyntaxToken getNewEndToken(SyntaxToken endToken, TextSpan currentDiagnosticSpan) => includeEndTokenChange
+                    SyntaxToken GetNewEndToken(SyntaxToken endToken, TextSpan currentDiagnosticSpan) => includeEndTokenChange
                         ? GetNewTokenWithModifiedPragma(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false, cancellationToken)
                         : endToken;
 
@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         _document,
                         _diagnostic.Location.SourceSpan,
                         _suppressionTargetInfo,
-                        getNewStartToken,
-                        getNewEndToken,
+                        GetNewStartToken,
+                        GetNewEndToken,
                         cancellationToken).ConfigureAwait(false);
                 }
 
@@ -122,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var triviaList = GetTriviaListForSuppression(token, isStartToken, fixer);
 
                     var diagnosticSpan = diagnostic.Location.SourceSpan;
-                    bool shouldIncludeTrivia(SyntaxTrivia t) => isStartToken ? t.FullSpan.End <= diagnosticSpan.Start : t.FullSpan.Start >= diagnosticSpan.End;
-                    var filteredTriviaList = triviaList.Where(shouldIncludeTrivia);
+                    bool ShouldIncludeTrivia(SyntaxTrivia t) => isStartToken ? t.FullSpan.End <= diagnosticSpan.Start : t.FullSpan.Start >= diagnosticSpan.End;
+                    var filteredTriviaList = triviaList.Where(ShouldIncludeTrivia);
                     if (isStartToken)
                     {
                         // Walk bottom up for leading trivia.

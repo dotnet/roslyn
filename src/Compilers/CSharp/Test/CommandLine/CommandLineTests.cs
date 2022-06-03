@@ -9813,35 +9813,35 @@ class C
             });
 
             // with no cache, we'll see the callback execute multiple times
-            RunWithNoCache();
+            runWithNoCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithNoCache();
+            runWithNoCache();
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithNoCache();
+            runWithNoCache();
             Assert.Equal(3, sourceCallbackCount);
 
             // now re-run with a cache
             GeneratorDriverCache cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithNoCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
+            void runWithNoCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -9865,39 +9865,39 @@ class C
             GeneratorDriverCache cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(1, sourceCallbackCount);
 
             // now emulate a new compilation, and check we were invoked, but only once
-            RunWithCache("2.dll");
+            runWithCache("2.dll");
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithCache("2.dll");
+            runWithCache("2.dll");
             Assert.Equal(2, sourceCallbackCount);
 
             // now re-run our first compilation
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(2, sourceCallbackCount);
 
             // a new one
-            RunWithCache("3.dll");
+            runWithCache("3.dll");
             Assert.Equal(3, sourceCallbackCount);
 
             // and another old one
-            RunWithCache("2.dll");
+            runWithCache("2.dll");
             Assert.Equal(3, sourceCallbackCount);
 
-            RunWithCache("1.dll");
+            runWithCache("1.dll");
             Assert.Equal(3, sourceCallbackCount);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:" + outputPath, "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache(string outputPath) => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:" + outputPath, "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -9921,40 +9921,40 @@ class C
             GeneratorDriverCache cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
             // now re-run with the cache disabled
             sourceCallbackCount = 0;
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(3, sourceCallbackCount);
 
             // now clear the cache as well as disabling, and verify we don't put any entries into it either
             cache = new GeneratorDriverCache();
             sourceCallbackCount = 0;
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(0, cache.CacheSize);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(0, cache.CacheSize);
 
-            RunWithCacheDisabled();
+            runWithCacheDisabled();
             Assert.Equal(3, sourceCallbackCount);
             Assert.Equal(0, cache.CacheSize);
 
@@ -9962,9 +9962,9 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
 
-            void RunWithCacheDisabled() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCacheDisabled() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -9996,32 +9996,32 @@ class C
             // run with the cache
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithOneGenerator();
+            runWithOneGenerator();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(0, sourceCallbackCount2);
 
-            RunWithOneGenerator();
+            runWithOneGenerator();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(0, sourceCallbackCount2);
 
-            RunWithTwoGenerators();
+            runWithTwoGenerators();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
-            RunWithTwoGenerators();
+            runWithTwoGenerators();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
             // this seems counterintuitive, but when the only thing to change is the generator, we end up back at the state of the project when 
             // we just ran a single generator. Thus we already have an entry in the cache we can use (the one created by the original call to
             // RunWithOneGenerator above) meaning we can use the previously cached results and not run.
-            RunWithOneGenerator();
+            runWithOneGenerator();
             Assert.Equal(2, sourceCallbackCount);
             Assert.Equal(1, sourceCallbackCount2);
 
-            void RunWithOneGenerator() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithOneGenerator() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
 
-            void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact(Skip = "Additional file comparison is disabled due to https://github.com/dotnet/roslyn/issues/59209")]
@@ -10049,17 +10049,17 @@ class C
 
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(1, additionalFileCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(1, additionalFileCallbackCount);
 
             additionalFile.WriteAllText("some new content");
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(2, additionalFileCallbackCount); // additional file was updated
 
@@ -10067,7 +10067,7 @@ class C
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/additionalFile:" + additionalFile.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/additionalFile:" + additionalFile.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10119,7 +10119,7 @@ a = globalA");
 
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(1, configOptionsCallbackCount);
             Assert.Equal(1, filteredGlobalCallbackCount);
@@ -10128,7 +10128,7 @@ a = globalA");
             Assert.Equal("localA", localA);
 
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(2, configOptionsCallbackCount); // we can't compare the provider directly, so we consider it modified
             Assert.Equal(1, filteredGlobalCallbackCount); // however, the values in it will cache out correctly.
@@ -10139,7 +10139,7 @@ a = globalA");
 a = diffLocalA
 ");
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(3, configOptionsCallbackCount);
             Assert.Equal(1, filteredGlobalCallbackCount); // the provider changed, but only the local value changed
@@ -10153,7 +10153,7 @@ is_global = true
 a = diffGlobalA
 ");
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
             Assert.Equal(4, configOptionsCallbackCount);
             Assert.Equal(2, filteredGlobalCallbackCount); // only the global value was changed
@@ -10165,7 +10165,7 @@ a = diffGlobalA
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/analyzerConfig:" + editorconfig.Path, "/analyzerConfig:" + globalconfig.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache", "/analyzerConfig:" + editorconfig.Path, "/analyzerConfig:" + globalconfig.Path }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         [Fact]
@@ -10188,20 +10188,20 @@ class C
             // now re-run with a cache
             GeneratorDriverCache cache = new GeneratorDriverCache();
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(1, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(2, sourceCallbackCount);
 
-            RunWithCache();
+            runWithCache();
             Assert.Equal(3, sourceCallbackCount);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
 
-            void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
+            void runWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
         private static int OccurrenceCount(string source, string word)
@@ -11282,7 +11282,7 @@ class C {
         [CompilerTrait(CompilerFeature.Determinism)]
         public void PathMapPdbEmit()
         {
-            void AssertPdbEmit(TempDirectory dir, string pdbPath, string pePdbPath, params string[] extraArgs)
+            void assertPdbEmit(TempDirectory dir, string pdbPath, string pePdbPath, params string[] extraArgs)
             {
                 var source = @"class Program { static void Main() { } }";
                 var src = dir.CreateFile("a.cs").WriteAllText(source);
@@ -11308,21 +11308,21 @@ class C {
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, pdbPath);
+                assertPdbEmit(dir, pdbPath, pdbPath);
             }
 
             // Simple mapping
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+                assertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\");
             }
 
             // Simple mapping deterministic
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\", "/deterministic");
+                assertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\", "/deterministic");
             }
 
             // Partial mapping
@@ -11330,28 +11330,28 @@ class C {
             {
                 dir.CreateDirectory("pdb");
                 var pdbPath = Path.Combine(dir.Path, @"pdb\a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"q:\pdb\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+                assertPdbEmit(dir, pdbPath, @"q:\pdb\a.pdb", $@"/pathmap:{dir.Path}=q:\");
             }
 
             // Legacy feature flag
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
+                assertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
             }
 
             // Unix path map
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, @"/a.pdb", $@"/pathmap:{dir.Path}=/");
+                assertPdbEmit(dir, pdbPath, @"/a.pdb", $@"/pathmap:{dir.Path}=/");
             }
 
             // Multi-specified path map with mixed slashes
             using (var dir = new DisposableDirectory(Temp))
             {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
-                AssertPdbEmit(dir, pdbPath, "/goo/a.pdb", $"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar");
+                assertPdbEmit(dir, pdbPath, "/goo/a.pdb", $"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar");
             }
         }
 

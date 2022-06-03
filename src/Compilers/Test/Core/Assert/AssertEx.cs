@@ -836,12 +836,12 @@ namespace Roslyn.Test.Utilities
 
         public static void AssertLinesEqual(string expected, string actual, string message, string expectedValueSourcePath, int expectedValueSourceLine, bool escapeQuotes)
         {
-            IEnumerable<string> GetLines(string str) =>
+            IEnumerable<string> getLines(string str) =>
                 str.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             AssertEx.Equal(
-                GetLines(expected),
-                GetLines(actual),
+                getLines(expected),
+                getLines(actual),
                 comparer: LineComparer.Instance,
                 message: message,
                 itemInspector: escapeQuotes ? new Func<string, string>(line => line.Replace("\"", "\"\"")) : null,

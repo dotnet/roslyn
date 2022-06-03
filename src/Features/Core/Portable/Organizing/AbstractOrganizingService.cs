@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Organizing
         protected Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> GetNodeToOrganizers(IEnumerable<ISyntaxOrganizer> organizers)
         {
             var map = new ConcurrentDictionary<Type, IEnumerable<ISyntaxOrganizer>>();
-            IEnumerable<ISyntaxOrganizer> getter(Type t1)
+            IEnumerable<ISyntaxOrganizer> Getter(Type t1)
             {
                 return (from o in organizers
                         where !o.SyntaxNodeTypes.Any() ||
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Organizing
                         select o).Distinct();
             }
 
-            return n => map.GetOrAdd(n.GetType(), getter);
+            return n => map.GetOrAdd(n.GetType(), Getter);
         }
     }
 }

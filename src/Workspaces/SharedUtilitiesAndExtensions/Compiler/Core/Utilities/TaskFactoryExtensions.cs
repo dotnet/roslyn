@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeStartNew(this TaskFactory factory, Action action, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
-            void wrapped()
+            void Wrapped()
             {
                 try
                 {
@@ -30,13 +30,13 @@ namespace Roslyn.Utilities
                 }
             }
 
-            return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
+            return factory.StartNew(Wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
-            TResult wrapped()
+            TResult Wrapped()
             {
                 try
                 {
@@ -48,7 +48,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            return factory.StartNew(wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
+            return factory.StartNew(Wrapped, cancellationToken, TaskCreationOptions.None, scheduler);
         }
 
         public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)

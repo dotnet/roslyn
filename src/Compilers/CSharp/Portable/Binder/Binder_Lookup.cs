@@ -1376,7 +1376,7 @@ symIsHidden:;
                 {
                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
                 }
-                else if (IsBadIvtSpecification())
+                else if (isBadIvtSpecification())
                 {
                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.Compilation.Assembly.PublicKey));
                 }
@@ -1417,7 +1417,7 @@ symIsHidden:;
                 return LookupResult.Good(symbol);
             }
 
-            bool IsBadIvtSpecification()
+            bool isBadIvtSpecification()
             {
                 // Ensures that during binding we don't ask for public key which results in attribute binding and stack overflow.
                 // If looking up attributes, don't ask for public key.

@@ -1017,11 +1017,11 @@ public interface I3 : I1<(int c, int d)> {}";
                             continue;
 
                         case "I2":
-                            VerifyTupleImpls(t, new[] { "a", "b" });
+                            verifyTupleImpls(t, new[] { "a", "b" });
                             break;
 
                         case "I3":
-                            VerifyTupleImpls(t, new[] { "c", "d" });
+                            verifyTupleImpls(t, new[] { "c", "d" });
                             break;
 
                         default:
@@ -1029,7 +1029,7 @@ public interface I3 : I1<(int c, int d)> {}";
                     }
                 }
 
-                void VerifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
+                void verifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
                     var interfaceImpl = t.Interfaces().Single();
                     var typeArg = interfaceImpl.TypeArguments().Single();

@@ -4031,7 +4031,7 @@ public static class C
     public static void M2(in this int p) { }
 }";
 
-            void Validator(ModuleSymbol module)
+            void validator(ModuleSymbol module)
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -4048,7 +4048,7 @@ public static class C
                 Assert.Equal(RefKind.In, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+            CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll);
         }
 
         [Fact]
@@ -4061,7 +4061,7 @@ public static class C
     public static void M2(ref this int p) { }
 }";
 
-            void Validator(ModuleSymbol module)
+            void validator(ModuleSymbol module)
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -4078,7 +4078,7 @@ public static class C
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+            CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll);
         }
     }
 }

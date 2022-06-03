@@ -507,9 +507,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private static bool PackRegions(RegionBuilder root, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
         {
-            return PackRegion(root);
+            return packRegion(root);
 
-            bool PackRegion(RegionBuilder region)
+            bool packRegion(RegionBuilder region)
             {
                 Debug.Assert(!region.IsEmpty);
                 bool result = false;
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     for (int i = region.Regions.Count - 1; i >= 0; i--)
                     {
                         RegionBuilder r = region.Regions[i];
-                        if (PackRegion(r))
+                        if (packRegion(r))
                         {
                             result = true;
                         }

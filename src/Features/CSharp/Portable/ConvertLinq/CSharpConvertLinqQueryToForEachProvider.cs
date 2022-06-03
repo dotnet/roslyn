@@ -573,10 +573,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
                 }
 
-                static StatementSyntax internalNodeMethod(ExpressionSyntax expression)
+                static StatementSyntax InternalNodeMethod(ExpressionSyntax expression)
                     => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
 
-                var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);
+                var statements = GenerateStatements(InternalNodeMethod, queryExpressionProcessingInfo);
                 var localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
                     _semanticModel,
                     _source,

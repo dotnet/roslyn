@@ -4951,10 +4951,10 @@ public class Program738490379
                 "1.1",            // a double constant
                 "NotFound"        // an unbindable expression
             };
-            string Expression()
+            string expression()
             {
                 int index = r.Next(expressions.Length + 1) - 1;
-                return (index < 0) ? $"(({Type()})M())" : expressions[index];
+                return (index < 0) ? $"(({type()})M())" : expressions[index];
             }
             string[] types = new[]
             {
@@ -4966,32 +4966,32 @@ public class Program738490379
                 "string",
                 "NotFound"
             };
-            string Type() => types[r.Next(types.Length)];
-            string Pattern(int d = 5)
+            string type() => types[r.Next(types.Length)];
+            string pattern(int d = 5)
             {
                 switch (r.Next(d <= 1 ? 9 : 13))
                 {
                     default:
-                        return Expression(); // a "constant" pattern
+                        return expression(); // a "constant" pattern
                     case 3:
                     case 4:
-                        return Type();
+                        return type();
                     case 5:
-                        return Type() + " _";
+                        return type() + " _";
                     case 6:
-                        return Type() + " x" + r.Next(10);
+                        return type() + " x" + r.Next(10);
                     case 7:
-                        return "not " + Pattern(d - 1);
+                        return "not " + pattern(d - 1);
                     case 8:
-                        return "(" + Pattern(d - 1) + ")";
+                        return "(" + pattern(d - 1) + ")";
                     case 9:
                         return r.Next(2) == 0 ? makeRecursivePattern(d) : makeListPattern(d);
                     case 10:
-                        return Pattern(d - 1) + " and " + Pattern(d - 1);
+                        return pattern(d - 1) + " and " + pattern(d - 1);
                     case 11:
-                        return Pattern(d - 1) + " or " + Pattern(d - 1);
+                        return pattern(d - 1) + " or " + pattern(d - 1);
                     case 12:
-                        return ".." + (r.Next(2) == 0 ? Pattern(d - 1) : null);
+                        return ".." + (r.Next(2) == 0 ? pattern(d - 1) : null);
                 }
 
                 string makeRecursivePattern(int d)
@@ -5004,7 +5004,7 @@ public class Program738490379
                             continue;
                         bool haveType = r.Next(2) == 0;
                         bool haveIdentifier = r.Next(2) == 0;
-                        return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
+                        return $"{(haveType ? type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
                     }
                 }
 
@@ -5016,7 +5016,7 @@ public class Program738490379
 
                 string makePatternList(int d, bool propNames)
                 {
-                    return string.Join(", ", Enumerable.Range(0, r.Next(3)).Select(i => $"{(propNames ? $"P{r.Next(10)}: " : null)}{Pattern(d)}"));
+                    return string.Join(", ", Enumerable.Range(0, r.Next(3)).Select(i => $"{(propNames ? $"P{r.Next(10)}: " : null)}{pattern(d)}"));
                 }
             }
             string body = @"
@@ -5033,16 +5033,16 @@ public class Program{0}
             {
                 case 0:
                     // test the "is-pattern" expression
-                    statement.Append($"if ({Expression()} is {Pattern()}) {{}}");
+                    statement.Append($"if ({expression()} is {pattern()}) {{}}");
                     break;
                 case 1:
                     // test the pattern switch statement
-                    statement.AppendLine($"switch ({Expression()})");
+                    statement.AppendLine($"switch ({expression()})");
                     statement.AppendLine("{");
                     var nCases = r.Next(5);
                     for (int i = 1; i <= nCases; i++)
                     {
-                        statement.AppendLine($"    case {Pattern()}:");
+                        statement.AppendLine($"    case {pattern()}:");
                         if (i == nCases || r.Next(2) == 0)
                         {
                             statement.AppendLine($"        break;");

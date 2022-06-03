@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
+            if (!node.GetAncestorsOrThis<SyntaxNode>().Any(Predicate))
             {
                 return false;
             }
 
             return true;
 
-            bool predicate(SyntaxNode n)
+            bool Predicate(SyntaxNode n)
             {
                 if (n is BaseMethodDeclarationSyntax or
                     AccessorDeclarationSyntax or

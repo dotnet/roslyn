@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 foreach (var attributeHandle in existingCustomAttributes)
                 {
                     int rowId = MetadataTokens.GetRowNumber(attributeHandle);
-                    AddLogEntryOrDelete(rowId, parent, add: index < count, customAttributeEncMapRows);
+                    addLogEntryOrDelete(rowId, parent, add: index < count, customAttributeEncMapRows);
                     index++;
                 }
 
@@ -976,8 +976,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     foreach (var rowId in rowIds)
                     {
-                        TrackCustomAttributeAdded(rowId, parent);
-                        AddLogEntryOrDelete(rowId, parent, add: index < count, customAttributeEncMapRows);
+                        trackCustomAttributeAdded(rowId, parent);
+                        addLogEntryOrDelete(rowId, parent, add: index < count, customAttributeEncMapRows);
                         index++;
                     }
                 }
@@ -986,8 +986,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 for (int i = index; i < count; i++)
                 {
                     lastRowId++;
-                    TrackCustomAttributeAdded(lastRowId, parent);
-                    AddEncLogEntry(lastRowId, customAttributeEncMapRows);
+                    trackCustomAttributeAdded(lastRowId, parent);
+                    addEncLogEntry(lastRowId, customAttributeEncMapRows);
                 }
             }
 
@@ -1007,10 +1007,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 metadata.AddCustomAttribute(MetadataTokens.Handle(tableIndex, 0), MetadataTokens.EntityHandle(TableIndex.MemberRef, 0), value: default);
 
-                AddEncLogEntry(row.parentRowId, customAttributeEncMapRows);
+                addEncLogEntry(row.parentRowId, customAttributeEncMapRows);
             }
 
-            void AddEncLogEntry(int rowId, List<int> customAttributeEncMapRows)
+            void addEncLogEntry(int rowId, List<int> customAttributeEncMapRows)
             {
                 customAttributeEncMapRows.Add(rowId);
                 metadata.AddEncLogEntry(
@@ -1018,12 +1018,12 @@ namespace Microsoft.CodeAnalysis.Emit
                     code: EditAndContinueOperation.Default);
             }
 
-            void AddLogEntryOrDelete(int rowId, EntityHandle parent, bool add, List<int> customAttributeEncMapRows)
+            void addLogEntryOrDelete(int rowId, EntityHandle parent, bool add, List<int> customAttributeEncMapRows)
             {
                 if (add)
                 {
                     // Update this row
-                    AddEncLogEntry(rowId, customAttributeEncMapRows);
+                    addEncLogEntry(rowId, customAttributeEncMapRows);
                 }
                 else
                 {
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            void TrackCustomAttributeAdded(int nextRowId, EntityHandle parent)
+            void trackCustomAttributeAdded(int nextRowId, EntityHandle parent)
             {
                 if (!customAttributesAdded.TryGetValue(parent, out var existing))
                 {

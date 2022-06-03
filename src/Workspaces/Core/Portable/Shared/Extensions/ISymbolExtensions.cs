@@ -677,9 +677,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
-            static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
+            static bool IsSymbolDefinedInSource(Location l) => l.IsInSource;
             return symbols.WhereAsArray((s, arg) =>
-                (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
+                (s.Locations.Any(IsSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
                     arg.hideAdvancedMembers,

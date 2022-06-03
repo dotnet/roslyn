@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TSymbol : ISymbol
         {
             var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
-            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, semanticModel, position);
+            string[] GetParameterTypeNames(TSymbol s) => ISymbolExtensions2.GetParameterTypeNames(s, semanticModel, position);
 
-            return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))
+            return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, GetParameterTypeNames))
                           .ToImmutableArray();
         }
 

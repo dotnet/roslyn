@@ -487,9 +487,9 @@ Environment.ProcessorCount
             var compilation2 = state2.Result.Script.GetCompilation();
             compilation2.VerifyDiagnostics();
             Assert.Equal(2, state2.Result.ReturnValue);
-            var c2C2 = (INamedTypeSymbol)lookupMember(compilation2, "Submission#1", "C2");
+            var c2C2 = (INamedTypeSymbol)LookupMember(compilation2, "Submission#1", "C2");
             var c2C1 = c2C2.BaseType;
-            var c2X = lookupMember(compilation1, "Submission#0", "X");
+            var c2X = LookupMember(compilation1, "Submission#0", "X");
             Assert.True(compilation2.IsSymbolAccessibleWithin(c2C1, c2C2));
             Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2C1));
             Assert.True(compilation2.IsSymbolAccessibleWithin(c2X, c2C2));  // access not enforced among submission symbols
@@ -498,18 +498,18 @@ Environment.ProcessorCount
             var compilation3 = state3.Result.Script.GetCompilation();
             compilation3.VerifyDiagnostics();
             Assert.Equal(3, state3.Result.ReturnValue);
-            var c3C3 = (INamedTypeSymbol)lookupMember(compilation3, "Submission#2", "C3");
+            var c3C3 = (INamedTypeSymbol)LookupMember(compilation3, "Submission#2", "C3");
             var c3C1 = c3C3.BaseType;
             Assert.Throws<ArgumentException>(() => compilation2.IsSymbolAccessibleWithin(c3C3, c3C1));
             Assert.True(compilation3.IsSymbolAccessibleWithin(c3C3, c3C1));
 
-            INamedTypeSymbol lookupType(Compilation c, string name)
+            INamedTypeSymbol LookupType(Compilation c, string name)
             {
                 return c.GlobalNamespace.GetMembers(name).Single() as INamedTypeSymbol;
             }
-            ISymbol lookupMember(Compilation c, string typeName, string memberName)
+            ISymbol LookupMember(Compilation c, string typeName, string memberName)
             {
-                return lookupType(c, typeName).GetMembers(memberName).Single();
+                return LookupType(c, typeName).GetMembers(memberName).Single();
             }
         }
 

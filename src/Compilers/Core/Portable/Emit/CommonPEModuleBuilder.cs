@@ -648,20 +648,20 @@ namespace Microsoft.CodeAnalysis.Emit
                 Dispatch(typeReferenceIndexer);
             }
 
-            AddTopLevelType(names, RootModuleType);
+            addTopLevelType(names, RootModuleType);
             VisitTopLevelType(typeReferenceIndexer, RootModuleType);
             yield return RootModuleType;
 
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {
-                AddTopLevelType(names, typeDef);
+                addTopLevelType(names, typeDef);
                 VisitTopLevelType(typeReferenceIndexer, typeDef);
                 yield return typeDef;
             }
 
             foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
             {
-                AddTopLevelType(names, typeDef);
+                addTopLevelType(names, typeDef);
                 VisitTopLevelType(typeReferenceIndexer, typeDef);
                 yield return typeDef;
             }
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var privateImpl = PrivateImplClass;
             if (privateImpl != null)
             {
-                AddTopLevelType(names, privateImpl);
+                addTopLevelType(names, privateImpl);
                 VisitTopLevelType(typeReferenceIndexer, privateImpl);
                 yield return privateImpl;
             }
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 foreach (var embedded in EmbeddedTypesManagerOpt.GetTypes(context.Diagnostics, names))
                 {
-                    AddTopLevelType(names, embedded);
+                    addTopLevelType(names, embedded);
                     yield return embedded;
                 }
             }
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 _namesOfTopLevelTypes = names;
             }
 
-            static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
+            static void addTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
                 // _namesOfTopLevelTypes are only used to generated exported types, which are not emitted in EnC deltas (hence generation 0):
                 => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type, generation: 0)));
         }

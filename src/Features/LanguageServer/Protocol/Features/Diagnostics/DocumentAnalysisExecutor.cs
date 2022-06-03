@@ -309,11 +309,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(span.Value, cancellationToken).ToArray();
                 var rangeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(span.Value, cancellationToken).ToArray();
-                var rangeDiagnostics = rangeDeclaractionDiagnostics.Concat(rangeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
+                var rangeDiagnostics = rangeDeclaractionDiagnostics.Concat(rangeMethodBodyDiagnostics).Where(ShouldInclude).ToArray();
 
                 var wholeDeclarationDiagnostics = model.GetDeclarationDiagnostics(cancellationToken: cancellationToken).ToArray();
                 var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(cancellationToken: cancellationToken).ToArray();
-                var wholeDiagnostics = wholeDeclarationDiagnostics.Concat(wholeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
+                var wholeDiagnostics = wholeDeclarationDiagnostics.Concat(wholeMethodBodyDiagnostics).Where(ShouldInclude).ToArray();
 
                 if (!AreEquivalent(rangeDiagnostics, wholeDiagnostics))
                 {
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Exclude unused import diagnostics since they are never reported when a span is passed.
                 // (See CSharp/VisualBasicCompilation.GetDiagnosticsForMethodBodiesInTree.)
-                bool shouldInclude(Diagnostic d) => span.Value.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
+                bool ShouldInclude(Diagnostic d) => span.Value.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
             }
 #endif
         }

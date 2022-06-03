@@ -332,14 +332,14 @@ namespace Roslyn.Test.Utilities
 
             if (source == null)
             {
-                static void Add(Dictionary<int, string> dict, int key, string value)
+                static void add(Dictionary<int, string> dict, int key, string value)
                     => dict[key] = dict.TryGetValue(key, out var found) ? found + value : value;
 
                 foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
                 {
                     foreach (XmlElement item in entry.ChildNodes)
                     {
-                        Add(result,
+                        add(result,
                             Convert.ToInt32(item.GetAttribute("offset"), 16),
                             (item.GetAttribute("hidden") == "true") ? "~" : "-");
                     }
@@ -351,19 +351,19 @@ namespace Roslyn.Test.Utilities
                     {
                         if (item.Name == "await")
                         {
-                            Add(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
-                            Add(result, Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
+                            add(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
+                            add(result, Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
                         }
                         else if (item.Name == "catchHandler")
                         {
-                            Add(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
+                            add(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
                         }
                     }
                 }
             }
             else
             {
-                static void AddTextual(Dictionary<int, string> dict, int key, string value)
+                static void addTextual(Dictionary<int, string> dict, int key, string value)
                     => dict[key] = dict.TryGetValue(key, out var found) ? found + ", " + value : "// " + value;
 
                 foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
@@ -372,12 +372,12 @@ namespace Roslyn.Test.Utilities
                     {
                         if (item.Name == "await")
                         {
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "async: yield");
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("resume"), 16), "async: resume");
+                            addTextual(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "async: yield");
+                            addTextual(result, Convert.ToInt32(item.GetAttribute("resume"), 16), "async: resume");
                         }
                         else if (item.Name == "catchHandler")
                         {
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "async: catch handler");
+                            addTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "async: catch handler");
                         }
                     }
                 }
@@ -388,7 +388,7 @@ namespace Roslyn.Test.Utilities
                 {
                     foreach (XmlElement item in entry.ChildNodes)
                     {
-                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(sourceLines, item));
+                        addTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(sourceLines, item));
                     }
                 }
             }
@@ -412,15 +412,15 @@ namespace Roslyn.Test.Utilities
                 return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
             }
 
-            static string TruncateStart(string text, int maxLength)
+            static string truncateStart(string text, int maxLength)
                 => (text.Length < maxLength) ? text : text.Substring(0, maxLength);
 
-            static string TruncateEnd(string text, int maxLength)
+            static string truncateEnd(string text, int maxLength)
                 => (text.Length < maxLength) ? text : text.Substring(text.Length - maxLength - 1, maxLength);
 
             var start = lines[startLine - 1].Substring(startColumn - 1);
             var end = lines[endLine - 1].Substring(0, endColumn - 1);
-            return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
+            return truncateStart(start, 12) + " ... " + truncateEnd(end, 12);
         }
     }
 }

@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.SwitchExpressionArm:
                     var switchArm = (SwitchExpressionArmSyntax)node;
-                    return createSpanForSwitchArm(switchArm);
+                    return CreateSpanForSwitchArm(switchArm);
 
-                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
+                    TextSpan CreateSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
                         CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : switchArm.Expression);
 
                 case SyntaxKind.SwitchExpression when
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             position <= switchExpression.CloseBraceToken.Span.Start:
                     // This can occur if the cursor is on a separator. Find the nearest switch arm.
                     switchArm = switchExpression.Arms.LastOrDefault(arm => position >= arm.FullSpan.Start) ?? switchExpression.Arms.First();
-                    return createSpanForSwitchArm(switchArm);
+                    return CreateSpanForSwitchArm(switchArm);
 
                 case SyntaxKind.WhenClause:
                     return CreateSpan(node);

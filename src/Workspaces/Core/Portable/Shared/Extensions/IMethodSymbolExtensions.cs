@@ -181,12 +181,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IMethodSymbol method, ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
+            var methodHasAttribute = method.GetAttributes().Any(ShouldRemoveAttribute);
 
             var someParameterHasAttribute = method.Parameters
-                .Any(m => m.GetAttributes().Any(shouldRemoveAttribute));
+                .Any(m => m.GetAttributes().Any(ShouldRemoveAttribute));
 
-            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute);
+            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(ShouldRemoveAttribute);
 
             if (!methodHasAttribute && !someParameterHasAttribute && !returnTypeHasAttribute)
             {
@@ -197,15 +197,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method,
                 containingType: method.ContainingType,
                 explicitInterfaceImplementations: method.ExplicitInterfaceImplementations,
-                attributes: method.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                attributes: method.GetAttributes().WhereAsArray(a => !ShouldRemoveAttribute(a)),
                 parameters: method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                        p.GetAttributes().WhereAsArray(a => !ShouldRemoveAttribute(a)),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
-                returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
+                returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !ShouldRemoveAttribute(a)));
 
-            bool shouldRemoveAttribute(AttributeData a) =>
+            bool ShouldRemoveAttribute(AttributeData a) =>
                 removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
                 a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
         }
