@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
 
         private bool _isDisposed;
 
-        private ModuleMetadata(PEReader peReader, IDisposable? owner = null, bool disposeOwner = false)
+        private ModuleMetadata(PEReader peReader, IDisposable? owner, bool disposeOwner)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peImage));
             }
 
-            return new ModuleMetadata(new PEReader(peImage));
+            return new ModuleMetadata(new PEReader(peImage), owner: null, disposeOwner: false);
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // ownership of the stream is passed on PEReader:
-            return new ModuleMetadata(new PEReader(peStream, options));
+            return new ModuleMetadata(new PEReader(peStream, options), owner: null, disposeOwner: false);
         }
 
         /// <summary>
