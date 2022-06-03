@@ -445,6 +445,70 @@ class C
     }
 
     [Fact]
+    public void FindPartialMethodAttribute1()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    [CLSCompliant(true)]
+    internal partial void M();
+    internal partial void M() { }
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<MethodDeclarationSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is MethodDeclarationSyntax { Identifier.ValueText: "M", Body: null, ExpressionBody: null }));
+    }
+
+    [Fact]
+    public void FindPartialMethodAttribute2()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    internal partial void M();
+    [CLSCompliant(true)]
+    internal partial void M() { }
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<MethodDeclarationSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is MethodDeclarationSyntax { Identifier.ValueText: "M", Body: not null }));
+    }
+
+    [Fact]
     public void FindFieldAttribute1()
     {
         var source = @"
