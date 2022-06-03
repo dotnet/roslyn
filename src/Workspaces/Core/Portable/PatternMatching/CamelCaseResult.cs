@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 => MatchedSpansInReverse?.Free();
 
             public CamelCaseResult WithFromStart(bool fromStart)
-                => new CamelCaseResult(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);
+                => new(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);
 
             public CamelCaseResult WithAddedMatchedSpan(TextSpan value)
             {
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, ArrayBuilder<TextSpan> candidateHumps)
+        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, in TemporaryArray<TextSpan> candidateHumps)
         {
             var toEnd = result.MatchCount == candidateHumps.Count;
             if (result.FromStart)

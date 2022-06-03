@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
@@ -48,26 +51,40 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
             private void OnToolTipOpening(object sender, ToolTipEventArgs e)
             {
-                AssertIsForeground();
+                try
+                {
+                    AssertIsForeground();
 
-                Debug.Assert(_element.ToolTip == this);
-                Debug.Assert(_disposableToolTip == null);
+                    Debug.Assert(_element.ToolTip == this);
+                    Debug.Assert(_disposableToolTip == null);
 
-                _disposableToolTip = _createToolTip();
-                _element.ToolTip = _disposableToolTip.ToolTip;
+                    _disposableToolTip = _createToolTip();
+                    _element.ToolTip = _disposableToolTip.ToolTip;
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                    // Do nothing, since this is a WPF event handler and propagating the exception would cause a crash
+                }
             }
 
             private void OnToolTipClosing(object sender, ToolTipEventArgs e)
             {
-                AssertIsForeground();
+                try
+                {
+                    AssertIsForeground();
 
-                Debug.Assert(_disposableToolTip != null);
-                Debug.Assert(_element.ToolTip == _disposableToolTip.ToolTip);
+                    Debug.Assert(_disposableToolTip != null);
+                    Debug.Assert(_element.ToolTip == _disposableToolTip.ToolTip);
 
-                _element.ToolTip = this;
+                    _element.ToolTip = this;
 
-                _disposableToolTip.Dispose();
-                _disposableToolTip = null;
+                    _disposableToolTip.Dispose();
+                    _disposableToolTip = null;
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                    // Do nothing, since this is a WPF event handler and propagating the exception would cause a crash
+                }
             }
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,15 +20,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public abstract class AbstractLiveShareRequestHandlerTests : AbstractLanguageServerProtocolTests
     {
-        private static readonly TestComposition s_composition = LiveShareTestCompositions.Features.AddParts(
-            typeof(MockDocumentNavigationServiceFactory),
-            typeof(TestLspSolutionProvider));
+        private static readonly TestComposition s_composition = LiveShareTestCompositions.Features
+            .AddParts(typeof(MockDocumentNavigationServiceFactory))
+            .AddParts(typeof(TestWorkspaceRegistrationService))
+            .AddParts(typeof(TestWorkspaceConfigurationService));
 
         private class MockHostProtocolConverter : IHostProtocolConverter
         {
             private readonly Func<Uri, Uri> _uriConversionFunction;
 
-            public MockHostProtocolConverter() => _uriConversionFunction = uri => { return uri; };
+            public MockHostProtocolConverter() => _uriConversionFunction = uri => uri;
 
             public MockHostProtocolConverter(Func<Uri, Uri> uriConversionFunction) => _uriConversionFunction = uriConversionFunction;
 

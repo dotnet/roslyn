@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -41,10 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree.IsInNonUserCode(position, cancellationToken))
                 {
                     return;
@@ -67,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     return;
                 }
-                if (!(token.Parent.Parent is AttributeSyntax attributeSyntax) || !(token.Parent is AttributeArgumentListSyntax attributeArgumentList))
+
+                if (token.Parent!.Parent is not AttributeSyntax attributeSyntax || token.Parent is not AttributeArgumentListSyntax attributeArgumentList)
                 {
                     return;
                 }
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     context.AddItems(nameColonItems);
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
@@ -115,13 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         return false;
                     }
 
-                    if (item.IsNode)
+                    var node = (AttributeArgumentSyntax?)item.AsNode();
+                    if (node?.NameColon != null)
                     {
-                        var node = item.AsNode() as AttributeArgumentSyntax;
-                        if (node.NameColon != null)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -140,13 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         return false;
                     }
 
-                    if (item.IsNode)
+                    var node = (AttributeArgumentSyntax?)item.AsNode();
+                    if (node?.NameEquals != null)
                     {
-                        var node = item.AsNode() as AttributeArgumentSyntax;
-                        if (node.NameEquals != null)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -195,8 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                        rules: CompletionItemRules.Default);
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
             => existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
@@ -206,11 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var existingArguments1 =
                 argumentList.Arguments.Where(a => a.Span.End <= position)
                                       .Where(a => a.NameColon != null)
-                                      .Select(a => a.NameColon.Name.Identifier.ValueText);
+                                      .Select(a => a.NameColon!.Name.Identifier.ValueText);
             var existingArguments2 =
                 argumentList.Arguments.Where(a => a.Span.End <= position)
                                       .Where(a => a.NameEquals != null)
-                                      .Select(a => a.NameEquals.Name.Identifier.ValueText);
+                                      .Select(a => a.NameEquals!.Name.Identifier.ValueText);
 
             return existingArguments1.Concat(existingArguments2).ToSet();
         }
@@ -238,7 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CancellationToken cancellationToken)
         {
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            var attributeType = semanticModel.GetTypeInfo(attribute, cancellationToken).Type as INamedTypeSymbol;
+            var attributeType = (INamedTypeSymbol?)semanticModel.GetTypeInfo(attribute, cancellationToken).Type;
+            Contract.ThrowIfNull(attributeType);
             return attributeType.GetAttributeNamedParameters(semanticModel.Compilation, within);
         }
 

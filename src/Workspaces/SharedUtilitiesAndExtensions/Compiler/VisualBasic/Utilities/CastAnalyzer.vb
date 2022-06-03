@@ -93,11 +93,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim parentAssignmentStatement = TryCast(parent, AssignmentStatementSyntax)
             If parentAssignmentStatement IsNot Nothing AndAlso parent.Kind = SyntaxKind.SimpleAssignmentStatement Then
-                Return semanticModel.GetTypeInfo(parentAssignmentStatement.Left).Type
+                Return semanticModel.GetTypeInfo(parentAssignmentStatement.Left, cancellationToken).Type
             End If
 
             Dim parentUnaryExpression = TryCast(parentExpression, UnaryExpressionSyntax)
-            If parentUnaryExpression IsNot Nothing AndAlso Not semanticModel.GetConversion(expression).IsUserDefined Then
+            If parentUnaryExpression IsNot Nothing AndAlso Not semanticModel.GetConversion(expression, cancellationToken).IsUserDefined Then
                 Dim parentTypeInfo = semanticModel.GetTypeInfo(parentUnaryExpression, cancellationToken)
                 Return GetOuterCastType(parentUnaryExpression, parentTypeInfo, semanticModel, cancellationToken)
             End If
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                          parentTernaryConditional.WhenFalse,
                                          parentTernaryConditional.WhenTrue)
 
-                Return semanticModel.GetTypeInfo(otherExpression).Type
+                Return semanticModel.GetTypeInfo(otherExpression, cancellationToken).Type
             End If
 
             Dim parentSimpleArgument = TryCast(parent, SimpleArgumentSyntax)
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             ' in order to call string.Format(...) anyway.
-            If (castType?.SpecialType = SpecialType.System_Object).GetValueOrDefault() AndAlso
+            If If(castType?.SpecialType = SpecialType.System_Object, False) AndAlso
                 _castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation) Then
                 Return True
             End If
@@ -334,6 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         If expressionToCastType.IsWidening Then
                             Return True
                         End If
+
                         If expressionToCastType.IsNarrowing AndAlso
                             Not _semanticModel.OptionStrict = OptionStrict.On Then
                             Return True

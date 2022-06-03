@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -376,17 +378,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             AssertEx.Equal(new[] { 2, 3, 4, 5, 6 }, array.SelectAsArray(item => true, item => item + 1));
             AssertEx.Equal(new[] { 3, 5 }, array.SelectAsArray(item => item % 2 == 0, item => item + 1));
             Assert.Empty(array.SelectAsArray<int, int>(item => item < 0, item => throw null));
-        }
-
-        [Fact]
-        public void DangerousCreateFromUnderlyingArray()
-        {
-            var array = new[] { 1, 2, 3, 4 };
-            var copy = array;
-            var immutable = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref copy);
-            Assert.Null(copy);
-            AssertEx.Equal(array, immutable);
-            Assert.Same(array, ImmutableArrayExtensions.DangerousGetUnderlyingArray(immutable));
         }
 
         [Fact]

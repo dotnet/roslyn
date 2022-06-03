@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -124,7 +126,33 @@ namespace NS
             var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var type = ns.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var type = ns.GetTypeMembers("C1").FirstOrDefault();
+            var definition = type.GetMembers("M").First() as IMethodSymbol;
+            var implementation = definition.PartialImplementationPart;
+
+            // Assert that both the definition and implementation resolve back to themselves
+            Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+            Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        }
+
+        [Fact]
+        public void ExtendedPartialDefinitionAndImplementationResolveCorrectly()
+        {
+            var src = @"using System;
+namespace NS
+{
+    public partial class C1
+    {
+        public partial void M() { }
+        public partial void M();
+    }
+}
+";
+
+            var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
+
+            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
+            var type = ns.GetTypeMembers("C1").FirstOrDefault();
             var definition = type.GetMembers("M").First() as IMethodSymbol;
             var implementation = definition.PartialImplementationPart;
 
@@ -168,7 +196,7 @@ class C<T> : I<T>, I
 
             var compilation = (Compilation)CreateCompilation(src, assemblyName: "Test");
 
-            var type = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single() as INamedTypeSymbol;
+            var type = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
             var indexer1 = type.GetMembers().Where(m => m.MetadataName == "I.Item").Single() as IPropertySymbol;
             var indexer2 = type.GetMembers().Where(m => m.MetadataName == "I<T>.Item").Single() as IPropertySymbol;
 
@@ -303,11 +331,11 @@ namespace NS
             var comp2 = (Compilation)CreateCompilation(src2, assemblyName: "Test");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym00 = namespace1.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var typeSym00 = namespace1.GetTypeMembers("C1").FirstOrDefault();
 
             var namespace2 = comp2.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym01 = namespace2.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
-            var typeSym02 = namespace2.GetTypeMembers("C2").Single() as INamedTypeSymbol;
+            var typeSym01 = namespace2.GetTypeMembers("C1").FirstOrDefault();
+            var typeSym02 = namespace2.GetTypeMembers("C2").Single();
 
             // new C1 resolve to old C1
             ResolveAndVerifySymbol(typeSym01, typeSym00, comp1);
@@ -382,10 +410,10 @@ public class Test
             var comp1 = (Compilation)CreateCompilation(src1, assemblyName: "Test");
             var comp2 = (Compilation)CreateCompilation(src2, assemblyName: "Test");
 
-            var typeSym1 = comp1.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as INamedTypeSymbol;
+            var typeSym1 = comp1.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single();
             var originalSymbols = typeSym1.GetMembers(WellKnownMemberNames.Indexer);
 
-            var typeSym2 = comp2.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as INamedTypeSymbol;
+            var typeSym2 = comp2.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single();
             var newSymbols = typeSym2.GetMembers(WellKnownMemberNames.Indexer);
 
             ResolveAndVerifySymbol(newSymbols.First(), originalSymbols.First(), comp1, SymbolKeyComparison.None);
@@ -408,10 +436,10 @@ namespace NS
             var comp2 = (Compilation)CreateCompilation(src, assemblyName: "Assembly2");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym01 = namespace1.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var typeSym01 = namespace1.GetTypeMembers("C1").FirstOrDefault();
 
             var namespace2 = comp2.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
-            var typeSym02 = namespace2.GetTypeMembers("C1").FirstOrDefault() as INamedTypeSymbol;
+            var typeSym02 = namespace2.GetTypeMembers("C1").FirstOrDefault();
 
             // new C1 resolves to old C1 if we ignore assembly and module ids
             ResolveAndVerifySymbol(typeSym02, typeSym01, comp1, SymbolKeyComparison.IgnoreAssemblyIds);

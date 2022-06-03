@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         private const string InitializeObjectE = @"var e = new object();
 ";
 
-#if !CODE_STYLE
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterConstant()
         {
@@ -533,6 +532,41 @@ x = e switch
 {
     global::$$"));
         }
-#endif
+
+        [WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAtIncompleteSwitchPattern()
+        {
+            await VerifyAbsenceAsync(
+@"
+var goo = Goo.First;
+switch (goo)
+{
+    case Goo.$$
+}
+
+public enum Goo
+{
+    First,
+    Second
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterParenthesizedPattern1()
+        {
+            await VerifyKeywordAsync(
+@"
+expr is (not []) $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterParenthesizedPattern2()
+        {
+            // expr is (not []) and var x
+            await VerifyKeywordAsync(
+@"
+expr is (not []) $$ var x");
+        }
     }
 }

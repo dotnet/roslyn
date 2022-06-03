@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -11,18 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static ExpressionSyntax GetLeftSideOfDot(this SimpleNameSyntax name)
         {
-            Debug.Assert(name.IsMemberAccessExpressionName() || name.IsRightSideOfQualifiedName() || name.IsParentKind(SyntaxKind.NameMemberCref));
-            if (name.IsMemberAccessExpressionName())
+            Debug.Assert(name.IsSimpleMemberAccessExpressionName() || name.IsMemberBindingExpressionName() || name.IsRightSideOfQualifiedName() || name.IsParentKind(SyntaxKind.NameMemberCref));
+            if (name.IsSimpleMemberAccessExpressionName())
             {
-                var conditionalAccess = name.GetParentConditionalAccessExpression();
-                if (conditionalAccess != null)
-                {
-                    return conditionalAccess.Expression;
-                }
-                else
-                {
-                    return ((MemberAccessExpressionSyntax)name.Parent).Expression;
-                }
+                return ((MemberAccessExpressionSyntax)name.Parent).Expression;
+            }
+            else if (name.IsMemberBindingExpressionName())
+            {
+                return name.GetParentConditionalAccessExpression().Expression;
             }
             else if (name.IsRightSideOfQualifiedName())
             {

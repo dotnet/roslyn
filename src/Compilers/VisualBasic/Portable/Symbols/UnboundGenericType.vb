@@ -252,11 +252,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Nothing
         End Function
 
@@ -268,11 +268,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
@@ -280,14 +280,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Return OriginalDefinition.GetUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Public MustOverride Overrides Function Equals(obj As Object) As Boolean
+        Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, UnboundGenericType), comparison)
+        End Function
 
-        Public Overrides Function GetHashCode() As Integer
-            Return OriginalDefinition.GetHashCode()
+        Public Overloads Function Equals(other As UnboundGenericType, comparison As TypeCompareKind) As Boolean
+            If Me Is other Then
+                Return True
+            End If
+
+            Return other IsNot Nothing AndAlso other.GetType() = Me.GetType() AndAlso other.OriginalDefinition.Equals(OriginalDefinition, comparison)
+        End Function
+
+        Public NotOverridable Overrides Function GetHashCode() As Integer
+            Return Hash.Combine(Me.GetType(), OriginalDefinition.GetHashCode())
         End Function
 
         Friend Overrides ReadOnly Property CanConstruct As Boolean
@@ -526,16 +536,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New TypeWithModifiers(Me)
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-
-                Dim other = TryCast(obj, ConstructedSymbol)
-
-                Return other IsNot Nothing AndAlso other.OriginalDefinition.Equals(OriginalDefinition)
-            End Function
-
         End Class
 
         Private NotInheritable Class ConstructedFromSymbol
@@ -566,8 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Add a substitution to map from type parameter definitions to corresponding
                 ' alpha-renamed type parameters.
-                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution,
-                                                                         StaticCast(Of TypeParameterSymbol).From(newTypeParameters))
+                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution, newTypeParameters)
 
                 Debug.Assert(substitution.TargetGenericDefinition Is originalDefinition)
 
@@ -649,16 +648,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers
                 Throw ExceptionUtilities.Unreachable
-            End Function
-
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-
-                Dim other = TryCast(obj, ConstructedFromSymbol)
-
-                Return other IsNot Nothing AndAlso other.Constructed.OriginalDefinition.Equals(Constructed.OriginalDefinition)
             End Function
         End Class
     End Class

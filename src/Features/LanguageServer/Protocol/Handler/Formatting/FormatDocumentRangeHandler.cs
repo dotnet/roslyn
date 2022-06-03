@@ -2,29 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
+    [Method(Methods.TextDocumentRangeFormattingName)]
+    internal sealed class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]?>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FormatDocumentRangeHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities, string? clientName,
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
+
+        public override Task<TextEdit[]?> HandleRequestAsync(
+            DocumentRangeFormattingParams request,
+            RequestContext context,
             CancellationToken cancellationToken)
-            => GetTextEditsAsync(request.TextDocument, clientName, cancellationToken, range: request.Range);
+            => GetTextEditsAsync(context, request.Options, _globalOptions, cancellationToken, range: request.Range);
     }
 }

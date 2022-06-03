@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4987,6 +4988,58 @@ class Class1
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
+        [Fact]
+        public void InaccessibleMethodGroup_Constructors_ImplicitObjectCreationExpressionSyntax()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Class1 x = /*<bind>*/new(3, 7)/*</bind>*/;
+    }
+}
+
+class Class1
+{
+    protected Class1() { }
+    protected Class1(int x) { }
+    private Class1(int a, long b) { }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<ImplicitObjectCreationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("Class1", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("Class1", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
+            Assert.Equal(3, semanticInfo.CandidateSymbols.Length);
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 x)", sortedCandidates[2].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
+
+            Assert.Equal(3, semanticInfo.MethodGroup.Length);
+            sortedCandidates = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 x)", sortedCandidates[2].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
         [WorkItem(542782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542782")]
         [Fact]
         public void InaccessibleMethodGroup_Constructors_IdentifierNameSyntax()
@@ -5577,7 +5630,7 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(text);
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(text, parseOptions: TestOptions.Regular9);
             Assert.NotNull(semanticInfo);
             Assert.Null(semanticInfo.Type);
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
@@ -8932,7 +8985,7 @@ public class Test
             CreateCompilation(sourceCode).VerifyDiagnostics(
                 // (12,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(12, 30),
                 // (12,30): error CS1513: } expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(12, 30),
@@ -8979,7 +9032,7 @@ public class Test
             CreateCompilation(sourceCode).VerifyDiagnostics(
                 // (13,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(13, 30),
                 // (13,30): error CS1513: } expected
                 //             case /*<bind>*/()=>/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),
@@ -12298,7 +12351,7 @@ class Program<T>
         }
 
         [Fact]
-        public void AbstractClassWithNew()
+        public void AbstractClassWithNew_01()
         {
             string sourceCode = @"
 using System;
@@ -12312,6 +12365,42 @@ class Program
 }
 
 abstract class X { }
+
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Null(semanticInfo.Type);
+            Assert.Null(semanticInfo.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("X", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
+
+            Assert.Equal(0, semanticInfo.MemberGroup.Length);
+        }
+
+        [Fact]
+        public void AbstractClassWithNew_02()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        object o = new /*<bind>*/X/*</bind>*/();
+    }
+}
+
+abstract class X
+{
+    public X() {}
+}
 
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);

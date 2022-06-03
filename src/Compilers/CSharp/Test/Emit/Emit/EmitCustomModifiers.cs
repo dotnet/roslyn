@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -703,7 +705,7 @@ class Test
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.Fails);
+            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -737,7 +739,7 @@ class Test
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.Fails);
+            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
         }
     }
 }

@@ -14,11 +14,20 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         public Uri Uri { get; }
         public string LanguageId { get; }
 
-        public LsifDocument(Uri uri, string languageId, IdFactory idFactory)
+        /// <summary>
+        /// The base-64 encoded contents of the file.
+        /// </summary>
+        /// <remarks>
+        /// We only include this for generated files.
+        /// </remarks>
+        public string? Contents { get; }
+
+        public LsifDocument(Uri uri, string languageId, string? contents, IdFactory idFactory)
             : base(label: "document", idFactory)
         {
             this.Uri = uri;
             this.LanguageId = languageId;
+            this.Contents = contents;
         }
     }
 }

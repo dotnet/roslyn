@@ -2,22 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod
 {
     public class GenerateMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public GenerateMethodTests(ITestOutputHelper logger)
+             : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateMethodCodeFixProvider());
 
@@ -865,7 +871,7 @@ class C
         Goo(null);
     }
 
-    private void Goo(object p)
+    private void Goo(object value)
     {
         throw new NotImplementedException();
     }
@@ -2513,6 +2519,150 @@ class C8A
 }");
         }
 
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinSynchronousForEach()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(ISomeInterface _someInterface)
+    {
+         foreach (var item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M(ISomeInterface _someInterface)
+    {
+         foreach (var item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    IEnumerable<object> GetItems();
+}");
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableDoesNotExist_FallbackToIEnumerable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    IEnumerable<object> GetItems();
+}");
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableExists_UseIAsyncEnumerable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}
+" + IAsyncEnumerable,
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    System.Collections.Generic.IAsyncEnumerable<object> GetItems();
+}
+" + IAsyncEnumerable);
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableExists_UseIAsyncEnumerableOfString()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (string item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}
+" + IAsyncEnumerable,
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (string item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    System.Collections.Generic.IAsyncEnumerable<string> GetItems();
+}
+" + IAsyncEnumerable);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInvocationOffOfAnotherMethodCall()
         {
@@ -3422,7 +3572,9 @@ class B : A<int>
         v = [|Goo|](v);
     }
 }",
-@"class C
+@"using System;
+
+class C
 {
     void M()
     {
@@ -3432,7 +3584,7 @@ class B : A<int>
 
     private int Goo(int v)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -3838,7 +3990,7 @@ static void Main(string[] args)
     Goo();
 }
 
-void Goo()
+static void Goo()
 {
     throw new NotImplementedException();
 }",
@@ -3848,7 +4000,7 @@ parseOptions: GetScriptOptions());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInTopLevelImplicitClass1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 
 static void Main(string[] args)
@@ -3862,10 +4014,11 @@ static void Main(string[] args)
     Goo();
 }
 
-void Goo()
+static void Goo()
 {
     throw new NotImplementedException();
-}");
+}",
+parseOptions: GetScriptOptions());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -4686,7 +4839,7 @@ class Program
         Bar(() => x);
     }
 
-    private static void Bar<T>(Func<List<T>> p)
+    private static void Bar<T>(Func<List<T>> value)
     {
         throw new NotImplementedException();
     }
@@ -5073,7 +5226,7 @@ class C
         M(new { x = 1 });
     }
 
-    private void M(object p)
+    private void M(object value)
     {
         throw new NotImplementedException();
     }
@@ -5533,7 +5686,7 @@ class Program
         Main(args.Goo());
     }
 
-    private static void Main(object p)
+    private static void Main(object value)
     {
         throw new NotImplementedException();
     }
@@ -5565,7 +5718,7 @@ class Program
         Baz(() => { return true; });
     }
 
-    private void Baz(Func<bool> p)
+    private void Baz(Func<bool> value)
     {
         throw new NotImplementedException();
     }
@@ -5732,7 +5885,7 @@ class C
        new C().TestMethod((a,b) => c.Add)
     }
 
-    private void TestMethod(Func<object, object, object> p)
+    private void TestMethod(Func<object, object, object> value)
     {
         throw new NotImplementedException();
     }
@@ -6044,7 +6197,9 @@ class Program
         var x = nameof([|Z|]);
     }
 }",
-@"class C
+@"using System;
+
+class C
 {
     void M()
     {
@@ -6053,7 +6208,7 @@ class Program
 
     private object Z()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -6070,7 +6225,9 @@ class Program
         var x = nameof([|Z.X|]);
     }
 }",
-@"class C
+@"using System;
+
+class C
 {
     void M()
     {
@@ -6079,7 +6236,7 @@ class Program
 
     private object nameof(object x)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -6096,7 +6253,9 @@ class Program
         var x = nameof([|Z.X.Y|]);
     }
 }",
-@"class C
+@"using System;
+
+class C
 {
     void M()
     {
@@ -6105,7 +6264,7 @@ class Program
 
     private object nameof(object y)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -6196,7 +6355,9 @@ namespace Z
         var x = [|nameof(y, z)|];
     }
 }",
-@"class C
+@"using System;
+
+class C
 {
     void M()
     {
@@ -6207,7 +6368,7 @@ namespace Z
 
     private object nameof(int y, string z)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -6254,7 +6415,9 @@ class C
         var x = [|nameof|](y, z);
     }
 }",
-@"class C
+@"using System;
+
+class C
 {
     void M()
     {
@@ -6263,7 +6426,7 @@ class C
 
     private object nameof(object y, object z)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -6822,7 +6985,9 @@ class C
     {
     }
 }",
-@"class C
+@"using System;
+
+class C
 {
     public E B { get; private set; }
 
@@ -6835,7 +7000,7 @@ class C
     {
         internal object C()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }");
@@ -7577,7 +7742,7 @@ class Class
         (int, string) d = NewMethod((1, ""hello""));
     }
 
-    private (int, string) NewMethod((int, string) p)
+    private (int, string) NewMethod((int, string) value)
     {
         throw new NotImplementedException();
     }
@@ -7604,7 +7769,7 @@ class Class
         (int a, string b) d = NewMethod((c: 1, d: ""hello""));
     }
 
-    private (int a, string b) NewMethod((int c, string d) p)
+    private (int a, string b) NewMethod((int c, string d) value)
     {
         throw new NotImplementedException();
     }
@@ -7631,7 +7796,7 @@ class Class
         (int a, string) d = NewMethod((c: 1, ""hello""));
     }
 
-    private (int a, string) NewMethod((int c, string) p)
+    private (int a, string) NewMethod((int c, string) value)
     {
         throw new NotImplementedException();
     }
@@ -7650,7 +7815,9 @@ class Class
         [|Undefined|](out var c);
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     void Method()
     {
@@ -7659,7 +7826,7 @@ class Class
 
     private void Undefined(out object c)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -7704,7 +7871,9 @@ class Class
         [|Undefined|](a: out var c);
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     void Method()
     {
@@ -7713,7 +7882,7 @@ class Class
 
     private void Undefined(out object a)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -7757,7 +7926,9 @@ class Class
         [|Undefined|](out var c);
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     void Method()
     {
@@ -7766,7 +7937,7 @@ class Class
 
     private void Undefined(out object c)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }",
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
@@ -7811,7 +7982,9 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
         [|Undefined|](a: out var c);
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     void Method()
     {
@@ -7820,7 +7993,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 
     private void Undefined(out object a)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }",
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
@@ -7990,7 +8163,9 @@ parseOptions: TestOptions.Regular);
         var v = [|IsPrime|](i);
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     void Method(int i)
     {
@@ -7999,7 +8174,7 @@ parseOptions: TestOptions.Regular);
 
     private bool IsPrime(int i)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -8016,7 +8191,9 @@ parseOptions: TestOptions.Regular);
         var v = [|Issue|](i);
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     void Method(int i)
     {
@@ -8025,7 +8202,7 @@ parseOptions: TestOptions.Regular);
 
     private object Issue(int i)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
@@ -8802,6 +8979,253 @@ class Class
     }
 
     private unsafe void M2(delegate*<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [InlineData("Cdecl")]
+        [InlineData("Fastcall")]
+        [InlineData("Thiscall")]
+        [InlineData("Stdcall")]
+        [InlineData("Thiscall, Stdcall")]
+        [InlineData("Bad")] // Bad conventions should still be generatable
+        public async Task TestWithFunctionPointerUnmanagedSpecificConvention(string convention)
+        {
+            await TestInRegularAndScriptAsync(
+$@"
+using System;
+
+class Class
+{{
+    unsafe void M()
+    {{
+        delegate* unmanaged[{convention}]<int, float> y;
+        [|M2(y)|];
+    }}
+}}",
+$@"
+using System;
+
+class Class
+{{
+    unsafe void M()
+    {{
+        delegate* unmanaged[{convention}]<int, float> y;
+        [|M2(y)|];
+    }}
+
+    private unsafe void M2(delegate* unmanaged[{convention}]<int, float> y)
+    {{
+        throw new NotImplementedException();
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedMissingConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestNegativeIfGeneratingInDocumentFromSourceGenerator()
+        {
+            await TestMissingAsync(
+@" <Workspace>
+                    <Project Language=""C#"" AssemblyName=""ClassLibrary1"" CommonReferences=""true"">
+                        <Document>
+public class C
+{
+    public void M()
+    {
+        GeneratedClass.Me$$thod();
+    }
+}
+                        </Document>
+                        <DocumentFromSourceGenerator>
+public class GeneratedClass
+{
+}
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestIfGeneratingInPartialClassWithFileFromSourceGenerator()
+        {
+            await TestInRegularAndScriptAsync(
+@" <Workspace>
+                    <Project Language=""C#"" AssemblyName=""ClassLibrary1"" CommonReferences=""true"">
+                        <Document>
+public class C
+{
+    public void M()
+    {
+        ClassWithGeneratedPartial.Me$$thod();
+    }
+}
+                        </Document>
+                        <Document>
+// regular file
+public partial class ClassWithGeneratedPartial
+{
+}
+                        </Document>
+                        <DocumentFromSourceGenerator>
+// generated file
+public partial class ClassWithGeneratedPartial
+{
+}
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>", @"
+// regular file
+using System;
+
+public partial class ClassWithGeneratedPartial
+{
+    internal static void Method()
+    {
+        throw new NotImplementedException();
+    }
+}
+                        ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInSwitchExpression1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    string Method(int i)
+    {
+        return i switch
+        {
+            0 => [|Goo|](),
+        };
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    string Method(int i)
+    {
+        return i switch
+        {
+            0 => Goo(),
+        };
+    }
+
+    private string Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInSwitchExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    void Method(int i)
+    {
+        var v = i switch
+        {
+            0 => """",
+            1 => [|Goo|](),
+        };
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    void Method(int i)
+    {
+        var v = i switch
+        {
+            0 => """",
+            1 => Goo(),
+        };
+    }
+
+    private string Goo()
     {
         throw new NotImplementedException();
     }

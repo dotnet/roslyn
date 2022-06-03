@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEnumMember
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -1339,6 +1338,29 @@ Enum E As UShort
     X = &H4000US
     Y = &H8000US
 End Enum")
+        End Function
+
+        <WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        Public Async Function TestWithLeftShift_Long() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        Goo([|Color.Blue|])
+    End Sub
+    Enum Color
+        Green = 1L << 0
+    End Enum
+End Module",
+"Module Program
+    Sub Main(args As String())
+        Goo(Color.Blue)
+    End Sub
+    Enum Color
+        Green = 1L << 0
+        Blue = 1L << 1
+    End Enum
+End Module")
         End Function
     End Class
 End Namespace

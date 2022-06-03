@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
         public override string FormatTypeName(Type type, CommonTypeNameFormatterOptions options)
         {
             string stateMachineName;
-            if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))
+            if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))
             {
                 return stateMachineName;
             }

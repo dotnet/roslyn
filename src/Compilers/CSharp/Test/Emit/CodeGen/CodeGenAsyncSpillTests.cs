@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3807,14 +3809,14 @@ public ref struct S
 }
 ";
             CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,20): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
                 );
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,20): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "{ P1: true }").WithArguments("S").WithLocation(9, 20)
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
                 );
         }
 
@@ -6318,6 +6320,103 @@ After Assignment A.b.x is: 42")
   IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_009e:  ret
 }");
+        }
+
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
+        public void AssignStaticStructField()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public struct S1
+{
+    public int Field;
+}
+
+public class C
+{
+    public static S1 s1;
+    static async Task M(Task<int> t)
+    {
+        s1.Field = await t;
+    }
+
+    static async Task Main()
+    {
+        await M(Task.FromResult(1));
+        Console.Write(s1.Field);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
+        public void AssignStaticStructField_ViaUsingStatic()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using static C;
+
+public struct S1
+{
+    public int Field;
+}
+
+public class C
+{
+    public static S1 s1;
+}
+
+public class Program
+{
+    static async Task M(Task<int> t)
+    {
+        s1.Field = await t;
+    }
+
+    static async Task Main()
+    {
+        await M(Task.FromResult(1));
+        Console.Write(s1.Field);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")]
+        public void AssignInstanceStructField()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+public struct S1
+{
+    public int Field;
+}
+
+public class C
+{
+    public S1 s1;
+    async Task M(Task<int> t)
+    {
+        s1.Field = await t;
+    }
+
+    static async Task Main()
+    {
+        var c = new C();
+        await c.M(Task.FromResult(1));
+        Console.Write(c.s1.Field);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
         }
     }
 }

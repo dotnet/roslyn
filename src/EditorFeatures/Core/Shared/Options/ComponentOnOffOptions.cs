@@ -14,37 +14,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     /// <summary>
     /// options to indicate whether a certain component in Roslyn is enabled or not
     /// </summary>
-    internal static class EditorComponentOnOffOptions
+    internal sealed class EditorComponentOnOffOptions
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Components\";
+        private const string FeatureName = "EditorComponentOnOffOptions";
 
-        public static readonly Option2<bool> Adornment = new Option2<bool>(nameof(EditorComponentOnOffOptions), nameof(Adornment), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Adornment"));
+        public static readonly Option2<bool> Adornment = new(FeatureName, "Adornment", defaultValue: true,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Adornment"));
 
-        public static readonly Option2<bool> Tagger = new Option2<bool>(nameof(EditorComponentOnOffOptions), nameof(Tagger), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Tagger"));
+        public static readonly Option2<bool> Tagger = new(FeatureName, "Tagger", defaultValue: true,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Tagger"));
 
-        public static readonly Option2<bool> CodeRefactorings = new Option2<bool>(nameof(EditorComponentOnOffOptions), nameof(CodeRefactorings), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Code Refactorings"));
-
-        public static readonly Option2<bool> ShowCodeRefactoringsWhenQueriedForCodeFixes = new Option2<bool>(
-            nameof(EditorComponentOnOffOptions), nameof(ShowCodeRefactoringsWhenQueriedForCodeFixes), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ShowCodeRefactoringsWhenQueriedForCodeFixes)));
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class EditorComponentOnOffOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorComponentOnOffOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            EditorComponentOnOffOptions.Adornment,
-            EditorComponentOnOffOptions.Tagger,
-            EditorComponentOnOffOptions.CodeRefactorings,
-            EditorComponentOnOffOptions.ShowCodeRefactoringsWhenQueriedForCodeFixes);
+        public static readonly Option2<bool> CodeRefactorings = new(FeatureName, "CodeRefactorings", defaultValue: true,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Code Refactorings"));
     }
 }

@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Semantics
 
         <Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")>
         Public Sub SpeculationAnalyzerExtensionMethodExplicitInvocation()
+            ' We consider a change here to be a change in semantics as an instance call became a static call. In
+            ' practice this is fine as the only thing that makes this change i complexification, and we don't test for
+            ' semantics changed after that as the purpose of complexification is to put us in a safe place to make
+            ' changes that won't break semantics.
             Test(<Code>
 Module Oombr
     &lt;System.Runtime.CompilerServices.Extension&gt;
@@ -25,7 +29,7 @@ Module Oombr
         Call [|5.Vain()|]
     End Sub
 End Module
-            </Code>.Value, "Vain(5)", False)
+            </Code>.Value, "Vain(5)", semanticChanges:=True)
         End Sub
 
         <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>

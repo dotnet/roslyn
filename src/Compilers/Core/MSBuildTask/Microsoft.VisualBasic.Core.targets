@@ -8,7 +8,7 @@
                   @(Compile);
                   @(_CoreCompileResourceInputs);
                   $(ApplicationIcon);
-                  $(AssemblyOriginatorKeyFile);
+                  $(KeyOriginatorFile);
                   @(ReferencePathWithRefAssemblies);
                   @(CompiledLicenseFile);
                   @(LinkResource);
@@ -103,6 +103,7 @@
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
          SdkPath="$(FrameworkPathOverride)"
          SharedCompilationId="$(SharedCompilationId)"
+         SkipAnalyzers="$(_SkipAnalyzers)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"

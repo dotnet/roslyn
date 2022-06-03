@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public sealed class TopLevelStatementsParsingTests : ParsingTests
     {
         public TopLevelStatementsParsingTests(ITestOutputHelper output) : base(output) { }
-
-        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
-        {
-            return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.RegularPreview);
-        }
 
         private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
         {
@@ -129,7 +126,7 @@ class C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(16, 3)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -230,13 +227,13 @@ class C { }
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "fg").WithArguments("+").WithLocation(2, 1),
                 // (2,4): error CS1003: Syntax error, 'operator' expected
                 // fg implicit//
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(2, 4),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(2, 4),
                 // (2,4): error CS1037: Overloadable operator expected
                 // fg implicit//
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "implicit").WithLocation(2, 4),
                 // (2,12): error CS1003: Syntax error, '(' expected
                 // fg implicit//
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "class").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(2, 12),
                 // (2,12): error CS1026: ) expected
                 // fg implicit//
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 12),
@@ -646,7 +643,7 @@ class Test : Itest
                 // (4,20): error CS8124: Tuple must contain at least two elements.
                 //    event D ITest.E()   // CS0071
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 20),
-                // (5,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (5,4): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(5, 4),
                 // (7,4): error CS8803: Top-level statements must precede namespace and type declarations.
@@ -936,7 +933,7 @@ class Test : Itest
 partial delegate E { }
 ";
             UsingTree(test,
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,20): error CS1001: Identifier expected
@@ -944,7 +941,7 @@ partial delegate E { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
                 // (2,20): error CS1003: Syntax error, '(' expected
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{").WithLocation(2, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(").WithLocation(2, 20),
                 // (2,20): error CS1026: ) expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
@@ -1305,7 +1302,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "double").WithArguments("double").WithLocation(2, 6),
                 // (2,13): error CS1003: Syntax error, ',' expected
                 // this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "E").WithArguments(",", "").WithLocation(2, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "E").WithArguments(",").WithLocation(2, 13),
                 // (2,16): error CS1002: ; expected
                 // this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 16),
@@ -2158,7 +2155,7 @@ e
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 10),
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // using int.Parse name = value;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(1, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 10),
                 // (1,11): error CS1002: ; expected
                 // using int.Parse name = value;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Parse").WithLocation(1, 11)
@@ -2230,10 +2227,10 @@ e
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(x, y").WithLocation(1, 11),
                 // (1,11): error CS1003: Syntax error, '[' expected
                 // using int (x, y)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(1, 11),
                 // (1,16): error CS1003: Syntax error, ']' expected
                 // using int (x, y)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(1, 16),
                 // (1,17): error CS1002: ; expected
                 // using int (x, y)
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17)
@@ -2337,19 +2334,19 @@ e
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "using").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ',' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(",", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(",").WithLocation(1, 15),
                 // (1,15): error CS0443: Syntax error; value expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ']' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, '>' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(">", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments(">").WithLocation(1, 15),
                 // (1,15): error CS1003: Syntax error, ']' expected
                 // [_<_[delegate using'
-                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]", "using").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "using").WithArguments("]").WithLocation(1, 15),
                 // (1,20): error CS1031: Type expected
                 // [_<_[delegate using'
                 Diagnostic(ErrorCode.ERR_TypeExpected, "'").WithLocation(1, 20),
@@ -2579,6 +2576,71 @@ e
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.CloseBraceToken);
                         }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingAliasTest()
+        {
+            var test = @"using s = delegate*<void>;";
+
+            UsingTree(test,
+                // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
+                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "s");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);

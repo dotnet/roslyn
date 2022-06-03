@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,6 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="result">A list of all reachable nodes, in which each node always precedes its successors</param>
         /// <returns>true if successful; false if not successful due to cycles in the graph</returns>
         public static bool TryIterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, ImmutableArray<TNode>> successors, out ImmutableArray<TNode> result)
+            where TNode : notnull
         {
             // First, count the predecessors of each node
             PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, successors, out ImmutableArray<TNode> allNodes);
@@ -75,6 +74,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<TNode> nodes,
             Func<TNode, ImmutableArray<TNode>> successors,
             out ImmutableArray<TNode> allNodes)
+            where TNode : notnull
         {
             var predecessorCounts = PooledDictionary<TNode, int>.GetInstance();
             var counted = PooledHashSet<TNode>.GetInstance();

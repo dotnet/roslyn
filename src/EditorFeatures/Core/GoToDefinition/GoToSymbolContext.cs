@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     internal class GoToSymbolContext
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
-        private readonly MultiDictionary<string, DefinitionItem> _items = new MultiDictionary<string, DefinitionItem>();
+        private readonly MultiDictionary<string, DefinitionItem> _items = new();
 
         public GoToSymbolContext(Document document, int position, CancellationToken cancellationToken)
         {

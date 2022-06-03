@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -23,9 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             IThreadingContext threadingContext,
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
-            IProgressionPrimaryWorkspaceProvider workspaceProvider,
+            VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
+            : base(threadingContext, glyphService, serviceProvider, workspace, listenerProvider)
         {
         }
     }

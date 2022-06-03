@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (symbol is IMethodSymbol method)
             {
-                return method.MethodKind == MethodKind.Ordinary ||
-                       method.MethodKind == MethodKind.LocalFunction;
+                return method.MethodKind is MethodKind.Ordinary or
+                       MethodKind.LocalFunction;
             }
 
             if (symbol is IPropertySymbol property)
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             var containingType = symbol.ContainingType;
-            if (containingType.TypeKind != TypeKind.Class && containingType.TypeKind != TypeKind.Struct)
+            if (containingType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return false;
             }

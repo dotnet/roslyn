@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -900,6 +902,56 @@ aeu";
                 Number("100"),
                 String("\"C:\\Goo\""),
                 Comment("//Goo"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task PP_LineSpanWithCharacterOffset(TestHost testHost)
+        {
+            var code = @"#line (1, 2) - (3, 4) 5 ""file.txt""";
+
+            await TestAsync(code,
+                testHost,
+                PPKeyword("#"),
+                PPKeyword("line"),
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Number("3"),
+                Punctuation.Comma,
+                Number("4"),
+                Punctuation.CloseParen,
+                Number("5"),
+                String("\"file.txt\""));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task PP_LineSpanWithComment(TestHost testHost)
+        {
+            var code = @"#line (1, 2) - (3, 4) """" //comment";
+
+            await TestAsync(code,
+                testHost,
+                PPKeyword("#"),
+                PPKeyword("line"),
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Number("3"),
+                Punctuation.Comma,
+                Number("4"),
+                Punctuation.CloseParen,
+                String("\"\""),
+                Comment("//comment"));
         }
 
         [Theory]

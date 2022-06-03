@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     workspace.ChangeSolution(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
                 Next
             End If
+
             Return workspace
         End Function
 
@@ -113,12 +114,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
             document = document.WithSyntaxRoot(root)
 
+#Disable Warning RS0030 ' Do Not used banned APIs
             Dim simplifiedDocument As Document
             If Not explicitSpansToSimplifyWithin.IsDefaultOrEmpty Then
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, explicitSpansToSimplifyWithin, optionSet)
             Else
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet)
             End If
+#Enable Warning RS0030
 
             Return simplifiedDocument
         End Function
@@ -135,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Exit While
                 End If
             End While
+
             Return node
         End Function
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
@@ -38,6 +40,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsWithEvents => _symbol.IsWithEvents;
 
             public bool IsWriteOnly => _symbol.IsWriteOnly;
+
+            public bool IsRequired => _symbol.IsRequired;
 
             public bool ReturnsByRef => _symbol.ReturnsByRef;
 

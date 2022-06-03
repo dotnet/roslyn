@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal class SignatureComparer
     {
-        public static readonly SignatureComparer Instance = new SignatureComparer(SymbolEquivalenceComparer.Instance);
-        public static readonly SignatureComparer IgnoreAssembliesInstance = new SignatureComparer(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
+        public static readonly SignatureComparer Instance = new(SymbolEquivalenceComparer.Instance);
+        public static readonly SignatureComparer IgnoreAssembliesInstance = new(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
 
         private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0177);
-
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
             if (location is ExpressionSyntax)
             {
-                return location.Parent is ArrowExpressionClauseSyntax || location.Parent is LambdaExpressionSyntax;
+                return location.Parent is ArrowExpressionClauseSyntax or LambdaExpressionSyntax;
             }
 
             return false;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var unassignedParameters = await GetUnassignedParametersAsync(
                 document, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -164,14 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             }
 
             return result.ToImmutableAndFree();
-        }
-
-        protected class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

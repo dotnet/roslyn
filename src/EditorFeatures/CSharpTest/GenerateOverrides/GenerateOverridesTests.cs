@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -73,6 +75,28 @@ class C
     }
 }
 ", new[] { "Equals", "GetHashCode", "ToString" });
+        }
+
+        [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestOnRecordWithSemiColon()
+        {
+            await TestWithPickMembersDialogAsync(@"
+record C[||];
+", @"
+record C
+{
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return base.ToString();
+    }
+}
+", new[] { "GetHashCode", "ToString" });
         }
 
         [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]
@@ -195,6 +219,62 @@ static class [||]C
 {
     
 }");
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter()
+        {
+            await TestWithPickMembersDialogAsync(
+@"class C
+{
+    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+}
+
+class D : C
+{
+    [||]
+}",
+@"class C
+{
+    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+}
+
+class D : C
+{
+    public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : default
+        where T3 : default
+    {
+        base.M(a, b, c, d);
+    }
+}", new[] { "M" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestRequiredProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public virtual required int Property { get; set; }
+}
+
+class Derived : Base
+{
+     [||]
+}",
+@"
+class Base
+{
+    public virtual required int Property { get; set; }
+}
+
+class Derived : Base
+{
+    public override required int Property { get => base.Property; set => base.Property = value; }
+}", new[] { "Property" });
         }
     }
 }

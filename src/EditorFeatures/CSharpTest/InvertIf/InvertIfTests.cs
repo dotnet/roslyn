@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InvertIf;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         {
             await TestFixOneAsync(
 @"[||]if (a is Goo) { a(); } else { b(); }",
-@"if (!(a is Goo)) { b(); } else { a(); }");
+@"if (a is not Goo) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -1033,7 +1034,280 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
-@"class C { void M(object o) { if (!(o is C)) { } else { a(); } } }");
+@"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestEmptyIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C { void M(string s){ [||]if (s == ""a""){}else{ s = ""b""}}}",
+                @"class C { void M(string s){ if (s != ""a""){ s = ""b""}}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestOnlySingleLineCommentIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C 
+{
+    void M(string s)
+    {
+        [||]if (s == ""a"")
+        {
+            // A single line comment
+        }
+        else
+        {
+            s = ""b""
+        }
+    }
+}",
+                @"
+class C 
+{
+    void M(string s)
+    {
+        if (s != ""a"")
+        {
+            s = ""b""
+        }
+        else
+        {
+            // A single line comment
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestOnlyMultilineLineCommentIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C 
+{ 
+    void M(string s)
+    {
+        [||]if (s == ""a"")
+        {
+            /*
+            * This is
+            * a multiline
+            * comment with
+            * two words
+            * per line.
+            */
+        }
+        else
+        {
+            s = ""b""
+        }
+    }
+}",
+                @"
+class C 
+{ 
+    void M(string s)
+    {
+        if (s != ""a"")
+        {
+            s = ""b""
+        }
+        else
+        {
+            /*
+            * This is
+            * a multiline
+            * comment with
+            * two words
+            * per line.
+            */
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (!(c is object))
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is null)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is null)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsNotObjectCheck_CSharp8()
+        {
+            // Not terrific.  But the starting code is not legal C#8 either.  In this case because we don't even support
+            // 'not' patterns wee dont' bother diving into the pattern to negate it, and we instead just negate the
+            // expression.
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is not object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is object)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsNotObjectCheck_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is not object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is not null)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

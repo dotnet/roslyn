@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -15,12 +17,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal abstract class AbstractConfigurationActionWithNestedActions : CodeAction.CodeActionWithNestedActions
     {
         protected AbstractConfigurationActionWithNestedActions(ImmutableArray<CodeAction> nestedActions, string title)
-            : base(title, nestedActions, isInlinable: false)
+            : base(title, nestedActions, isInlinable: false,
+                   priority: CodeActionPriority.Lowest) // Put configurations/suppressions at the end of everything.
         {
         }
-
-        // Put configurations/suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.None;
 
         /// <summary>
         /// Additional priority associated with all configuration and suppression code actions.

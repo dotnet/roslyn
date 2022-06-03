@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         public CodeFixData(
             IMethodSymbol method,
             Func<CancellationToken, Task<Solution>> createChangedSolutionNonCascading,
-            Func<CancellationToken, Task<Solution>> createChangedSolutionCascading)
+            Func<CancellationToken, Task<Solution>>? createChangedSolutionCascading)
         {
             Method = method ?? throw new ArgumentNullException(nameof(method));
             CreateChangedSolutionNonCascading = createChangedSolutionNonCascading ?? throw new ArgumentNullException(nameof(createChangedSolutionNonCascading));
@@ -33,6 +33,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// <summary>
         /// An optional fix for the overload with cascading.
         /// </summary>
-        public Func<CancellationToken, Task<Solution>> CreateChangedSolutionCascading { get; }
+        public Func<CancellationToken, Task<Solution>>? CreateChangedSolutionCascading { get; }
     }
 }

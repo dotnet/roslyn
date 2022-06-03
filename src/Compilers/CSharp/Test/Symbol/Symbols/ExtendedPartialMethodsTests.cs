@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -26,12 +28,12 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal partial int M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(4, 26),
-                // (5,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(4, 26),
+                // (5,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal partial int M1() => 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(5, 26)
             );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -125,12 +127,12 @@ partial class C
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     private partial void M1(out int i);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(4, 26),
-                // (5,26): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(4, 26),
+                // (5,26): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     private partial void M1(out int i) { i = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(5, 26)
             );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -262,12 +264,12 @@ partial class C
 }}";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,28): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     {mod} void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods"),
-                // (5,28): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     {mod} void M1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods")
+                // (4,27): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     internal partial void M1();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0"),
+                // (5,27): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     internal partial void M1() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0")
             );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -377,12 +379,12 @@ partial class C
 }";
             var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,34): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,34): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal virtual partial int M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(4, 34),
-                // (5,34): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(4, 34),
+                // (5,34): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal virtual partial int M1() => 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(5, 34)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(5, 34)
             );
 
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -637,14 +639,14 @@ partial class D
     public override partial string ToString();
     public override partial string ToString() => ""hello"";
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,36): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,36): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override partial string ToString();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(4, 36),
-                // (5,36): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ToString").WithArguments("extended partial methods", "9.0").WithLocation(4, 36),
+                // (5,36): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public override partial string ToString() => "hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("extended partial methods").WithLocation(5, 36)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "ToString").WithArguments("extended partial methods", "9.0").WithLocation(5, 36)
             );
             var method = comp.GetMember<MethodSymbol>("D.ToString");
             Assert.Equal("System.String System.Object.ToString()", method.OverriddenMethod.ToTestDisplayString());
@@ -906,14 +908,14 @@ partial class D : C
     internal sealed override partial void M1();
     internal sealed override partial void M1() { }
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (8,43): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,43): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal sealed override partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(8, 43),
-                // (9,43): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(8, 43),
+                // (9,43): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal sealed override partial void M1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(9, 43)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(9, 43)
             );
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -1035,14 +1037,14 @@ partial class C
     [DllImport(""something.dll"")]
     internal static extern partial void M1();
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,34): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,34): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal static partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(6, 34),
-                // (9,41): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(6, 34),
+                // (9,41): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal static extern partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(9, 41));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(9, 41));
 
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -1367,14 +1369,14 @@ partial class D : C
     internal new partial void M1();
     internal new partial void M1() { }
 }";
-            var comp = CreateCompilation(text1);
+            var comp = CreateCompilation(text1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (9,31): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,31): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal new partial void M1();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(9, 31),
-                // (10,31): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(9, 31),
+                // (10,31): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     internal new partial void M1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("extended partial methods").WithLocation(10, 31));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M1").WithArguments("extended partial methods", "9.0").WithLocation(10, 31));
 
             comp = CreateCompilation(text1, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -1662,7 +1664,7 @@ partial interface I
     internal partial void M(string s1);
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (6,27): error CS8793: Partial method 'I.M(string)' must have an implementation part because it has accessibility modifiers.
                 //     internal partial void M(string s1);
@@ -1682,7 +1684,7 @@ partial interface I
     internal partial void M(string s1) { }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
             );
         }
@@ -1709,7 +1711,7 @@ class C : I
 }
 ";
             // note that I.M is not virtual so C.M does not implement it
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s1.ToString();
@@ -1739,7 +1741,7 @@ class C : I
     void I.M(string s1, string s2) { } // 3, 4
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s1.ToString(); // 1
@@ -1783,7 +1785,7 @@ partial class C : I
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s1.ToString(); // 1
@@ -1866,14 +1868,14 @@ partial struct S
     public partial int M() => 42;
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,24): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,24): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public partial int M();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("extended partial methods").WithLocation(4, 24),
-                // (5,24): error CS8652: The feature 'extended partial methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("extended partial methods", "9.0").WithLocation(4, 24),
+                // (5,24): error CS8400: Feature 'extended partial methods' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     public partial int M() => 42;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("extended partial methods").WithLocation(5, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "M").WithArguments("extended partial methods", "9.0").WithLocation(5, 24));
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
@@ -2648,7 +2650,13 @@ partial class C
     public partial int M();
     public partial long M() => 42; // 1
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial long M() => 42; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 25));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (5,25): error CS8817: Both partial method declarations must have the same return type.
                 //     public partial long M() => 42; // 1
@@ -2686,8 +2694,17 @@ partial class C
     public partial IEnumerable<string?> M2();
     public partial IEnumerable<string> M2() => null!;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (8,27): warning CS8825: Partial method declarations 'string? C.M1()' and 'string C.M1()' must have identical nullability for parameter types and return types.
+                //     public partial string M1() => "hello";
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(8, 27),
+                // (11,40): warning CS8825: Partial method declarations 'IEnumerable<string?> C.M2()' and 'IEnumerable<string> C.M2()' must have identical nullability for parameter types and return types.
+                //     public partial IEnumerable<string> M2() => null!;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("IEnumerable<string?> C.M2()", "IEnumerable<string> C.M2()").WithLocation(11, 40));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2705,7 +2722,16 @@ partial class C
     public partial IEnumerable<string> M2();
     public partial IEnumerable<string?> M2() => null!; // 2
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial string? M1() => null; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(8, 28),
+                // (11,41): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial IEnumerable<string?> M2() => null!; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(11, 41));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
@@ -2790,7 +2816,17 @@ partial class C
     public partial IEnumerable<V> M4<V>() => default;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,22): warning CS8826: Partial method declarations 'U C.M1<U>()' and 'V C.M1<V>()' have signature differences.
+                //     public partial V M1<V>() => default;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("U C.M1<U>()", "V C.M1<V>()").WithLocation(7, 22),
+                // (13,22): warning CS8826: Partial method declarations 'U C.M3<U>()' and 'V C.M3<V>()' have signature differences.
+                //     public partial V M3<V>() => default;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M3").WithArguments("U C.M3<U>()", "V C.M3<V>()").WithLocation(13, 22),
+                // (16,35): warning CS8826: Partial method declarations 'IEnumerable<U> C.M4<U>()' and 'IEnumerable<V> C.M4<V>()' have signature differences.
+                //     public partial IEnumerable<V> M4<V>() => default;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M4").WithArguments("IEnumerable<U> C.M4<U>()", "IEnumerable<V> C.M4<V>()").WithLocation(16, 35)
+            );
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2830,21 +2866,39 @@ partial class C
                 // (7,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(7, 20),
+                // (7,26): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial ERROR M1() => throw null!; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(7, 26),
                 // (10,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(10, 32),
+                // (10,39): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<ERROR> M2() => throw null!; // 2
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(10, 39),
                 // (13,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M3() => throw null!; // 3
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(13, 32),
+                // (13,39): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<ERROR> M3() => throw null!; // 3
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M3").WithLocation(13, 39),
                 // (15,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M4(); // 4
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(15, 20),
+                // (16,24): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial int M4() => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M4").WithLocation(16, 24),
                 // (18,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M5(); // 5
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(18, 32),
+                // (19,37): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial IEnumerable<int> M5() => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M5").WithLocation(19, 37),
                 // (21,32): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial IEnumerable<ERROR> M6(); // 6
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(21, 32),
+                // (22,24): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial int M6() => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M6").WithLocation(22, 24),
                 // (24,20): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public partial ERROR M7(); // 7
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(24, 20),
@@ -2876,9 +2930,15 @@ partial class C
                 // (5,24): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 24),
+                // (5,24): warning CS8826: Partial method declarations 'ref int C.M1()' and 'int C.M1()' have signature differences.
+                //     public partial int M1() => throw null!; // 1
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("ref int C.M1()", "int C.M1()").WithLocation(5, 24),
                 // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28),
+                // (8,28): warning CS8826: Partial method declarations 'int C.M2()' and 'ref int C.M2()' have signature differences.
+                //     public partial ref int M2() => throw null!; // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2933,9 +2993,9 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,35): error CS8142: Both partial method declarations, 'C.M1()' and 'C.M1()', must use the same tuple element names.
-                //     public partial (int x, int y) M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(4, 35));
+                // (5,37): error CS8142: Both partial method declarations, 'C.M1()' and 'C.M1()', must use the same tuple element names.
+                //     public partial (int x1, int y1) M1() => default; // 1
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1()", "C.M1()").WithLocation(5, 37));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2966,8 +3026,17 @@ partial class C
     public partial dynamic M2();
     public partial object M2() => null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (5,28): warning CS8826: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' have signature differences.
+                //     public partial dynamic M1() => null;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("object C.M1()", "dynamic C.M1()").WithLocation(5, 28),
+                // (8,27): warning CS8826: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' have signature differences.
+                //     public partial object M2() => null;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -2984,8 +3053,17 @@ partial class C
     public partial nint M2();
     public partial IntPtr M2() => default;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (7,25): warning CS8826: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' have signature differences.
+                //     public partial nint M1() => 0;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("IntPtr C.M1()", "nint C.M1()").WithLocation(7, 25),
+                // (10,27): warning CS8826: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' have signature differences.
+                //     public partial IntPtr M2() => default;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3005,9 +3083,15 @@ partial class C
                 // (5,37): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref readonly int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 37),
+                // (5,37): warning CS8826: Partial method declarations 'ref int C.M1()' and 'ref readonly int C.M1()' have signature differences.
+                //     public partial ref readonly int M1() => throw null!; // 1
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("ref int C.M1()", "ref readonly int C.M1()").WithLocation(5, 37),
                 // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28),
+                // (8,28): warning CS8826: Partial method declarations 'ref readonly int C.M2()' and 'ref int C.M2()' have signature differences.
+                //     public partial ref int M2() => throw null!; // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("ref readonly int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3021,20 +3105,20 @@ partial class C
     public partial string? M1() => null; // 1
     
     public partial string? M2();
-    public partial string M2() => ""hello"";
+    public partial string M2() => ""hello""; // 2
     
 #nullable disable
     public partial string M3();
-    public partial string? M3() => null; // 2
+    public partial string? M3() => null; // 3
     
-    public partial string? M4(); // 3
+    public partial string? M4(); // 4
     public partial string M4() => ""hello"";
 
 #nullable enable
     public partial string M5();
     public partial string M6() => null!;
     public partial string M7();
-    public partial string M8() => null!;
+    public partial string M8() => null!; // 5
     public partial string? M9();
     public partial string? M10() => null;
     public partial string? M11();
@@ -3043,36 +3127,311 @@ partial class C
 #nullable disable
     public partial string M5() => null;
     public partial string M6();
-    public partial string? M7() => null; // 4
-    public partial string? M8(); // 5
+    public partial string? M7() => null; // 6
+    public partial string? M8(); // 7
     public partial string M9() => null;
     public partial string M10();
-    public partial string? M11() => null; // 6
-    public partial string? M12(); // 7
+    public partial string? M11() => null; // 8
+    public partial string? M12(); // 9
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (6,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(6, 28),
                 // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M3() => null; // 2
+                //     public partial string? M3() => null; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
                 // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M4(); // 3
+                //     public partial string? M4(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
                 // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M7() => null; // 4
+                //     public partial string? M7() => null; // 6
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(31, 26),
                 // (32,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M8(); // 5
+                //     public partial string? M8(); // 7
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(32, 26),
                 // (35,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M11() => null; // 6
+                //     public partial string? M11() => null; // 8
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(35, 26),
                 // (36,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public partial string? M12(); // 7
+                //     public partial string? M12(); // 9
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial string? M1() => null; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(6, 28),
+                // (9,27): warning CS8826: Partial method declarations 'string? C.M2()' and 'string C.M2()' have signature differences.
+                //     public partial string M2() => "hello"; // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("string? C.M2()", "string C.M2()").WithLocation(9, 27),
+                // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M3() => null; // 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
+                // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M4(); // 4
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
+                // (22,27): warning CS8826: Partial method declarations 'string? C.M8()' and 'string C.M8()' have signature differences.
+                //     public partial string M8() => null!; // 5
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M8").WithArguments("string? C.M8()", "string C.M8()").WithLocation(22, 27),
+                // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M7() => null; // 6
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(31, 26),
+                // (32,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M8(); // 7
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(32, 26),
+                // (35,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M11() => null; // 8
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(35, 26),
+                // (36,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     public partial string? M12(); // 9
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
+        }
+
+        [Fact]
+        public void DifferentReturnTypes_18()
+        {
+            var source =
+@"partial class C
+{
+    public partial ref int F1();
+    public partial string F1() => null;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial string F1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "F1").WithLocation(4, 27),
+                // (4,27): error CS8818: Partial method declarations must have matching ref return values.
+                //     public partial string F1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 27));
+        }
+
+        [Fact]
+        public void DifferentReturnTypes_19()
+        {
+            var source =
+@"partial class C
+{
+    public partial ref (int x, int y) F1();
+    public partial (int, int) F1() => default;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                    // (4,31): error CS8818: Partial method declarations must have matching ref return values.
+                    //     public partial (int, int) F1() => default;
+                    Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31),
+                    // (4,31): warning CS8826: Partial method declarations 'ref (int x, int y) C.F1()' and '(int, int) C.F1()' have signature differences.
+                    //     public partial (int, int) F1() => default;
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("ref (int x, int y) C.F1()", "(int, int) C.F1()").WithLocation(4, 31));
+        }
+
+        [Fact]
+        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        public void DifferentSignatures_Dynamic()
+        {
+            var source =
+@"partial class C
+{
+    partial void F1(object o);
+    partial void F1(dynamic o) { } // 1
+    internal partial void F2(object o);
+    internal partial void F2(dynamic o) { } // 2
+    internal partial dynamic F3();
+    internal partial object F3() => null; // 3
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
+            comp.VerifyDiagnostics(
+                // (4,18): warning CS8826: Partial method declarations 'void C.F1(object o)' and 'void C.F1(dynamic o)' have signature differences.
+                //     partial void F1(dynamic o) { } // 1
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1", isSuppressed: false).WithArguments("void C.F1(object o)", "void C.F1(dynamic o)").WithLocation(4, 18),
+                // (6,27): warning CS8826: Partial method declarations 'void C.F2(object o)' and 'void C.F2(dynamic o)' have signature differences.
+                //     internal partial void F2(dynamic o) { } // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2", isSuppressed: false).WithArguments("void C.F2(object o)", "void C.F2(dynamic o)").WithLocation(6, 27),
+                // (8,29): warning CS8826: Partial method declarations 'dynamic C.F3()' and 'object C.F3()' have signature differences.
+                //     internal partial object F3() => null; // 3
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3", isSuppressed: false).WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
+        }
+
+        [Fact]
+        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        public void DifferentSignatures_Nullable()
+        {
+            var source =
+@"using System.Collections.Generic;
+#nullable enable
+partial class C
+{
+    partial void F1(string? s);
+    partial void F1(string s) { } // 1
+    partial void F2(IEnumerable<string?> s);
+    partial void F2(IEnumerable<string> s) { } // 2
+    internal partial void F3(string? s);
+    internal partial void F3(string s) { } // 3
+    internal partial void F4(IEnumerable<string?> s);
+    internal partial void F4(IEnumerable<string> s) { } // 4
+    internal partial string? F5();
+    internal partial string F5() => null!; // 5
+    internal partial IEnumerable<string> F6();
+    internal partial IEnumerable<string?> F6() => null!; // 6
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     partial void F1(string s) { } // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F1").WithArguments("s").WithLocation(6, 18),
+                // (8,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     partial void F2(IEnumerable<string> s) { } // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F2").WithArguments("s").WithLocation(8, 18),
+                // (10,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     internal partial void F3(string s) { } // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F3").WithArguments("s").WithLocation(10, 27),
+                // (12,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     internal partial void F4(IEnumerable<string> s) { } // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F4").WithArguments("s").WithLocation(12, 27),
+                // (16,43): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     internal partial IEnumerable<string?> F6() => null!; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "F6").WithLocation(16, 43));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     partial void F1(string s) { } // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F1").WithArguments("s").WithLocation(6, 18),
+                // (8,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     partial void F2(IEnumerable<string> s) { } // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F2").WithArguments("s").WithLocation(8, 18),
+                // (10,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     internal partial void F3(string s) { } // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F3").WithArguments("s").WithLocation(10, 27),
+                // (12,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
+                //     internal partial void F4(IEnumerable<string> s) { } // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F4").WithArguments("s").WithLocation(12, 27),
+                // (14,29): warning CS8826: Partial method declarations 'string? C.F5()' and 'string C.F5()' have signature differences.
+                //     internal partial string F5() => null!; // 5
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F5").WithArguments("string? C.F5()", "string C.F5()").WithLocation(14, 29),
+                // (16,43): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     internal partial IEnumerable<string?> F6() => null!; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "F6").WithLocation(16, 43));
+        }
+
+        // Errors reported for all differences.
+        [Fact]
+        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        public void DifferentSignatures_Tuples()
+        {
+            var source =
+@"partial class C
+{
+    partial void F1<T, U>((T x, U y) t) { }
+    partial void F1<T, U>((T x, U y) t);
+    partial void F2<T, U>((T x, U y) t) { } // 1
+    partial void F2<T, U>((T, U) t);
+    partial void F3((dynamic, object) t);
+    partial void F3((object x, dynamic y) t) { } // 2
+    internal partial void F4<T, U>((T x, U y) t);
+    internal partial void F4<T, U>((T, U) t) { } // 3
+    internal partial (T, U) F5<T, U>() => default;
+    internal partial (T, U) F5<T, U>();
+    internal partial (T, U) F6<T, U>() => default; // 4
+    internal partial (T x, U y) F6<T, U>();
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            verifyDiagnostics(comp);
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
+            verifyDiagnostics(comp);
+
+            static void verifyDiagnostics(CSharpCompilation comp)
+            {
+                comp.VerifyDiagnostics(
+                    // (5,18): error CS8142: Both partial method declarations, 'C.F2<T, U>((T, U))' and 'C.F2<T, U>((T x, U y))', must use the same tuple element names.
+                    //     partial void F2<T, U>((T x, U y) t) { } // 1
+                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F2").WithArguments("C.F2<T, U>((T, U))", "C.F2<T, U>((T x, U y))").WithLocation(5, 18),
+                    // (8,18): error CS8142: Both partial method declarations, 'C.F3((dynamic, object))' and 'C.F3((object x, dynamic y))', must use the same tuple element names.
+                    //     partial void F3((object x, dynamic y) t) { } // 2
+                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F3").WithArguments("C.F3((dynamic, object))", "C.F3((object x, dynamic y))").WithLocation(8, 18),
+                    // (10,27): error CS8142: Both partial method declarations, 'C.F4<T, U>((T x, U y))' and 'C.F4<T, U>((T, U))', must use the same tuple element names.
+                    //     internal partial void F4<T, U>((T, U) t) { } // 3
+                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F4").WithArguments("C.F4<T, U>((T x, U y))", "C.F4<T, U>((T, U))").WithLocation(10, 27),
+                    // (13,29): error CS8142: Both partial method declarations, 'C.F6<T, U>()' and 'C.F6<T, U>()', must use the same tuple element names.
+                    //     internal partial (T, U) F6<T, U>() => default; // 4
+                    Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "F6").WithArguments("C.F6<T, U>()", "C.F6<T, U>()").WithLocation(13, 29));
+            }
+        }
+
+        [Fact]
+        [WorkItem(45519, "https://github.com/dotnet/roslyn/issues/45519")]
+        public void DifferentSignatures_NativeIntegers()
+        {
+            var source =
+@"using System.Collections.Generic;
+partial class C
+{
+    partial void F1(nint i);
+    partial void F1(System.IntPtr i) { } // 1
+    partial void F2(dynamic x, nint y);
+    partial void F2(object x, System.IntPtr y) { } // 2
+    internal partial void F3(nint i);
+    internal partial void F3(System.IntPtr i) { } // 3
+    internal partial IEnumerable<System.IntPtr> F4();
+    internal partial IEnumerable<nint> F4() => null; // 4
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
+            comp.VerifyDiagnostics(
+                // (5,18): warning CS8826: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' have signature differences.
+                //     partial void F1(System.IntPtr i) { } // 1
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void C.F1(nint i)", "void C.F1(IntPtr i)").WithLocation(5, 18),
+                // (7,18): warning CS8826: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' have signature differences.
+                //     partial void F2(object x, System.IntPtr y) { } // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void C.F2(dynamic x, nint y)", "void C.F2(object x, IntPtr y)").WithLocation(7, 18),
+                // (9,27): warning CS8826: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' have signature differences.
+                //     internal partial void F3(System.IntPtr i) { } // 3
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3").WithArguments("void C.F3(nint i)", "void C.F3(IntPtr i)").WithLocation(9, 27),
+                // (11,40): warning CS8826: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' have signature differences.
+                //     internal partial IEnumerable<nint> F4() => null; // 4
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F4").WithArguments("IEnumerable<IntPtr> C.F4()", "IEnumerable<nint> C.F4()").WithLocation(11, 40));
+        }
+
+        [Fact]
+        public void PublicAPI()
+        {
+            var source = @"
+#nullable enable
+
+partial class C
+{
+    public partial string M1();
+    public partial string M1() => ""a"";
+
+    partial void M2();
+    partial void M2() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M1").GetPublicSymbol());
+            verifyPublicAPI(comp.GetMember<MethodSymbol>("C.M2").GetPublicSymbol());
+
+            void verifyPublicAPI(IMethodSymbol defSymbol)
+            {
+                var implSymbol = defSymbol.PartialImplementationPart;
+                Assert.NotNull(implSymbol);
+                Assert.NotEqual(implSymbol, defSymbol);
+
+                Assert.Null(defSymbol.PartialDefinitionPart);
+                Assert.Null(implSymbol.PartialImplementationPart);
+
+                Assert.Equal(implSymbol.PartialDefinitionPart, defSymbol);
+                Assert.Equal(implSymbol.ToTestDisplayString(includeNonNullable: false), defSymbol.ToTestDisplayString(includeNonNullable: false));
+            }
         }
     }
 }

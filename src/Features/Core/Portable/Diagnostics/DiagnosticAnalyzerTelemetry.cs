@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
         private ImmutableDictionary<Type, Data> _analyzerInfoMap;
 
         public DiagnosticAnalyzerTelemetry()

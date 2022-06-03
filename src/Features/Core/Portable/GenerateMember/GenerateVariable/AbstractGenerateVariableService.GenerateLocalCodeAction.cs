@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,17 +18,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private class GenerateLocalCodeAction : CodeAction
+        private sealed class GenerateLocalCodeAction : CodeAction
         {
             private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
+            private readonly CodeGenerationOptionsProvider _fallbackOptions;
 
-            public GenerateLocalCodeAction(TService service, Document document, State state)
+            public GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override string Title
@@ -52,9 +56,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private async Task<SyntaxNode> GetNewRootAsync(CancellationToken cancellationToken)
             {
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, documentOptions, semanticModel, cancellationToken, out var newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, semanticModel, cancellationToken, out var newRoot))
                 {
                     return newRoot;
                 }
@@ -71,10 +74,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
                 var root = _state.IdentifierToken.GetAncestors<SyntaxNode>().Last();
 
+                var options = await _document.GetCodeGenerationOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                var info = options.GetInfo(
+                    new CodeGenerationContext(
+                        beforeThisLocation: _state.IdentifierToken.GetLocation()),
+                    _document.Project);
+
                 return codeGenService.AddStatements(
                     root,
                     SpecializedCollections.SingletonEnumerable(localStatement),
-                    options: new CodeGenerationOptions(beforeThisLocation: _state.IdentifierToken.GetLocation()),
+                    info,
                     cancellationToken: cancellationToken);
             }
         }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,6 +22,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -78,15 +77,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             }
             else
             {
-                var cursorDocument = Workspace.Documents.First(d => d.CursorPosition.HasValue);
+                var cursorDocument = Workspace.Documents.First(d => d.CursorPosition.HasValue || d.SelectedSpans.Any(ss => ss.IsEmpty));
                 _textView = cursorDocument.GetTextView();
                 _subjectBuffer = cursorDocument.GetTextBuffer();
+
+                var cursorPosition = cursorDocument.CursorPosition ?? cursorDocument.SelectedSpans.First(ss => ss.IsEmpty).Start;
+                _textView.Caret.MoveTo(
+                    new SnapshotPoint(_subjectBuffer.CurrentSnapshot, cursorPosition));
 
                 if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out var selectionSpanList))
                 {
                     var firstSpan = selectionSpanList.First();
                     var lastSpan = selectionSpanList.Last();
-                    var cursorPosition = cursorDocument.CursorPosition!.Value;
 
                     Assert.True(cursorPosition == firstSpan.Start || cursorPosition == firstSpan.End
                                 || cursorPosition == lastSpan.Start || cursorPosition == lastSpan.End,
@@ -115,8 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                     }
 
                     _textView.Selection.Select(
-                            new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
-                            isReversed: isReversed);
+                        new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
+                        isReversed: isReversed);
                 }
             }
 
@@ -237,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
+            await provider.WaitAllDispatcherOperationAndTasksAsync(Workspace, FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)
@@ -296,6 +298,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public void SendPageDown(Action<PageDownKeyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new PageDownKeyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
+
+        public void SendCopy(Action<CopyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
+            => commandHandler(new CopyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
 
         public void SendCut(Action<CutCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new CutCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());

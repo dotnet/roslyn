@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeFieldReadonly), Shared]
     internal class CSharpMakeFieldReadonlyCodeFixProvider : AbstractMakeFieldReadonlyCodeFixProvider<VariableDeclaratorSyntax, FieldDeclarationSyntax>
     {
         [ImportingConstructor]
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
         {
         }
 
-        protected override SyntaxNode GetInitializerNode(VariableDeclaratorSyntax declaration)
+        protected override SyntaxNode? GetInitializerNode(VariableDeclaratorSyntax declaration)
             => declaration.Initializer?.Value;
 
         protected override ImmutableList<VariableDeclaratorSyntax> GetVariableDeclarators(FieldDeclarationSyntax fieldDeclaration)

@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 using Xunit;
@@ -231,6 +232,43 @@ class C
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "() ()");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.True(model.GetConstantValue(def).HasValue);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Null(model.GetTypeInfo(nullSyntax).Type);
+            Assert.Equal("System.Object", model.GetTypeInfo(nullSyntax).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(nullSyntax).Symbol);
+        }
+
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
+        public void InRawStringInterpolation()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""""""({default}) ({null})"""""");
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "() ()");
 
@@ -1243,6 +1281,7 @@ class C
         var q = default && default;
         var r = default || default;
         var s = default ?? default;
+        var t = default >>> default;
     }
 }
 ";
@@ -1310,7 +1349,10 @@ class C
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(23, 28),
                 // (24,17): error CS8716: There is no target type for the default literal.
                 //         var s = default ?? default;
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '>>>' cannot be applied to operand 'default'
+                //         var t = default >>> default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >>> default").WithArguments(">>>", "default").WithLocation(25, 17)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -1348,6 +1390,7 @@ class C
         var r = default || 1;
         var s = default ?? 1;
         var t = default ?? default(int?);
+        var u = default >>> 1;
     }
 }
 ";
@@ -1412,7 +1455,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
                 // (21,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         var p = default != 1; // ok
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13),
+                // (26,17): error CS8310: Operator '>>>' cannot be applied to operand 'default'
+                //         var u = default >>> 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >>> 1").WithArguments(">>>", "default").WithLocation(26, 17)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -1450,6 +1496,7 @@ class C
         var r = 1 || default;
         var s = new object() ?? default; // ok
         var t = 1 ?? default;
+        var u = 1 >>> default;
     }
 }
 ";
@@ -1511,7 +1558,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
                 // (21,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         var p = 1 != default; // ok
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13),
+                // (26,17): error CS8310: Operator '>>>' cannot be applied to operand 'default'
+                //         var u = 1 >>> default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >>> default").WithArguments(">>>", "default").WithLocation(26, 17)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -1884,7 +1934,7 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123: True");
+            CompileAndVerify(comp, expectedOutput: "123: True", verify: Verification.FailsILVerify);
         }
 
         [Fact]

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestClass2(string typeKind)
@@ -49,6 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestClass3(string typeKind)
@@ -111,6 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestInterface2(string typeKind)
@@ -130,6 +141,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestInterface3(string typeKind)
@@ -192,6 +206,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestStruct2(string typeKind)
@@ -211,6 +228,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestStruct3(string typeKind)

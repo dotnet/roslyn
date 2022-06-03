@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Roslyn.Utilities;
 
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _diagnosticReporter = diagnosticReporter;
         }
 
-        public bool TryGetAbsoluteSolutionPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, out string absolutePath)
+        public bool TryGetAbsoluteSolutionPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absolutePath)
         {
             try
             {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return true;
         }
 
-        public bool TryGetAbsoluteProjectPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, out string absolutePath)
+        public bool TryGetAbsoluteProjectPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absolutePath)
         {
             try
             {

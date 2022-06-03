@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -221,6 +223,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return ConstantValue.Default(type.SpecialType);
         }
 
+        /// <summary>
+        /// Determine if enum arrays can be initialized using block initialization.
+        /// </summary>
+        /// <returns>True if it's safe to use block initialization for enum arrays.</returns>
+        /// <remarks>
+        /// In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
+        /// This is fixed in 4.5 thus enabling block array initialization for a very common case.
+        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
+        /// </remarks>
+        private bool EnableEnumArrayBlockInitialization
+        {
+            get
+            {
+                var sustainedLowLatency = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
+                return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == _module.Compilation.Assembly.CorLibrary;
+            }
+        }
+
         private ArrayInitializerStyle ShouldEmitBlockInitializer(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
             if (!_module.SupportsPrivateImplClass)
@@ -230,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (elementType.IsEnumType())
             {
-                if (!_module.Compilation.EnableEnumArrayBlockInitialization)
+                if (!EnableEnumArrayBlockInitialization)
                 {
                     return ArrayInitializerStyle.Element;
                 }
@@ -350,18 +370,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return inits.Length != 0 && inits[0].Kind == BoundKind.ArrayInitialization;
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace)
+#nullable enable
+
+        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace, BoundExpression? start = null, BoundExpression? length = null)
         {
+            Debug.Assert(start is null == length is null);
+
             ImmutableArray<byte> data = default;
             int elementCount = -1;
-            TypeSymbol elementType = null;
 
             if (!_module.SupportsPrivateImplClass)
             {
                 return false;
             }
 
-            var ctor = ((MethodSymbol)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor));
+            var ctor = ((MethodSymbol?)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer));
             if (ctor == null)
             {
                 return false;
@@ -370,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (wrappedExpression is BoundArrayCreation ac)
             {
                 var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf();
+                TypeSymbol elementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf();
 
                 // NB: we cannot use this approach for element types larger than one byte
                 //     the issue is that metadata stores blobs in little-endian format
@@ -388,6 +411,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (elementCount < 0)
             {
                 return false;
+            }
+
+            if (start is null != length is null)
+            {
+                return false;
+            }
+
+            int lengthForConstructor;
+
+            if (start is not null)
+            {
+                if (start.ConstantValue?.IsDefaultValue != true || start.ConstantValue.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                {
+                    return false;
+                }
+
+                Debug.Assert(length is not null);
+
+                if (length.ConstantValue?.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                {
+                    return false;
+                }
+
+                lengthForConstructor = length.ConstantValue.Int32Value;
+
+                if (lengthForConstructor > elementCount || lengthForConstructor < 0)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                lengthForConstructor = elementCount;
             }
 
             if (!inPlace && !used)
@@ -416,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics);
-                _builder.EmitIntConstant(elementCount);
+                _builder.EmitIntConstant(lengthForConstructor);
 
                 if (inPlace)
                 {
@@ -434,6 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             return true;
         }
+
+#nullable disable
 
         /// <summary>
         ///  Returns a byte blob that matches serialized content of single array initializer.    

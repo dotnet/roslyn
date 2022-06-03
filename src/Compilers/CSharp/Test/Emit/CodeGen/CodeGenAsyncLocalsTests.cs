@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -362,6 +364,14 @@ class C
               <slot kind=""3"" offset=""410"" />
               <slot kind=""2"" offset=""410"" />
             </encLocalSlotMap>
+            <encStateMachineStateMap>
+              <state number=""0"" offset=""74"" />
+              <state number=""1"" offset=""172"" />
+              <state number=""2"" offset=""281"" />
+              <state number=""3"" offset=""261"" />
+              <state number=""4"" offset=""241"" />
+              <state number=""5"" offset=""328"" />
+            </encStateMachineStateMap>
           </customDebugInfo>
         </method>
       </methods>

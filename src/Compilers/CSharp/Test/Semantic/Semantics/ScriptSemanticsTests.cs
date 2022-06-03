@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,7 +11,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -756,7 +758,7 @@ public E e4;
             CreateSubmission(@"protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"internal A x;", previous: c1).VerifyDiagnostics(
@@ -766,7 +768,7 @@ public E e4;
             CreateSubmission(@"internal protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public A x;", previous: c1).VerifyDiagnostics(
@@ -780,7 +782,7 @@ public E e4;
             CreateSubmission(@"internal protected B x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'B' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public B x;", previous: c1).VerifyDiagnostics(
@@ -1157,7 +1159,7 @@ goto Label;");
             compilation.VerifyDiagnostics(
                 // (1,16): error CS1003: Syntax error, ',' expected
                 // fixed var x[3] = 1;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(1, 16),
                 // (1,11): error CS1642: Fixed size buffer fields may only be members of structs
                 // fixed var x[3] = 1;
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "x").WithLocation(1, 11),

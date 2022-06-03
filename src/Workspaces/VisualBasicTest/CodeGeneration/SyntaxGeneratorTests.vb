@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     <[UseExportProvider]>
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
@@ -198,7 +198,7 @@ End Class
             VerifySyntax(Of AttributeListSyntax)(Generator.Attribute(GetAttributeData("
 Imports System
 Public Class MyAttribute
-  Inherits Attribute 
+  Inherits Attribute
   Public Property Value As Integer
 End Class
 ", "<MyAttribute(Value := 123)>")), "<Global.MyAttribute(Value:=123)>")
@@ -1747,7 +1747,7 @@ End Property")
     End Set
 End Property")
 
-            ' convert private method to public 
+            ' convert private method to public
             Dim pim = Generator.AsPrivateInterfaceImplementation(
                     Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t")),
                     Generator.IdentifierName("i"))
@@ -2183,6 +2183,18 @@ Namespace n
 End Namespace
 ")
 
+            VerifySyntax(Of CompilationUnitSyntax)(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+"<Assembly:a>
+<Assembly:b>
+Namespace n
+End Namespace
+")
+
             VerifySyntax(Of DelegateStatementSyntax)(
                 Generator.AddAttributes(
                     Generator.DelegateDeclaration("d"),
@@ -2202,10 +2214,10 @@ Class C
   Custom Event MyEvent As MyDelegate
       AddHandler(ByVal value As MyDelegate)
       End AddHandler
- 
+
       RemoveHandler(ByVal value As MyDelegate)
       End RemoveHandler
- 
+
       RaiseEvent(ByVal message As String)
       End RaiseEvent
   End Event
@@ -2271,6 +2283,26 @@ End Class ' end")
     Event PropertyChanged As Global.System.ComponentModel.PropertyChangedEventHandler
 
 End Interface")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumDeclarationFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+"Public Enum DateTimeKind
+    Unspecified = 0
+    Utc = 1
+    Local = 2
+End Enum")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumWithUnderlyingTypeFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+"Public Enum SecurityRuleSet As Byte
+    None = CByte(0)
+    Level1 = CByte(1)
+    Level2 = CByte(2)
+End Enum")
         End Sub
 #End Region
 
@@ -2534,6 +2566,29 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestWithModifiers_Sealed_Class()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
+End Class")
+
+            Dim classStatement = classBlock.ClassStatement
+            Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
+        End Sub
+
+        <Fact, WorkItem(23410, "https://github.com/dotnet/roslyn/issues/23410")>
+        Public Sub TestWithModifiers_Sealed_Member()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            classBlock = DirectCast(Generator.AddMembers(classBlock, Generator.WithModifiers(Generator.MethodDeclaration("Goo"), DeclarationModifiers.Sealed)), ClassBlockSyntax)
+            VerifySyntax(Of ClassBlockSyntax)(classBlock, "Class C
+
+    NotOverridable Sub Goo()
+    End Sub
+End Class")
+        End Sub
+
+        <Fact>
         Public Sub TestGetType()
             Assert.Equal("t", Generator.GetType(Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t"))).ToString())
             Assert.Null(Generator.GetType(Generator.MethodDeclaration("m")))
@@ -2646,7 +2701,7 @@ End Function")
 
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
         End Sub
 
         <Fact>
@@ -3434,7 +3489,7 @@ Public Class C
     Public Shared Z, Y, Z As Integer
 End Class")
 
-            ' Removing 
+            ' Removing
             VerifySyntax(Of ClassBlockSyntax)(
                 Generator.RemoveNode(declC, declX),
 "' Comment

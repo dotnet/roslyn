@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -217,7 +215,7 @@ namespace Roslyn.Utilities
 
         public Dictionary<K, ValueSet>.ValueCollection Values => _dictionary.Values;
 
-        private readonly ValueSet _emptySet = new ValueSet(null, null);
+        private readonly ValueSet _emptySet = new(null, null);
 
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]

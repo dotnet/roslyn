@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -47,6 +49,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -112,6 +121,173 @@ class C
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref int x = ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterImplicitOperator_01()
+        {
+            await VerifyAbsenceAsync(
+@"class Goo {
+    public static implicit operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterImplicitOperator_02()
+        {
+            await VerifyAbsenceAsync(
+@"class Goo {
+    public static implicit operator $$ int (Goo x){}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_01()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit /* some comment */ operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_03()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit operator $$ int (Goo x){}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_01()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int /* some comment */ operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_03()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int operator $$ -(Goo x){}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_04()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int operator $$ -(Goo x, Goo y){}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterOperator()
+        {
+            await VerifyAbsenceAsync(
+@"operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterImplicitOperator_ExplicitImplementation_01()
+        {
+            await VerifyAbsenceAsync(
+@"class Goo {
+    public static implicit I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterImplicitOperator_ExplicitImplementation_02()
+        {
+            await VerifyAbsenceAsync(
+@"class Goo {
+    public static implicit I1.operator $$ int (Goo x){}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_ExplicitImplementation_01()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_ExplicitImplementation_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit /* some comment */ I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_ExplicitImplementation_03()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit I1. /* some comment */ operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_ExplicitImplementation_04()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit I1.operator $$ int (Goo x){}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_ExplicitImplementation_01()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_ExplicitImplementation_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int /* some comment */ I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_ExplicitImplementation_03()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int I1. /* some comment */ operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_ExplicitImplementation_04()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int I1.operator $$ -(Goo x){}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_ExplicitImplementation_05()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int I1.operator $$ -(Goo x, Goo y){}");
         }
     }
 }

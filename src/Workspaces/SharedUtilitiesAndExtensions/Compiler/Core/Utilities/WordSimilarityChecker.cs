@@ -40,8 +40,8 @@ namespace Roslyn.Utilities
         /// </summary>
         private bool _substringsAreSimilar;
 
-        private static readonly object s_poolGate = new object();
-        private static readonly Stack<WordSimilarityChecker> s_pool = new Stack<WordSimilarityChecker>();
+        private static readonly object s_poolGate = new();
+        private static readonly Stack<WordSimilarityChecker> s_pool = new();
 
         public static WordSimilarityChecker Allocate(string text, bool substringsAreSimilar)
         {
@@ -59,6 +59,9 @@ namespace Roslyn.Utilities
 
         private WordSimilarityChecker()
         {
+            // These are initialized by 'Initialize'
+            _source = null!;
+            _editDistance = null!;
         }
 
         private void Initialize(string text, bool substringsAreSimilar)
@@ -72,8 +75,8 @@ namespace Roslyn.Utilities
         public void Free()
         {
             _editDistance?.Dispose();
-            _source = null;
-            _editDistance = null;
+            _source = null!;
+            _editDistance = null!;
             _lastAreSimilarResult = default;
             lock (s_poolGate)
             {

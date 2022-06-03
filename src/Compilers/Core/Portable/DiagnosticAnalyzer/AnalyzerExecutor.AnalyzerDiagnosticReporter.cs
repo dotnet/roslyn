@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -32,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
                 bool isSyntaxDiagnostic,
-                Action<Diagnostic> addNonCategorizedDiagnosticOpt,
-                Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt,
-                Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt,
+                Action<Diagnostic>? addNonCategorizedDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
                 Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
                 CancellationToken cancellationToken)
             {
@@ -44,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 item._compilation = compilation;
                 item._analyzer = analyzer;
                 item._isSyntaxDiagnostic = isSyntaxDiagnostic;
-                item._addNonCategorizedDiagnosticOpt = addNonCategorizedDiagnosticOpt;
-                item._addCategorizedLocalDiagnosticOpt = addCategorizedLocalDiagnosticOpt;
-                item._addCategorizedNonLocalDiagnosticOpt = addCategorizedNonLocalDiagnosticOpt;
+                item._addNonCategorizedDiagnostic = addNonCategorizedDiagnostic;
+                item._addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
+                item._addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
                 item._shouldSuppressGeneratedCodeDiagnostic = shouldSuppressGeneratedCodeDiagnostic;
                 item._cancellationToken = cancellationToken;
                 return item;
@@ -59,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _compilation = null!;
                 _analyzer = null!;
                 _isSyntaxDiagnostic = default;
-                _addNonCategorizedDiagnosticOpt = null!;
-                _addCategorizedLocalDiagnosticOpt = null!;
-                _addCategorizedNonLocalDiagnosticOpt = null!;
+                _addNonCategorizedDiagnostic = null!;
+                _addCategorizedLocalDiagnostic = null!;
+                _addCategorizedNonLocalDiagnostic = null!;
                 _shouldSuppressGeneratedCodeDiagnostic = null!;
                 _cancellationToken = default;
                 s_objectPool.Free(this);
@@ -72,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
             private bool _isSyntaxDiagnostic;
-            private Action<Diagnostic> _addNonCategorizedDiagnosticOpt;
-            private Action<Diagnostic, DiagnosticAnalyzer, bool> _addCategorizedLocalDiagnosticOpt;
-            private Action<Diagnostic, DiagnosticAnalyzer> _addCategorizedNonLocalDiagnosticOpt;
+            private Action<Diagnostic>? _addNonCategorizedDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer, bool>? _addCategorizedLocalDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer>? _addCategorizedNonLocalDiagnostic;
             private Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
             private CancellationToken _cancellationToken;
 
@@ -93,24 +91,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                if (_addCategorizedLocalDiagnosticOpt == null)
+                if (_addCategorizedLocalDiagnostic == null)
                 {
-                    RoslynDebug.Assert(_addNonCategorizedDiagnosticOpt != null);
-                    _addNonCategorizedDiagnosticOpt(diagnostic);
+                    Debug.Assert(_addNonCategorizedDiagnostic != null);
+                    _addNonCategorizedDiagnostic(diagnostic);
                     return;
                 }
 
-                Debug.Assert(_addNonCategorizedDiagnosticOpt == null);
-                RoslynDebug.Assert(_addCategorizedNonLocalDiagnosticOpt != null);
+                Debug.Assert(_addNonCategorizedDiagnostic == null);
+                Debug.Assert(_addCategorizedNonLocalDiagnostic != null);
 
                 if (isLocalDiagnostic(diagnostic) &&
                     (!_span.HasValue || _span.Value.IntersectsWith(diagnostic.Location.SourceSpan)))
                 {
-                    _addCategorizedLocalDiagnosticOpt(diagnostic, _analyzer, _isSyntaxDiagnostic);
+                    _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _isSyntaxDiagnostic);
                 }
                 else
                 {
-                    _addCategorizedNonLocalDiagnosticOpt(diagnostic, _analyzer);
+                    _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer);
                 }
 
                 return;

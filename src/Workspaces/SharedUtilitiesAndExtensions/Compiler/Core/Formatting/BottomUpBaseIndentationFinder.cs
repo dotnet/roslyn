@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ChainedFormattingRules _formattingRules;
         private readonly int _tabSize;
         private readonly int _indentationSize;
-        private readonly ISyntaxFacts _syntaxFacts;
+        private readonly IHeaderFacts _headerFacts;
 
         public BottomUpBaseIndentationFinder(
             ChainedFormattingRules formattingRules,
             int tabSize,
             int indentationSize,
             TokenStream? tokenStream,
-            ISyntaxFacts syntaxFacts)
+            IHeaderFacts headerFacts)
         {
             Contract.ThrowIfNull(formattingRules);
 
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _tabSize = tabSize;
             _indentationSize = indentationSize;
             _tokenStream = tokenStream;
-            _syntaxFacts = syntaxFacts;
+            _headerFacts = headerFacts;
         }
 
         public int? FromIndentBlockOperations(
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 var baseIndentation = tokenColumnGetter(baseToken);
-                var delta = operation.GetAdjustedIndentationDelta(_syntaxFacts, root, baseToken);
+                var delta = operation.GetAdjustedIndentationDelta(_headerFacts, root, baseToken);
                 return Math.Max(0, baseIndentation + (indentationLevel + delta) * _indentationSize);
             }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             /// brought in by.
             /// </summary>
             private readonly MultiDictionary<(string name, int arity), INamespaceSymbol> _importedTypes
-                = new MultiDictionary<(string name, int arity), INamespaceSymbol>();
+                = new();
 
             /// <summary>
             /// A mapping containing the simple names of all imported extension methods, mapped to the import that
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             /// more complexity than we need currently.  But it is always something we can do in the future.
             /// </remarks>
             private readonly MultiDictionary<string, INamespaceSymbol> _importedExtensionMethods
-                = new MultiDictionary<string, INamespaceSymbol>();
+                = new();
 
             private readonly HashSet<INamespaceSymbol> _conflictNamespaces;
 
@@ -194,6 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 // name and could then potentially conflict here.
 
                 if (node.IsRightSideOfDotOrArrowOrColonColon())
+                    return;
+
+                // Check to see if we have a var. If so, then nothing assigned to a var
+                // would bring any imports that could cause a potential conflict.
+                if (node.IsVar)
                     return;
 
                 var symbol = _model.GetSymbolInfo(node, _cancellationToken).GetAnySymbol();

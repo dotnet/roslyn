@@ -4,19 +4,17 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages
+namespace Microsoft.CodeAnalysis.CSharp.FindUsages
 {
     [ExportLanguageService(typeof(IFindUsagesLSPService), LanguageNames.CSharp), Shared]
     internal class CSharpFindUsagesLSPService : AbstractFindUsagesService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFindUsagesLSPService(IThreadingContext threadingContext)
-            : base(threadingContext)
+        public CSharpFindUsagesLSPService()
         {
         }
     }

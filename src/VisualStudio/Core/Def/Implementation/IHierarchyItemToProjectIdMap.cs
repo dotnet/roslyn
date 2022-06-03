@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Shell;
@@ -23,6 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// (one per target framework) for a single project on disk.</param>
         /// <param name="projectId">The <see cref="ProjectId"/> of the found project, if any.</param>
         /// <returns>True if the desired project was found; false otherwise.</returns>
-        bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string targetFrameworkMoniker, out ProjectId projectId);
+        bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId);
     }
 }

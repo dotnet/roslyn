@@ -4,41 +4,43 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class CatchKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function CatchNotInMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Catch")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function CatchInTryBlockTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub CatchNotInMethodBodyTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Catch")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub CatchInTryBlockTest()
+            VerifyRecommendationsContain(<MethodBody>
 Try
 |
 Finally
 End Try</MethodBody>, "Catch")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function CatchInCatchBlockTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub CatchInCatchBlockTest()
+            VerifyRecommendationsContain(<MethodBody>
 Try
 Catch ex As Exception
 |
 Finally
 End Try</MethodBody>, "Catch")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function CatchNotInFinallyBlockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub CatchNotInFinallyBlockTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Try
 Finally
 |
 End Try</MethodBody>, "Catch")
-        End Function
+        End Sub
     End Class
 End Namespace

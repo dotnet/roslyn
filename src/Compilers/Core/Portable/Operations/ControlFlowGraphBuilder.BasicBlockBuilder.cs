@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -18,21 +16,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             public int Ordinal;
             public readonly BasicBlockKind Kind;
-            private ArrayBuilder<IOperation> _statements;
+            private ArrayBuilder<IOperation>? _statements;
 
             // The most common case is that we have one, or two predecessors.
             // Let's avoid allocating a HashSet for these cases.
-            private BasicBlockBuilder _predecessor1;
-            private BasicBlockBuilder _predecessor2;
-            private PooledHashSet<BasicBlockBuilder> _predecessors;
+            private BasicBlockBuilder? _predecessor1;
+            private BasicBlockBuilder? _predecessor2;
+            private PooledHashSet<BasicBlockBuilder>? _predecessors;
 
-            public IOperation BranchValue;
+            public IOperation? BranchValue;
             public ControlFlowConditionKind ConditionKind;
             public Branch Conditional;
             public Branch FallThrough;
 
             public bool IsReachable;
-            public ControlFlowRegion Region;
+            public ControlFlowRegion? Region;
 
             public BasicBlockBuilder(BasicBlockKind kind)
             {
@@ -41,9 +39,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 IsReachable = false;
             }
 
+            [MemberNotNullWhen(true, nameof(StatementsOpt))]
+#pragma warning disable CS8775
             public bool HasStatements => _statements?.Count > 0;
+#pragma warning restore
 
-            public ArrayBuilder<IOperation> StatementsOpt => _statements;
+            public ArrayBuilder<IOperation>? StatementsOpt => _statements;
 
             public void AddStatement(IOperation operation)
             {
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public BasicBlock ToImmutable()
             {
+                Debug.Assert(Region != null);
                 var block = new BasicBlock(Kind,
                                            _statements?.ToImmutableAndFree() ?? ImmutableArray<IOperation>.Empty,
                                            BranchValue,
@@ -105,6 +107,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
+            [MemberNotNullWhen(true, nameof(BranchValue))]
             public bool HasCondition
             {
                 get
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            public BasicBlockBuilder GetSingletonPredecessorOrDefault()
+            public BasicBlockBuilder? GetSingletonPredecessorOrDefault()
             {
                 if (_predecessors != null)
                 {
@@ -286,6 +289,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 void addBranches(BasicBlockBuilder predecessorBlockBuilder)
                 {
                     BasicBlock predecessor = blocks[predecessorBlockBuilder.Ordinal];
+                    Debug.Assert(predecessor.FallThroughSuccessor != null);
                     if (predecessor.FallThroughSuccessor.Destination == block)
                     {
                         branches.Add(predecessor.FallThroughSuccessor);
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             internal struct Branch
             {
                 public ControlFlowBranchSemantics Kind { get; set; }
-                public BasicBlockBuilder Destination { get; set; }
+                public BasicBlockBuilder? Destination { get; set; }
             }
         }
     }

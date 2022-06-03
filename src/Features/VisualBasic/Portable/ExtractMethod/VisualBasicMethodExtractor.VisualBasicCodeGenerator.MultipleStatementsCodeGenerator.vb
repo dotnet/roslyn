@@ -2,9 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -13,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class MultipleStatementsCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
-                    MyBase.New(insertionPoint, selectionResult, analyzerResult)
+                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                    MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
                 End Sub
 
                 Public Shared Function IsExtractMethodOnMultipleStatements(code As SelectionResult) As Boolean
@@ -39,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As IEnumerable(Of StatementSyntax)
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
                     Dim firstStatementUnderContainer = Me.VBSelectionResult.GetFirstStatementUnderContainer()
                     Dim lastStatementUnderContainer = Me.VBSelectionResult.GetLastStatementUnderContainer()
 
@@ -55,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                 Skip(firstStatementIndex).
                                 Take(lastStatementIndex - firstStatementIndex + 1)
 
-                    Return nodes
+                    Return nodes.ToImmutableArray()
                 End Function
 
                 Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
@@ -71,8 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return Me.VBSelectionResult.GetLastStatementUnderContainer()
                 End Function
 
-                Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(callSiteAnnotation As SyntaxAnnotation, cancellationToken As CancellationToken) As Task(Of StatementSyntax)
-                    Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(callSiteAnnotation))
+                Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                    Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
                 End Function
             End Class
         End Class

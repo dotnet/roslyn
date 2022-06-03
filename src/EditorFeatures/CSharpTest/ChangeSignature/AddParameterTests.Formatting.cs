@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
@@ -14,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_KeepCountsPerLine()
         {
             var markup = @"
@@ -52,7 +55,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_KeepTrivia()
         {
@@ -92,7 +95,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_KeepTrivia_WithArgumentNames()
         {
@@ -132,7 +135,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_Method()
         {
             var markup = @"
@@ -162,7 +165,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_Constructor()
         {
             var markup = @"
@@ -192,7 +195,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_Indexer()
         {
             var markup = @"
@@ -228,7 +231,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_Delegate()
         {
             var markup = @"
@@ -266,7 +269,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_AnonymousMethod()
         {
             var markup = @"
@@ -306,7 +309,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_ConstructorInitializers()
         {
             var markup = @"
@@ -346,7 +349,7 @@ class D : B
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_Attribute()
         {
             var markup = @"
@@ -370,7 +373,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia()
         {
@@ -394,7 +397,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingSecond()
         {
@@ -418,7 +421,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingBothAddingNew()
         {
@@ -441,7 +444,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingBeforeNewlineComma()
         {
@@ -466,7 +469,7 @@ class CustomAttribute : System.Attribute
         }
 
         [WorkItem(946220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946220")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_LambdaAsArgument()
         {
             var markup = @"class C
@@ -487,6 +490,65 @@ class CustomAttribute : System.Attribute
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
+
+        [WorkItem(46595, "https://github.com/dotnet/roslyn/issues/46595")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameter_Formatting_PreserveIndentBraces()
+        {
+            var markup =
+@"public class C
+    {
+    public void M$$()
+        {
+        }
+    }";
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
+            var expectedUpdatedCode =
+@"public class C
+    {
+    public void M(int a)
+        {
+        }
+    }";
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode,
+                options: Option(CSharpFormattingOptions2.IndentBraces, true));
+        }
+
+        [WorkItem(46595, "https://github.com/dotnet/roslyn/issues/46595")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameter_Formatting_PreserveIndentBraces_Editorconfig()
+        {
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+public class C
+    {
+    public void M$$()
+        {
+        }
+    }
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_indent_braces = true
+        </AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
+            var expectedUpdatedCode = @"
+public class C
+    {
+    public void M(int a)
+        {
+        }
+    }
+        ";
+
+            await TestChangeSignatureViaCommandAsync("XML", markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
     }
 }

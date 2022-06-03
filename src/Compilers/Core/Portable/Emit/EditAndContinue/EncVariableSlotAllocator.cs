@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly SymbolMatcher _symbolMap;
 
         // syntax:
-        private readonly Func<SyntaxNode, SyntaxNode>? _syntaxMap;
+        private readonly Func<SyntaxNode, SyntaxNode?>? _syntaxMap;
         private readonly IMethodSymbolInternal _previousTopLevelMethod;
         private readonly DebugId _methodId;
 
@@ -37,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<EncHoistedLocalInfo, int>? _hoistedLocalSlots;
         private readonly int _awaiterCount;
         private readonly IReadOnlyDictionary<Cci.ITypeReference, int>? _awaiterMap;
+        private readonly IReadOnlyDictionary<int, int>? _stateMachineStateMap; // SyntaxOffset -> State Ordinal
+        private readonly int? _firstUnusedDecreasingStateMachineState;
+        private readonly int? _firstUnusedIncreasingStateMachineState;
 
         // closures:
         private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? _lambdaMap; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
-            Func<SyntaxNode, SyntaxNode>? syntaxMap,
+            Func<SyntaxNode, SyntaxNode?>? syntaxMap,
             IMethodSymbolInternal previousTopLevelMethod,
             DebugId methodId,
             ImmutableArray<EncLocalInfo> previousLocals,
@@ -57,10 +58,11 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<EncHoistedLocalInfo, int>? hoistedLocalSlots,
             int awaiterCount,
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap,
+            IReadOnlyDictionary<int, int>? stateMachineStateMap,
+            int? firstUnusedIncreasingStateMachineState,
+            int? firstUnusedDecreasingStateMachineState,
             LambdaSyntaxFacts lambdaSyntaxFacts)
         {
-            RoslynDebug.AssertNotNull(symbolMap);
-            RoslynDebug.AssertNotNull(previousTopLevelMethod);
             Debug.Assert(!previousLocals.IsDefault);
 
             _symbolMap = symbolMap;
@@ -73,9 +75,12 @@ namespace Microsoft.CodeAnalysis.Emit
             _stateMachineTypeName = stateMachineTypeName;
             _awaiterCount = awaiterCount;
             _awaiterMap = awaiterMap;
+            _stateMachineStateMap = stateMachineStateMap;
             _lambdaMap = lambdaMap;
             _closureMap = closureMap;
             _lambdaSyntaxFacts = lambdaSyntaxFacts;
+            _firstUnusedIncreasingStateMachineState = firstUnusedIncreasingStateMachineState;
+            _firstUnusedDecreasingStateMachineState = firstUnusedDecreasingStateMachineState;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -107,7 +112,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
-            builder.AddRange(_previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
+            builder.AddRange(_previousLocals.Select((info, index) =>
+            {
+                RoslynDebug.AssertNotNull(info.Signature);
+                return new SignatureOnlyLocalDefinition(info.Signature, index);
+            }));
         }
 
         private bool TryGetPreviousLocalId(SyntaxNode currentDeclarator, LocalDebugId currentId, out LocalDebugId previousId)
@@ -122,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            SyntaxNode previousDeclarator = _syntaxMap(currentDeclarator);
+            SyntaxNode? previousDeclarator = _syntaxMap(currentDeclarator);
             if (previousDeclarator == null)
             {
                 previousId = default;
@@ -232,7 +241,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            return _awaiterMap.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex);
+            var typeRef = _symbolMap.MapReference(currentType);
+            RoslynDebug.AssertNotNull(typeRef);
+
+            return _awaiterMap.TryGetValue(typeRef, out slotIndex);
         }
 
         private bool TryGetPreviousSyntaxOffset(SyntaxNode currentSyntax, out int previousSyntaxOffset)
@@ -271,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            SyntaxNode previousSyntax;
+            SyntaxNode? previousSyntax;
             if (isLambdaBody)
             {
                 previousSyntax = _lambdaSyntaxFacts.TryGetCorrespondingLambdaBody(previousLambdaSyntax, lambdaOrLambdaBodySyntax);
@@ -314,6 +326,22 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             lambdaId = default;
+            return false;
+        }
+
+        public override int? GetFirstUnusedStateMachineState(bool increasing)
+            => increasing ? _firstUnusedIncreasingStateMachineState : _firstUnusedDecreasingStateMachineState;
+
+        public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, out int stateOrdinal)
+        {
+            if (_stateMachineStateMap != null &&
+                TryGetPreviousSyntaxOffset(syntax, out int syntaxOffset) &&
+                _stateMachineStateMap.TryGetValue(syntaxOffset, out stateOrdinal))
+            {
+                return true;
+            }
+
+            stateOrdinal = -1;
             return false;
         }
     }

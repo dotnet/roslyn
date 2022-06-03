@@ -12,10 +12,10 @@ namespace Roslyn.Utilities
 {
     internal class EventMap
     {
-        private readonly NonReentrantLock _guard = new NonReentrantLock();
+        private readonly NonReentrantLock _guard = new();
 
         private readonly Dictionary<string, object> _eventNameToRegistries =
-            new Dictionary<string, object>();
+            new();
 
         public EventMap()
         {
@@ -94,10 +94,10 @@ namespace Roslyn.Utilities
             _eventNameToRegistries[eventName] = registries;
         }
 
-        internal class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>>
+        internal class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>?>
             where TEventHandler : class
         {
-            private TEventHandler _handler;
+            private TEventHandler? _handler;
 
             public Registry(TEventHandler handler)
                 => _handler = handler;
@@ -117,7 +117,7 @@ namespace Roslyn.Utilities
             public bool HasHandler(TEventHandler handler)
                 => handler.Equals(_handler);
 
-            public bool Equals(Registry<TEventHandler> other)
+            public bool Equals(Registry<TEventHandler>? other)
             {
                 if (other == null)
                 {
@@ -137,7 +137,7 @@ namespace Roslyn.Utilities
                 return other._handler.Equals(_handler);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => Equals(obj as Registry<TEventHandler>);
 
             public override int GetHashCode()
@@ -175,7 +175,7 @@ namespace Roslyn.Utilities
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
+                catch (Exception e) when (FatalError.ReportAndPropagate(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

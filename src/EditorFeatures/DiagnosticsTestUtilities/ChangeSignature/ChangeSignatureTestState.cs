@@ -2,15 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -26,14 +33,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public TestWorkspace Workspace { get; }
         public Document InvocationDocument { get; }
         public AbstractChangeSignatureService ChangeSignatureService { get; }
-        public string ErrorMessage { get; private set; }
-        public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null)
+        public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null, OptionsCollection options = null)
         {
-            var workspace = languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(markup, composition: s_composition, parseOptions: (CSharpParseOptions)parseOptions)
-                  : TestWorkspace.CreateVisualBasic(markup, composition: s_composition, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var workspace = languageName switch
+            {
+                "XML" => TestWorkspace.Create(markup, composition: s_composition),
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markup, composition: s_composition, parseOptions: (CSharpParseOptions)parseOptions),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markup, composition: s_composition, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
+                _ => throw new ArgumentException("Invalid language name.")
+            };
+
+            if (options != null)
+            {
+                workspace.ApplyOptions(options);
+            }
 
             return new ChangeSignatureTestState(workspace);
         }
@@ -66,26 +80,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        public ChangeSignatureResult ChangeSignature()
+        public async Task<ChangeSignatureResult> ChangeSignatureAsync()
         {
-            WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
-
-            return ChangeSignatureService.ChangeSignature(
-                InvocationDocument,
-                _testDocument.CursorPosition.Value,
-                (errorMessage, severity) =>
-                {
-                    this.ErrorMessage = errorMessage;
-                    this.ErrorSeverity = severity;
-                },
-                CancellationToken.None);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, Workspace.GlobalOptions.CreateProvider(), CancellationToken.None).ConfigureAwait(false);
+            var options = AbstractChangeSignatureService.GetChangeSignatureOptions(context);
+            return await ChangeSignatureService.ChangeSignatureWithContextAsync(context, options, CancellationToken.None);
         }
 
         public async Task<ParameterConfiguration> GetParameterConfigurationAsync()
         {
-            WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
-
-            var context = await ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, Workspace.GlobalOptions.CreateProvider(), CancellationToken.None);
             if (context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext)
             {
                 return changeSignatureAnalyzedSucceedContext.ParameterConfiguration;

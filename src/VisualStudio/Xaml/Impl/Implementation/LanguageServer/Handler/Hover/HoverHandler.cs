@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -13,30 +11,39 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentHoverName, StringConstants.XamlLanguageName)]
-    internal class HoverHandler : AbstractRequestHandler<TextDocumentPositionParams, Hover?>
+    [ExportStatelessXamlLspService(typeof(HoverHandler)), Shared]
+    [Method(Methods.TextDocumentHoverName)]
+    internal sealed class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HoverHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public HoverHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+
+        public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, clientName);
+            var document = context.Document;
             if (document == null)
             {
                 return null;
@@ -57,18 +64,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var descriptionBuilder = new List<TaggedText>(info.Description);
-            var description = await info.Symbol.GetDescriptionAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (description.Any())
+            if (info.Symbol != null)
             {
-                if (descriptionBuilder.Any())
+                var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+                var description = await info.Symbol.GetDescriptionAsync(document, options, cancellationToken).ConfigureAwait(false);
+                if (description.Any())
                 {
-                    descriptionBuilder.AddLineBreak();
+                    if (descriptionBuilder.Any())
+                    {
+                        descriptionBuilder.AddLineBreak();
+                    }
+
+                    descriptionBuilder.AddRange(description);
                 }
-                description.Concat(description);
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new VSHover
+            return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
                 Contents = new MarkupContent

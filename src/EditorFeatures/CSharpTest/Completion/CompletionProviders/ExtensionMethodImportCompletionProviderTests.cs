@@ -2,17 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -20,25 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ExtensionMethodImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public ExtensionMethodImportCompletionProviderTests()
         {
+            ShowImportCompletionItemsOptionValue = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
-
-        private const string NonBreakingSpaceString = "\x00A0";
-
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        protected override OptionSet WithChangedOptions(OptionSet options)
-        {
-            return options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
-        }
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         internal override Type GetCompletionProviderType()
             => typeof(ExtensionMethodImportCompletionProvider);
@@ -1723,8 +1711,280 @@ namespace NS1
                 expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<T>(T a) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.generic_overloads})");
         }
 
-        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
-            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        public async Task TestBrowsableAlways(ReferenceType refType)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+            var refDoc = @"
+public class Goo
+{
+}
+
+namespace Foo
+{
+    public static class GooExtensions
+    {
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
+        public static void Bar(this Goo goo, int x)
+        {
+        }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                    markup,
+                    "Bar",
+                    glyph: (int)Glyph.ExtensionMethodPublic,
+                    inlineDescription: "Foo");
+        }
+
+        [InlineData(ReferenceType.Project)]
+        [InlineData(ReferenceType.Metadata)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        public async Task TestBrowsableNever(ReferenceType refType)
+        {
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+            var refDoc = @"
+public class Goo
+{
+}
+
+namespace Foo
+{
+    public static class GooExtensions
+    {
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+        public static void Bar(this Goo goo, int x)
+        {
+        }
+    }
+}";
+
+            var (markup, shouldContainItem) = refType switch
+            {
+                ReferenceType.Project => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                ReferenceType.Metadata => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyImportItemExistsAsync(
+                        markup,
+                        "Bar",
+                        glyph: (int)Glyph.ExtensionMethodPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyImportItemIsAbsentAsync(
+                        markup,
+                        "Bar",
+                        inlineDescription: "Foo");
+            }
+        }
+
+        [InlineData(ReferenceType.Project, true)]
+        [InlineData(ReferenceType.Project, false)]
+        [InlineData(ReferenceType.Metadata, true)]
+        [InlineData(ReferenceType.Metadata, false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47551, "https://github.com/dotnet/roslyn/issues/47551")]
+        public async Task TestBrowsableAdvanced(ReferenceType refType, bool hideAdvanced)
+        {
+            HideAdvancedMembers = hideAdvanced;
+
+            var srcDoc = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+            var refDoc = @"
+public class Goo
+{
+}
+
+namespace Foo
+{
+    public static class GooExtensions
+    {
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        public static void Bar(this Goo goo, int x)
+        {
+        }
+    }
+}";
+
+            var (markup, shouldContainItem) = (refType, hideAdvanced) switch
+            {
+                (ReferenceType.Project, _) => (CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                (ReferenceType.Metadata, true) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), false),
+                (ReferenceType.Metadata, false) => (CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp), true),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
+            if (shouldContainItem)
+            {
+                await VerifyImportItemExistsAsync(
+                        markup,
+                        "Bar",
+                        glyph: (int)Glyph.ExtensionMethodPublic,
+                        inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyImportItemIsAbsentAsync(
+                        markup,
+                        "Bar",
+                        inlineDescription: "Foo");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
+        {
+            var markup = @"
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c)
+            => 1;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}";
+
+            var expected = $@"
+using AA;
+
+public class C
+{{
+}}
+namespace AA
+{{
+    public static class Ext
+    {{
+        public static int ToInt(this C c)
+            => 1;
+    }}
+}}
+
+namespace BB
+{{
+    public class B
+    {{
+        public void M()
+        {{
+            var c = new C();
+            c.ToInt(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [InlineData("int", true, "int a")]
+        [InlineData("int[]", true, "int a, int b")]
+        [InlineData("bool", false, null)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestTargetTypedCompletion(string targetType, bool matchTargetType, string expectedParameterList)
+        {
+            var refDoc = @"
+using System;
+
+namespace NS2
+{
+    public static class Extensions
+    {
+        public static int ExtentionMethod(this int t, int a) => 0;
+        public static int[] ExtentionMethod(this int t, int a, int b) => null;
+        public static string ExtentionMethod(this int t, int a, int b, int c) => false;
+    }
+}";
+            var srcDoc = $@"
+namespace NS1
+{{
+    public class C
+    {{
+        public void M(int x)
+        {{
+            {targetType} y = x.$$
+        }}
+    }}
+}}";
+
+            TargetTypedCompletionFilterFeatureFlag = true;
+            var markup = CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp);
+
+            string expectedDescription = null;
+            var expectedFilters = new List<CompletionFilter>()
+            {
+                FilterSet.ExtensionMethodFilter
+            };
+
+            if (matchTargetType)
+            {
+                expectedFilters.Add(FilterSet.TargetTypedFilter);
+                expectedDescription = $"({CSharpFeaturesResources.extension}) {targetType} int.ExtentionMethod({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})";
+            }
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                expectedFilters: expectedFilters,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: expectedDescription);
+        }
+
+        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, int? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
 
         private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
             => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);

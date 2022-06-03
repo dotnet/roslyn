@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 extern alias InteractiveHost;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal sealed class InteractiveEvaluatorResetOptions
     {

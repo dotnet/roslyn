@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -55,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitField(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitField(this, argument);
+
         public bool IsConst
         {
             get
@@ -73,7 +78,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsVolatile => false;
 
+        public bool IsRequired => Modifiers.IsRequired;
+
         public bool IsFixedSizeBuffer => false;
+
+        public int FixedSize => 0;
 
         public ImmutableArray<CustomModifier> CustomModifiers
         {
@@ -84,5 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public ISymbol AssociatedSymbol => null;
+
+        public bool IsExplicitlyNamedTupleElement => false;
     }
 }

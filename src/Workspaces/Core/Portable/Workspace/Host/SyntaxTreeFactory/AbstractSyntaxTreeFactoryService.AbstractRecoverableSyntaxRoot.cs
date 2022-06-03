@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -25,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly ValueSource<TextAndVersion> TextSource;
             public readonly Encoding Encoding;
             public readonly int Length;
-            public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
+            public readonly bool ContainsDirectives;
 
             public SyntaxTreeInfo(
                 string filePath,
@@ -33,16 +30,14 @@ namespace Microsoft.CodeAnalysis.Host
                 ValueSource<TextAndVersion> textSource,
                 Encoding encoding,
                 int length,
-                ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+                bool containsDirectives)
             {
-                RoslynDebug.Assert(diagnosticOptions is object);
-
                 FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
                 Encoding = encoding;
                 Length = length;
-                DiagnosticOptions = diagnosticOptions;
+                ContainsDirectives = containsDirectives;
             }
 
             internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
@@ -71,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Host
                     TextSource,
                     Encoding,
                     Length,
-                    DiagnosticOptions);
+                    ContainsDirectives);
             }
 
             internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
@@ -82,19 +77,18 @@ namespace Microsoft.CodeAnalysis.Host
                     TextSource,
                     Encoding,
                     length,
-                    DiagnosticOptions);
+                    ContainsDirectives);
             }
 
-            internal SyntaxTreeInfo WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+            internal SyntaxTreeInfo WithOptions(ParseOptions options)
             {
-                RoslynDebug.Assert(options is object);
                 return new SyntaxTreeInfo(
                     FilePath,
-                    Options,
+                    options,
                     TextSource,
                     Encoding,
                     Length,
-                    options);
+                    ContainsDirectives);
             }
         }
 
@@ -183,10 +177,16 @@ namespace Microsoft.CodeAnalysis.Host
         }
     }
 
-    internal interface IRecoverableSyntaxTree<TRoot> where TRoot : SyntaxNode
+    internal interface IRecoverableSyntaxTree<TRoot> : IRecoverableSyntaxTree where TRoot : SyntaxNode
+    {
+        TRoot CloneNodeAsRoot(TRoot root);
+    }
+
+    internal interface IRecoverableSyntaxTree
     {
         string FilePath { get; }
 
-        TRoot CloneNodeAsRoot(TRoot root);
+        bool ContainsDirectives { get; }
+        SyntaxTree WithOptions(ParseOptions parseOptions);
     }
 }

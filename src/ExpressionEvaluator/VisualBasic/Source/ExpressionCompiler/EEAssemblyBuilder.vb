@@ -70,29 +70,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+        Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
             Get
-                Return 0
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+            Get
+                Return Nothing
             End Get
         End Property
 
         Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
             If method IsNot Nothing Then
-                Dim defs = GetLocalDefinitions(method.Locals)
+                Dim defs = GetLocalDefinitions(method.Locals, diagnostics)
                 Return New SlotAllocator(defs)
             End If
             Return Nothing
         End Function
 
-        Private Shared Function GetLocalDefinitions(locals As ImmutableArray(Of LocalSymbol)) As ImmutableArray(Of LocalDefinition)
+        Private Function GetLocalDefinitions(locals As ImmutableArray(Of LocalSymbol), diagnostics As DiagnosticBag) As ImmutableArray(Of LocalDefinition)
             Dim builder = ArrayBuilder(Of LocalDefinition).GetInstance()
             For Each local In locals
                 Select Case local.DeclarationKind
                     Case LocalDeclarationKind.Constant, LocalDeclarationKind.Static
                         Continue For
                     Case Else
-                        Dim def = ToLocalDefinition(local, builder.Count)
+                        Dim def = ToLocalDefinition(local, builder.Count, diagnostics)
                         Debug.Assert(DirectCast(local, EELocalSymbol).Ordinal = def.SlotIndex)
                         builder.Add(def)
                 End Select
@@ -100,13 +106,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function ToLocalDefinition(local As LocalSymbol, index As Integer) As LocalDefinition
+        Private Function ToLocalDefinition(local As LocalSymbol, index As Integer, diagnostics As DiagnosticBag) As LocalDefinition
             Dim constraints = If(local.IsPinned, LocalSlotConstraints.Pinned, LocalSlotConstraints.None) Or
                 If(local.IsByRef, LocalSlotConstraints.ByRef, LocalSlotConstraints.None)
             Return New LocalDefinition(
                 local,
                 local.Name,
-                DirectCast(local.Type, ITypeReference),
+                Translate(local.Type, syntaxNodeOpt:=Nothing, diagnostics),
                 slot:=index,
                 synthesizedKind:=local.SynthesizedKind,
                 id:=Nothing,
@@ -183,6 +189,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, <Out> ByRef lambdaId As DebugId) As Boolean
                 lambdaId = Nothing
                 Return False
+            End Function
+
+            Public Overrides Function TryGetPreviousStateMachineState(awaitOrYieldSyntax As SyntaxNode, ByRef stateOrdinal As Integer) As Boolean
+                stateOrdinal = 0
+                Return False
+            End Function
+
+            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As Integer?
+                Return Nothing
             End Function
 
             Public Overrides ReadOnly Property PreviousStateMachineTypeName As String

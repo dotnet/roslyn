@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
@@ -944,7 +943,8 @@ End Namespace
 
             'Retargetted - should result in No additional Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -1308,7 +1308,8 @@ End Namespace
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -1694,7 +1695,8 @@ Imports System
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify,
                                                  expectedOutput:=<![CDATA[11
 12
 13
@@ -1895,7 +1897,8 @@ MethodOverload(Base)
 
             '//Retargetted - should result in No Errors also same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify,
                                                  expectedOutput:=<![CDATA[Sharedmethod
 method(Other)
 MethodOverload(Other)
@@ -2173,7 +2176,8 @@ Success]]>)
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify,
                                                  expectedOutput:=<![CDATA[Success
 Success
 Success
@@ -2366,7 +2370,8 @@ test
 
             '//Retargetted - should result in No Errors also
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify,
                                                  expectedOutput:=<![CDATA[1
 test
 ]]>)
@@ -2687,7 +2692,8 @@ End Class
 
             ''//Retargetted - should result in No Errors also
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(sourceMain, references:={RetargetReference}, options:=TestOptions.ReleaseExe)
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(sourceMain, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify)
             main_NoRetarget.VerifyDiagnostics()
         End Sub
 
@@ -3082,7 +3088,8 @@ End Namespace
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
-            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe,
+            ' ILVerify: Multiple modules named 'mscorlib' were found
+            Dim Main_Retarget = CompileAndVerify(source, references:={RetargetReference}, options:=TestOptions.ReleaseExe, verify:=Verification.FailsILVerify,
                                                  expectedOutput:=<![CDATA[Success
 ]]>)
             Main_Retarget.VerifyDiagnostics()
@@ -3254,6 +3261,40 @@ End Class
             Dim cs As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("CS").Single
             Assert.IsType(Of RetargetingNamedTypeSymbol)(cs)
             Assert.True(DirectCast(cs, INamedTypeSymbol).IsSerializable)
+        End Sub
+
+        <Fact>
+        Public Sub ExplicitInterfaceImplementationRetargetingGenericType()
+            Dim source1 = "
+Public Class C1(Of T)
+    Public Interface I1
+        Sub M(x As T)
+    End Interface
+End Class
+"
+            Dim ref1 = CreateEmptyCompilation("").ToMetadataReference()
+            Dim compilation1 = CreateCompilation(source1, references:={ref1})
+
+            Dim source2 = "
+Public Class C2(Of U) 
+    Implements C1(Of U).I1
+
+    Sub M(x As U) Implements C1(Of U).I1.M
+    End Sub
+End Class
+"
+            Dim compilation2 = CreateCompilation(source2, references:={compilation1.ToMetadataReference(), ref1, CreateEmptyCompilation("").ToMetadataReference()})
+
+            Dim compilation3 = CreateCompilation("", references:={compilation1.ToMetadataReference(), compilation2.ToMetadataReference()})
+
+            Assert.NotSame(compilation2.GetTypeByMetadataName("C1`1"), compilation3.GetTypeByMetadataName("C1`1"))
+
+            Dim c2 = compilation3.GetTypeByMetadataName("C2`1")
+            Assert.IsType(Of RetargetingNamedTypeSymbol)(c2)
+
+            Dim m = c2.GetMethod("M")
+
+            Assert.Equal(c2.Interfaces().Single().GetMethod("M"), m.ExplicitInterfaceImplementations.Single())
         End Sub
 
     End Class

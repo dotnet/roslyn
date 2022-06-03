@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,42 +30,31 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeAnonymousFunctionStatic
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.MakeAnonymousFunctionStaticDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, CSharpAnalyzersResources.Make_anonymous_function_static, nameof(CSharpAnalyzersResources.Make_anonymous_function_static));
             return Task.CompletedTask;
         }
-        public static SyntaxNode AddStaticModifier(SyntaxNode localFunction, SyntaxGenerator generator)
-            => generator.WithModifiers(
-                localFunction,
-                generator.GetModifiers(localFunction).WithIsStatic(true));
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var anonymousFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(cancellationToken));
+            var anonymousFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
             foreach (var anonymousFunction in anonymousFunctions)
             {
                 editor.ReplaceNode(
                     anonymousFunction,
-                    (current, generator) => AddStaticModifier(current, generator));
+                    (current, generator) =>
+                    {
+                        var currentAnonymousFunction = (AnonymousFunctionExpressionSyntax)current;
+                        return generator.WithModifiers(
+                            currentAnonymousFunction,
+                            generator.GetModifiers(currentAnonymousFunction).WithIsStatic(true));
+                    });
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Make_anonymous_function_static, createChangedDocument, CSharpAnalyzersResources.Make_anonymous_function_static)
-            {
-            }
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -170,13 +172,13 @@ class Program
     {
         System.Collections.Generic.IEnumerable<int> enumerable()
         {
-            var vs1 = new int[] { 1, 2 };
-            var vs = new int[] { 3, 4 };
-            foreach (var num in vs1)
+            var ints1 = new int[] { 1, 2 };
+            var ints = new int[] { 3, 4 };
+            foreach (var num in ints1)
             {
                 foreach (var a in new int[] { 5, 6 })
                 {
-                    foreach (var x1 in vs)
+                    foreach (var x1 in ints)
                     {
                         if (object.Equals(num, x1))
                         {
@@ -219,18 +221,18 @@ class Program
     {
         System.Collections.Generic.IEnumerable<int> enumerable()
         {
-            var vs2 = new int[] { 1, 2 };
-            var vs1 = new int[] { 3, 4 };
-            var vs = new int[] { 7, 8 };
-            foreach (var num in vs2)
+            var ints2 = new int[] { 1, 2 };
+            var ints1 = new int[] { 3, 4 };
+            var ints = new int[] { 7, 8 };
+            foreach (var num in ints2)
             {
                 foreach (var a in new int[] { 5, 6 })
                 {
-                    foreach (var x1 in vs1)
+                    foreach (var x1 in ints1)
                     {
                         if (object.Equals(num, x1))
                         {
-                            foreach (var x2 in vs)
+                            foreach (var x2 in ints)
                             {
                                 if (object.Equals(num, x2))
                                 {
@@ -1194,6 +1196,54 @@ partial class C
 partial class C
 {
     partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                yield return n1;
+            }
+        }
+
+        yield break;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task ReturnIEnumerableExtendedPartialMethod()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return [|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|];
+    }
+}
+";
+
+            var output = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
     {
         foreach (int n1 in nums)
         {
@@ -2479,7 +2529,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        IEnumerable<int> queryables()
+        IEnumerable<int> queryable()
         {
             foreach (int n1 in nums.AsQueryable())
             {
@@ -2487,7 +2537,7 @@ class C
             }
         }
 
-        IEnumerable<int> q = queryables();
+        IEnumerable<int> q = queryable();
     }
 }";
 

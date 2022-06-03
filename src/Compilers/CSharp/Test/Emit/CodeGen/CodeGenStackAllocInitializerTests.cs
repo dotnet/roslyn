@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -486,10 +488,11 @@ static unsafe class C
     }
 }
 ";
+            // PEVerify: [ : C::Main][mdToken=0x6000002][offset 0x00000002][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
             CompileAndVerify(text,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
-                verify: Verification.Fails).VerifyIL("C.Main",
+                verify: Verification.FailsPEVerify).VerifyIL("C.Main",
 @"{
   // Code size        8 (0x8)
   .maxstack  1

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1017,10 +1019,10 @@ struct S1
             comp.VerifyDiagnostics(
                 // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(8, 20),
                 // (11,44): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     in int this[in int i] => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 44)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithLocation(11, 44)
             );
         }
 
@@ -1092,7 +1094,10 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (6,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref M();
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "M()").WithLocation(6, 20),
+                // (6,20): error CS8347: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M();
                 Diagnostic(ErrorCode.ERR_EscapeCall, "M()").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
             );

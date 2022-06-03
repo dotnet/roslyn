@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,8 +39,10 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             if (GetParamNode(root, context.Span) != null)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
-                        c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Remove_tag,
+                        c => RemoveDuplicateParamTagAsync(context.Document, context.Span, c),
+                        nameof(FeaturesResources.Remove_tag)),
                     context.Diagnostics);
             }
         }
@@ -119,14 +123,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_tag, createChangedDocument)
-            {
-            }
         }
     }
 }

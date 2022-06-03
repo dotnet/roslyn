@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,8 +34,10 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             if (parentMethod != null && TryGetDocCommentNode(parentMethod.GetLeadingTrivia()) != null)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
-                        c => AddParamTagAsync(context.Document, context.Span, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Add_missing_param_nodes,
+                        c => AddParamTagAsync(context.Document, context.Span, c),
+                        nameof(FeaturesResources.Add_missing_param_nodes)),
                     context.Diagnostics);
             }
         }
@@ -171,14 +175,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
 
             return null;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument)
-            {
-            }
         }
     }
 }

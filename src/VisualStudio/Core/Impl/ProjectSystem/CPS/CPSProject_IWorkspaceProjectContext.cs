@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -63,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.HasAllInformation = value;
         }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string binOutputPath)
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -81,8 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
             });
 
-            visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));
 
             // If we have a command line parser service for this language, also set up our ability to process options if they come in
@@ -95,7 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
 
             Guid = projectGuid;
-            BinOutputPath = binOutputPath;
         }
 
         public string? BinOutputPath
@@ -107,7 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 if (string.IsNullOrEmpty(value))
                 {
                     _visualStudioProject.OutputFilePath = null;
-                    _visualStudioProject.OutputRefFilePath = null;
                     return;
                 }
 
@@ -126,13 +121,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 {
                     _visualStudioProject.OutputFilePath = value;
                 }
-
-                // Compute the ref path based on the non-ref path. Ideally this should come from the
-                // project system but we don't have a way to fetch that.
-                _visualStudioProject.OutputRefFilePath =
-                    Path.Combine(Path.GetDirectoryName(_visualStudioProject.OutputFilePath),
-                    "ref",
-                    Path.GetFileName(_visualStudioProject.OutputFilePath));
             }
         }
 
@@ -178,6 +166,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+            {
+                _visualStudioProject.DependencyNodeTargetIdentifier = value;
+            }
+            else if (name == AdditionalPropertyNames.TargetRefPath)
+            {
+                // If we don't have a path, always set it to null
+                if (string.IsNullOrEmpty(value))
+                {
+                    _visualStudioProject.OutputRefFilePath = null;
+                }
+                else
+                {
+                    // If we only have a non-rooted path, make it full. This is apparently working around cases
+                    // where CPS pushes us a temporary path when they're loading. It's possible this hack
+                    // can be removed now, but we still have tests asserting it.
+                    if (!PathUtilities.IsAbsolute(value))
+                    {
+                        var rootDirectory = _visualStudioProject.FilePath != null
+                                            ? Path.GetDirectoryName(_visualStudioProject.FilePath)
+                                            : Path.GetTempPath();
+
+                        _visualStudioProject.OutputRefFilePath = Path.Combine(rootDirectory, value);
+                    }
+                    else
+                    {
+                        _visualStudioProject.OutputRefFilePath = value;
+                    }
+                }
             }
         }
 
@@ -250,10 +268,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void StartBatch()
             => _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
 
+        [Obsolete($"Use {nameof(EndBatchAsync)}.")]
         public void EndBatch()
         {
             Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
             scope.Dispose();
+        }
+
+        public ValueTask EndBatchAsync()
+        {
+            Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
+            return scope.DisposeAsync();
         }
 
         public void ReorderSourceFiles(IEnumerable<string>? filePaths)

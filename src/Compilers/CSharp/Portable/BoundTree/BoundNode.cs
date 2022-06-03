@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -385,6 +383,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             LocalsScanner.CheckLocalsDefined(this);
 #endif
+        }
+
+        public static Conversion GetConversion(BoundExpression? conversion, BoundValuePlaceholder? placeholder)
+        {
+            switch (conversion)
+            {
+                case null:
+                    return Conversion.NoConversion;
+
+                case BoundConversion boundConversion:
+
+                    if ((object)boundConversion.Operand == placeholder)
+                    {
+                        return boundConversion.Conversion;
+                    }
+
+                    if (!boundConversion.Conversion.IsUserDefined)
+                    {
+                        boundConversion = (BoundConversion)boundConversion.Operand;
+                    }
+
+                    if (boundConversion.Conversion.IsUserDefined)
+                    {
+                        BoundConversion next;
+
+                        if ((object)boundConversion.Operand == placeholder ||
+                            (object)(next = (BoundConversion)boundConversion.Operand).Operand == placeholder ||
+                            (object)((BoundConversion)next.Operand).Operand == placeholder)
+                        {
+                            return boundConversion.Conversion;
+                        }
+                    }
+
+                    goto default;
+
+                case BoundValuePlaceholder valuePlaceholder when (object)valuePlaceholder == placeholder:
+                    return Conversion.Identity;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(conversion);
+            }
         }
 
 #if DEBUG

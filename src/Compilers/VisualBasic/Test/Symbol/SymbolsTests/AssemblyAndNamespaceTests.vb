@@ -5,7 +5,6 @@
 Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -572,6 +571,18 @@ BC30560: 'Task' is ambiguous in the namespace 'System.Threading.Tasks'.
     Public T as Task
                 ~~~~
                 </expected>)
+        End Sub
+
+        <Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")>
+        Public Sub RetargetableAttributeIsRespectedInSource()
+            Dim code = <![CDATA[
+Imports System.Reflection
+<Assembly: AssemblyFlags(AssemblyNameFlags.Retargetable)>
+]]>
+
+            Dim comp = CreateCompilation(code.Value)
+            Assert.True(comp.Assembly.Identity.IsRetargetable)
+            AssertTheseEmitDiagnostics(comp)
         End Sub
 
     End Class

@@ -36,14 +36,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      arity As Integer,
                                                      options As LookupOptions,
                                                      originalBinder As Binder,
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             ' Lookup in modules of imported namespaces. 
             For Each importedSym In _importedSymbols
                 If importedSym.NamespaceOrType.IsNamespace Then
                     Dim currentResult = LookupResult.GetInstance()
-                    originalBinder.LookupMemberInModules(currentResult, DirectCast(importedSym.NamespaceOrType, NamespaceSymbol), name, arity, options, useSiteDiagnostics)
+                    originalBinder.LookupMemberInModules(currentResult, DirectCast(importedSym.NamespaceOrType, NamespaceSymbol), name, arity, options, useSiteInfo)
                     If currentResult.IsGood AndAlso Not originalBinder.IsSemanticModelBinder Then
                         Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
                     End If
@@ -53,6 +53,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
         End Sub
+
+        Public Function GetImportChainData() As ImmutableArray(Of ImportedNamespaceOrType)
+            Return _importedSymbols.SelectAsArray(Function(n) New ImportedNamespaceOrType(n.NamespaceOrType, n.SyntaxReference))
+        End Function
 
         ''' <summary>
         ''' Collect extension methods with the given name that are in scope in this binder.

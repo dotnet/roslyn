@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -57,14 +58,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
                             fixAllContext.CancellationToken))
                     {
-                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
-                            fixAllContext,
-                            fixAllContext.ProgressTracker).ConfigureAwait(false);
+                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
                     }
                 }
             }
 
-            internal virtual async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+            internal static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
                 FixAllContext fixAllContext)
             {
                 using (Logger.LogBlock(

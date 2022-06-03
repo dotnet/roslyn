@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -48,7 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword
                 return;
 
             context.RegisterCodeFix(
-                new MyCodeAction(ct => FixAsync(context.Document, argumentSyntax, ct)), context.Diagnostics);
+                CodeAction.Create(
+                    CSharpFeaturesResources.Remove_in_keyword,
+                    ct => FixAsync(context.Document, argumentSyntax, ct),
+                    nameof(CSharpFeaturesResources.Remove_in_keyword)),
+                context.Diagnostics);
         }
 
         private static async Task<Document> FixAsync(
@@ -62,16 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword
             return document.WithSyntaxRoot(root.ReplaceNode(
                 argumentSyntax,
                 generator.Argument(generator.SyntaxFacts.GetExpressionOfArgument(argumentSyntax))));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Remove_in_keyword,
-                    createChangedDocument,
-                    CSharpFeaturesResources.Remove_in_keyword)
-            {
-            }
         }
     }
 }

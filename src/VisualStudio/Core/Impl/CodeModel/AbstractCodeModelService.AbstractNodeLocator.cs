@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -20,19 +22,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             protected abstract EnvDTE.vsCMPart DefaultPart { get; }
 
-            protected abstract VirtualTreePoint? GetStartPoint(SourceText text, OptionSet options, SyntaxNode node, EnvDTE.vsCMPart part);
-            protected abstract VirtualTreePoint? GetEndPoint(SourceText text, OptionSet options, SyntaxNode node, EnvDTE.vsCMPart part);
+            protected abstract VirtualTreePoint? GetStartPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part);
+            protected abstract VirtualTreePoint? GetEndPoint(SourceText text, LineFormattingOptions options, SyntaxNode node, EnvDTE.vsCMPart part);
 
-            protected int GetTabSize(OptionSet options)
-                => options.GetOption(FormattingOptions.TabSize, LanguageName);
-
-            public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
+            public VirtualTreePoint? GetStartPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
             {
                 var text = node.SyntaxTree.GetText();
                 return GetStartPoint(text, options, node, part ?? DefaultPart);
             }
 
-            public VirtualTreePoint? GetEndPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
+            public VirtualTreePoint? GetEndPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
             {
                 var text = node.SyntaxTree.GetText();
                 return GetEndPoint(text, options, node, part ?? DefaultPart);

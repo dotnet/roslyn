@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,23 +15,31 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
     {
-        private const int MaxResults = 3;
+        private const int MaxResults = 5;
 
-        private readonly IPackageInstallerService _packageInstallerService;
-        private readonly ISymbolSearchService _symbolSearchService;
+        private readonly IPackageInstallerService? _packageInstallerService;
+        private readonly ISymbolSearchService? _symbolSearchService;
 
         /// <summary>
         /// Values for these parameters can be provided (during testing) for mocking purposes.
         /// </summary> 
         protected AbstractAddImportCodeFixProvider(
-            IPackageInstallerService packageInstallerService = null,
-            ISymbolSearchService symbolSearchService = null)
+            IPackageInstallerService? packageInstallerService = null,
+            ISymbolSearchService? symbolSearchService = null)
         {
             _packageInstallerService = packageInstallerService;
             _symbolSearchService = symbolSearchService;
         }
 
-        public sealed override FixAllProvider GetFixAllProvider()
+        /// <summary>
+        /// Add-using gets special privileges as being the most used code-action, along with being a core
+        /// 'smart tag' feature in VS prior to us even having 'light bulbs'.  We want them to be computed
+        /// first, ahead of everything else, and the main results should show up at the top of the list.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
+
+        public sealed override FixAllProvider? GetFixAllProvider()
         {
             // Currently Fix All is not supported for this provider
             // https://github.com/dotnet/roslyn/issues/34457
@@ -43,33 +53,35 @@ namespace Microsoft.CodeAnalysis.AddImport
             var cancellationToken = context.CancellationToken;
             var diagnostics = context.Diagnostics;
 
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
+            var services = document.Project.Solution.Workspace.Services;
 
-            var solution = document.Project.Solution;
-            var options = solution.Options;
+            var codeActionOptions = context.Options.GetOptions(document.Project.LanguageServices);
+            var searchOptions = codeActionOptions.SearchOptions;
 
-            var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
-            var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
+            var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();
 
-            var symbolSearchService = searchReferenceAssemblies || searchNuGetPackages
-                ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
-                : null;
+            var installerService = searchOptions.SearchNuGetPackages ?
+                _packageInstallerService ?? services.GetService<IPackageInstallerService>() : null;
 
-            var installerService = GetPackageInstallerService(document);
-            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
-                ? await installerService.TryGetPackageSourcesAsync(allowSwitchToMainThread: false, context.CancellationToken).ConfigureAwait(false)
+            var packageSources = installerService?.IsEnabled(document.Project.Id) == true
+                ? installerService.TryGetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
-            if (packageSources is null)
+            if (packageSources.IsEmpty)
             {
-                // Information about package sources is not available. This code fix cannot provide results for NuGet
-                // packages at this time, but future invocations of the code fix will work. For the current code fix
-                // operation, just treat the package sources as empty.
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                searchOptions = searchOptions with { SearchNuGetPackages = false };
             }
 
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+
+            var addImportOptions = new AddImportOptions(
+                searchOptions,
+                cleanupOptions,
+                codeActionOptions.HideAdvancedMembers);
+
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources.Value, cancellationToken).ConfigureAwait(false);
+                document, span, diagnostics, MaxResults, symbolSearchService, addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {
@@ -78,8 +90,5 @@ namespace Microsoft.CodeAnalysis.AddImport
                 context.RegisterFixes(codeActions, diagnostic);
             }
         }
-
-        private IPackageInstallerService GetPackageInstallerService(Document document)
-            => _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
     }
 }

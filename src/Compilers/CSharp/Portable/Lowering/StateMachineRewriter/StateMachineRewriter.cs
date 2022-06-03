@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly BoundStatement body;
         protected readonly MethodSymbol method;
-        protected readonly DiagnosticBag diagnostics;
+        protected readonly BindingDiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineType;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
         protected readonly SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals;
+        protected readonly ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder;
 
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
@@ -35,19 +38,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body,
             MethodSymbol method,
             SynthesizedContainer stateMachineType,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
             Debug.Assert((object)stateMachineType != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
+            Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
 
             this.body = body;
             this.method = method;
             this.stateMachineType = stateMachineType;
+            this.stateMachineStateDebugInfoBuilder = stateMachineStateDebugInfoBuilder;
             this.slotAllocatorOpt = slotAllocatorOpt;
             this.synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
             this.diagnostics = diagnostics;
@@ -107,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // fields for the captured variables of the method
-            var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics);
+            var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics.DiagnosticBag);
 
             if (diagnostics.HasAnyErrors())
             {
@@ -191,10 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int previousSlotIndex;
                             if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 declaratorSyntax,
-                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics),
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics.DiagnosticBag),
                                 synthesizedKind,
                                 id,
-                                diagnostics,
+                                diagnostics.DiagnosticBag,
                                 out previousSlotIndex))
                             {
                                 slotIndex = previousSlotIndex;
@@ -316,7 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return F.Block(bodyBuilder.ToImmutableAndFree());
+            var builtBody = bodyBuilder.ToImmutableAndFree();
+            return F.Block(builtBody);
         }
 
         protected SynthesizedImplementationMethod OpenMethodImplementation(
@@ -325,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasMethodBodyDependency = false)
         {
             var result = new SynthesizedStateMachineDebuggerHiddenMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentType, null, hasMethodBodyDependency);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result.GetCciAdapter());
             F.CurrentFunction = result;
             return result;
         }
@@ -333,10 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected MethodSymbol OpenPropertyImplementation(MethodSymbol getterToImplement)
         {
             var prop = new SynthesizedStateMachineProperty(getterToImplement, (StateMachineTypeSymbol)F.CurrentType);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, prop);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, prop.GetCciAdapter());
 
             var getter = prop.GetMethod;
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter.GetCciAdapter());
 
             F.CurrentFunction = getter;
             return getter;
@@ -345,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected SynthesizedImplementationMethod OpenMoveNextMethodImplementation(MethodSymbol methodToImplement)
         {
             var result = new SynthesizedStateMachineMoveNextMethod(methodToImplement, (StateMachineTypeSymbol)F.CurrentType);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result.GetCciAdapter());
             F.CurrentFunction = result;
             return result;
         }
@@ -429,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                     condition: F.LogicalAnd(
-                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState)),
                         F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
                     thenClause: F.Block(thenBuilder.ToImmutableAndFree()),
                     elseClauseOpt: makeIterator);

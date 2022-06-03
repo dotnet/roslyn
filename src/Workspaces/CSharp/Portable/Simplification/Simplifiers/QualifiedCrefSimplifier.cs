@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
     internal class QualifiedCrefSimplifier : AbstractCSharpSimplifier<QualifiedCrefSyntax, CrefSyntax>
     {
-        public static readonly QualifiedCrefSimplifier Instance = new QualifiedCrefSimplifier();
+        public static readonly QualifiedCrefSimplifier Instance = new();
 
         private QualifiedCrefSimplifier()
         {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             QualifiedCrefSyntax crefSyntax,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             out CrefSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var memberCref = crefSyntax.Member;
 
             // Currently we are dealing with only the NameMemberCrefs
-            if (SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language) &&
+            if (options.PreferPredefinedTypeKeywordInMemberAccess.Value &&
                 memberCref.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMemberCref))
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref.Name, cancellationToken);

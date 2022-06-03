@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
-        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
+        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierOptions>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
             ImmutableArray.Create(
@@ -41,54 +41,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.ClassDeclaration,
                 SyntaxKind.RecordDeclaration,
                 SyntaxKind.StructDeclaration,
+                SyntaxKind.RecordStructDeclaration,
                 SyntaxKind.InterfaceDeclaration,
                 SyntaxKind.DelegateDeclaration,
                 SyntaxKind.EnumDeclaration);
         }
 
-        protected override void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+        protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxTree = semanticModel.SyntaxTree;
-            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: null, cancellationToken);
+            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
-            if (!simplifier.HasDiagnostics)
-                return;
-
-            foreach (var diagnostic in simplifier.Diagnostics)
-            {
-                context.ReportDiagnostic(diagnostic);
-            }
+            return simplifier.Diagnostics;
         }
 
-        protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
+        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            var syntaxTree = semanticModel.SyntaxTree;
-            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-            var root = syntaxTree.GetRoot(cancellationToken);
+            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, ignoredSpans: codeBlockIntervalTree, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: codeBlockIntervalTree, cancellationToken);
             simplifier.Visit(root);
-            if (!simplifier.HasDiagnostics)
-                return;
-
-            foreach (var diagnostic in simplifier.Diagnostics)
-            {
-                context.ReportDiagnostic(diagnostic);
-            }
+            return simplifier.Diagnostics;
         }
 
         internal override bool IsCandidate(SyntaxNode node)
             => node != null && s_kindsOfInterest.Contains(node.Kind());
 
         internal override bool CanSimplifyTypeNameExpression(
-            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            SemanticModel model, SyntaxNode node, CSharpSimplifierOptions options,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken)
         {
@@ -111,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             SyntaxNode replacementSyntax;
             if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax? crefSyntax))
             {
-                if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, optionSet, out var replacement, out issueSpan, cancellationToken))
+                if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, options, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;
             }
             else
             {
-                if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, optionSet, out var replacement, out issueSpan, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, options, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;

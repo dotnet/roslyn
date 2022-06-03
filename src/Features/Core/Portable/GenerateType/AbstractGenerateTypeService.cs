@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,8 +11,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
@@ -56,7 +60,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
         internal abstract bool IsPublicOnlyAccessibility(TExpressionSyntax expression, Project project);
         internal abstract bool IsGenericName(TSimpleNameSyntax simpleName);
         internal abstract bool IsSimpleName(TExpressionSyntax expression);
-        internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken);
+
+        internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(
+            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         protected abstract bool TryGetNameParts(TExpressionSyntax expression, out IList<string> nameParts);
 
@@ -67,6 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
             SyntaxNode node,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
@@ -76,13 +83,15 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
-                    var actions = GetActions(semanticDocument, node, state, cancellationToken);
+                    var actions = GetActions(semanticDocument, node, state, fallbackOptions, cancellationToken);
                     if (actions.Length > 1)
                     {
                         // Wrap the generate type actions into a single top level suggestion
                         // so as to not clutter the list.
-                        return ImmutableArray.Create<CodeAction>(new MyCodeAction(
-                            string.Format(FeaturesResources.Generate_type_0, state.Name), actions.AsImmutable()));
+                        return ImmutableArray.Create(CodeAction.Create(
+                            string.Format(FeaturesResources.Generate_type_0, state.Name),
+                            actions.AsImmutable(),
+                            isInlinable: true));
                     }
                     else
                     {
@@ -98,6 +107,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SemanticDocument document,
             SyntaxNode node,
             State state,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
@@ -109,7 +119,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (workspace == null || workspace.CanApplyChange(ApplyChangesKind.AddDocument))
                 {
                     generateNewTypeInDialog = true;
-                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: true));
+                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: true));
                 }
 
                 // If they just are generating "Goo" then we want to offer to generate it into the
@@ -122,15 +132,15 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if ((isSimpleName || generateIntoContaining) &&
                     CanGenerateIntoContainingNamespace(document, node, cancellationToken))
                 {
-                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));
+                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: false));
                 }
             }
 
             if (state.TypeToGenerateInOpt != null)
-                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false));
+                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: false, inNewFile: false));
 
             if (generateNewTypeInDialog)
-                result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state));
+                result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state, fallbackOptions));
 
             return result.ToImmutable();
         }
@@ -293,14 +303,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
-        {
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions, isInlinable: true)
-            {
-            }
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -34,10 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol method,
                 int methodOrdinal,
                 AsyncStateMachine stateMachineType,
+                ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                DiagnosticBag diagnostics)
-                : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+                BindingDiagnosticBag diagnostics)
+                : base(body, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
 
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_isEnumerable != method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
 
@@ -192,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.InitialAsyncIteratorStateMachine;
+                int initialState = _isEnumerable ? StateMachineStates.FinishedState : StateMachineStates.InitialAsyncIteratorState;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -320,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(moveNextAsyncReturnType)));
 
@@ -430,13 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifInvalidState = F.If(
                     // if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
-                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedOrRunningState)),
                     // throw new NotSupportedException();
                     thenClause: F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 
@@ -648,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IAsyncEnumerableOfElementType);
 
                 BoundExpression managedThreadId = null;
-                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorStateMachine);
+                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorState);
             }
 
             protected override void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
@@ -695,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hoistedVariables: hoistedVariables,
                     nonReusableLocalProxies: nonReusableLocalProxies,
                     synthesizedLocalOrdinals: synthesizedLocalOrdinals,
+                    stateMachineStateDebugInfoBuilder,
                     slotAllocatorOpt: slotAllocatorOpt,
                     nextFreeHoistedLocalSlot: nextFreeHoistedLocalSlot,
                     diagnostics: diagnostics);

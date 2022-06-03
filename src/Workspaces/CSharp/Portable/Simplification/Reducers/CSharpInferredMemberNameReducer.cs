@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
@@ -13,11 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
     /// </summary>
     internal partial class CSharpInferredMemberNameReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
         public CSharpInferredMemberNameReducer() : base(s_pool)
         {
         }
+
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+            => true;
     }
 }

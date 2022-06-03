@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
             AbstractCodeActionComputer<AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>>
         {
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
-            private readonly OperatorPlacementWhenWrappingPreference _preference;
 
             /// <summary>
             /// trivia to place at the end of a node prior to a chunk that is wrapped.
@@ -46,14 +48,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                 AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                SyntaxWrappingOptions options,
                 TBinaryExpressionSyntax binaryExpression,
                 ImmutableArray<SyntaxNodeOrToken> exprsAndOperators,
                 CancellationToken cancellationToken)
                 : base(service, document, originalSourceText, options, cancellationToken)
             {
                 _exprsAndOperators = exprsAndOperators;
-                _preference = options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
 
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 
                 _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
                     OriginalSourceText.GetOffset(binaryExpression.Span.Start)
-                                      .CreateIndentationString(UseTabs, TabSize)));
+                                      .CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
                     GetSmartIndentationAfter(_exprsAndOperators[1])));
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                     var opToken = _exprsAndOperators[i].AsToken();
                     var right = _exprsAndOperators[i + 1].AsNode();
 
-                    if (_preference == OperatorPlacementWhenWrappingPreference.BeginningOfLine)
+                    if (Options.OperatorPlacement == OperatorPlacementWhenWrappingPreference.BeginningOfLine)
                     {
                         // convert: 
                         //      (a == b) && (c == d) to

@@ -3,33 +3,57 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 {
-    public partial class UseObjectInitializerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpUseObjectInitializerDiagnosticAnalyzer,
+        CSharpUseObjectInitializerCodeFixProvider>;
+
+    public partial class UseObjectInitializerTests
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseObjectInitializerDiagnosticAnalyzer(), new CSharpUseObjectInitializerCodeFixProvider());
+        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.Preview,
+                TestState = { OutputKind = outputKind }
+            }.RunAsync();
+        }
+
+        private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion? languageVersion = null)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+            };
+
+            if (languageVersion != null)
+                test.LanguageVersion = languageVersion.Value;
+
+            await test.RunAsync();
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnVariableDeclarator()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
 
     void M()
     {
-        var c = [||]new C();
+        var c = [|new|] C();
         c.i = 1;
     }
 }",
@@ -50,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
 
     void M()
     {
-        var c = [||]new C();
+        var c = [|new|] C();
         c.i = 1;
         c.i = c.i + 1;
     }
@@ -87,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = new C();
         c.i = c.i + 1;
     }
 }");
@@ -96,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -104,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         C c;
-        c = [||]new C();
+        c = [|new|] C();
         c.i = 1;
         c.i = c.i + 1;
     }
@@ -136,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         C c;
-        c = [||]new C();
+        c = new C();
         c.i = c.i + 1;
     }
 }");
@@ -145,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnAssignmentExpression()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -153,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         C c = null;
-        c = [||]new C();
+        c = [|new|] C();
         c.i = 1;
     }
 }",
@@ -175,14 +199,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestStopOnDuplicateMember()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
 
     void M()
     {
-        var c = [||]new C();
+        var c = [|new|] C();
         c.i = 1;
         c.i = 2;
     }
@@ -205,16 +229,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestComplexInitializer()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
     int j;
 
-    void M()
+    void M(C[] array)
     {
-        C[] array;
-        array[0] = [||]new C();
+        array[0] = [|new|] C();
         array[0].i = 1;
         array[0].j = 2;
     }
@@ -224,9 +247,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     int i;
     int j;
 
-    void M()
+    void M(C[] array)
     {
-        C[] array;
         array[0] = new C
         {
             i = 1,
@@ -239,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestNotOnCompoundAssignment()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
@@ -247,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = [|new|] C();
         c.i = 1;
         c.j += 1;
     }
@@ -269,7 +291,111 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        public async Task TestMissingWithExistingInitializer()
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [|new|] C() { i = 1 };
+        c.j = 1;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C
+        {
+            i = 1,
+            j = 1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializerComma()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [|new|] C()
+        {
+            i = 1,
+        };
+        c.j = 1;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C
+        {
+            i = 1,
+            j = 1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializerNotIfAlreadyInitialized()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [|new|] C()
+        {
+            i = 1,
+        };
+        c.j = 1;
+        c.i = 2;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C
+        {
+            i = 1,
+            j = 1
+        };
+        c.i = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestMissingBeforeCSharp3()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -279,42 +405,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C() { i = 1 };
+        C c = new C();
         c.j = 1;
     }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        public async Task TestMissingBeforeCSharp3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    int i;
-    int j;
-
-    void M()
-    {
-        var c = [||]new C();
-        c.j = 1;
-    }
-}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)));
+}", LanguageVersion.CSharp2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument1()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
     int j;
 
+    public C() { }
+    public C(System.Action a) { }
+
     void M()
     {
-        var v = {|FixAllInDocument:new|} C(() => {
-            var v2 = new C();
+        var v = [|new|] C(() => {
+            var v2 = [|new|] C();
             v2.i = 1;
         });
         v.j = 2;
@@ -324,6 +436,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 {
     int i;
     int j;
+
+    public C() { }
+    public C(System.Action a) { }
 
     void M()
     {
@@ -344,17 +459,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument2()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
-    int j;
+    System.Action j;
 
     void M()
     {
-        var v = {|FixAllInDocument:new|} C();
+        var v = [|new|] C();
         v.j = () => {
-            var v2 = new C();
+            var v2 = [|new|] C();
             v2.i = 1;
         };
     }
@@ -362,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 @"class C
 {
     int i;
-    int j;
+    System.Action j;
 
     void M()
     {
@@ -383,19 +498,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestFixAllInDocument3()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     int i;
     int j;
 
-    void M()
+    void M(C[] array)
     {
-        C[] array;
-        array[0] = {|FixAllInDocument:new|} C();
+        array[0] = [|new|] C();
         array[0].i = 1;
         array[0].j = 2;
-        array[1] = new C();
+        array[1] = [|new|] C();
         array[1].i = 3;
         array[1].j = 4;
     }
@@ -405,9 +519,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     int i;
     int j;
 
-    void M()
+    void M(C[] array)
     {
-        C[] array;
         array[0] = new C
         {
             i = 1,
@@ -425,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestTrivia1()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -433,7 +546,7 @@ class C
     int j;
     void M()
     {
-        var c = [||]new C();
+        var c = [|new|] C();
         c.i = 1; // Goo
         c.j = 2; // Bar
     }
@@ -454,6 +567,46 @@ class C
 }");
         }
 
+        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = [|new|] C();
+
+        //Goo
+        c.i = 1;
+
+        //Bar
+        c.j = 2;
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = new C
+        {
+            //Goo
+            i = 1,
+
+            //Bar
+            j = 2
+        };
+    }
+}");
+        }
+
         [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestMissingInNonTopLevelObjectInitializer()
@@ -462,7 +615,7 @@ class C
 @"class C {
 	int a;
 	C Add(int x) {
-		var c = Add([||]new int());
+		var c = Add(new int());
 		c.a = 1;
 		return c;
 	}
@@ -480,7 +633,7 @@ class C
 {
     void Goo()
     {
-        dynamic body = [||]new ExpandoObject();
+        dynamic body = new ExpandoObject();
         body.content = new ExpandoObject();
     }
 }");
@@ -496,9 +649,9 @@ public class Goo
 {
     public void M()
     {
-        var goo = [||]new Goo();
+        var goo = new Goo();
 #if true
-        goo.Value = "";
+        goo.Value = """";
 #endif
     }
 
@@ -510,15 +663,15 @@ public class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestAvailableInsidePreprocessorDirective()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"
 public class Goo
 {
     public void M()
     {
 #if true
-        var goo = [||]new Goo();
-        goo.Value = "";
+        var goo = [|new|] Goo();
+        goo.Value = """";
 #endif
     }
 
@@ -532,7 +685,7 @@ public class Goo
 #if true
         var goo = new Goo
         {
-            Value = "";
+            Value = """"
         };
 #endif
     }
@@ -545,7 +698,7 @@ public class Goo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestKeepBlankLinesAfter()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"
 class Goo
 {
@@ -556,7 +709,7 @@ class MyClass
 {
     public void Main()
     {
-        var goo = [||]new Goo();
+        var goo = [|new|] Goo();
         goo.Bar = 1;
 
         int horse = 1;
@@ -600,7 +753,7 @@ class MyClass
 {
     public void Main()
     {
-        IExample e = [||]new C();
+        IExample e = new C();
         e.Name = string.Empty;
     }
 }");
@@ -626,7 +779,7 @@ class MyClass
 {
     public void Main()
     {
-        IExample e = [||]new C();
+        IExample e = new C();
         e.Name = string.Empty;
         e.LastName = string.Empty;
     }
@@ -637,7 +790,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestWithExplicitImplementedInterfaceMembers3()
         {
-            await TestInRegularAndScript1Async(
+            await TestInRegularAndScriptAsync(
 @"
 interface IExample {
     string Name { get; set; }
@@ -653,7 +806,7 @@ class MyClass
 {
     public void Main()
     {
-        IExample e = [||]new C();
+        IExample e = [|new|] C();
         e.LastName = string.Empty;
         e.Name = string.Empty;
     }
@@ -680,6 +833,78 @@ class MyClass
         e.Name = string.Empty;
     }
 }");
+        }
+
+        [WorkItem(37675, "https://github.com/dotnet/roslyn/issues/37675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestDoNotOfferForUsingDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C : System.IDisposable
+{
+    int i;
+
+    void M()
+    {
+        using var c = new C();
+        c.i = 1;
+    }
+
+    public void Dispose()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestImplicitObject()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        C c = [|new|]();
+        c.i = 1;
+    }
+}",
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        C c = new()
+        {
+            i = 1
+        };
+    }
+}");
+        }
+
+        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestInTopLevelStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"MyClass cl = [|new|]();
+cl.MyProperty = 5;
+
+class MyClass
+{
+    public int MyProperty { get; set; }
+}",
+@"MyClass cl = new()
+{
+    MyProperty = 5
+};
+
+class MyClass
+{
+    public int MyProperty { get; set; }
+}", OutputKind.ConsoleApplication);
         }
     }
 }

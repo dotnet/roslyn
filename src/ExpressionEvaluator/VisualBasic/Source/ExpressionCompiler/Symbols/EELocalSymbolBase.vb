@@ -53,11 +53,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend NotOverridable Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Dim localType As TypeSymbol = Me.Type
 
-            Dim info As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(localType)
-            If info IsNot Nothing Then
+            Dim info As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(localType)
+            If info.DiagnosticInfo IsNot Nothing Then
                 Return info
             End If
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ' If the member is in an assembly with unified references,
                 ' we check if its definition depends on a type from a unified reference.
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
-                Return localType.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes)
+                Return New UseSiteInfo(Of AssemblySymbol)(localType.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes))
             End If
 
             Return Nothing

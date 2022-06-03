@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.UseNullPropagation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseNullPropagation), [Shared]>
     Friend Class VisualBasicUseNullPropagationCodeFixProvider
         Inherits AbstractUseNullPropagationCodeFixProvider(Of
             SyntaxKind,

@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -32,15 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             public State(
                 SyntaxNode declaration, SemanticModel semanticModel,
-                OptionSet optionSet, CancellationToken cancellationToken)
+                CSharpSimplifierOptions options, CancellationToken cancellationToken)
             {
                 TypeStylePreference = default;
                 IsInIntrinsicTypeContext = default;
                 IsTypeApparentInContext = default;
 
-                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
-                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
-                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
+                var styleForIntrinsicTypes = options.VarForBuiltInTypes;
+                var styleForApparent = options.VarWhenTypeIsApparent;
+                var styleForElsewhere = options.VarElsewhere;
 
                 _forBuiltInTypes = styleForIntrinsicTypes.Notification.Severity;
                 _whenTypeIsApparent = styleForApparent.Notification.Severity;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 this.TypeStylePreference = stylePreferences;
 
                 IsTypeApparentInContext =
-                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax varDecl)
+                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl)
                      && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             /// <summary>
             /// Returns true for type that are arrays/nullable/pointer types of special types
             /// </summary>
-            private static bool IsMadeOfSpecialTypes(ITypeSymbol type)
+            private static bool IsMadeOfSpecialTypes([NotNullWhen(true)] ITypeSymbol? type)
             {
                 if (type == null)
                 {
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true;
             }
 
-            private static TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
+            private static TypeSyntax? GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
                 => declarationStatement switch
                 {
                     VariableDeclarationSyntax varDecl => varDecl.Type,

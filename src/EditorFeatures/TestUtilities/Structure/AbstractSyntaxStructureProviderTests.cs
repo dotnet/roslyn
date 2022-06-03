@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -20,55 +22,53 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     {
         protected abstract string LanguageName { get; }
 
-        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Test;
+        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
-        protected virtual OptionSet UpdateOptions(OptionSet options)
-            => options.WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
+        internal virtual BlockStructureOptions GetDefaultOptions()
+            => new(MaximumBannerLength: 120, IsMetadataAsSource: WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
 
-        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
-            => GetBlockSpansWorkerAsync(document, position);
+        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, BlockStructureOptions options, int position)
+            => GetBlockSpansWorkerAsync(document, options, position);
 
-        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position);
+        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position);
 
-        private protected async Task VerifyBlockSpansAsync(string markupCode, params RegionData[] expectedRegionData)
+        private protected Task VerifyBlockSpansAsync(string markupCode, params RegionData[] expectedRegionData)
+            => VerifyBlockSpansAsync(markupCode, GetDefaultOptions(), expectedRegionData);
+
+        private protected async Task VerifyBlockSpansAsync(string markupCode, BlockStructureOptions options, params RegionData[] expectedRegionData)
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            using var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode);
+
+            var hostDocument = workspace.Documents.Single();
+            Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
+            var position = hostDocument.CursorPosition.Value;
+
+            var expectedRegions = expectedRegionData.Select(data => CreateBlockSpan(data, hostDocument.AnnotatedSpans)).ToArray();
+
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var actualRegions = await GetBlockSpansAsync(document, options, position);
+
+            Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
+
+            for (var i = 0; i < expectedRegions.Length; i++)
             {
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(UpdateOptions(workspace.Options)));
-
-                var hostDocument = workspace.Documents.Single();
-                Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
-                var position = hostDocument.CursorPosition.Value;
-
-                var expectedRegions = expectedRegionData.Select(data => CreateBlockSpan(data, hostDocument.AnnotatedSpans)).ToArray();
-
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var actualRegions = await GetBlockSpansAsync(document, position);
-
-                Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
-
-                for (var i = 0; i < expectedRegions.Length; i++)
-                {
-                    AssertRegion(expectedRegions[i], actualRegions[i]);
-                }
+                AssertRegion(expectedRegions[i], actualRegions[i]);
             }
         }
 
         protected async Task VerifyNoBlockSpansAsync(string markupCode)
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
-            {
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(UpdateOptions(workspace.Options)));
+            using var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode);
 
-                var hostDocument = workspace.Documents.Single();
-                Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
-                var position = hostDocument.CursorPosition.Value;
+            var hostDocument = workspace.Documents.Single();
+            Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
+            var position = hostDocument.CursorPosition.Value;
 
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var actualRegions = await GetBlockSpansAsync(document, position);
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var options = GetDefaultOptions();
+            var actualRegions = await GetBlockSpansAsync(document, options, position);
 
-                Assert.True(actualRegions.Length == 0, $"Expected no regions but found {actualRegions.Length}.");
-            }
+            Assert.True(actualRegions.Length == 0, $"Expected no regions but found {actualRegions.Length}.");
         }
 
         protected static RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)

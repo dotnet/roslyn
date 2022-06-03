@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = semanticModel.GetOperation(ifStatement);
-            if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation parentBlock }))
+            if (ifOperation is not IConditionalOperation { Parent: IBlockOperation parentBlock })
             {
                 return;
             }
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
 
             var analyzer = CreateAnalyzer(syntaxFactsService, ifStatement.SyntaxTree.Options);
-            var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
+            var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan()[index..]);
             if (sections.IsDefaultOrEmpty)
             {
                 return;
@@ -80,7 +78,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(GetTitle(forSwitchExpression: false),
+                CodeAction.Create(
+                    GetTitle(forSwitchExpression: false),
                     c => UpdateDocumentAsync(document, target, ifStatement, sections, analyzer.Features, convertToSwitchExpression: false, c),
                     "SwitchStatement"),
                 ifStatement.Span);
@@ -89,7 +88,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 CanConvertToSwitchExpression(analyzer.Supports(Feature.OrPattern), sections))
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(GetTitle(forSwitchExpression: true),
+                    CodeAction.Create(
+                        GetTitle(forSwitchExpression: true),
                         c => UpdateDocumentAsync(document, target, ifStatement, sections, analyzer.Features, convertToSwitchExpression: true, c),
                         "SwitchExpression"),
                     ifStatement.Span);
@@ -150,14 +150,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 // If there are two or more labels, we can support this as long as the language supports 'or' patterns
                 // and as long as no label has any guards.
                 return supportsOrPattern && section.Labels.All(label => label.Guards.IsDefaultOrEmpty);
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
             }
         }
     }

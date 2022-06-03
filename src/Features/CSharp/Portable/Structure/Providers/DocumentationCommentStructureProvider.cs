@@ -5,8 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,12 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class DocumentationCommentStructureProvider : AbstractSyntaxNodeStructureProvider<DocumentationCommentTriviaSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             DocumentationCommentTriviaSyntax documentationComment,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
+            // In metadata as source we want to treat documentation comments slightly differently, and collapse them
+            // to just "..." in front of the decalaration they're attached to. That happens in CSharpStructureHelper.CollectCommentBlockSpans
+            // so we don't need to do anything here
+            if (options.IsMetadataAsSource)
+            {
+                return;
+            }
+
             var startPos = documentationComment.FullSpan.Start;
 
             // The trailing newline is included in XmlDocCommentSyntax, so we need to strip it.
@@ -28,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             var span = TextSpan.FromBounds(startPos, endPos);
 
-            var bannerLength = options.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.CSharp);
-            var bannerText = CSharpSyntaxFacts.Instance.GetBannerText(
+            var bannerLength = options.MaximumBannerLength;
+            var bannerText = CSharpFileBannerFacts.Instance.GetBannerText(
                 documentationComment, bannerLength, cancellationToken);
 
             spans.Add(new BlockSpan(

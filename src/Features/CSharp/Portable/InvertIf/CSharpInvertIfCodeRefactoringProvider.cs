@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => ifNode.Condition;
 
         protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
-            => new StatementRange(ifNode.Statement, ifNode.Statement);
+            => new(ifNode.Statement, ifNode.Statement);
 
         protected override bool IsStatementContainer(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         protected override bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 
-        protected override StatementSyntax GetNextStatement(StatementSyntax node)
+        protected override StatementSyntax? GetNextStatement(StatementSyntax node)
             => node.GetNextStatement();
 
         protected override StatementSyntax GetIfBody(IfStatementSyntax ifNode)
@@ -60,31 +61,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => SyntaxFactory.Block();
 
         protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
-            => ifNode.Else.Statement;
+            => ifNode.Else?.Statement ?? throw new InvalidOperationException();
 
         protected override bool CanControlFlowOut(SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node)
             {
-                case SyntaxKind.SwitchSection:
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachVariableStatement:
+                case SwitchSectionSyntax:
+                case LocalFunctionStatementSyntax:
+                case AccessorDeclarationSyntax:
+                case MemberDeclarationSyntax:
+                case AnonymousFunctionExpressionSyntax:
+                case CommonForEachStatementSyntax:
+                case DoStatementSyntax:
+                case WhileStatementSyntax:
+                case ForStatementSyntax:
                     return false;
             }
 
@@ -106,31 +97,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
         protected override int GetJumpStatementRawKind(SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node)
             {
-                case SyntaxKind.SwitchSection:
+                case SwitchSectionSyntax:
                     return (int)SyntaxKind.BreakStatement;
 
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
+                case LocalFunctionStatementSyntax:
+                case AccessorDeclarationSyntax:
+                case MemberDeclarationSyntax:
+                case AnonymousFunctionExpressionSyntax:
                     return (int)SyntaxKind.ReturnStatement;
 
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachVariableStatement:
+                case CommonForEachStatementSyntax:
+                case DoStatementSyntax:
+                case WhileStatementSyntax:
+                case ForStatementSyntax:
                     return (int)SyntaxKind.ContinueStatement;
             }
 
@@ -172,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             IfStatementSyntax ifNode,
             SyntaxNode condition,
             StatementSyntax trueStatement,
-            StatementSyntax falseStatementOpt = null)
+            StatementSyntax? falseStatementOpt = null)
         {
             var isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken());
             if (isSingleLine && falseStatementOpt != null)
@@ -193,13 +174,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                     ? SyntaxFactory.Block(trueStatement)
                     : trueStatement);
 
-            if (falseStatementOpt != null)
+            if (ShouldKeepFalse(ifNode, falseStatementOpt))
             {
                 var elseClause = updatedIf.Else != null
                     ? updatedIf.Else.WithStatement(falseStatementOpt)
                     : SyntaxFactory.ElseClause(falseStatementOpt);
 
                 updatedIf = updatedIf.WithElse(elseClause);
+            }
+            else
+            {
+                updatedIf = updatedIf.WithElse(null);
             }
 
             // If this is multiline, format things after we swap around the if/else.  Because 
@@ -209,6 +194,50 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             return isSingleLine
                 ? updatedIf
                 : updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private static bool ShouldKeepFalse(IfStatementSyntax originalIfStatement, [NotNullWhen(returnValue: true)] StatementSyntax? falseStatement)
+        {
+            // The original false statement doesn't exist at all
+            // then no need to consider keeping it around
+            if (falseStatement is null)
+            {
+                return false;
+            }
+
+            if (falseStatement is BlockSyntax falseBlock)
+            {
+                // Block false syntax with some statements included.
+                // If there are no statements, it's an empty
+                // block and we can get rid of it.
+                if (falseBlock.Statements.Any())
+                {
+                    return true;
+                }
+
+                // If the stateements for the else don't pass, we still need to check
+                // if there are comments from the original if that should be included.
+                // If so, pass them along to be copied to the new else block
+                return originalIfStatement.Statement is BlockSyntax block
+                    && BlockHasComment(block);
+            }
+
+            // The statement is not expected to have children, so we know it's fine
+            // to consider this something that needs to be included. Such as 
+            // a return statement, or other similar things for single line if/else.
+            return true;
+
+            static bool BlockHasComment(BlockSyntax block)
+            {
+                return block.CloseBraceToken.LeadingTrivia.Any(HasCommentTrivia)
+                    || block.OpenBraceToken.TrailingTrivia.Any(HasCommentTrivia);
+            }
+
+            static bool HasCommentTrivia(SyntaxTrivia trivia)
+            {
+                return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                   || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            }
         }
 
         protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<StatementSyntax> statements)
@@ -238,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 return false;
             }
 
-            if ((object)statementRange.FirstStatement != (object)statementRange.LastStatement)
+            if (statementRange.FirstStatement != statementRange.LastStatement)
             {
                 return false;
             }

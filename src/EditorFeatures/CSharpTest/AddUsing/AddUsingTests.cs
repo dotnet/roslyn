@@ -5,16 +5,17 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public partial class AddUsingTests : AbstractAddUsingTests
     {
+        public AddUsingTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestTypeFromMultipleNamespaces1(TestHost testHost)
@@ -35,6 +41,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     }
 }",
 @"using System.Collections;
+
+class Class
+{
+    IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Outer(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace N;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"
+using System.Collections;
+
+namespace N;
+
+class Class
+{
+    IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestTypeFromMultipleNamespaces1_FileScopedNamespace_Inner(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace N;
+
+using System;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"
+namespace N;
+
+using System;
+using System.Collections;
 
 class Class
 {
@@ -2525,6 +2592,68 @@ namespace ExternAliases
         [Theory]
         [CombinatorialData]
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        public async Task TestAddUsingsWithPreExistingExternAlias_FileScopedNamespace(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.cs"">
+namespace ProjectLib;
+{
+    public class Project
+    {
+    }
+}
+
+namespace AnotherNS
+{
+    public class AnotherClass
+    {
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference Alias=""P"">lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+extern alias P;
+using P::ProjectLib;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new Project();
+        var x = new [|AnotherClass()|];
+    }
+} 
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"
+extern alias P;
+
+using P::AnotherNS;
+using P::ProjectLib;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new Project();
+        var x = new [|AnotherClass()|];
+    }
+} 
+";
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         public async Task TestAddUsingsNoExtern(TestHost testHost)
         {
             const string InitialWorkspace = @"
@@ -2568,6 +2697,55 @@ namespace ExternAliases
         {
             var x = new AnotherClass();
         }
+    }
+} 
+";
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
+        public async Task TestAddUsingsNoExtern_FileScopedNamespace(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.cs"">
+namespace AnotherNS;
+
+public class AnotherClass
+{
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference Alias=""P"">lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+using P::AnotherNS;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new [|AnotherClass()|];
+    }
+} 
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"extern alias P;
+
+using P::AnotherNS;
+namespace ExternAliases;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = new AnotherClass();
     }
 } 
 ";
@@ -5085,7 +5263,7 @@ namespace A
 
     class C
     {
-        C Instance { get; } => null;
+        C Instance { get; }
 
         async Task M() => await Instance.[|Foo|]();
     }
@@ -5111,7 +5289,7 @@ namespace A
 
     class C
     {
-        C Instance { get; } => null;
+        C Instance { get; }
 
         async Task M() => await Instance.Foo();
     }
@@ -5128,6 +5306,510 @@ namespace B
         public static Task Foo(this C instance) => null;
     }
 }", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningIEnumerator(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IEnumerator<int> GetEnumerator(this C instance) => null;
+    }
+}",
+@"
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IEnumerator<int> GetEnumerator(this C instance) => null;
+    }
+}", testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumerator(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}",
+@"
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}", testHost);
+        }
+
+        [Fact]
+        public async Task TestMissingForExtensionInvalidGetEnumerator()
+        {
+            await TestMissingAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static bool GetEnumerator(this C instance) => null;
+    }
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetEnumeratorReturningPatternEnumeratorWrongAsync(TestHost testHost)
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; };
+
+        void M() { foreach (var i in [|Instance|]); }
+
+        public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+        {
+            return new Enumerator();
+        }
+        public sealed class Enumerator
+        {
+            public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+            public int Current => throw null;
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}",
+@"
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; };
+
+        void M() { foreach (var i in Instance); }
+
+        public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+        {
+            return new Enumerator();
+        }
+        public sealed class Enumerator
+        {
+            public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+            public int Current => throw null;
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public bool MoveNext();
+    }
+}", testHost);
+        }
+
+        [Fact]
+        public async Task TestMissingForExtensionGetAsyncEnumeratorOnForeach()
+        {
+            await TestMissingAsync(
+@"
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        void M() { foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IAsyncEnumerator<int> GetAsyncEnumerator(this C instance) => null;
+    }
+}" + IAsyncEnumerable);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningIAsyncEnumerator(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IAsyncEnumerator<int> GetAsyncEnumerator(this C instance) => null;
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IAsyncEnumerator<int> GetAsyncEnumerator(this C instance) => null;
+    }
+}" + IAsyncEnumerable, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumerator(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public Task<bool> MoveNextAsync();
+    }
+}",
+@"
+using System.Threading.Tasks;
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in Instance); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public class Enumerator
+    {
+        public int Current { get; }
+        public Task<bool> MoveNextAsync();
+    }
+}", testHost);
+        }
+
+        [Fact]
+        public async Task TestMissingForExtensionInvalidGetAsyncEnumerator()
+        {
+            await TestMissingAsync(
+@"
+using System.Threading.Tasks;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        async Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static bool GetAsyncEnumerator(this C instance) => null;
+    }
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestAddUsingForExtensionGetAsyncEnumeratorReturningPatternEnumeratorWrongAsync(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Threading.Tasks;
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        Task M() { await foreach (var i in [|Instance|]); }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator();
+        }
+
+        public class Enumerator
+        {
+            public int Current { get; }
+            public bool MoveNext();
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+        public int Current => throw null;
+    }
+}",
+@"
+using System.Threading.Tasks;
+using B;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        Task M() { await foreach (var i in Instance); }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator();
+        }
+
+        public class Enumerator
+        {
+            public int Current { get; }
+            public bool MoveNext();
+        }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Enumerator GetAsyncEnumerator(this C instance) => null;
+    }
+
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+        public int Current => throw null;
+    }
+}", testHost);
+        }
+
+        [Fact]
+        public async Task TestMissingForExtensionGetEnumeratorOnAsyncForeach()
+        {
+            await TestMissingAsync(
+@"
+using System.Threading.Tasks;
+
+namespace A
+{
+    class C
+    {
+        C Instance { get; }
+
+        Task M() { await foreach (var i in [|Instance|]); }
+    }
+}
+
+namespace B
+{
+    using A;
+    using System.Collections.Generic;
+
+    static class Extensions
+    {
+        public static IEnumerator<int> GetEnumerator(this C instance) => null;
+    }
+}");
         }
 
         [Theory]
@@ -5615,6 +6297,242 @@ namespace Microsoft
     {
     }
 }", testHost);
+        }
+
+        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+        [Fact]
+        public async Task TestIncompleteLambda1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Linq;
+
+class C
+{
+    C()
+    {
+        """".Select(() => {
+        new [|Byte|]",
+@"using System;
+using System.Linq;
+
+class C
+{
+    C()
+    {
+        """".Select(() => {
+        new Byte");
+        }
+
+        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+        [Fact]
+        public async Task TestIncompleteLambda2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Linq;
+
+class C
+{
+    C()
+    {
+        """".Select(() => {
+            new [|Byte|]() }",
+@"using System;
+using System.Linq;
+
+class C
+{
+    C()
+    {
+        """".Select(() => {
+            new Byte() }");
+        }
+
+        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+        [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
+        [Fact]
+        public async Task TestIncompleteSimpleLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args[0].Any(x => [|IBindCtx|]
+        string a;
+    }
+}",
+@"using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args[0].Any(x => IBindCtx
+        string a;
+    }
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.cs"">
+using System.ComponentModel;
+namespace ProjectLib
+{
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public class Project
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new [|Project()|];
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"
+using ProjectLib;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new [|Project()|];
+    }
+}
+";
+
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.vb"">
+imports System.ComponentModel
+namespace ProjectLib
+    &lt;EditorBrowsable(EditorBrowsableState.Never)&gt;
+    public class Project
+    end class
+end namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference>lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Project|] p = new Project();
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+            await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.vb"">
+imports System.ComponentModel
+namespace ProjectLib
+    &lt;EditorBrowsable(EditorBrowsableState.Advanced)&gt;
+    public class Project
+    end class
+end namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference>lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Project|] p = new Project();
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"
+using ProjectLib;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new [|Project()|];
+    }
+}
+";
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
+        {
+            var initialWorkspace = @"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.vb"">
+imports System.ComponentModel
+namespace ProjectLib
+    &lt;EditorBrowsable(EditorBrowsableState.Advanced)&gt;
+    public class Project
+    end class
+end namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference>lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Project|] p = new Project();
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingAsync(initialWorkspace, new TestParameters(
+                globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+                testHost: testHost));
         }
     }
 }

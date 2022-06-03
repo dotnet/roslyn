@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
         private static NamingStylePreferences CreateCustomFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
         private static NamingStylePreferences CreateUnderscorePrefixedFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name",
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
         private static NamingStylePreferences CreateCustomStaticFieldNamingStylePreference()
         {
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name",
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
                 accessibilityList: default,

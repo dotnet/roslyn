@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -202,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNode.RawKind"/> property.
         /// </summary>
-        public static SyntaxKind Kind([NotNull] this SyntaxNode node)
+        public static SyntaxKind Kind(this SyntaxNode node)
         {
             var rawKind = node.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
@@ -234,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsVerbatimStringLiteral(this SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
+            return token.Kind() is (SyntaxKind.StringLiteralToken or SyntaxKind.UTF8StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
         }
 
         public static bool IsVerbatimIdentifier(this SyntaxToken token)
@@ -506,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax
-        /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
+        /// within <see cref="BaseObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public static SymbolInfo GetCollectionInitializerSymbolInfo(this SemanticModel? semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -788,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversionExpression.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseConversionOperation)conversionExpression).ConversionConvertible;
+                return (Conversion)((ConversionOperation)conversionExpression).ConversionConvertible;
             }
             else
             {
@@ -814,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).InConversionConvertible;
+                return (Conversion)((CompoundAssignmentOperation)compoundAssignment).InConversionConvertible;
             }
             else
             {
@@ -840,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compoundAssignment.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseCompoundAssignmentOperation)compoundAssignment).OutConversionConvertible;
+                return (Conversion)((CompoundAssignmentOperation)compoundAssignment).OutConversionConvertible;
             }
             else
             {
@@ -1035,7 +1033,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression.
+        /// Analyze data-flow within a <see cref="ConstructorInitializerSyntax"/>.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ConstructorInitializerSyntax constructorInitializer)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(constructorInitializer);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within a <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> initializer.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(primaryConstructorBaseType);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)
         {
@@ -1262,6 +1278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static Conversion ClassifyConversion(this SemanticModel? semanticModel, ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
             {
@@ -1314,6 +1332,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the declaration assembly.
         /// </summary>
         public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
+        /// the declaration assembly.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);

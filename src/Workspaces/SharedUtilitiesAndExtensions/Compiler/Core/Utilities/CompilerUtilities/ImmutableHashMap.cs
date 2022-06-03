@@ -26,13 +26,14 @@ namespace Roslyn.Collections.Immutable
     [DebuggerTypeProxy(typeof(ImmutableHashMap<,>.DebuggerProxy))]
     [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
     internal sealed class ImmutableHashMap<TKey, TValue> : IImmutableDictionary<TKey, TValue>
+        where TKey : notnull
     {
-        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new ImmutableHashMap<TKey, TValue>();
+        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new();
 
         /// <summary>
         /// The root node of the tree that stores this map.
         /// </summary>
-        private readonly Bucket _root;
+        private readonly Bucket? _root;
 
         /// <summary>
         /// The comparer used to sort keys in this map.
@@ -50,12 +51,11 @@ namespace Roslyn.Collections.Immutable
         /// <param name="root">The root.</param>
         /// <param name="comparer">The comparer.</param>
         /// <param name="valueComparer">The value comparer.</param>
-        private ImmutableHashMap(Bucket root, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer)
+        private ImmutableHashMap(Bucket? root, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer)
             : this(comparer, valueComparer)
         {
-            Debug.Assert(root != null);
-            Debug.Assert(comparer != null);
-            Debug.Assert(valueComparer != null);
+            RoslynDebug.AssertNotNull(comparer);
+            RoslynDebug.AssertNotNull(valueComparer);
 
             _root = root;
         }
@@ -65,7 +65,7 @@ namespace Roslyn.Collections.Immutable
         /// </summary>
         /// <param name="comparer">The comparer.</param>
         /// <param name="valueComparer">The value comparer.</param>
-        internal ImmutableHashMap(IEqualityComparer<TKey> comparer = null, IEqualityComparer<TValue> valueComparer = null)
+        internal ImmutableHashMap(IEqualityComparer<TKey>? comparer = null, IEqualityComparer<TValue>? valueComparer = null)
         {
             _keyComparer = comparer ?? EqualityComparer<TKey>.Default;
             _valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
@@ -385,7 +385,9 @@ namespace Roslyn.Collections.Immutable
         /// <summary>
         /// See the <see cref="IImmutableDictionary&lt;TKey, TValue&gt;"/> interface.
         /// </summary>
-        public bool TryGetValue(TKey key, out TValue value)
+#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
+        public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         {
             if (_root != null)
             {
@@ -475,7 +477,7 @@ namespace Roslyn.Collections.Immutable
         /// <param name="key">The key to search for.</param>
         /// <param name="existingKey">Receives the equal key found in the map.</param>
         /// <returns>A value indicating whether an equal and existing key was found in the map.</returns>
-        internal bool TryExchangeKey(TKey key, out TKey existingKey)
+        internal bool TryExchangeKey(TKey key, [NotNullWhen(true)] out TKey? existingKey)
         {
             var vb = _root != null ? _root.Get(_keyComparer.GetHashCode(key), key, _keyComparer) : null;
             if (vb != null)
@@ -497,7 +499,7 @@ namespace Roslyn.Collections.Immutable
         /// <param name="sequence">The sequence that may have come from an immutable map.</param>
         /// <param name="other">Receives the concrete <see cref="ImmutableHashMap&lt;TKey, TValue&gt;"/> typed value if one can be found.</param>
         /// <returns><c>true</c> if the cast was successful; <c>false</c> otherwise.</returns>
-        private static bool TryCastToImmutableMap(IEnumerable<KeyValuePair<TKey, TValue>> sequence, out ImmutableHashMap<TKey, TValue> other)
+        private static bool TryCastToImmutableMap(IEnumerable<KeyValuePair<TKey, TValue>> sequence, [NotNullWhen(true)] out ImmutableHashMap<TKey, TValue>? other)
         {
             other = sequence as ImmutableHashMap<TKey, TValue>;
             if (other != null)
@@ -508,7 +510,7 @@ namespace Roslyn.Collections.Immutable
             return false;
         }
 
-        private ImmutableHashMap<TKey, TValue> Wrap(Bucket root)
+        private ImmutableHashMap<TKey, TValue> Wrap(Bucket? root)
         {
             if (root == null)
             {
@@ -532,7 +534,7 @@ namespace Roslyn.Collections.Immutable
         [Pure]
         private ImmutableHashMap<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs, bool overwriteOnCollision, bool avoidToHashMap)
         {
-            Debug.Assert(pairs != null);
+            RoslynDebug.AssertNotNull(pairs);
             Contract.Ensures(Contract.Result<ImmutableHashMap<TKey, TValue>>() != null);
 
             // Some optimizations may apply if we're an empty list.
@@ -592,8 +594,8 @@ namespace Roslyn.Collections.Immutable
             internal abstract int Count { get; }
 
             internal abstract Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue);
-            internal abstract Bucket Remove(int hash, TKey key, IEqualityComparer<TKey> comparer);
-            internal abstract ValueBucket Get(int hash, TKey key, IEqualityComparer<TKey> comparer);
+            internal abstract Bucket? Remove(int hash, TKey key, IEqualityComparer<TKey> comparer);
+            internal abstract ValueBucket? Get(int hash, TKey key, IEqualityComparer<TKey> comparer);
             internal abstract IEnumerable<Bucket> GetAll();
         }
 
@@ -667,7 +669,7 @@ namespace Roslyn.Collections.Immutable
                 }
             }
 
-            internal override Bucket Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
+            internal override Bucket? Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
                 if (this.Hash == hash && comparer.Equals(this.Key, key))
                 {
@@ -677,7 +679,7 @@ namespace Roslyn.Collections.Immutable
                 return this;
             }
 
-            internal override ValueBucket Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
+            internal override ValueBucket? Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
                 if (this.Hash == hash && comparer.Equals(this.Key, key))
                 {
@@ -702,7 +704,7 @@ namespace Roslyn.Collections.Immutable
             internal ListBucket(ValueBucket[] buckets)
                 : base(buckets[0].Hash)
             {
-                Debug.Assert(buckets != null);
+                RoslynDebug.AssertNotNull(buckets);
                 Debug.Assert(buckets.Length >= 2);
                 _buckets = buckets;
             }
@@ -744,7 +746,7 @@ namespace Roslyn.Collections.Immutable
                 }
             }
 
-            internal override Bucket Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
+            internal override Bucket? Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
                 if (this.Hash == hash)
                 {
@@ -769,7 +771,7 @@ namespace Roslyn.Collections.Immutable
                 return this;
             }
 
-            internal override ValueBucket Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
+            internal override ValueBucket? Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
                 if (this.Hash == hash)
                 {
@@ -816,7 +818,7 @@ namespace Roslyn.Collections.Immutable
             /// <param name="count">The count.</param>
             private HashBucket(int hashRoll, uint used, Bucket[] buckets, int count)
             {
-                Debug.Assert(buckets != null);
+                RoslynDebug.AssertNotNull(buckets);
                 Debug.Assert(buckets.Length == CountBits(used));
 
                 _hashRoll = hashRoll & 31;
@@ -833,8 +835,8 @@ namespace Roslyn.Collections.Immutable
             /// <param name="bucket2">The bucket2.</param>
             internal HashBucket(int suggestedHashRoll, ValueOrListBucket bucket1, ValueOrListBucket bucket2)
             {
-                Debug.Assert(bucket1 != null);
-                Debug.Assert(bucket2 != null);
+                RoslynDebug.AssertNotNull(bucket1);
+                RoslynDebug.AssertNotNull(bucket2);
                 Debug.Assert(bucket1.Hash != bucket2.Hash);
 
                 // find next hashRoll that causes these two to be slotted in different buckets
@@ -894,7 +896,7 @@ namespace Roslyn.Collections.Immutable
                 }
             }
 
-            internal override Bucket Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
+            internal override Bucket? Remove(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
                 var logicalSlot = ComputeLogicalSlot(hash);
                 if (IsInUse(logicalSlot))
@@ -926,7 +928,7 @@ namespace Roslyn.Collections.Immutable
                 return this;
             }
 
-            internal override ValueBucket Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
+            internal override ValueBucket? Get(int hash, TKey key, IEqualityComparer<TKey> comparer)
             {
                 var logicalSlot = ComputeLogicalSlot(hash);
                 if (IsInUse(logicalSlot))
@@ -954,7 +956,7 @@ namespace Roslyn.Collections.Immutable
             [Pure]
             private static uint RotateRight(uint v, int n)
             {
-                Debug.Assert(n >= 0 && n < 32);
+                Debug.Assert(n is >= 0 and < 32);
                 if (n == 0)
                 {
                     return v;
@@ -965,7 +967,7 @@ namespace Roslyn.Collections.Immutable
 
             private int ComputePhysicalSlot(int logicalSlot)
             {
-                Debug.Assert(logicalSlot >= 0 && logicalSlot < 32);
+                Debug.Assert(logicalSlot is >= 0 and < 32);
                 Contract.Ensures(Contract.Result<int>() >= 0);
                 if (_buckets.Length == 32)
                 {
@@ -1045,7 +1047,7 @@ namespace Roslyn.Collections.Immutable
             /// <summary>
             /// The simple view of the collection.
             /// </summary>
-            private KeyValuePair<TKey, TValue>[] _contents;
+            private KeyValuePair<TKey, TValue>[]? _contents;
 
             /// <summary>   
             /// Initializes a new instance of the <see cref="DebuggerProxy"/> class.
@@ -1100,7 +1102,7 @@ namespace Roslyn.Collections.Immutable
             }
 
             [DebuggerStepThrough]
-            public static Exception FailRange(string parameterName, string message = null)
+            public static Exception FailRange(string parameterName, string? message = null)
             {
                 if (string.IsNullOrEmpty(message))
                 {
@@ -1111,7 +1113,7 @@ namespace Roslyn.Collections.Immutable
             }
 
             [DebuggerStepThrough]
-            public static void Range(bool condition, string parameterName, string message = null)
+            public static void Range(bool condition, string parameterName, string? message = null)
             {
                 if (!condition)
                 {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -27,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
         }
 
-        protected override ITextBuffer GetSubjectBufferContainingCaret()
+        protected override ITextBuffer? GetSubjectBufferContainingCaret()
         {
             var result = WpfTextView.GetBufferContainingCaret(contentType: ContentTypeNames.RoslynContentType);
 

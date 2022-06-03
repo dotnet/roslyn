@@ -4,10 +4,12 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class InferOptionsRecommenderTests
+        Inherits RecommenderTests
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionsAfterOptionInferTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<File>Option Infer |</File>, "On", "Off")
-        End Function
+        Public Sub OptionsAfterOptionInferTest()
+            VerifyRecommendationsAreExactly(<File>Option Infer |</File>, "On", "Off")
+        End Sub
     End Class
 End Namespace

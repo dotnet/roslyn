@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
     [CompilerTrait(CompilerFeature.ModuleInitializers)]
     public sealed class GenericsTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
+        private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 
         [Fact]
         public void MustNotBeGenericMethod()

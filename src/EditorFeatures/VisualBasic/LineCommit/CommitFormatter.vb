@@ -4,16 +4,19 @@
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 
@@ -22,18 +25,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     Friend Class CommitFormatter
         Implements ICommitFormatter
 
-        Private ReadOnly _indentationManagerService As IIndentationManagerService
-
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
                 Return p.Name <> PredefinedCodeCleanupProviderNames.Simplification AndAlso
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
 
+        Private ReadOnly _globalOptions As IGlobalOptionService
+        Private ReadOnly _indentationManager As IIndentationManagerService
+
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(indentationManagerService As IIndentationManagerService)
-            _indentationManagerService = indentationManagerService
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New(globalOptions As IGlobalOptionService, indentationManager As IIndentationManagerService)
+            _globalOptions = globalOptions
+            _indentationManager = indentationManager
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -52,13 +57,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
                 dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
 
-                Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
+                ' user indefinitely while getting full semantics for this projects (which can require building all
+                ' projects we depend on).
+                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
                 If document Is Nothing Then
                     Return
                 End If
 
-                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerService, cancellationToken).WaitAndGetResult(cancellationToken)
-                If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
+                If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 
@@ -68,31 +75,44 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
+                Dim fallbackOptions = _globalOptions.GetVisualBasicSyntaxFormattingOptions()
+                Dim formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
-                                                document,
-                                                documentOptions,
-                                                spanToFormat,
-                                                baseSnapshot, baseTree,
-                                                dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
-                                                cancellationToken)
+                    document,
+                    formattingOptions,
+                    spanToFormat,
+                    baseSnapshot,
+                    baseTree,
+                    dirtyRegion,
+                    document.GetSyntaxTreeSynchronously(cancellationToken),
+                    cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
                                                WhereAsArray(s_codeCleanupPredicate).
                                                Concat(commitFormattingCleanup)
 
+                Dim cleanupService = document.GetRequiredLanguageService(Of ICodeCleanerService)
+                Dim cleanupOptions = document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
+
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
-                    finalDocument = CodeCleaner.CleanupAsync(document,
-                                                             textSpanToFormat,
-                                                             codeCleanups,
-                                                             cancellationToken).WaitAndGetResult(cancellationToken)
+                    finalDocument = cleanupService.CleanupAsync(
+                        document,
+                        ImmutableArray.Create(textSpanToFormat),
+                        cleanupOptions,
+                        codeCleanups,
+                        cancellationToken).WaitAndGetResult(cancellationToken)
                 Else
                     Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
-                    Dim newRoot = CodeCleaner.CleanupAsync(root,
-                                                           textSpanToFormat,
-                                                           document.Project.Solution.Workspace,
-                                                           codeCleanups,
-                                                           cancellationToken).WaitAndGetResult(cancellationToken)
+
+                    Dim newRoot = cleanupService.CleanupAsync(
+                        root,
+                        ImmutableArray.Create(textSpanToFormat),
+                        formattingOptions,
+                        document.Project.Solution.Workspace.Services,
+                        codeCleanups,
+                        cancellationToken).WaitAndGetResult(cancellationToken)
+
                     If root Is newRoot Then
                         finalDocument = document
                     Else
@@ -125,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Shared Function GetCommitFormattingCleanupProvider(
             document As Document,
-            documentOptions As DocumentOptionSet,
+            options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldSnapshot As ITextSnapshot,
             oldTree As SyntaxTree,
@@ -136,47 +156,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldDirtySpan = newDirtySpan.TranslateTo(oldSnapshot, SpanTrackingMode.EdgeInclusive)
 
             ' based on changes made to dirty spans, get right formatting rules to apply
-            Dim rules = GetFormattingRules(document, documentOptions, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
+            Dim rules = GetFormattingRules(document, options, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
 
-            Return New SimpleCodeCleanupProvider(PredefinedCodeCleanupProviderNames.Format,
-                                                 Function(doc, spans, c) FormatAsync(doc, spans, documentOptions, rules, c),
-                                                 Function(r, spans, w, c) Format(r, spans, w, documentOptions, rules, c))
-        End Function
-
-        Private Shared Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
-            ' if old text already exist, use fast path for formatting
-            Dim oldText As SourceText = Nothing
-
-            If document.TryGetText(oldText) Then
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, options, rules, cancellationToken))
-                Return document.WithText(newText)
-            End If
-
-            Return Await Formatter.FormatAsync(document, spans, options, rules, cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Private Shared Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
-            ' if old text already exist, use fast path for formatting
-            Dim oldText As SourceText = Nothing
-
-            If root.SyntaxTree IsNot Nothing AndAlso root.SyntaxTree.TryGetText(oldText) Then
-                Dim changes = Formatter.GetFormattedTextChanges(root, spans, workspace, options, rules, cancellationToken)
-
-                ' no change
-                If changes.Count = 0 Then
-                    Return root
-                End If
-
-                Return root.SyntaxTree.WithChangedText(oldText.WithChanges(changes)).GetRoot(cancellationToken)
-            End If
-
-            Return Formatter.Format(root, spans, workspace, options, rules, cancellationToken)
+            Return New FormatCodeCleanupProvider(rules)
         End Function
 
         Private Shared Function GetFormattingRules(
             document As Document,
-            documentOptions As DocumentOptionSet,
+            options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldDirtySpan As SnapshotSpan,
             oldTree As SyntaxTree,
@@ -228,31 +215,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' for now, do very simple checking. basically, we see whether we get same number of indent operation for the give span. alternative, but little bit
             ' more expensive and complex, we can actually calculate indentation right after the span, and see whether that is changed. not sure whether that much granularity
             ' is needed.
-            If GetNumberOfIndentOperations(document, documentOptions, oldTree, oldDirtySpan, cancellationToken) =
-               GetNumberOfIndentOperations(document, documentOptions, newTree, newDirtySpan, cancellationToken) Then
+            If GetNumberOfIndentOperations(document, options, oldTree, oldDirtySpan, cancellationToken) =
+               GetNumberOfIndentOperations(document, options, newTree, newDirtySpan, cancellationToken) Then
                 Return (New NoAnchorFormatterRule()).Concat(Formatter.GetDefaultFormattingRules(document))
             End If
 
             Return Formatter.GetDefaultFormattingRules(document)
         End Function
 
-        Private Shared Function GetNumberOfIndentOperations(document As Document,
-                                                     documentOptions As DocumentOptionSet,
-                                                     SyntaxTree As SyntaxTree,
-                                                     Span As SnapshotSpan,
-                                                     CancellationToken As CancellationToken) As Integer
+        Private Shared Function GetNumberOfIndentOperations(
+            document As Document,
+            options As SyntaxFormattingOptions,
+            syntaxTree As SyntaxTree,
+            span As SnapshotSpan,
+            cancellationToken As CancellationToken) As Integer
 
             ' find containing statement of the end point, and use its end point as position to get indent operation
-            Dim containingStatement = ContainingStatementInfo.GetInfo(Span.End, SyntaxTree, CancellationToken)
-            Dim endPosition = If(containingStatement Is Nothing, Span.End.Position + 1, containingStatement.TextSpan.End + 1)
+            Dim containingStatement = ContainingStatementInfo.GetInfo(span.End, syntaxTree, cancellationToken)
+            Dim endPosition = If(containingStatement Is Nothing, span.End.Position + 1, containingStatement.TextSpan.End + 1)
 
             ' get token right after given span
-            Dim token = SyntaxTree.GetRoot(CancellationToken).FindToken(Math.Min(endPosition, SyntaxTree.GetRoot(CancellationToken).FullSpan.End))
+            Dim token = syntaxTree.GetRoot(cancellationToken).FindToken(Math.Min(endPosition, syntaxTree.GetRoot(cancellationToken).FullSpan.End))
 
             Dim node = token.Parent
-
-            Dim optionService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IOptionService)()
-            Dim options = documentOptions.AsAnalyzerConfigOptions(optionService, node?.Language)
 
             ' collect all indent operation
             Dim operations = New List(Of IndentBlockOperation)()

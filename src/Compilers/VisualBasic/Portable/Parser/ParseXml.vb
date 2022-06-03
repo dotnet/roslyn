@@ -13,7 +13,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Parser.cpp
         ' Lines: 13261 - 13261
@@ -2422,7 +2422,7 @@ TryResync:
 
     Friend Structure XmlContext
         Private ReadOnly _start As XmlElementStartTagSyntax
-        Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
+        Private ReadOnly _content As SyntaxListBuilder(Of XmlNodeSyntax)
         Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MakeAnonymousFunctionStatic
     {
         public MakeAnonymousFunctionStaticAnalyzer()
             : base(IDEDiagnosticIds.MakeAnonymousFunctionStaticDiagnosticId,
+                   EnforceOnBuildValues.MakeAnonymousFunctionStatic,
                    CSharpCodeStyleOptions.PreferStaticAnonymousFunction,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_anonymous_function_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -32,22 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MakeAnonymousFunctionStatic
         {
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)context.Node;
             if (anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
-            {
                 return;
-            }
 
             var syntaxTree = context.Node.SyntaxTree;
             if (!MakeAnonymousFunctionStaticHelper.IsStaticAnonymousFunctionSupported(syntaxTree))
-            {
                 return;
-            }
 
-            var cancellationToken = context.CancellationToken;
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, syntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferStaticAnonymousFunction;
             if (!option.Value)
-            {
                 return;
-            }
 
             var semanticModel = context.SemanticModel;
             if (MakeAnonymousFunctionStaticHelper.TryGetCaputuredSymbols(anonymousFunction, semanticModel, out var captures) && captures.Length == 0)

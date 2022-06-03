@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly string _newString;
 
-            public FormattedWhitespace(AnalyzerConfigOptions options, int lineBreaks, int indentation, string language)
+            public FormattedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, string language)
                 : base(options, language)
             {
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
 
-                _newString = CreateString(this.Options.GetOption(FormattingOptions2.NewLine));
+                _newString = CreateString(Options.NewLine);
             }
 
             private string CreateString(string newLine)
@@ -33,17 +31,17 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (this.SecondTokenIsFirstTokenOnLine)
                 {
                     var builder = StringBuilderPool.Allocate();
-                    for (var i = 0; i < this.LineBreaks; i++)
+                    for (var i = 0; i < LineBreaks; i++)
                     {
                         builder.Append(newLine);
                     }
 
-                    builder.AppendIndentationString(this.Spaces, this.Options.GetOption(FormattingOptions2.UseTabs), this.Options.GetOption(FormattingOptions2.TabSize));
+                    builder.AppendIndentationString(Spaces, Options.UseTabs, Options.TabSize);
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 
                 // space case. always use space
-                return new string(' ', this.Spaces);
+                return new string(' ', Spaces);
             }
 
             public override bool TreatAsElastic => false;

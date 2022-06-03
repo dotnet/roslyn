@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -22,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveConfusingSuppression), Shared]
     internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider : CodeFixProvider
     {
         public const string RemoveOperator = nameof(RemoveOperator);
@@ -37,9 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId);
 
-        public override FixAllProvider GetFixAllProvider()
-            => new CSharpRemoveConfusingSuppressionFixAllProvider();
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
@@ -47,14 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             var cancellationToken = context.CancellationToken;
 
             context.RegisterCodeFix(
-                new MyCodeAction(
+                CodeAction.Create(
                     CSharpAnalyzersResources.Remove_operator_preserves_semantics,
                     c => FixAllAsync(document, diagnostics, negate: false, c),
                     RemoveOperator),
                 context.Diagnostics);
 
             context.RegisterCodeFix(
-                new MyCodeAction(
+                CodeAction.Create(
                     CSharpAnalyzersResources.Negate_expression_changes_semantics,
                     c => FixAllAsync(document, diagnostics, negate: true, c),
                     NegateExpression),
@@ -67,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             Document document, ImmutableArray<Diagnostic> diagnostics,
             bool negate, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
@@ -103,12 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
+                await FixAllAsync(
+                    document, diagnostics,
+                    context.CodeActionEquivalenceKey == NegateExpression,
+                    context.CancellationToken).ConfigureAwait(false));
     }
 }

@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.OrderModifiers;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 {
     internal class CSharpOrderModifiersHelper : AbstractOrderModifiersHelpers
     {
-        public static readonly CSharpOrderModifiersHelper Instance = new CSharpOrderModifiersHelper();
+        public static readonly CSharpOrderModifiersHelper Instance = new();
 
         private CSharpOrderModifiersHelper()
         {
@@ -21,12 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
             return (int)(kind == SyntaxKind.None ? SyntaxFacts.GetContextualKeywordKind(trimmed) : kind);
         }
 
-        protected override bool TryParse(string value, out Dictionary<int, int> parsed)
+        protected override bool TryParse(string value, [NotNullWhen(true)] out Dictionary<int, int>? parsed)
         {
             if (!base.TryParse(value, out parsed))
-            {
                 return false;
-            }
 
             // 'partial' must always go at the end in C#.
             parsed[(int)SyntaxKind.PartialKeyword] = int.MaxValue;

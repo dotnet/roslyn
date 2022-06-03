@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -183,7 +185,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.FailsPEVerify, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -256,7 +258,8 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.FailsPEVerify, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -336,7 +339,8 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.FailsPEVerify, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {

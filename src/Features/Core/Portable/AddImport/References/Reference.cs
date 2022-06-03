@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -99,10 +102,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public abstract Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+                Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken);
 
             protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
             {
                 var originalDocument = document;
 
@@ -110,10 +113,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     node, document, cancellationToken).ConfigureAwait(false);
 
                 var newDocument = await provider.AddImportAsync(
-                    node, SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    node, SearchResult.NameParts, document, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                    newDocument, cancellationToken).ConfigureAwait(false);
+                    newDocument, options, cancellationToken).ConfigureAwait(false);
 
                 var textChanges = await cleanedDocument.GetTextChangesAsync(
                     originalDocument, cancellationToken).ConfigureAwait(false);

@@ -2,43 +2,76 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
     internal abstract class AbstractSemanticModelReuseLanguageService<
+        TMemberDeclarationSyntax,
         TBaseMethodDeclarationSyntax,
-        TAccessorDeclarationSyntax,
-        TPropertyDeclarationSyntax,
-        TEventDeclarationSyntax> : ISemanticModelReuseLanguageService
-        where TBaseMethodDeclarationSyntax : SyntaxNode
+        TBasePropertyDeclarationSyntax,
+        TAccessorDeclarationSyntax> : ISemanticModelReuseLanguageService
+        where TMemberDeclarationSyntax : SyntaxNode
+        where TBaseMethodDeclarationSyntax : TMemberDeclarationSyntax
+        where TBasePropertyDeclarationSyntax : TMemberDeclarationSyntax
         where TAccessorDeclarationSyntax : SyntaxNode
-        where TPropertyDeclarationSyntax : SyntaxNode
-        where TEventDeclarationSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Used to make sure we only report one watson per sessoin here.
+        /// </summary>
+        private static bool s_watsonReported;
+
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public abstract SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node);
 
         protected abstract Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken);
-        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TPropertyDeclarationSyntax property);
-        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TEventDeclarationSyntax @event);
+        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TBasePropertyDeclarationSyntax baseProperty);
+        protected abstract TBasePropertyDeclarationSyntax GetBasePropertyDeclaration(TAccessorDeclarationSyntax accessor);
 
-        public Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
+        public async Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
         {
             var previousSyntaxTree = previousSemanticModel.SyntaxTree;
             var currentSyntaxTree = currentBodyNode.SyntaxTree;
 
-            // This operation is only valid if top-level equivalent trees were passed in.
-            Contract.ThrowIfFalse(previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true));
-            return TryGetSpeculativeSemanticModelWorkerAsync(previousSemanticModel, currentBodyNode, cancellationToken);
+            // This operation is only valid if top-level equivalent trees were passed in.  If they're not equivalent
+            // then something very bad happened as we did that document.Project.GetDependentSemanticVersionAsync was
+            // still the same.  So somehow w don't have top-level equivalence, but we do have the same semantic version.
+            //
+            // log a NFW to help diagnose what the source looks like as it may help us determine what sort of edit is
+            // causing this.
+            if (!previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true))
+            {
+                if (!s_watsonReported)
+                {
+                    s_watsonReported = true;
+
+                    try
+                    {
+                        throw new InvalidOperationException(
+                            $@"Syntax trees should have been equivalent.
+---
+{previousSyntaxTree.GetText(CancellationToken.None)}
+---
+{currentSyntaxTree.GetText(CancellationToken.None)}
+---");
+
+                    }
+                    catch (Exception e) when (FatalError.ReportAndCatch(e))
+                    {
+                    }
+                }
+
+                return null;
+            }
+
+            return await TryGetSpeculativeSemanticModelWorkerAsync(
+                previousSemanticModel, currentBodyNode, cancellationToken).ConfigureAwait(false);
         }
 
         protected SyntaxNode GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
@@ -48,11 +81,17 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 // in the case of an accessor, have to find the previous accessor in the previous prop/event corresponding
                 // to the current prop/event.
 
-                var currentContainer = currentBodyNode.Ancestors().First(a => a is TEventDeclarationSyntax || a is TPropertyDeclarationSyntax);
+                var currentContainer = GetBasePropertyDeclaration(currentAccessor);
                 var previousContainer = GetPreviousBodyNode(previousRoot, currentRoot, currentContainer);
 
+                if (previousContainer is not TBasePropertyDeclarationSyntax previousMember)
+                {
+                    Debug.Fail("Previous container didn't map back to a normal accessor container.");
+                    return null;
+                }
+
                 var currentAccessors = GetAccessors(currentContainer);
-                var previousAccessors = GetAccessors(previousContainer);
+                var previousAccessors = GetAccessors(previousMember);
 
                 if (currentAccessors.Count != previousAccessors.Count)
                 {
@@ -81,16 +120,6 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                 return previousMembers[index];
             }
-        }
-
-        private SyntaxList<TAccessorDeclarationSyntax> GetAccessors(SyntaxNode container)
-        {
-            return container switch
-            {
-                TPropertyDeclarationSyntax currentProperty => GetAccessors(currentProperty),
-                TEventDeclarationSyntax currentEvent => GetAccessors(currentEvent),
-                _ => throw ExceptionUtilities.Unreachable,
-            };
         }
     }
 }

@@ -2,10 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,8 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
-        private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features.AddParts(
-            typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
+        private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(
+                typeof(MockDiagnosticUpdateSourceRegistrationService),
+                typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         private static readonly TestComposition s_composition = s_compositionWithoutOptions.AddParts(
             typeof(TestMoveToNamespaceOptionsService));
@@ -49,6 +59,20 @@ namespace A
     {
     }
 }",
+expectedSuccess: false);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        public Task MoveToNamespace_MoveItems_CaretAboveNamespace_FileScopedNamespace()
+            => TestMoveToNamespaceAsync(
+@"using System;
+[||]
+namespace A;
+
+class MyClass
+{
+}
+",
 expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
@@ -188,6 +212,19 @@ expectedSymbolChanges: new Dictionary<string, string>()
         void Method() { }
     }
 }",
+expectedSuccess: false);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        public Task MoveToNamespace_MoveItems_CaretAfterFileScopedNamespaceSemicolon()
+        => TestMoveToNamespaceAsync(
+@"namespace A;  [||]
+
+class MyClass
+{
+    void Method() { }
+}
+",
 expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
@@ -365,6 +402,29 @@ expectedMarkup: @$"namespace {{|Warning:B|}}
     {{
     }}
 }}",
+targetNamespace: "B",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"A.MyType", "B.MyType" }
+});
+
+        [Theory, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(59716, "https://github.com/dotnet/roslyn/issues/59716")]
+        [MemberData(nameof(SupportedKeywords))]
+        public Task MoveToNamespace_MoveType_Single_FileScopedNamespace(string typeKeyword)
+        => TestMoveToNamespaceAsync(
+@$"namespace A;
+
+{typeKeyword} MyType[||]
+{{
+}}
+",
+expectedMarkup: @$"namespace {{|Warning:B|}};
+
+{typeKeyword} MyType
+{{
+}}
+",
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -1117,6 +1177,7 @@ class MyClass
             var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                 testState.InvocationDocument,
                 testState.TestInvocationDocument.SelectedSpans.Single(),
+                CodeActionOptions.DefaultProvider,
                 CancellationToken.None);
 
             Assert.Empty(actions);
@@ -1271,9 +1332,9 @@ namespace B
             var moveToNamespaceOptions = new MoveToNamespaceOptionsResult("B");
             ((TestMoveToNamespaceOptionsService)movenamespaceService.OptionsService).SetOptions(moveToNamespaceOptions);
 
-            var (_, action) = await GetCodeActionsAsync(workspace, default);
-            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
-            var result = ApplyOperationsAndGetSolution(workspace, operations);
+            var (_, action) = await GetCodeActionsAsync(workspace);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
+            var result = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
 
             // Make sure both linked documents are changed.
             foreach (var id in workspace.Documents.Select(d => d.Id))
@@ -1284,5 +1345,29 @@ namespace B
                 Assert.Equal(expected, actualText);
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(35507, "https://github.com/dotnet/roslyn/issues/35507")]
+        public Task MoveToNamespace_MoveTypeFromSystemNamespace()
+            => TestMoveToNamespaceAsync(
+@"namespace System
+{
+    [||]class A
+    {
+
+    }
+}",
+expectedMarkup: @"namespace {|Warning:Test|}
+{
+    [||]class A
+    {
+
+    }
+}",
+targetNamespace: "Test",
+expectedSymbolChanges: new Dictionary<string, string>()
+{
+    {"System.A", "Test.A" }
+});
     }
 }

@@ -2,19 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Humanizer;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
+        private const string DefaultBuildInParameterName = "v";
+
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticMap.From(semanticModel, node, cancellationToken);
 
@@ -89,10 +93,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
-            Workspace workspace,
+            HostWorkspaceServices services,
             CancellationToken cancellationToken)
         {
-            var languageServices = workspace.Services.GetLanguageServices(token.Language);
+            var languageServices = services.GetLanguageServices(token.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             if (!syntaxFacts.IsBindableToken(token))
             {
@@ -170,6 +174,74 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
+        }
+
+        public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
+        {
+            var pluralize = semanticModel.ShouldPluralize(type);
+            var typeArguments = type.GetAllTypeArguments();
+
+            // We may be able to use the type's arguments to generate a name if we're working with an enumerable type.
+            if (pluralize && TryGeneratePluralizedNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
+            {
+                return typeArgumentParameterName;
+            }
+
+            // If there's no type argument and we have an array type, we should pluralize, e.g. using 'frogs' for 'new Frog[]' instead of 'frog'
+            if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
+            {
+                return type.CreateParameterName(capitalize).Pluralize();
+            }
+
+            // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
+            // plural forms
+            if (type.IsSpecialType() ||
+                type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                type.TypeKind == TypeKind.Pointer)
+            {
+                return capitalize ? DefaultBuildInParameterName.ToUpper() : DefaultBuildInParameterName;
+            }
+            else
+            {
+                return type.CreateParameterName(capitalize);
+            }
+        }
+
+        private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)
+        {
+            if (type == null)
+                return false;
+
+            // string implements IEnumerable<char>, so we need to specifically exclude it.
+            if (type.SpecialType == SpecialType.System_String)
+                return false;
+
+            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
+        }
+
+        private static bool TryGeneratePluralizedNameFromTypeArgument(
+            ISyntaxFacts syntaxFacts,
+            ImmutableArray<ITypeSymbol> typeArguments,
+            bool capitalize,
+            [NotNullWhen(true)] out string? parameterName)
+        {
+            // We only consider generating a name if there's one type argument.
+            // This logic can potentially be expanded upon in the future.
+            if (typeArguments.Length == 1)
+            {
+                // We only want the last part of the type, i.e. we don't want namespaces.
+                var typeArgument = typeArguments.Single().ToDisplayParts().Last().ToString();
+                if (syntaxFacts.IsValidIdentifier(typeArgument))
+                {
+                    typeArgument = typeArgument.Pluralize();
+                    parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
+                    return true;
+                }
+            }
+
+            parameterName = null;
+            return false;
         }
     }
 }

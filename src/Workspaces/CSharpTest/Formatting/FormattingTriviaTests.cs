@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -1742,12 +1746,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NewLineOptions_LineFeedOnly()
         {
+            using var workspace = new AdhocWorkspace();
             var tree = SyntaxFactory.ParseCompilationUnit("class C\r\n{\r\n}");
 
             // replace all EOL trivia with elastic markers to force the formatter to add EOL back
             tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.EndOfLineTrivia)), (o, r) => SyntaxFactory.ElasticMarker);
 
-            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"));
+            var options = new CSharpSyntaxFormattingOptions()
+            {
+                Common = new SyntaxFormattingOptions.CommonOptions { LineFormatting = new LineFormattingOptions { NewLine = "\n" } }
+            };
+
+            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             var expected = "class C\n{\n}";
@@ -1788,7 +1798,17 @@ class F
                                                                                                               .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                                                               .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
 
-            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true));
+            using var workspace = new AdhocWorkspace();
+
+            var options = new CSharpSyntaxFormattingOptions()
+            {
+                Common = new SyntaxFormattingOptions.CommonOptions
+                {
+                    LineFormatting = new LineFormattingOptions { UseTabs = true }
+                }
+            };
+
+            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);

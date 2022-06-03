@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,8 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-
-#pragma warning disable IDE0060 // Remove unused parameter - Majority of extension methods in this file have an unused 'SyntaxTree' this parameter for consistency with other Context related extension methods.
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,7 +13,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed partial class FunctionPointerTypeSymbol : IFunctionPointerTypeReference
+    internal sealed partial class
+#if DEBUG
+        FunctionPointerTypeSymbolAdapter : SymbolAdapter,
+#else
+        FunctionPointerTypeSymbol :
+#endif 
+        IFunctionPointerTypeReference
     {
         private FunctionPointerMethodSignature? _lazySignature;
         ISignature IFunctionPointerTypeReference.Signature
@@ -23,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazySignature is null)
                 {
-                    Interlocked.CompareExchange(ref _lazySignature, new FunctionPointerMethodSignature(Signature), null);
+                    Interlocked.CompareExchange(ref _lazySignature, new FunctionPointerMethodSignature(AdaptedFunctionPointerTypeSymbol.Signature), null);
                 }
 
                 return _lazySignature;
@@ -44,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
         ITypeDefinition? ITypeReference.AsTypeDefinition(EmitContext context) => null;
         ITypeDefinition? ITypeReference.GetResolvedType(EmitContext context) => null;
+        bool ITypeReference.IsValueType => AdaptedFunctionPointerTypeSymbol.IsValueType;
+
         IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context) => SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
         IDefinition? IReference.AsDefinition(EmitContext context) => null;
 
@@ -52,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// as a StandaloneMethodSig. To do this, we wrap the <see cref="FunctionPointerMethodSymbol"/> in a
         /// <see cref="FunctionPointerMethodSignature"/>, to hide its implementation of <see cref="IMethodSymbol"/>.
         /// </summary>
-        private sealed class FunctionPointerMethodSignature : ISignature, ISymbolCompareKindComparableInternal
+        private sealed class FunctionPointerMethodSignature : ISignature
         {
             private readonly FunctionPointerMethodSymbol _underlying;
-            internal ISignature Underlying => _underlying;
+            internal ISignature Underlying => _underlying.GetCciAdapter();
 
             internal FunctionPointerMethodSignature(FunctionPointerMethodSymbol underlying)
             {
@@ -74,18 +81,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool Equals(object? obj)
             {
-                return obj is FunctionPointerMethodSignature { Underlying: var otherUnderlying } &&
-                    Underlying.Equals(otherUnderlying);
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw ExceptionUtilities.Unreachable;
             }
 
-            bool ISymbolCompareKindComparableInternal.Equals(ISymbolCompareKindComparableInternal? other, TypeCompareKind compareKind)
-            {
-                return other is FunctionPointerMethodSignature otherSig && _underlying.Equals(otherSig._underlying, compareKind);
-            }
-
-            public override int GetHashCode() => Underlying.GetHashCode();
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            public override int GetHashCode() => throw ExceptionUtilities.Unreachable;
 
             public override string ToString() => _underlying.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
         }
     }
+
+    internal partial class FunctionPointerTypeSymbol
+    {
+#if DEBUG
+        private FunctionPointerTypeSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new FunctionPointerTypeSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new FunctionPointerTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol => this;
+
+        internal new FunctionPointerTypeSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif 
+    }
+
+#if DEBUG
+    internal partial class FunctionPointerTypeSymbolAdapter
+    {
+        internal FunctionPointerTypeSymbolAdapter(FunctionPointerTypeSymbol underlyingFunctionPointerTypeSymbol)
+        {
+            AdaptedFunctionPointerTypeSymbol = underlyingFunctionPointerTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedFunctionPointerTypeSymbol;
+        internal FunctionPointerTypeSymbol AdaptedFunctionPointerTypeSymbol { get; }
+    }
+#endif
 }

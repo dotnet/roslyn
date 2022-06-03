@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -22,9 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal const string Custom = "Custom";
 
-        internal const string Test = nameof(Test);
-        internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
+        internal const string CloudEnvironmentClientWorkspace = nameof(CloudEnvironmentClientWorkspace);
         internal const string RemoteWorkspace = nameof(RemoteWorkspace);
-        internal const string RemoteTemporaryWorkspace = nameof(RemoteTemporaryWorkspace);
     }
 }

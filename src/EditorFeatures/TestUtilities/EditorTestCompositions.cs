@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Fakes;
+using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -53,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // Microsoft.VisualStudio.Text.Internal
                 typeof(VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly)
             .AddParts(
+                typeof(TestSerializerService.Factory),
                 typeof(TestExportJoinableTaskContext),
                 typeof(StubStreamingFindUsagesPresenter), // actual implementation is in VS layer
                 typeof(EditorNotificationServiceFactory), // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)
@@ -64,14 +64,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TextEditorResources).Assembly,
                 typeof(EditorFeaturesResources).Assembly,
                 typeof(CSharp.CSharpEditorResources).Assembly,
-                typeof(VisualBasic.VBEditorResources).Assembly)
-            .AddParts(
-                typeof(TestWaitIndicator));
+                typeof(VisualBasic.VBEditorResources).Assembly,
+                typeof(LanguageServerResources).Assembly);
 
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
-                typeof(EditorFeaturesWpfResources).Assembly,
-                typeof(CSharp.CSharpEditorWpfResources).Assembly);
+                typeof(EditorFeaturesWpfResources).Assembly);
 
         public static readonly TestComposition InteractiveWindow = EditorFeaturesWpf
             .AddAssemblies(
@@ -79,14 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             .AddParts(
                 typeof(TestInteractiveWindowEditorFactoryService));
 
-        public static readonly TestComposition LanguageServerProtocol = EditorFeatures
-            .AddAssemblies(
-                typeof(LanguageServerResources).Assembly);
-
-        public static readonly TestComposition LanguageServerProtocolWpf = EditorFeaturesWpf
-            .AddAssemblies(LanguageServerProtocol.Assemblies);
-
-        public static TestComposition WithTestHostParts(this TestComposition composition, TestHost host)
-            => (host == TestHost.InProcess) ? composition : composition.AddParts(typeof(InProcRemoteHostClientProvider.Factory));
+        public static readonly TestComposition LanguageServerProtocol = EditorFeatures;
     }
 }

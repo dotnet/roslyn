@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
 
+            return RegionAnalysisContext((CSharpSyntaxNode)expression);
+        }
+
+        private RegionAnalysisContext RegionAnalysisContext(CSharpSyntaxNode expression)
+        {
             var memberModel = GetMemberModel(expression);
             if (memberModel == null)
             {

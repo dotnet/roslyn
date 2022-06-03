@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -28,6 +31,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpRename(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(CSharpRename))
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
+            // reset relevant global options to default values:
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInComments, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInStrings, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameOverloads, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile, language: null, value: true);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
@@ -603,14 +618,15 @@ class Program
 
             VisualStudio.Editor.SendKeys(VirtualKey.Home, VirtualKey.Delete, VirtualKey.P, VirtualKey.Enter);
 
-            VisualStudio.SolutionExplorer.Verify.FileContents(project, "program.cs",
-@"
+            AssertEx.EqualOrDiff(
+                @"
 class program
 {
     static void Main(string[] args)
     {
     }
-}");
+}",
+                VisualStudio.SolutionExplorer.GetFileContents(project, "program.cs"));
         }
     }
 }

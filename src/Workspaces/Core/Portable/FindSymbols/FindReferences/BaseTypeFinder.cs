@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -11,10 +14,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 {
     internal static partial class BaseTypeFinder
     {
-        public static ImmutableArray<ISymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
-            => FindBaseTypes(type).AddRange(type.AllInterfaces).CastArray<ISymbol>();
+        public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
+            => FindBaseTypes(type).AddRange(type.AllInterfaces);
 
-        public static ImmutableArray<ISymbol> FindOverriddenAndImplementedMembers(
+        public static async ValueTask<ImmutableArray<ISymbol>> FindOverriddenAndImplementedMembersAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             var results = ArrayBuilder<ISymbol>.GetInstance();
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Add to results overridden members only. Do not add hidden members.
-                    if (SymbolFinder.IsOverride(solution, symbol, member))
+                    if (await SymbolFinder.IsOverrideAsync(solution, symbol, member, cancellationToken).ConfigureAwait(false))
                     {
                         results.Add(member);
 

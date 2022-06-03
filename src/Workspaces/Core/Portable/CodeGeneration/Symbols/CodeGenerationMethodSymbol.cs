@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,9 +31,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> returnTypeAttributes,
+            string documentationCommentXml = null,
             MethodKind methodKind = MethodKind.Ordinary,
             bool isInitOnly = false)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
+            : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes, documentationCommentXml)
         {
             this.ReturnType = returnType;
             this.RefKind = refKind;
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
                 this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
-                this.MethodKind, this.IsInitOnly);
+                _documentationCommentXml, this.MethodKind, this.IsInitOnly);
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),
@@ -97,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsReadOnly => Modifiers.IsReadOnly;
         public override bool IsInitOnly { get; }
 
+        public override System.Reflection.MethodImplAttributes MethodImplementationFlags => default;
+
         public override IMethodSymbol OverriddenMethod => null;
 
         public override IMethodSymbol ReducedFrom => null;
@@ -110,5 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol PartialImplementationPart => null;
 
         public override IMethodSymbol PartialDefinitionPart => null;
+
+        public override bool IsPartialDefinition => false;
     }
 }

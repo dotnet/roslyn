@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -23,8 +22,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
 
-        private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty.AddAssemblies(MefHostServices.DefaultAssemblies);
-        internal static readonly TestComposition RemoteHostExportProviderComposition = TestComposition.Empty.AddAssemblies(RoslynServices.RemoteHostAssemblies);
+        private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
+            .AddAssemblies(MefHostServices.DefaultAssemblies)
+            .AddParts(typeof(TestSerializerService.Factory));
 
         private static bool _enabled;
 
@@ -51,16 +51,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public static IExportProviderFactory GetOrCreateExportProviderFactory(IEnumerable<Assembly> assemblies)
         {
-            if (assemblies is ImmutableArray<Assembly> assembliesArray)
+            if (assemblies is ImmutableArray<Assembly> assembliesArray &&
+                assembliesArray == MefHostServices.DefaultAssemblies)
             {
-                if (assembliesArray == MefHostServices.DefaultAssemblies)
-                {
-                    return s_defaultHostExportProviderComposition.ExportProviderFactory;
-                }
-                else if (assembliesArray == RoslynServices.RemoteHostAssemblies)
-                {
-                    return RemoteHostExportProviderComposition.ExportProviderFactory;
-                }
+                return s_defaultHostExportProviderComposition.ExportProviderFactory;
             }
 
             return CreateExportProviderFactory(CreateAssemblyCatalog(assemblies), isRemoteHostComposition: false);

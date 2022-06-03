@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // while keeping the rarely executed code in a separate method.
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
+        internal static IEnumerable<T> RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
         {
             if (sequence == null)
             {
@@ -37,6 +35,8 @@ namespace Microsoft.CodeAnalysis
             {
                 ThrowArgumentItemNullException(sequence, argumentName);
             }
+
+            return sequence;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

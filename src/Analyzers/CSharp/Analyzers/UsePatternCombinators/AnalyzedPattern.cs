@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -25,9 +24,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         /// </summary>
         internal sealed class Type : AnalyzedPattern
         {
+            private static readonly SyntaxAnnotation s_annotation = new();
+
+            public static Type? TryCreate(BinaryExpressionSyntax binaryExpression, IIsTypeOperation operation)
+            {
+                Contract.ThrowIfNull(operation.SemanticModel);
+                if (binaryExpression.Right is not TypeSyntax typeSyntax)
+                {
+                    return null;
+                }
+
+                // We are coming from a type pattern, which likes to bind to types, but converting to
+                // patters which like to bind to expressions. For example, given:
+                //
+                // if (T is C.X || T is Y) { }
+                //
+                // we would want to convert to:
+                //
+                // if (T is C.X or Y)
+                //
+                // In the first case the compiler will bind to types named C or Y that are in scope
+                // but in the second it will also bind to a fields, methods etc. which for 'Y' changes
+                // semantics, and for 'C.X' could be a compile error.
+                //
+                // So lets create a pattern syntax and make sure the result is the same
+                var dummyStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName("_"),
+                    SyntaxFactory.IsPatternExpression(
+                        binaryExpression.Left,
+                        SyntaxFactory.ConstantPattern(SyntaxFactory.ParenthesizedExpression(binaryExpression.Right.WithAdditionalAnnotations(s_annotation)))
+                    )
+                ));
+
+                if (operation.SemanticModel.TryGetSpeculativeSemanticModel(typeSyntax.SpanStart, dummyStatement, out var speculativeModel))
+                {
+                    var originalInfo = operation.SemanticModel.GetTypeInfo(binaryExpression.Right);
+                    var newInfo = speculativeModel.GetTypeInfo(dummyStatement.GetAnnotatedNodes(s_annotation).Single());
+                    if (!originalInfo.Equals(newInfo))
+                    {
+                        return null;
+                    }
+                }
+
+                return new Type(typeSyntax, operation.ValueOperand);
+            }
+
             public readonly TypeSyntax TypeSyntax;
 
-            public Type(TypeSyntax type, IOperation target) : base(target)
+            private Type(TypeSyntax type, IOperation target) : base(target)
                 => TypeSyntax = type;
         }
 
@@ -88,8 +133,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             public static AnalyzedPattern? TryCreate(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
             {
-                var target = leftPattern.Target;
-                if (!SyntaxFactory.AreEquivalent(target.Syntax, rightPattern.Target.Syntax))
+                var leftTarget = leftPattern.Target;
+                var rightTarget = rightPattern.Target;
+
+                var leftConv = (leftTarget as IConversionOperation)?.Conversion;
+                var rightConv = (rightTarget as IConversionOperation)?.Conversion;
+
+                var target = (leftConv, rightConv) switch
+                {
+                    ({ IsUserDefined: true }, _) or
+                    (_, { IsUserDefined: true }) => null,
+
+                    // If the original targets are implicitly converted due to usage of operators,
+                    // both targets must have been converted to the same type, otherwise we bail.
+                    ({ IsImplicit: true }, { IsImplicit: true }) when !Equals(leftTarget.Type, rightTarget.Type) => null,
+
+                    // If either of targets are implicitly converted but not both,
+                    // we take the conversion node so that we can generate a cast off of it.
+                    (null, { IsImplicit: true }) => rightTarget,
+                    ({ IsImplicit: true }, null) => leftTarget,
+
+                    // If no implicit conversion is present, we just pick either side and continue.
+                    _ => leftTarget,
+                };
+
+                if (target is null)
+                    return null;
+
+                var compareTarget = target == leftTarget ? rightTarget : leftTarget;
+                if (!SyntaxFactory.AreEquivalent(target.Syntax, compareTarget.Syntax))
                     return null;
 
                 return new Binary(leftPattern, rightPattern, isDisjunctive, token, target);

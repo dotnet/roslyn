@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override AnnotationResolver GetAnnotationResolver(SyntaxNode callsite, SyntaxNode method)
             {
-                var isMethodOrLocalFunction = method is MethodDeclarationSyntax || method is LocalFunctionStatementSyntax;
+                var isMethodOrLocalFunction = method is MethodDeclarationSyntax or LocalFunctionStatementSyntax;
                 if (callsite == null || !isMethodOrLocalFunction)
                 {
                     return null;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override TriviaResolver GetTriviaResolver(SyntaxNode method)
             {
-                var isMethodOrLocalFunction = method is MethodDeclarationSyntax || method is LocalFunctionStatementSyntax;
+                var isMethodOrLocalFunction = method is MethodDeclarationSyntax or LocalFunctionStatementSyntax;
                 if (!isMethodOrLocalFunction)
                 {
                     return null;
@@ -158,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private static IEnumerable<SyntaxTrivia> AppendLeadingTrivia(PreviousNextTokenPair tokenPair)
             {
-                if (tokenPair.PreviousToken.RawKind == (int)SyntaxKind.OpenBraceToken ||
-                    tokenPair.PreviousToken.RawKind == (int)SyntaxKind.SemicolonToken)
+                if (tokenPair.PreviousToken.RawKind is ((int)SyntaxKind.OpenBraceToken) or
+                    ((int)SyntaxKind.SemicolonToken))
                 {
                     return tokenPair.NextToken.LeadingTrivia;
                 }
@@ -169,8 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private static IEnumerable<SyntaxTrivia> AppendTrailingTrivia(PreviousNextTokenPair tokenPair)
             {
-                if (tokenPair.PreviousToken.RawKind == (int)SyntaxKind.OpenBraceToken ||
-                    tokenPair.PreviousToken.RawKind == (int)SyntaxKind.SemicolonToken)
+                if (tokenPair.PreviousToken.RawKind is ((int)SyntaxKind.OpenBraceToken) or
+                    ((int)SyntaxKind.SemicolonToken))
                 {
                     return tokenPair.PreviousToken.TrailingTrivia;
                 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -154,9 +156,10 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             CodeRefactoringContext context, TextSpan expandedSpan, string replacement)
         {
             context.RegisterRefactoring(
-                new MyCodeAction(
+                CodeAction.Create(
                     string.Format(FeaturesResources.Use_0, replacement),
-                    c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)),
+                    c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c),
+                    nameof(FeaturesResources.Use_0) + "_" + replacement),
                 expandedSpan);
         }
 
@@ -231,14 +234,6 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

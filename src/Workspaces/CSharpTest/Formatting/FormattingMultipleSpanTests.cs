@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -167,7 +169,8 @@ class A { }";
             var document = project.AddDocument("Document", SourceText.From(""));
 
             var syntaxTree = await document.GetSyntaxTreeAsync();
-            var result = Formatter.Format(await syntaxTree.GetRootAsync(), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
+            var root = await syntaxTree.GetRootAsync();
+            var result = Formatter.Format(root, TextSpan.FromBounds(0, 0), workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         private Task AssertFormatAsync(string content, string expected, OptionsCollection changedOptionSet = null)

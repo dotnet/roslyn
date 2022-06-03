@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -11,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class FixedStatementSyntax
     {
         public FixedStatementSyntax Update(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
-            => Update(attributeLists: default, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
+            => Update(AttributeLists, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
     }
 }
 

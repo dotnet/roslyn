@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
@@ -14,11 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
     Public Class DynamicFileTests
         <WpfFact>
-        Public Sub AddAndRemoveFileWhenDynamicFileInfoProviderProducesNothing()
+        Public Async Function AddAndRemoveFileWhenDynamicFileInfoProviderProducesNothing() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace(
-                    "project",
-                    LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project", LanguageNames.CSharp, CancellationToken.None)
 
                 Const DynamicFileName As String = "DynamicFile.cshtml"
 
@@ -26,14 +24,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 project.RemoveDynamicSourceFile(DynamicFileName)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub AddAndRemoveFileWhenDynamicFileInfoProviderProducesSomething()
+        Public Async Function AddAndRemoveFileWhenDynamicFileInfoProviderProducesSomething() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesFiles))
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace(
-                    "project",
-                    LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project", LanguageNames.CSharp, CancellationToken.None)
 
                 Const DynamicFileName As String = "DynamicFile.cshtml"
 
@@ -49,14 +46,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().Documents)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub AddAndRemoveFileAndAddAgain()
+        Public Async Function DynamicFileNamesAreCaseInsensitive() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesFiles))
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace(
-                    "project",
-                    LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project", LanguageNames.CSharp, CancellationToken.None)
+
+                project.AddDynamicSourceFile("DynamicFile.cshtml", ImmutableArray(Of String).Empty)
+
+                project.RemoveDynamicSourceFile("dynamicfile.cshtml")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AddAndRemoveFileAndAddAgain() As Task
+            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesFiles))
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project", LanguageNames.CSharp, CancellationToken.None)
 
                 Const DynamicFileName As String = "DynamicFile.cshtml"
 
@@ -66,14 +74,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 project.AddDynamicSourceFile(DynamicFileName, ImmutableArray(Of String).Empty)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub AddAndRemoveExtensionlessFile()
+        Public Async Function AddAndRemoveExtensionlessFile() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesFiles))
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace(
-                    "project",
-                    LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project", LanguageNames.CSharp, CancellationToken.None)
 
                 Const DynamicFileName As String = "DynamicFile"
 
@@ -85,7 +92,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().Documents)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace
 

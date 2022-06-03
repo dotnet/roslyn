@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -163,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected static void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
-            if (!bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }

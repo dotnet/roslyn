@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             Document document,
             SyntaxNode leftSide,
             INamedTypeSymbol typeToGenerateIn,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var state = await State.GenerateDeconstructMethodStateAsync(
                     (TService)this, semanticDocument, leftSide, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
 
-                return state != null ? await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false) : ImmutableArray<CodeAction>.Empty;
+                return state != null ? await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false) : ImmutableArray<CodeAction>.Empty;
             }
         }
     }

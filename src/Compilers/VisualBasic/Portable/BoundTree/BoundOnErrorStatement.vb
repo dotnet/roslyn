@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ResumeNext
     End Enum
 
-    Friend Partial Class BoundOnErrorStatement
+    Partial Friend Class BoundOnErrorStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             Me.New(syntax, OnErrorStatementKind.GoToLabel, label, labelExpressionOpt, hasErrors)

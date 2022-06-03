@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public const string SimplifyNamesDiagnosticId = "IDE0001";
         public const string SimplifyMemberAccessDiagnosticId = "IDE0002";
-        public const string RemoveQualificationDiagnosticId = "IDE0003";
+        public const string RemoveThisOrMeQualificationDiagnosticId = "IDE0003";
         public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
         public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
         public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
         public const string UseImplicitTypeDiagnosticId = "IDE0007";
         public const string UseExplicitTypeDiagnosticId = "IDE0008";
-        public const string AddQualificationDiagnosticId = "IDE0009";
+        public const string AddThisOrMeQualificationDiagnosticId = "IDE0009";
         public const string PopulateSwitchStatementDiagnosticId = "IDE0010";
         public const string AddBracesDiagnosticId = "IDE0011";
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string PreferBuiltInOrFrameworkTypeDiagnosticId = "IDE0049";
 
-        public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
+        // public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
 
         public const string RemoveUnusedMembersDiagnosticId = "IDE0051";
         public const string RemoveUnreadMembersDiagnosticId = "IDE0052";
@@ -111,9 +111,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ConvertSwitchStatementToExpressionDiagnosticId = "IDE0066";
 
-        public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
-        public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
-        public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
+        // IDE0067-IDE0069 deprecated in favor of CA2000 and CA2213
+        // public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
+        // public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
+        // public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
 
         public const string UseSystemHashCode = "IDE0070";
 
@@ -140,7 +141,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveConfusingSuppressionForIsExpressionDiagnosticId = "IDE0080";
         public const string RemoveUnnecessaryByValDiagnosticId = "IDE0081";
 
-        public const string MakeAnonymousFunctionStaticDiagnosticId = "IDE0090";
+        public const string ConvertTypeOfToNameOfDiagnosticId = "IDE0082";
+
+        public const string UseNotPatternDiagnosticId = "IDE0083";
+        public const string UseIsNotExpressionDiagnosticId = "IDE0084";
+
+        public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
+
+        public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
+
+        public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
+
+        public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
+
+        public const string MatchFolderAndNamespaceDiagnosticId = "IDE0130";
+
+        public const string SimplifyObjectCreationDiagnosticId = "IDE0140";
+
+        public const string UseNullCheckOverTypeCheckDiagnosticId = "IDE0150";
+
+        public const string UseBlockScopedNamespaceDiagnosticId = "IDE0160";
+        public const string UseFileScopedNamespaceDiagnosticId = "IDE0161";
+
+        public const string SimplifyPropertyPatternDiagnosticId = "IDE0170";
+
+        public const string UseTupleSwapDiagnosticId = "IDE0180";
+
+        // Don't use "IDE0190". It corresponds to the deleted field UseParameterNullCheckingId which was previously shipped.
+
+        public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
+
+        public const string UseTopLevelStatementsId = "IDE0210";
+        public const string UseProgramMainId = "IDE0211";
+
+        public const string ForEachCastDiagnosticId = "IDE0220";
+
+        public const string UseUTF8StringLiteralDiagnosticId = "IDE0230";
+
+        public const string MakeAnonymousFunctionStaticDiagnosticId = "IDE0240";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
@@ -150,8 +188,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InvokeDelegateWithConditionalAccessId = "IDE1005";
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
-        public const string UnboundConstructorId = "IDE1008";
 
         // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
+
+        // Experimental features
+
+        // 2000 range for experimental formatting enforcement
+        public const string MultipleBlankLinesDiagnosticId = "IDE2000";
+        public const string EmbeddedStatementPlacementDiagnosticId = "IDE2001";
+        public const string ConsecutiveBracePlacementDiagnosticId = "IDE2002";
+        public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
+        public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     }
 }

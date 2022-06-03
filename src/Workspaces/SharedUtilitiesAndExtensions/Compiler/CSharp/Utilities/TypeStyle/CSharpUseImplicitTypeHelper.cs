@@ -2,19 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
     {
-        public static readonly CSharpUseImplicitTypeHelper Instance = new CSharpUseImplicitTypeHelper();
+        public static readonly CSharpUseImplicitTypeHelper Instance = new();
 
         private CSharpUseImplicitTypeHelper()
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public override TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             if (typeName.StripRefIfNeeded().IsVar)
             {
@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             return base.AnalyzeTypeName(
-                typeName, semanticModel, optionSet, cancellationToken);
+                typeName, semanticModel, options, cancellationToken);
         }
 
-        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
             var type = variableDeclaration.Type.StripRefIfNeeded();
             if (type.IsVar)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // The base analyzer may impose further limitations
-            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken);
         }
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         internal override bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             Debug.Assert(!typeName.StripRefIfNeeded().IsVar, "'var' special case should have prevented analysis of this variable.");
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 if (AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, initializer,
-                        semanticModel, optionSet, cancellationToken))
+                        semanticModel, options, cancellationToken))
                 {
                     return true;
                 }
@@ -223,9 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // If there was only one member in the group, and it was non-generic itself, then this
             // change is commonly safe to make without having to actually change to `var` and
             // speculatively determine if the change is ok or not.
-            if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
-                !(argument.Parent is ArgumentListSyntax argumentList) ||
-                !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
+            if (declarationExpression.Parent is not ArgumentSyntax argument ||
+                argument.Parent is not ArgumentListSyntax argumentList ||
+                argumentList.Parent is not InvocationExpressionSyntax invocationExpression)
             {
                 return false;
             }
@@ -275,13 +275,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName,
             ExpressionSyntax initializer,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var expression = GetInitializerExpression(initializer);
 
             // var cannot be assigned null
             if (expression.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                return false;
+            }
+
+            // var cannot be used with target typed new
+            if (expression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
             {
                 return false;
             }

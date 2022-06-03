@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -24,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitField(IFieldSymbol symbol)
         {
-            AddAccessibilityIfRequired(symbol);
-            AddMemberModifiersIfRequired(symbol);
-            AddFieldModifiersIfRequired(symbol);
+            AddAccessibilityIfNeeded(symbol);
+            AddMemberModifiersIfNeeded(symbol);
+            AddFieldModifiersIfNeeded(symbol);
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) &&
                 this.isFirstSymbolVisited &&
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitFieldType(symbol);
                 AddSpace();
 
-                AddCustomModifiersIfRequired(symbol.CustomModifiers);
+                AddCustomModifiersIfNeeded(symbol.CustomModifiers);
             }
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType) &&
@@ -119,31 +122,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitProperty(IPropertySymbol symbol)
         {
-            AddAccessibilityIfRequired(symbol);
-            AddMemberModifiersIfRequired(symbol);
+            AddAccessibilityIfNeeded(symbol);
+            AddMemberModifiersIfNeeded(symbol);
 
             if (ShouldPropertyDisplayReadOnly(symbol))
             {
-                AddReadOnlyIfRequired();
+                AddReadOnlyIfNeeded();
             }
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
                 if (symbol.ReturnsByRef)
                 {
-                    AddRefIfRequired();
+                    AddRefIfNeeded();
                 }
                 else if (symbol.ReturnsByRefReadonly)
                 {
-                    AddRefReadonlyIfRequired();
+                    AddRefReadonlyIfNeeded();
                 }
 
-                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers);
 
                 symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
 
-                AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
+                AddCustomModifiersIfNeeded(symbol.TypeCustomModifiers);
             }
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType) &&
@@ -180,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (getMemberNameWithoutInterfaceName)
             {
-                AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
+                AddExplicitInterfaceIfNeeded(symbol.ExplicitInterfaceImplementations);
             }
 
             if (symbol.IsIndexer)
@@ -200,20 +203,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeParameters) && symbol.Parameters.Any())
             {
                 AddPunctuation(SyntaxKind.OpenBracketToken);
-                AddParametersIfRequired(hasThisParameter: false, isVarargs: false, parameters: symbol.Parameters);
+                AddParametersIfNeeded(hasThisParameter: false, isVarargs: false, parameters: symbol.Parameters);
                 AddPunctuation(SyntaxKind.CloseBracketToken);
             }
         }
 
         public override void VisitEvent(IEventSymbol symbol)
         {
-            AddAccessibilityIfRequired(symbol);
-            AddMemberModifiersIfRequired(symbol);
+            AddAccessibilityIfNeeded(symbol);
+            AddMemberModifiersIfNeeded(symbol);
 
             var accessor = symbol.AddMethod ?? symbol.RemoveMethod;
             if (accessor is object && ShouldMethodDisplayReadOnly(accessor))
             {
-                AddReadOnlyIfRequired();
+                AddReadOnlyIfNeeded();
             }
 
             if (format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeMemberKeyword))
@@ -242,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol.Name.LastIndexOf('.') > 0)
             {
-                AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
+                AddExplicitInterfaceIfNeeded(symbol.ExplicitInterfaceImplementations);
 
                 this.builder.Add(CreatePart(SymbolDisplayPartKind.EventName, symbol,
                     ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
@@ -273,36 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
             {
-                AddKeyword(SyntaxKind.DelegateKeyword);
-                AddPunctuation(SyntaxKind.AsteriskToken);
-
-                // Expose calling convention here when there is a public API: https://github.com/dotnet/roslyn/issues/39865
-
-                AddPunctuation(SyntaxKind.LessThanToken);
-
-                foreach (var param in symbol.Parameters)
-                {
-                    param.Accept(this.NotFirstVisitor);
-                    AddPunctuation(SyntaxKind.CommaToken);
-                    AddSpace();
-                }
-
-                if (symbol.ReturnsByRef)
-                {
-                    AddRefIfRequired();
-                }
-                else if (symbol.ReturnsByRefReadonly)
-                {
-                    AddRefReadonlyIfRequired();
-                }
-
-                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
-
-                symbol.ReturnType.Accept(this.NotFirstVisitor);
-
-                AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
-
-                AddPunctuation(SyntaxKind.GreaterThanToken);
+                visitFunctionPointerSignature(symbol);
                 return;
             }
 
@@ -326,12 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)symbol.ContainingType != null || (symbol.ContainingSymbol is ITypeSymbol))
             {
-                AddAccessibilityIfRequired(symbol);
-                AddMemberModifiersIfRequired(symbol);
+                AddAccessibilityIfNeeded(symbol);
+                AddMemberModifiersIfNeeded(symbol);
 
                 if (ShouldMethodDisplayReadOnly(symbol))
                 {
-                    AddReadOnlyIfRequired();
+                    AddReadOnlyIfNeeded();
                 }
 
                 if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
@@ -359,14 +333,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (symbol.ReturnsByRef)
                             {
-                                AddRefIfRequired();
+                                AddRefIfNeeded();
                             }
                             else if (symbol.ReturnsByRefReadonly)
                             {
-                                AddRefReadonlyIfRequired();
+                                AddRefReadonlyIfNeeded();
                             }
 
-                            AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+                            AddCustomModifiersIfNeeded(symbol.RefCustomModifiers);
 
                             if (symbol.ReturnsVoid)
                             {
@@ -378,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             AddSpace();
-                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers);
+                            AddCustomModifiersIfNeeded(symbol.ReturnTypeCustomModifiers);
                             break;
                     }
                 }
@@ -502,7 +476,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case MethodKind.ExplicitInterfaceImplementation:
                     {
-                        AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
+                        AddExplicitInterfaceIfNeeded(symbol.ExplicitInterfaceImplementations);
+
+                        if (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) &&
+                            symbol.GetSymbol()?.OriginalDefinition is SourceUserDefinedOperatorSymbolBase sourceUserDefinedOperatorSymbolBase)
+                        {
+                            var operatorName = symbol.MetadataName;
+                            var lastDotPosition = operatorName.LastIndexOf('.');
+
+                            if (lastDotPosition >= 0)
+                            {
+                                operatorName = operatorName.Substring(lastDotPosition + 1);
+                            }
+
+                            if (sourceUserDefinedOperatorSymbolBase is SourceUserDefinedConversionSymbol)
+                            {
+                                addUserDefinedConversionName(symbol, operatorName);
+                            }
+                            else
+                            {
+                                addUserDefinedOperatorName(symbol, operatorName);
+                            }
+                            break;
+                        }
+
                         builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
                             ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
                         break;
@@ -516,21 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            AddKeyword(SyntaxKind.OperatorKeyword);
-                            AddSpace();
-                            if (symbol.MetadataName == WellKnownMemberNames.TrueOperatorName)
-                            {
-                                AddKeyword(SyntaxKind.TrueKeyword);
-                            }
-                            else if (symbol.MetadataName == WellKnownMemberNames.FalseOperatorName)
-                            {
-                                AddKeyword(SyntaxKind.FalseKeyword);
-                            }
-                            else
-                            {
-                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
-                                    SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName))));
-                            }
+                            addUserDefinedOperatorName(symbol, symbol.MetadataName);
                         }
                         break;
                     }
@@ -542,26 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // "System.IntPtr.explicit operator System.IntPtr(int)"
-
-                            if (symbol.MetadataName == WellKnownMemberNames.ExplicitConversionName)
-                            {
-                                AddKeyword(SyntaxKind.ExplicitKeyword);
-                            }
-                            else if (symbol.MetadataName == WellKnownMemberNames.ImplicitConversionName)
-                            {
-                                AddKeyword(SyntaxKind.ImplicitKeyword);
-                            }
-                            else
-                            {
-                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
-                                    SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName))));
-                            }
-
-                            AddSpace();
-                            AddKeyword(SyntaxKind.OperatorKeyword);
-                            AddSpace();
-                            AddReturnType(symbol);
+                            addUserDefinedConversionName(symbol, symbol.MetadataName);
                         }
                         break;
                     }
@@ -574,6 +538,159 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddTypeArguments(symbol, default(ImmutableArray<ImmutableArray<CustomModifier>>));
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
+            }
+
+            void visitFunctionPointerSignature(IMethodSymbol symbol)
+            {
+                AddKeyword(SyntaxKind.DelegateKeyword);
+                AddPunctuation(SyntaxKind.AsteriskToken);
+
+                if (symbol.CallingConvention != SignatureCallingConvention.Default)
+                {
+                    AddSpace();
+                    AddKeyword(SyntaxKind.UnmanagedKeyword);
+
+                    var conventionTypes = symbol.UnmanagedCallingConventionTypes;
+
+                    if (symbol.CallingConvention != SignatureCallingConvention.Unmanaged || !conventionTypes.IsEmpty)
+                    {
+                        AddPunctuation(SyntaxKind.OpenBracketToken);
+
+                        switch (symbol.CallingConvention)
+                        {
+                            case SignatureCallingConvention.CDecl:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Cdecl"));
+                                break;
+                            case SignatureCallingConvention.StdCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Stdcall"));
+                                break;
+                            case SignatureCallingConvention.ThisCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Thiscall"));
+                                break;
+                            case SignatureCallingConvention.FastCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Fastcall"));
+                                break;
+
+                            case SignatureCallingConvention.Unmanaged:
+                                Debug.Assert(!conventionTypes.IsDefaultOrEmpty);
+                                bool isFirst = true;
+                                foreach (var conventionType in conventionTypes)
+                                {
+                                    if (!isFirst)
+                                    {
+                                        AddPunctuation(SyntaxKind.CommaToken);
+                                        AddSpace();
+                                    }
+
+                                    isFirst = false;
+                                    Debug.Assert(conventionType.Name.StartsWith("CallConv"));
+                                    const int CallConvLength = 8;
+                                    builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, conventionType, conventionType.Name[CallConvLength..]));
+                                }
+
+                                break;
+                        }
+
+                        AddPunctuation(SyntaxKind.CloseBracketToken);
+                    }
+                }
+
+                AddPunctuation(SyntaxKind.LessThanToken);
+
+                foreach (var param in symbol.Parameters)
+                {
+                    AddParameterRefKind(param.RefKind);
+
+                    AddCustomModifiersIfNeeded(param.RefCustomModifiers);
+
+                    param.Type.Accept(this.NotFirstVisitor);
+
+                    AddCustomModifiersIfNeeded(param.CustomModifiers, leadingSpace: true, trailingSpace: false);
+
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                if (symbol.ReturnsByRef)
+                {
+                    AddRef();
+                }
+                else if (symbol.ReturnsByRefReadonly)
+                {
+                    AddRefReadonly();
+                }
+
+                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers);
+
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+
+                AddCustomModifiersIfNeeded(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
+
+                AddPunctuation(SyntaxKind.GreaterThanToken);
+            }
+
+            void addUserDefinedOperatorName(IMethodSymbol symbol, string operatorName)
+            {
+                AddKeyword(SyntaxKind.OperatorKeyword);
+                AddSpace();
+
+                if (operatorName == WellKnownMemberNames.TrueOperatorName)
+                {
+                    AddKeyword(SyntaxKind.TrueKeyword);
+                }
+                else if (operatorName == WellKnownMemberNames.FalseOperatorName)
+                {
+                    AddKeyword(SyntaxKind.FalseKeyword);
+                }
+                else
+                {
+                    if (SyntaxFacts.IsCheckedOperator(operatorName))
+                    {
+                        AddKeyword(SyntaxKind.CheckedKeyword);
+                        AddSpace();
+                    }
+
+                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
+                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
+                }
+            }
+
+            void addUserDefinedConversionName(IMethodSymbol symbol, string operatorName)
+            {
+                // "System.IntPtr.explicit operator System.IntPtr(int)"
+
+                bool isChecked = false;
+
+                if (operatorName == WellKnownMemberNames.ExplicitConversionName)
+                {
+                    AddKeyword(SyntaxKind.ExplicitKeyword);
+                }
+                else if (operatorName == WellKnownMemberNames.CheckedExplicitConversionName)
+                {
+                    isChecked = true;
+                    AddKeyword(SyntaxKind.ExplicitKeyword);
+                }
+                else if (operatorName == WellKnownMemberNames.ImplicitConversionName)
+                {
+                    AddKeyword(SyntaxKind.ImplicitKeyword);
+                }
+                else
+                {
+                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
+                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
+                }
+
+                AddSpace();
+                AddKeyword(SyntaxKind.OperatorKeyword);
+                AddSpace();
+
+                if (isChecked)
+                {
+                    AddKeyword(SyntaxKind.CheckedKeyword);
+                    AddSpace();
+                }
+
+                AddReturnType(symbol);
             }
         }
 
@@ -606,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeParameters))
             {
                 AddPunctuation(SyntaxKind.OpenParenToken);
-                AddParametersIfRequired(
+                AddParametersIfNeeded(
                     hasThisParameter: symbol.IsExtensionMethod && symbol.MethodKind != MethodKind.ReducedExtension,
                     isVarargs: symbol.IsVararg,
                     parameters: symbol.Parameters);
@@ -623,9 +740,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
-                              && !(symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
+            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
+                symbol.Name.Length != 0;
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
+            var includeDefaultValue = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
+                format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
+                symbol.HasExplicitDefaultValue &&
+                CanAddConstant(symbol.Type, symbol.ExplicitDefaultValue);
 
             if (includeBrackets && symbol.IsOptional)
             {
@@ -634,8 +755,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                AddParameterRefKindIfRequired(symbol.RefKind);
-                AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+                AddParameterRefKindIfNeeded(symbol.RefKind);
+                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
                 if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
                 {
@@ -644,29 +765,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 symbol.Type.Accept(this.NotFirstVisitor);
-                AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
-            }
-
-            if (includeName && includeType)
-            {
-                AddSpace();
+                AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 
             if (includeName)
             {
-                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
-                builder.Add(CreatePart(kind, symbol, symbol.Name));
-
-                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
-                    symbol.HasExplicitDefaultValue &&
-                    CanAddConstant(symbol.Type, symbol.ExplicitDefaultValue))
+                if (includeType)
                 {
                     AddSpace();
-                    AddPunctuation(SyntaxKind.EqualsToken);
-                    AddSpace();
-
-                    AddConstantValue(symbol.Type, symbol.ExplicitDefaultValue);
                 }
+                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                builder.Add(CreatePart(kind, symbol, symbol.Name));
+            }
+
+            if (includeDefaultValue)
+            {
+                if (includeName || includeType)
+                {
+                    AddSpace();
+                }
+                AddPunctuation(SyntaxKind.EqualsToken);
+                AddSpace();
+
+                AddConstantValue(symbol.Type, symbol.ExplicitDefaultValue);
             }
 
             if (includeBrackets && symbol.IsOptional)
@@ -690,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value.GetType().GetTypeInfo().IsPrimitive || value is string || value is decimal;
         }
 
-        private void AddFieldModifiersIfRequired(IFieldSymbol symbol)
+        private void AddFieldModifiersIfNeeded(IFieldSymbol symbol)
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers) &&
                 !IsEnumMember(symbol))
@@ -717,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddMemberModifiersIfRequired(ISymbol symbol)
+        private void AddMemberModifiersIfNeeded(ISymbol symbol)
         {
             INamedTypeSymbol containingType = symbol.ContainingType;
 
@@ -729,6 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
             {
                 var isConst = symbol is IFieldSymbol && ((IFieldSymbol)symbol).IsConst;
+                var isRequired = symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
                 if (symbol.IsStatic && !isConst)
                 {
                     AddKeyword(SyntaxKind.StaticKeyword);
@@ -764,10 +886,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddKeyword(SyntaxKind.VirtualKeyword);
                     AddSpace();
                 }
+
+                if (isRequired)
+                {
+                    AddKeyword(SyntaxKind.RequiredKeyword);
+                    AddSpace();
+                }
             }
         }
 
-        private void AddParametersIfRequired(bool hasThisParameter, bool isVarargs, ImmutableArray<IParameterSymbol> parameters)
+        private void AddParametersIfNeeded(bool hasThisParameter, bool isVarargs, ImmutableArray<IParameterSymbol> parameters)
         {
             if (format.ParameterOptions == SymbolDisplayParameterOptions.None)
             {
@@ -827,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!ShouldPropertyDisplayReadOnly(property) && ShouldMethodDisplayReadOnly(method, property))
                 {
-                    AddReadOnlyIfRequired();
+                    AddReadOnlyIfNeeded();
                 }
 
                 AddKeyword(keyword);
@@ -835,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddExplicitInterfaceIfRequired<T>(ImmutableArray<T> implementedMembers) where T : ISymbol
+        private void AddExplicitInterfaceIfNeeded<T>(ImmutableArray<T> implementedMembers) where T : ISymbol
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeExplicitInterface) && !implementedMembers.IsEmpty)
             {
@@ -851,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddCustomModifiersIfRequired(ImmutableArray<CustomModifier> customModifiers, bool leadingSpace = false, bool trailingSpace = true)
+        private void AddCustomModifiersIfNeeded(ImmutableArray<CustomModifier> customModifiers, bool leadingSpace = false, bool trailingSpace = true)
         {
             if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers) && !customModifiers.IsEmpty)
             {
@@ -876,27 +1004,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddRefIfRequired()
+        private void AddRefIfNeeded()
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
             {
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
+                AddRef();
             }
         }
 
-        private void AddRefReadonlyIfRequired()
+        private void AddRef()
+        {
+            AddKeyword(SyntaxKind.RefKeyword);
+            AddSpace();
+        }
+
+        private void AddRefReadonlyIfNeeded()
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
             {
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
-                AddKeyword(SyntaxKind.ReadOnlyKeyword);
-                AddSpace();
+                AddRefReadonly();
             }
         }
 
-        private void AddReadOnlyIfRequired()
+        private void AddRefReadonly()
+        {
+            AddKeyword(SyntaxKind.RefKeyword);
+            AddSpace();
+            AddKeyword(SyntaxKind.ReadOnlyKeyword);
+            AddSpace();
+        }
+
+        private void AddReadOnlyIfNeeded()
         {
             // 'readonly' in this context is effectively a 'ref' modifier
             // because it affects whether the 'this' parameter is 'ref' or 'in'.
@@ -907,25 +1045,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddParameterRefKindIfRequired(RefKind refKind)
+        private void AddParameterRefKindIfNeeded(RefKind refKind)
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                switch (refKind)
-                {
-                    case RefKind.Out:
-                        AddKeyword(SyntaxKind.OutKeyword);
-                        AddSpace();
-                        break;
-                    case RefKind.Ref:
-                        AddKeyword(SyntaxKind.RefKeyword);
-                        AddSpace();
-                        break;
-                    case RefKind.In:
-                        AddKeyword(SyntaxKind.InKeyword);
-                        AddSpace();
-                        break;
-                }
+                AddParameterRefKind(refKind);
+            }
+        }
+
+        private void AddParameterRefKind(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.Out:
+                    AddKeyword(SyntaxKind.OutKeyword);
+                    AddSpace();
+                    break;
+                case RefKind.Ref:
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+                    break;
+                case RefKind.In:
+                    AddKeyword(SyntaxKind.InKeyword);
+                    AddSpace();
+                    break;
             }
         }
     }

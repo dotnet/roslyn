@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -61,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 case IUnaryOperation { OperatorKind: UnaryOperatorKind.Not } op:
                     return Not.TryCreate(ParsePattern(op.Operand));
 
-                case IIsTypeOperation { Syntax: BinaryExpressionSyntax { Right: TypeSyntax type } } op:
-                    return new Type(type, op.ValueOperand);
+                case IIsTypeOperation { Syntax: BinaryExpressionSyntax binaryExpression } op:
+                    return Type.TryCreate(binaryExpression, op);
 
-                case IIsPatternOperation { Pattern: { Syntax: PatternSyntax pattern } } op:
+                case IIsPatternOperation { Pattern.Syntax: PatternSyntax pattern } op:
                     return new Source(pattern, op.Value);
 
                 case IParenthesizedOperation op:

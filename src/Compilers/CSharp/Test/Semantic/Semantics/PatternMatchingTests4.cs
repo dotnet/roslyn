@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -63,7 +64,7 @@ class C
         [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
         public void PatternMatchGenericParameterToMethodGroup()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     public void M1(object o)
@@ -84,7 +85,9 @@ class C
                 break;
         }
     }
-}");
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         _ = o is M1;
@@ -97,8 +100,28 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
                 // (18,18): error CS0150: A constant value is expected
                 //             case M2:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(6, 18),
+                // (6,18): error CS0150: A constant value is expected
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(6, 18),
+                // (9,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //             case M1:
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
+                // (9,18): error CS0150: A constant value is expected
+                //             case M1:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(9, 18),
+                // (15,18): error CS0150: A constant value is expected
+                //         _ = t is M2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
+                // (18,18): error CS0150: A constant value is expected
+                //             case M2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
         }
 
         [Fact]
@@ -127,10 +150,10 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(() => 0)").WithArguments("T", "2").WithLocation(8, 18),
                 // (8,22): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(8, 22),
                 // (8,25): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",", "").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(8, 25),
                 // (10,18): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //             case stackalloc int[1] { 0 }:
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1] { 0 }").WithArguments("System.Span`1").WithLocation(10, 18),
@@ -1488,7 +1511,7 @@ class _
             compilation.VerifyDiagnostics(
                 // (9,20): error CS1003: Syntax error, ':' expected
                 //             case _ x: break;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":").WithLocation(9, 20),
                 // (9,20): warning CS0164: This label has not been referenced
                 //             case _ x: break;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "x").WithLocation(9, 20)
@@ -1574,7 +1597,7 @@ class _
                 Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("_").WithLocation(9, 32),
                 // (9,34): error CS1003: Syntax error, ',' expected
                 //             Console.Write(e is _ x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 34),
                 // (9,34): error CS0103: The name 'x' does not exist in the current context
                 //             Console.Write(e is _ x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 34)
@@ -1695,7 +1718,7 @@ class _
                 Diagnostic(ErrorCode.ERR_WrongNumberOfSubpatterns, "(_ x, _)").WithArguments("(object, object)", "2", "3").WithLocation(10, 22),
                 // (10,25): error CS1003: Syntax error, ',' expected
                 //             if (e is (_ x, _))
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 25),
                 // (10,25): error CS0103: The name 'x' does not exist in the current context
                 //             if (e is (_ x, _))
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 25)
@@ -2049,12 +2072,108 @@ public class C
 }
 ";
             var compilation = CreatePatternCompilation(source);
+
+            var ctorObject = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            Assert.Null(ctorObject);
+
+            var ctor = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor);
+            Assert.Null(ctor);
+
+            var invalidOperationExceptionCtor = compilation.GetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor);
+            Assert.NotNull(invalidOperationExceptionCtor);
+
             compilation.VerifyDiagnostics(
                 // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
-            CompileAndVerify(compilation, expectedOutput: "InvalidOperationException");
+            CompileAndVerify(compilation, expectedOutput: "InvalidOperationException").VerifyIL("C.Main", @"
+{
+  // Code size       83 (0x53)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1,
+                int V_2,
+                System.Exception V_3) //ex
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var t = (1, 2);
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  .try
+  {
+    // sequence point: {
+    IL_000a:  nop
+    // sequence point: _ = t switch { (3, 4) => 1 };
+    IL_000b:  ldc.i4.1
+    IL_000c:  brtrue.s   IL_000f
+    // sequence point: switch { (3, 4) => 1 }
+    IL_000e:  nop
+    // sequence point: <hidden>
+    IL_000f:  ldloc.0
+    IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0015:  stloc.1
+    // sequence point: <hidden>
+    IL_0016:  ldloc.1
+    IL_0017:  ldc.i4.3
+    IL_0018:  bne.un.s   IL_002b
+    IL_001a:  ldloc.0
+    IL_001b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0020:  stloc.2
+    // sequence point: <hidden>
+    IL_0021:  ldloc.2
+    IL_0022:  ldc.i4.4
+    IL_0023:  beq.s      IL_0027
+    IL_0025:  br.s       IL_002b
+    // sequence point: 1
+    IL_0027:  ldc.i4.1
+    IL_0028:  pop
+    IL_0029:  br.s       IL_0035
+    IL_002b:  ldc.i4.1
+    IL_002c:  brtrue.s   IL_002f
+    // sequence point: switch { (3, 4) => 1 }
+    IL_002e:  nop
+    // sequence point: <hidden>
+    IL_002f:  call       ""ThrowInvalidOperationException""
+    IL_0034:  nop
+    // sequence point: <hidden>
+    IL_0035:  ldc.i4.1
+    IL_0036:  brtrue.s   IL_0039
+    // sequence point: _ = t switch { (3, 4) => 1 };
+    IL_0038:  nop
+    // sequence point: }
+    IL_0039:  nop
+    IL_003a:  leave.s    IL_0052
+  }
+  catch System.Exception
+  {
+    // sequence point: catch (Exception ex)
+    IL_003c:  stloc.3
+    // sequence point: {
+    IL_003d:  nop
+    // sequence point: Console.WriteLine(ex.GetType().Name);
+    IL_003e:  ldloc.3
+    IL_003f:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_0044:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_0049:  call       ""void System.Console.WriteLine(string)""
+    IL_004e:  nop
+    // sequence point: }
+    IL_004f:  nop
+    IL_0050:  leave.s    IL_0052
+  }
+  // sequence point: }
+  IL_0052:  ret
+}
+", sequencePoints: "C.Main", source: source).VerifyIL("ThrowInvalidOperationException", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0005:  throw
+}
+", sequencePoints: "<PrivateImplementationDetails>.ThrowInvalidOperationException", source: source);
         }
 
         [Fact]
@@ -2092,12 +2211,131 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var compilation = CreatePatternCompilation(source);
+
+            var ctorObject = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            Assert.Null(ctorObject);
+
+            var ctor = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor);
+            Assert.NotNull(ctor);
+
             compilation.VerifyDiagnostics(
                 // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
-            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
+            compilation.VerifyEmitDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()").VerifyIL("C.Main", @"
+{
+  // Code size      123 (0x7b)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1,
+                int V_2,
+                System.Runtime.CompilerServices.SwitchExpressionException V_3, //ex
+                System.Exception V_4) //ex
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var t = (1, 2);
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  .try
+  {
+    // sequence point: {
+    IL_000a:  nop
+    // sequence point: _ = t switch { (3, 4) => 1 };
+    IL_000b:  ldc.i4.1
+    IL_000c:  brtrue.s   IL_000f
+    // sequence point: switch { (3, 4) => 1 }
+    IL_000e:  nop
+    // sequence point: <hidden>
+    IL_000f:  ldloc.0
+    IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0015:  stloc.1
+    // sequence point: <hidden>
+    IL_0016:  ldloc.1
+    IL_0017:  ldc.i4.3
+    IL_0018:  bne.un.s   IL_002b
+    IL_001a:  ldloc.0
+    IL_001b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0020:  stloc.2
+    // sequence point: <hidden>
+    IL_0021:  ldloc.2
+    IL_0022:  ldc.i4.4
+    IL_0023:  beq.s      IL_0027
+    IL_0025:  br.s       IL_002b
+    // sequence point: 1
+    IL_0027:  ldc.i4.1
+    IL_0028:  pop
+    IL_0029:  br.s       IL_0035
+    IL_002b:  ldc.i4.1
+    IL_002c:  brtrue.s   IL_002f
+    // sequence point: switch { (3, 4) => 1 }
+    IL_002e:  nop
+    // sequence point: <hidden>
+    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless""
+    IL_0034:  nop
+    // sequence point: <hidden>
+    IL_0035:  ldc.i4.1
+    IL_0036:  brtrue.s   IL_0039
+    // sequence point: _ = t switch { (3, 4) => 1 };
+    IL_0038:  nop
+    // sequence point: }
+    IL_0039:  nop
+    IL_003a:  leave.s    IL_007a
+  }
+  catch System.Runtime.CompilerServices.SwitchExpressionException
+  {
+    // sequence point: catch (SwitchExpressionException ex)
+    IL_003c:  stloc.3
+    // sequence point: {
+    IL_003d:  nop
+    // sequence point: Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+    IL_003e:  ldstr      ""{0}({1})""
+    IL_0043:  ldloc.3
+    IL_0044:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_0049:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_004e:  ldloc.3
+    IL_004f:  callvirt   ""object System.Runtime.CompilerServices.SwitchExpressionException.UnmatchedValue.get""
+    IL_0054:  call       ""string string.Format(string, object, object)""
+    IL_0059:  call       ""void System.Console.WriteLine(string)""
+    IL_005e:  nop
+    // sequence point: }
+    IL_005f:  nop
+    IL_0060:  leave.s    IL_007a
+  }
+  catch System.Exception
+  {
+    // sequence point: catch (Exception ex)
+    IL_0062:  stloc.s    V_4
+    // sequence point: {
+    IL_0064:  nop
+    // sequence point: Console.WriteLine(ex.GetType().Name);
+    IL_0065:  ldloc.s    V_4
+    IL_0067:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_006c:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_0071:  call       ""void System.Console.WriteLine(string)""
+    IL_0076:  nop
+    // sequence point: }
+    IL_0077:  nop
+    IL_0078:  leave.s    IL_007a
+  }
+  // sequence point: }
+  IL_007a:  ret
+}
+", sequencePoints: "C.Main", source: source).VerifyIL("ThrowSwitchExpressionExceptionParameterless", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor()""
+  IL_0005:  throw
+}
+", sequencePoints: "<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", source: source);
         }
 
         [Fact]
@@ -2177,12 +2415,122 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var compilation = CreatePatternCompilation(source);
+            var ctorObject = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            Assert.NotNull(ctorObject);
+
             compilation.VerifyDiagnostics(
                 // (8,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
                 //             _ = (1, 2) switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(8, 24)
                 );
-            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
+            compilation.VerifyEmitDiagnostics(
+                // (8,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
+                //             _ = (1, 2) switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(8, 24)
+                );
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))").VerifyIL("C.Main", @"
+{
+  // Code size      114 (0x72)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.SwitchExpressionException V_2, //ex
+                System.Exception V_3) //ex
+  // sequence point: {
+  IL_0000:  nop
+  .try
+  {
+    // sequence point: {
+    IL_0001:  nop
+    // sequence point: _ = (1, 2) switch { (3, 4) => 1 };
+    IL_0002:  ldc.i4.1
+    IL_0003:  stloc.0
+    IL_0004:  ldc.i4.2
+    IL_0005:  stloc.1
+    IL_0006:  ldc.i4.1
+    IL_0007:  brtrue.s   IL_000a
+    // sequence point: switch { (3, 4) => 1 }
+    IL_0009:  nop
+    // sequence point: <hidden>
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.3
+    IL_000c:  bne.un.s   IL_0018
+    IL_000e:  ldloc.1
+    IL_000f:  ldc.i4.4
+    IL_0010:  beq.s      IL_0014
+    IL_0012:  br.s       IL_0018
+    // sequence point: 1
+    IL_0014:  ldc.i4.1
+    IL_0015:  pop
+    IL_0016:  br.s       IL_002e
+    IL_0018:  ldc.i4.1
+    IL_0019:  brtrue.s   IL_001c
+    // sequence point: switch { (3, 4) => 1 }
+    IL_001b:  nop
+    // sequence point: <hidden>
+    IL_001c:  ldloc.0
+    IL_001d:  ldloc.1
+    IL_001e:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+    IL_0023:  box        ""System.ValueTuple<int, int>""
+    IL_0028:  call       ""ThrowSwitchExpressionException""
+    IL_002d:  nop
+    // sequence point: <hidden>
+    IL_002e:  ldc.i4.1
+    IL_002f:  brtrue.s   IL_0032
+    // sequence point: _ = (1, 2) switch { (3, 4) => 1 };
+    IL_0031:  nop
+    // sequence point: }
+    IL_0032:  nop
+    IL_0033:  leave.s    IL_0071
+  }
+  catch System.Runtime.CompilerServices.SwitchExpressionException
+  {
+    // sequence point: catch (SwitchExpressionException ex)
+    IL_0035:  stloc.2
+    // sequence point: {
+    IL_0036:  nop
+    // sequence point: Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+    IL_0037:  ldstr      ""{0}({1})""
+    IL_003c:  ldloc.2
+    IL_003d:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_0042:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_0047:  ldloc.2
+    IL_0048:  callvirt   ""object System.Runtime.CompilerServices.SwitchExpressionException.UnmatchedValue.get""
+    IL_004d:  call       ""string string.Format(string, object, object)""
+    IL_0052:  call       ""void System.Console.WriteLine(string)""
+    IL_0057:  nop
+    // sequence point: }
+    IL_0058:  nop
+    IL_0059:  leave.s    IL_0071
+  }
+  catch System.Exception
+  {
+    // sequence point: catch (Exception ex)
+    IL_005b:  stloc.3
+    // sequence point: {
+    IL_005c:  nop
+    // sequence point: Console.WriteLine(ex.GetType().Name);
+    IL_005d:  ldloc.3
+    IL_005e:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_0063:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_0068:  call       ""void System.Console.WriteLine(string)""
+    IL_006d:  nop
+    // sequence point: }
+    IL_006e:  nop
+    IL_006f:  leave.s    IL_0071
+  }
+  // sequence point: }
+  IL_0071:  ret
+}
+", sequencePoints: "C.Main", source: source).VerifyIL("ThrowSwitchExpressionException", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
+  IL_0006:  throw
+}
+", sequencePoints: "<PrivateImplementationDetails>.ThrowSwitchExpressionException", source: source);
         }
 
         [Fact]
@@ -2230,6 +2578,54 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
             CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
+        }
+
+        [Fact]
+        public void UnmatchedInput_08()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        try
+        {
+            _ = t switch { (3, 4) => 1 };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.MakeTypeMissing(WellKnownType.System_InvalidOperationException);
+
+            var ctorObject = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            Assert.Null(ctorObject);
+
+            var ctor = compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor);
+            Assert.Null(ctor);
+
+            var invalidOperationExceptionCtor = compilation.GetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor);
+            Assert.Null(invalidOperationExceptionCtor);
+
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
+                );
+            compilation.VerifyEmitDiagnostics(
+                // (9,17): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "t switch { (3, 4) => 1 }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 17),
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, _)' is not covered.
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
+            );
         }
 
         [Fact]
@@ -3049,6 +3445,32 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(48591, "https://github.com/dotnet/roslyn/issues/48591")]
+        public void PointerAsInput_05()
+        {
+            var source =
+@"public class C
+{
+    unsafe static void F2<T>(nint i) where T : unmanaged
+    {
+        T* p = (T*)i;
+        _ = p == null;
+        _ = p != null;
+        _ = p is null;
+        _ = p is not null;
+        _ = p switch { not null => true, null => false };
+        _ = p switch { { } => true, null => false }; // 1
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (11,24): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = p switch { { } => true, null => false }; // 1
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ }").WithLocation(11, 24)
+                );
+        }
+
         [Fact]
         public void UnmatchedInput_06()
         {
@@ -3296,37 +3718,37 @@ public class A
                 Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(7, 18),
                 // (8,23): error CS1003: Syntax error, ':' expected
                 //         if (o is A? b1) { }           // error 2 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(8, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(8, 23),
                 // (8,23): error CS1525: Invalid expression term ')'
                 //         if (o is A? b1) { }           // error 2 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 23),
                 // (9,28): error CS1003: Syntax error, ':' expected
                 //         if (o is A? b2 && c) { }      // error 3 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(9, 28),
                 // (9,28): error CS1525: Invalid expression term ')'
                 //         if (o is A? b2 && c) { }      // error 3 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 28),
                 // (10,25): error CS1003: Syntax error, ':' expected
                 //         if (o is A[]? b5) { }         // error 4 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(10, 25),
                 // (10,25): error CS1525: Invalid expression term ')'
                 //         if (o is A[]? b5) { }         // error 4 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 25),
                 // (11,30): error CS1003: Syntax error, ':' expected
                 //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(11, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(11, 30),
                 // (11,30): error CS1525: Invalid expression term ')'
                 //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(11, 30),
                 // (12,27): error CS1003: Syntax error, ':' expected
                 //         if (o is A[][]? b7) { }       // error 6 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(12, 27),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(12, 27),
                 // (12,27): error CS1525: Invalid expression term ')'
                 //         if (o is A[][]? b7) { }       // error 6 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 27),
                 // (13,32): error CS1003: Syntax error, ':' expected
                 //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(13, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(13, 32),
                 // (13,32): error CS1525: Invalid expression term ')'
                 //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(13, 32),
@@ -3504,5 +3926,320 @@ class Class1
             CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
         }
+
+#if DEBUG
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchStatement_01()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M(object obj)
+    {
+        switch (obj)
+        {
+            case ""a"":
+                Console.Write(""b"");
+                break;
+            case string { Length: 1 } s:
+                Console.Write(s);
+                break;
+            case int and < 42:
+                Console.Write(43);
+                break;
+            case int i when (i % 2) == 0:
+                obj = i + 1;
+                break;
+            default:
+                Console.Write(false);
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is string ? [1] : [8]
+[1]: t1 = (string)t0; [2]
+[2]: t1 == ""a"" ? [3] : [4]
+[3]: leaf `case ""a"":`
+[4]: t2 = t1.Length; [5]
+[5]: t2 == 1 ? [6] : [13]
+[6]: when <true> ? [7] : <unreachable>
+[7]: leaf `case string { Length: 1 } s:`
+[8]: t0 is int ? [9] : [13]
+[9]: t3 = (int)t0; [10]
+[10]: t3 < 42 ? [11] : [12]
+[11]: leaf `case int and < 42:`
+[12]: when ((i % 2) == 0) ? [14] : [13]
+[13]: leaf `default`
+[14]: leaf `case int i when (i % 2) == 0:`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchStatement_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void Deconstruct(out int i1, out string i2, out int? i3)
+    {
+        i1 = 1;
+        i2 = ""a"";
+        i3 = null;
+    }
+
+    void M(C c)
+    {
+        switch (c)
+        {
+            case null:
+                Console.Write(0);
+                break;
+            case (42, ""b"", 43):
+                Console.Write(1);
+                break;
+            case (< 10, { Length: 0 }, { }):
+                Console.Write(2);
+                break;
+            case (< 10, object): // 1, 2
+                Console.Write(3);
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (26,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i3' of 'C.Deconstruct(out int, out string, out int?)'
+                //             case (< 10, object): // 1, 2
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(< 10, object)").WithArguments("i3", "C.Deconstruct(out int, out string, out int?)").WithLocation(26, 18),
+                // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //             case (< 10, object): // 1, 2
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(< 10, object)").WithArguments("C", "2").WithLocation(26, 18)
+            );
+
+            var tree = comp.SyntaxTrees.Single();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 == null ? [1] : [2]
+[1]: leaf `case null:`
+[2]: (Item1, Item2, Item3) t1 = t0; [3]
+[3]: t1.Item1 == 42 ? [4] : [9]
+[4]: t1.Item2 == ""b"" ? [5] : [15]
+[5]: t1.Item3 != null ? [6] : [15]
+[6]: t2 = (int)t1.Item3; [7]
+[7]: t2 == 43 ? [8] : [15]
+[8]: leaf `case (42, ""b"", 43):`
+[9]: t1.Item1 < 10 ? [10] : [15]
+[10]: t1.Item2 != null ? [11] : [15]
+[11]: t3 = t1.Item2.Length; [12]
+[12]: t3 == 0 ? [13] : [15]
+[13]: t1.Item3 != null ? [14] : [15]
+[14]: leaf `case (< 10, { Length: 0 }, { }):`
+[15]: t0 is <error type> ? [16] : [17]
+[16]: leaf `case (< 10, object):`
+[17]: leaf <break> `switch (c)
+        {
+            case null:
+                Console.Write(0);
+                break;
+            case (42, ""b"", 43):
+                Console.Write(1);
+                break;
+            case (< 10, { Length: 0 }, { }):
+                Console.Write(2);
+                break;
+            case (< 10, object): // 1, 2
+                Console.Write(3);
+                break;
+        }`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchStatement_03()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C : ITuple
+{
+    int ITuple.Length => 3;
+    object ITuple.this[int i] => i + 3;
+
+    void M(C c)
+    {
+        switch (c)
+        {
+            case (3, 4, 4):
+                Console.Write(0);
+                break;
+            case (3, 4, 5):
+                Console.Write(1);
+                break;
+            case (int x, 4, 5):
+                Console.Write(2);
+                break;
+        }
+    }
+}
+";
+            var comp = CreatePatternCompilation(source, TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is System.Runtime.CompilerServices.ITuple ? [1] : [28]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 3 ? [3] : [28]
+[3]: t2 = t0[0]; [4]
+[4]: t2 is int ? [5] : [28]
+[5]: t3 = (int)t2; [6]
+[6]: t3 == 3 ? [7] : [18]
+[7]: t4 = t0[1]; [8]
+[8]: t4 is int ? [9] : [28]
+[9]: t5 = (int)t4; [10]
+[10]: t5 == 4 ? [11] : [28]
+[11]: t6 = t0[2]; [12]
+[12]: t6 is int ? [13] : [28]
+[13]: t7 = (int)t6; [14]
+[14]: t7 == 4 ? [15] : [16]
+[15]: leaf `case (3, 4, 4):`
+[16]: t7 == 5 ? [17] : [28]
+[17]: leaf `case (3, 4, 5):`
+[18]: t4 = t0[1]; [19]
+[19]: t4 is int ? [20] : [28]
+[20]: t5 = (int)t4; [21]
+[21]: t5 == 4 ? [22] : [28]
+[22]: t6 = t0[2]; [23]
+[23]: t6 is int ? [24] : [28]
+[24]: t7 = (int)t6; [25]
+[25]: t7 == 5 ? [26] : [28]
+[26]: when <true> ? [27] : <unreachable>
+[27]: leaf `case (int x, 4, 5):`
+[28]: leaf <break> `switch (c)
+        {
+            case (3, 4, 4):
+                Console.Write(0);
+                break;
+            case (3, 4, 5):
+                Console.Write(1);
+                break;
+            case (int x, 4, 5):
+                Console.Write(2);
+                break;
+        }`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_IsPattern()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M(object obj)
+    {
+        if (obj
+            is < 5
+                or string { Length: 1 }
+                or bool)
+        {
+            Console.Write(1);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var @is = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@is.SpanStart);
+            var boundIsPattern = (BoundIsPatternExpression)binder.BindExpression(@is, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is int ? [1] : [3]
+[1]: t1 = (int)t0; [2]
+[2]: t1 < 5 ? [8] : [9]
+[3]: t0 is string ? [4] : [7]
+[4]: t2 = (string)t0; [5]
+[5]: t3 = t2.Length; [6]
+[6]: t3 == 1 ? [8] : [9]
+[7]: t0 is bool ? [8] : [9]
+[8]: leaf <isPatternSuccess> `< 5
+                or string { Length: 1 }
+                or bool`
+[9]: leaf <isPatternFailure> `< 5
+                or string { Length: 1 }
+                or bool`
+", boundIsPattern.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchExpression()
+        {
+            var source = @"
+class C
+{
+    void M(object obj)
+    {
+        var x = obj switch
+        {
+            < 5 => 1,
+            string { Length: 1 } => 2,
+            bool => 3,
+            _ => 4
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is int ? [1] : [4]
+[1]: t1 = (int)t0; [2]
+[2]: t1 < 5 ? [3] : [11]
+[3]: leaf <arm> `< 5 => 1`
+[4]: t0 is string ? [5] : [9]
+[5]: t2 = (string)t0; [6]
+[6]: t3 = t2.Length; [7]
+[7]: t3 == 1 ? [8] : [11]
+[8]: leaf <arm> `string { Length: 1 } => 2`
+[9]: t0 is bool ? [10] : [11]
+[10]: leaf <arm> `bool => 3`
+[11]: leaf <arm> `_ => 4`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+#endif
     }
 }

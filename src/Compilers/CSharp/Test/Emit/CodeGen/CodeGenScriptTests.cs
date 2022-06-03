@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -552,7 +554,7 @@ public abstract class C
                 "s0.dll",
                 SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references);
-            var verifier = CompileAndVerify(s0, verify: Verification.Fails);
+            var verifier = CompileAndVerify(s0, verify: Verification.FailsPEVerify);
             var methodData = verifier.TestData.GetMethodData("<Initialize>");
             Assert.Equal("System.Threading.Tasks.Task<object>", ((MethodSymbol)methodData.Method).ReturnType.ToDisplayString());
             methodData.VerifyIL(
@@ -646,7 +648,7 @@ void I1.M() {}
             var s = CreateSubmission(test);
 
             s.VerifyDiagnostics(
-                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, struct or interface
+                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, record, struct or interface
                 // void I1.M() {}
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("M()").WithLocation(7, 9)
                 );

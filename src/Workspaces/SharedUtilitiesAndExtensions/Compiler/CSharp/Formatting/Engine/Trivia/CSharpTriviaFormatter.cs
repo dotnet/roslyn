@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -55,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (_newLine == default)
             {
-                var text = this.Context.Options.GetOption(FormattingOptions2.NewLine);
-                _newLine = SyntaxFactory.EndOfLine(text);
+                _newLine = SyntaxFactory.EndOfLine(Context.Options.NewLine);
             }
 
             return _newLine;
@@ -72,19 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // [trivia] [whitespace] [token] case
             if (trivia2.IsKind(SyntaxKind.None))
             {
-                var insertNewLine = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null;
-
                 if (IsMultilineComment(trivia1))
                 {
+                    var insertNewLine = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null;
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: insertNewLine ? 1 : 0);
                 }
 
-                if (insertNewLine)
-                {
-                    return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
-                }
-
-                if (existingWhitespaceBetween.Lines > 0 && existingWhitespaceBetween.Spaces != this.Spaces)
+                if (existingWhitespaceBetween.Spaces != this.Spaces)
                 {
                     return LineColumnRule.PreserveWithGivenSpaces(spaces: this.Spaces);
                 }
@@ -182,32 +173,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool TryFormatMultiLineCommentTrivia(LineColumn lineColumn, SyntaxTrivia trivia, out SyntaxTrivia result)
         {
+            if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+            {
+                var indentation = lineColumn.Column;
+                var indentationDelta = indentation - GetExistingIndentation(trivia);
+                if (indentationDelta != 0)
+                {
+                    var multiLineComment = trivia.ToFullString().ReindentStartOfXmlDocumentationComment(
+                        false /* forceIndentation */,
+                        indentation,
+                        indentationDelta,
+                        Options.UseTabs,
+                        Options.TabSize,
+                        Options.NewLine);
+
+                    var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
+                    Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);
+
+                    // Preserve annotations on this comment as the formatter is only supposed to touch whitespace, and
+                    // thus should make it appear as if the original comment trivia (with annotations) is still there in
+                    // the resultant formatted tree.
+                    var firstTrivia = multilineCommentTrivia.First();
+                    result = trivia.CopyAnnotationsTo(firstTrivia);
+                    return true;
+                }
+            }
+
             result = default;
-
-            if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
-            {
-                return false;
-            }
-
-            var indentation = lineColumn.Column;
-            var indentationDelta = indentation - GetExistingIndentation(trivia);
-            if (indentationDelta != 0)
-            {
-                var multiLineComment = trivia.ToFullString().ReindentStartOfXmlDocumentationComment(
-                    false /* forceIndentation */,
-                    indentation,
-                    indentationDelta,
-                    this.Options.GetOption(FormattingOptions2.UseTabs),
-                    this.Options.GetOption(FormattingOptions2.TabSize),
-                    this.Options.GetOption(FormattingOptions2.NewLine));
-
-                var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
-                Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);
-
-                result = multilineCommentTrivia.ElementAt(0);
-                return true;
-            }
-
             return false;
         }
 
@@ -354,6 +346,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return GetLineColumnDelta(lineColumn, docComment);
+        }
+
+        protected override bool LineContinuationFollowedByWhitespaceComment(SyntaxTrivia trivia, SyntaxTrivia nextTrivia)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// C# never passes a VB Comment
+        /// </summary>
+        /// <param name="trivia"></param>
+        protected override bool IsVisualBasicComment(SyntaxTrivia trivia)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

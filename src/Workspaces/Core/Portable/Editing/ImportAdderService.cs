@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -35,13 +34,12 @@ namespace Microsoft.CodeAnalysis.Editing
             Document document,
             IEnumerable<TextSpan> spans,
             Strategy strategy,
-            OptionSet? options,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
-            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // Create a simple interval tree for simplification spans.
@@ -60,13 +58,11 @@ namespace Microsoft.CodeAnalysis.Editing
             // into) B and C not A and D.
             var nodes = root.DescendantNodesAndSelf(overlapsWithSpan).Where(overlapsWithSpan);
 
-            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-
             if (strategy == Strategy.AddImportsFromSymbolAnnotations)
-                return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
 
             if (strategy == Strategy.AddImportsFromSyntaxes)
-                return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
 
             throw ExceptionUtilities.UnexpectedValue(strategy);
         }
@@ -112,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> syntaxNodes,
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
-            bool placeSystemNamespaceFirst,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var importsToAdd);
@@ -122,12 +118,14 @@ namespace Microsoft.CodeAnalysis.Editing
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var nodesWithExplicitNamespaces = syntaxNodes
-                .Select(n => (syntaxnode: n, namespaceSymbol: GetExplicitNamespaceSymbol(n, model)))
-                .Where(x => x.namespaceSymbol != null);
+                .Select(n => (syntaxnode: n, namespaceSymbol: GetExplicitNamespaceSymbol(n, model)));
 
             var addedSymbols = new HashSet<INamespaceSymbol>();
             foreach (var (node, namespaceSymbol) in nodesWithExplicitNamespaces)
             {
+                if (namespaceSymbol is null)
+                    continue;
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 nodesToSimplify.Add(node);
@@ -160,7 +158,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             var context = first.GetCommonRoot(last);
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            root = addImportsService.AddImports(
+                model.Compilation, root, context, importsToAdd, generator, options, cancellationToken);
 
             return document.WithSyntaxRoot(root);
         }
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> syntaxNodes,
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
-            bool placeSystemNamespaceFirst,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
             using var _ = PooledDictionary<INamespaceSymbol, SyntaxNode>.GetInstance(out var importToSyntax);
@@ -227,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var context = first.GetCommonRoot(last);
 
             // Find the namespace/compilation-unit we'll be adding all these imports to.
-            var importContainer = addImportsService.GetImportContainer(root, context, importToSyntax.First().Value);
+            var importContainer = addImportsService.GetImportContainer(root, context, importToSyntax.First().Value, options);
 
             // Now remove any imports we think can cause conflicts in that container.
             var safeImportsToAdd = GetSafeToAddImports(importToSyntax.Keys.ToImmutableArray(), importContainer, model, cancellationToken);
@@ -236,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editing
             if (importsToAdd.Length == 0)
                 return document;
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, options, cancellationToken);
             return document.WithSyntaxRoot(root);
         }
 

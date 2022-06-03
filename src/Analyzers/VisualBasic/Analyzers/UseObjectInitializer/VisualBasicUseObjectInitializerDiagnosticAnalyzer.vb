@@ -26,13 +26,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             End Get
         End Property
 
-        Protected Overrides Function AreObjectInitializersSupported(context As SyntaxNodeAnalysisContext) As Boolean
+        Protected Overrides Function AreObjectInitializersSupported(compilation As Compilation) As Boolean
             'Object Initializers are supported in all the versions of Visual Basic we support
             Return True
         End Function
 
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
+        End Function
+
+        Protected Overrides Function IsValidContainingStatement(node As StatementSyntax) As Boolean
+            Return True
         End Function
     End Class
 End Namespace

@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias InteractiveHost;
 
 using System;
@@ -8,8 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Interactive;
-using Microsoft.VisualStudio.Editor.Interactive;
+using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
@@ -52,12 +54,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
             _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
-                specializedContentType: CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName);
+                specializedContentType: InteractiveWindowContentTypes.CommandContentTypeName);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
 
-        protected abstract InteractiveEvaluator CreateInteractiveEvaluator(
+        protected abstract CSharpInteractiveEvaluator CreateInteractiveEvaluator(
             SVsServiceProvider serviceProvider,
             IViewClassifierAggregatorService classifierAggregator,
             IContentTypeRegistryService contentTypeRegistry,
@@ -189,6 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     }
                 }
             }
+
             return interactiveCommands.ToImmutableArray();
         }
     }

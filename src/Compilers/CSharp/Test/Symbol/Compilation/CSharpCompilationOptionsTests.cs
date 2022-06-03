@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -401,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool debugPlusMode = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
+            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider = null;
             MetadataReferenceResolver metadataReferenceResolver = new MetadataReferenceResolverWithEquality();
             AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
@@ -411,11 +414,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var publicSign = false;
             NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
 
-            return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
-                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
-                concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, nullableContextOptions);
+            return new CSharpCompilationOptions(OutputKind.ConsoleApplication,
+                reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
+                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile,
+                cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
+                specificDiagnosticOptions, concurrentBuild, deterministic, currentLocalTime,
+                debugPlusMode, xmlReferenceResolver, sourceReferenceResolver,
+                syntaxTreeOptionsProvider, metadataReferenceResolver, assemblyIdentityComparer,
+                strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions,
+                publicSign, topLevelBinderFlags, nullableContextOptions);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
@@ -442,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void WithNullable()
+        public void TestWithNullable()
         {
             Assert.Equal(NullableContextOptions.Disable, new CSharpCompilationOptions(OutputKind.ConsoleApplication).NullableContextOptions);
 

@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -15,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AssignOutParametersAtStart), Shared]
     internal class AssignOutParametersAtStartCodeFixProvider : AbstractAssignOutParametersCodeFixProvider
     {
         [ImportingConstructor]
@@ -47,9 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 return;
             }
 
-            context.RegisterCodeFix(new MyCodeAction(
-               CSharpFeaturesResources.Assign_out_parameters_at_start,
-               c => FixAsync(document, context.Diagnostics[0], c)), context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    CSharpFeaturesResources.Assign_out_parameters_at_start,
+                    GetDocumentUpdater(context),
+                    nameof(CSharpFeaturesResources.Assign_out_parameters_at_start)),
+                context.Diagnostics);
         }
 
         protected override void AssignOutParameters(

@@ -49,6 +49,13 @@ $$");
 @"using Goo = $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)
@@ -675,9 +682,25 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNamespace()
         {
             await VerifyKeywordAsync(@"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(
+@"namespace N;
 $$");
         }
 
@@ -732,6 +755,22 @@ using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(@"[assembly: goo]
@@ -739,9 +778,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRootAttribute()
+        public async Task TestAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"[goo]
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"[goo]
 $$");
         }
 
@@ -1077,6 +1116,53 @@ class C
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref int x = ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_SingleLine()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""{$$}"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = ${|#0:|}$""""""{{$$}}"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_SingleLineIncomplete()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""{$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_MultiLine()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""
+{$$}
+"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = ${|#0:|}$""""""
+{{$$}}
+"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRawStringInterpolation_MultiLineIncomplete()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = $""""""
+{$$"));
         }
     }
 }

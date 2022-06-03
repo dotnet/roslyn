@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -45,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (previous.IsAnonymousType)
             {
-                ImmutableArray<TypeWithAnnotations> oldFieldTypes = AnonymousTypeManager.GetAnonymousTypePropertyTypesWithAnnotations(previous);
-                ImmutableArray<TypeWithAnnotations> newFieldTypes = SubstituteTypes(oldFieldTypes);
-                return (oldFieldTypes == newFieldTypes) ? previous : AnonymousTypeManager.ConstructAnonymousTypeSymbol(previous, newFieldTypes);
+                return ((AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)previous).SubstituteTypes(this);
             }
 
             // TODO: we could construct the result's ConstructedFrom lazily by using a "deep"

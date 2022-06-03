@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,6 +46,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitNamedType(this);
+
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitNamedType(this, argument);
 
         public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
         {

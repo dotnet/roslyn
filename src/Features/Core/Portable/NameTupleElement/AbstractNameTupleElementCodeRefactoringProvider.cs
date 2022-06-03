@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(
+                CodeAction.Create(
                     string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
-                    c => AddNamedElementAsync(document, span, cancellationToken)),
+                    c => AddNamedElementAsync(document, span, cancellationToken),
+                    nameof(FeaturesResources.Add_tuple_element_name_0) + "_" + elementName),
                 argument.Span);
         }
 
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var potentialArguments = await document.GetRelevantNodesAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
             var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TTupleExpressionSyntax);
             if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
@@ -53,10 +54,10 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            var tuple = (TTupleExpressionSyntax)argument.Parent;
+            var tuple = (TTupleExpressionSyntax)argument.GetRequiredParent();
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol tupleType))
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is not INamedTypeSymbol tupleType)
             {
                 return default;
             }
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 return default;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (root, argument, element.Name);
         }
 
@@ -86,14 +87,6 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var newArgument = WithName(argument, elementName).WithTriviaFrom(argument);
             var newRoot = root.ReplaceNode(argument, newArgument);
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

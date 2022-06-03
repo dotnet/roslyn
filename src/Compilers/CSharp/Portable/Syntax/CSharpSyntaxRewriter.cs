@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -43,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ((CSharpSyntaxNode)node).Accept(this);
 
                 _recursionDepth--;
-                return result;
+                // https://github.com/dotnet/roslyn/issues/47682
+                return result!;
             }
             else
             {

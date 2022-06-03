@@ -482,5 +482,35 @@ namespace var { }
 </Workspace>
             Await TestAPI(input, host)
         End Function
+
+        <WpfFact, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamespaceUsedInSourceGeneratedDocument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        namespace {|Definition:[|$$N|]|}
+        {
+            class C
+            {
+                void Goo()
+                {
+                    [|N|].C x;
+                }
+            }
+        }
+        </Document>
+        <DocumentFromSourceGenerator>
+        namespace [|N|]
+        {
+            class D
+            {
+            }
+        }
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPI(input, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+        End Function
     End Class
 End Namespace

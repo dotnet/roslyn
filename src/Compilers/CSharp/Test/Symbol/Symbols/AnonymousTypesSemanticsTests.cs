@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -1276,7 +1277,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                       Right: 
                                         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ClassA.BB')
                                           Children(1):
-                                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'ClassA')
+                                              IOperation:  (OperationKind.None, Type: ClassA) (Syntax: 'ClassA')
                                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.CCC')
                                       Left: 
                                         IPropertyReferenceOperation: ? <anonymous type: ? aa, ? BB, ? CCC>.CCC { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.CCC')
@@ -1285,7 +1286,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                       Right: 
                                         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ClassA.CCC')
                                           Children(1):
-                                              IOperation:  (OperationKind.None, Type: null) (Syntax: 'ClassA')
+                                              IOperation:  (OperationKind.None, Type: ClassA) (Syntax: 'ClassA')
       Initializer: 
         null
 ";

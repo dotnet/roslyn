@@ -113,16 +113,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides Function Equals(obj As Object) As Boolean
-            If obj Is Nothing Then
-                Return False
-            End If
+        Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, CrefTypeParameterSymbol))
+        End Function
 
-            If Me Is obj Then
+        Public Overloads Function Equals(other As CrefTypeParameterSymbol) As Boolean
+            If Me Is other Then
                 Return True
             End If
 
-            Dim other = TryCast(obj, CrefTypeParameterSymbol)
             If other Is Nothing Then
                 Return False
             End If

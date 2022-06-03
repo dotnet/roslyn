@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         };
 
-        public static IEnumerable<ValueTuple<SyntaxToken, SyntaxToken>> ConvertToTokenPairs(this SyntaxNode root, IList<TextSpan> spans)
+        public static IEnumerable<(SyntaxToken, SyntaxToken)> ConvertToTokenPairs(this SyntaxNode root, IReadOnlyList<TextSpan> spans)
         {
             Contract.ThrowIfNull(root);
             Contract.ThrowIfFalse(spans.Count > 0);
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return previousToken.Span.End;
         }
 
-        private static SyntaxNode GetParentThatContainsGivenSpan(SyntaxNode node, int position, bool forward)
+        private static SyntaxNode? GetParentThatContainsGivenSpan(SyntaxNode? node, int position, bool forward)
         {
             while (node != null)
             {

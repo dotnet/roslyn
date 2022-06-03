@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Xml.Linq;
 
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => GetAccessibility(symbol) == accessibility;
 
         internal static XElement CreateXElement(this Accessibility accessibility)
-            => new XElement("AccessibilityKind", accessibility);
+            => new("AccessibilityKind", accessibility);
 
         internal static Accessibility FromXElement(XElement accessibilityElement)
             => (Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value);

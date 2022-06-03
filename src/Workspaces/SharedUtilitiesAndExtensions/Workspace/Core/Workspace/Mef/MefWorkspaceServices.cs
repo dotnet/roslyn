@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -81,9 +83,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
         {
-
+            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
+#if !CODE_STYLE
+            // test layer overrides all other layers and workspace kind:
+            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
+            {
+                return service;
+            }
+#endif
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out var service))
+            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
             {
                 return service;
             }
@@ -151,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var currentServicesMap = _languageServicesMap;
             if (!currentServicesMap.TryGetValue(languageName, out var languageServices))
             {
-                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, _ => new MefLanguageServices(this, languageName));
+                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, static (languageName, self) => new MefLanguageServices(self, languageName), this);
             }
 
             if (languageServices.HasServices)

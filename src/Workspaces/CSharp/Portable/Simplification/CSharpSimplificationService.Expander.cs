@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private static readonly SyntaxTrivia s_oneWhitespaceSeparator = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
             private static readonly SymbolDisplayFormat s_typeNameFormatWithGenerics =
-                new SymbolDisplayFormat(
+                new(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                     memberOptions:
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
-                => new SpeculationAnalyzer(expression, newExpression, _semanticModel, _cancellationToken);
+                => new(expression, newExpression, _semanticModel, _cancellationToken);
 
             private bool TryCastTo(ITypeSymbol targetType, ExpressionSyntax expression, ExpressionSyntax newExpression, out ExpressionSyntax newExpressionWithCast)
             {
@@ -306,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             // No duplicate names allowed
                             return false;
                         }
+
                         found = true;
                     }
                 }
@@ -500,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
                                 }
+
                                 break;
 
                             case SyntaxKind.QualifiedName:
@@ -640,8 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a namespace or type name, fully qualify it.
-                if (symbol.Kind == SymbolKind.NamedType ||
-                    symbol.Kind == SymbolKind.Namespace)
+                if (symbol.Kind is SymbolKind.NamedType or
+                    SymbolKind.Namespace)
                 {
                     var replacement = FullyQualifyIdentifierName(
                         (INamespaceOrTypeSymbol)symbol,
@@ -658,9 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 // if it's a member access, we're fully qualifying the left side and make it a member access.
-                if (symbol.Kind == SymbolKind.Method ||
-                    symbol.Kind == SymbolKind.Field ||
-                    symbol.Kind == SymbolKind.Property)
+                if (symbol.Kind is SymbolKind.Method or
+                    SymbolKind.Field or
+                    SymbolKind.Property)
                 {
                     if (symbol.IsStatic ||
                         originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
@@ -719,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     foreach (var candidateToken in leftTokens)
                     {
-                        if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
+                        if (candidateToken.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
                         {
                             candidateTokens.Add(candidateToken);
                             continue;
@@ -1037,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
-                if (this._semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
+                if (_semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
                 {
                     return originalNode;
                 }
@@ -1067,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // Bail out on extension method invocations in conditional access expression.
                 // Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
                 // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
-                if (originalMemberAccess.GetParentConditionalAccessExpression() == null)
+                if (originalMemberAccess.GetRootConditionalAccessExpression() == null)
                 {
                     var speculationPosition = originalNode.SpanStart;
                     var expression = RewriteExtensionMethodInvocation(speculationPosition, rewrittenNode, thisExpression, reducedExtensionMethod);

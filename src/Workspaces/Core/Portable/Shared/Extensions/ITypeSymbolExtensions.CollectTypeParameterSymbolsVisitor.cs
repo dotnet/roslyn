@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private class CollectTypeParameterSymbolsVisitor : SymbolVisitor
         {
-            private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
+            private readonly HashSet<ISymbol> _visited = new();
             private readonly bool _onlyMethodTypeParameters;
             private readonly IList<ITypeParameterSymbol> _typeParameters;
 

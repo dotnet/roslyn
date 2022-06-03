@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +19,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 {
+#if !CODE_STYLE // Not exported in CodeStyle layer: https://github.com/dotnet/roslyn/issues/47942
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryPragmaSuppressions), Shared]
+#endif
     internal sealed class RemoveUnnecessaryInlineSuppressionsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId);
 
-        internal override CodeFixCategory CodeFixCategory
-            => CodeFixCategory.CodeQuality;
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
@@ -46,14 +43,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 if (root.FindNode(diagnostic.Location.SourceSpan) is { } node && syntaxFacts.IsAttribute(node) ||
                     root.FindTrivia(diagnostic.Location.SourceSpan.Start).HasStructure)
                 {
-                    context.RegisterCodeFix(
-                        new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
-                        diagnostic);
+                    RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
                 }
             }
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // We need to track unique set of processed nodes when removing the nodes.
             // This is because we generate an unnecessary pragma suppression diagnostic at both the pragma disable and matching pragma restore location
@@ -81,10 +76,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 ISyntaxFacts syntaxFacts)
             {
                 SyntaxNode node;
+                var options = SyntaxGenerator.DefaultRemoveOptions;
                 if (editor.OriginalRoot.FindNode(location.SourceSpan) is { } attribute &&
                     syntaxFacts.IsAttribute(attribute))
                 {
                     node = attribute;
+                    // Keep leading trivia for attributes as we don't want to remove doc comments, or anything else
+                    options |= SyntaxRemoveOptions.KeepLeadingTrivia;
                 }
                 else
                 {
@@ -93,16 +91,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
                 if (processedNodes.Add(node))
                 {
-                    editor.RemoveNode(node);
+                    editor.RemoveNode(node, options);
                 }
-            }
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_suppression, createChangedDocument, nameof(RemoveUnnecessaryInlineSuppressionsCodeFixProvider))
-            {
             }
         }
     }

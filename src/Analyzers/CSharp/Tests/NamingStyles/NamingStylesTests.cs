@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,18 +16,24 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
 {
     public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public NamingStylesTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         private static readonly NamingStylesTestOptionSets s_options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
 
-        protected override TestComposition GetComposition() => s_composition;
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_CorrectName()
@@ -1292,6 +1300,126 @@ namespace Microsoft.CodeAnalysis.Host
             var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
             Assert.Equal("arg", symbolRenamedOperation._symbol.Name);
             Assert.Equal("TArg", symbolRenamedOperation._newName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"record Foo(int [|MyInt|]);",
+                new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        public async Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"record Foo(int MyInt)
+{
+    public Foo(string [|p_myString|]) : this(1)
+    {
+    }
+}",
+                new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        public async Task TestRecordParameter_ParameterFormattedAsProperties()
+        {
+            await TestInRegularAndScriptAsync(
+@"public record Foo(int [|myInt|]);",
+@"public record Foo(int [|MyInt|]);",
+                options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+        }
+
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_1")]
+        [InlineData("_123")]
+        public async Task TestDiscardParameterAsync(string identifier)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    void M(int [|{identifier}|])
+    {{
+    }}
+}}", new TestParameters(options: s_options.ParameterNamesAreCamelCase));
+        }
+
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_1")]
+        [InlineData("_123")]
+        public async Task TestDiscardLocalAsync(string identifier)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    void M()
+    {{
+        int [|{identifier}|] = 0;
+    }}
+}}", new TestParameters(options: s_options.LocalNamesAreCamelCase));
+        }
+
+        [Fact]
+        [WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
+        public async Task TestGlobalDirectiveAsync()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+interface I
+{
+    int X { get; }
+}
+
+class C : I
+{
+    int [|global::I.X|] => 0;
+}", new TestParameters(options: s_options.PropertyNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(50734, "https://github.com/dotnet/roslyn/issues/50734")]
+        public async Task TestAsyncEntryPoint()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task [|Main|]()
+    {
+        await Task.Delay(0);
+    }
+}", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(49648, "https://github.com/dotnet/roslyn/issues/49648")]
+        public async Task TestAsyncEntryPoint_TopLevel()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System.Threading.Tasks;
+
+[|await Task.Delay(0);|]
+", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
+        }
+
+        [Fact]
+        [WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
+        public async Task TestExternAsync()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    static extern void [|some_p_invoke()|];
+}", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
     }
 }

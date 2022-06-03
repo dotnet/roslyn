@@ -7,16 +7,24 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
-    internal class TypeSyntaxComparer : IComparer<TypeSyntax>
+    internal class TypeSyntaxComparer : IComparer<TypeSyntax?>
     {
         private readonly IComparer<SyntaxToken> _tokenComparer;
-        internal IComparer<NameSyntax> NameComparer;
+        internal readonly IComparer<NameSyntax?> NameComparer;
 
-        internal TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer)
-            => _tokenComparer = tokenComparer;
-
-        public int Compare(TypeSyntax x, TypeSyntax y)
+        internal TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer, IComparer<NameSyntax?> nameComparer)
         {
+            _tokenComparer = tokenComparer;
+            NameComparer = nameComparer;
+        }
+
+        public int Compare(TypeSyntax? x, TypeSyntax? y)
+        {
+            if (x is null)
+                return y is null ? 0 : -1;
+            else if (y is null)
+                return 1;
+
             if (x == y)
             {
                 return 0;

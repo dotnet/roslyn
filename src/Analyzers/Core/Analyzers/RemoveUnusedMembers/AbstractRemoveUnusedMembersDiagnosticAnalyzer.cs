@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,13 +27,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+            EnforceOnBuildValues.RemoveUnusedMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
-        private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+        // Internal for testing
+        internal static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+            EnforceOnBuildValues.RemoveUnreadMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
@@ -63,7 +68,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         private sealed class CompilationAnalyzer
         {
             private readonly object _gate;
-            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
+            /// <summary>
+            /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
+            /// </summary>
+            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
+            /// <summary>
+            /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
+            /// <code>
+            /// class C
+            /// {
+            ///     private int P { get; set; }
+            ///     public void M() { P++; }
+            /// }
+            /// </code>
+            /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
+            /// </summary>
+            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
@@ -76,9 +96,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             {
                 _gate = new object();
                 _analyzer = analyzer;
-
-                // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
-                _symbolValueUsageStateMap = new Dictionary<ISymbol, ValueUsageInfo>();
 
                 _taskType = compilation.TaskType();
                 _genericTaskType = compilation.TaskOfTType();
@@ -297,6 +314,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         if (memberReference.Parent.Parent is IExpressionStatementOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
+
+                            // If the symbol is a property, than mark it as having shadow 'get' accessor usages.
+                            // Later we will produce message "Private member X can be removed as the value assigned to it is never read"
+                            // rather than "Private property X can be converted to a method as its get accessor is never invoked" depending on this information.
+                            if (memberSymbol is IPropertySymbol propertySymbol)
+                            {
+                                lock (_gate)
+                                {
+                                    _propertiesWithShadowGetAccessorUsages.Add(propertySymbol);
+                                }
+                            }
                         }
                     }
 
@@ -467,7 +495,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return;
             }
 
-            private static LocalizableString GetMessage(
+            private LocalizableString GetMessage(
                DiagnosticDescriptor rule,
                ISymbol member)
             {
@@ -482,7 +510,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             break;
 
                         case IPropertySymbol property:
-                            if (property.GetMethod != null && property.SetMethod != null)
+                            // We change the message only if both 'get' and 'set' accessors are present and
+                            // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
+                            if (property.GetMethod != null && property.SetMethod != null &&
+                                !_propertiesWithShadowGetAccessorUsages.Contains(property))
                             {
                                 messageFormat = AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
                             }
@@ -629,7 +660,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     }
 
                                     // Do not flag unused entry point (Main) method.
-                                    if (IsEntryPoint(methodSymbol))
+                                    if (methodSymbol.IsEntryPoint(_taskType, _genericTaskType))
                                     {
                                         return false;
                                     }
@@ -695,15 +726,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return false;
             }
 
-            private bool IsEntryPoint(IMethodSymbol methodSymbol)
-                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "<Main>$") &&  // https://github.com/dotnet/roslyn/issues/45110 Switch to using WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
-                                                                                                                          // once src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj is able to use the latest version of the type.
-                   methodSymbol.IsStatic &&
-                   (methodSymbol.ReturnsVoid ||
-                    methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(_taskType) ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(_genericTaskType));
-
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
 
@@ -723,7 +745,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     if (methodSymbol.Name.StartsWith(prefix))
                     {
-                        var suffix = methodSymbol.Name.Substring(prefix.Length);
+                        var suffix = methodSymbol.Name[prefix.Length..];
                         return suffix.Length > 0 &&
                             methodSymbol.ContainingType.GetMembers(suffix).Any(m => m is IPropertySymbol);
                     }

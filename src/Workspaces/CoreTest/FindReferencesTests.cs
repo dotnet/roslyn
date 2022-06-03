@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,12 +39,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
         }
 
-        private static Solution GetSingleDocumentSolution(Workspace workspace, string sourceText)
+        private static Solution GetSingleDocumentSolution(Workspace workspace, string sourceText, string languageName = LanguageNames.CSharp)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
             return workspace.CurrentSolution
-                    .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
+                    .AddProject(pid, "goo", "goo", languageName)
                     .AddMetadataReference(pid, MscorlibRef)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
@@ -470,6 +472,124 @@ abstract class C<T> where T : unmanaged         // Line 4
             var result = (await SymbolFinder.FindReferencesAsync(constraint, solution)).Single();
 
             Verify(result, new HashSet<int> { 1, 4 });
+        }
+
+        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        public async Task DoNotIncludeConstructorReferenceInTypeList_CSharp()
+        {
+            var text = @"
+class C
+{
+}
+
+class Test
+{
+    void M()
+    {
+        C c = new C();
+    }
+}
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("C");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(1, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
+        }
+
+        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        public async Task DoNotIncludeConstructorReferenceInTypeList_VisualBasic()
+        {
+            var text = @"
+class C
+end class
+
+class Test
+    sub M()
+        dim c as C = new C()
+    end sub
+end class
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.VisualBasic);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("C");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(1, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
+        }
+
+        [Fact, WorkItem(49624, "https://github.com/dotnet/roslyn/issues/49624")]
+        public async Task DoNotIncludeSameNamedAlias()
+        {
+            var text = @"
+using NestedDummy = Test.Dummy.NestedDummy;
+
+namespace Test
+{
+    public class DummyFactory
+    {
+        public NestedDummy Create() => new NestedDummy();
+    }
+}
+
+namespace Test
+{
+	public class Dummy
+	{
+		public class NestedDummy { }
+	}
+}
+";
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.CSharp);
+            var project = solution.Projects.First();
+            var compilation = await project.GetCompilationAsync();
+            var symbol = compilation.GetTypeByMetadataName("Test.Dummy+NestedDummy");
+
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            Assert.Equal(2, result.Count);
+
+            var typeResult = result.Single(r => r.Definition.Kind == SymbolKind.NamedType);
+            var constructorResult = result.Single(r => r.Definition.Kind == SymbolKind.Method);
+
+            // Should be one hit for the type and one for the constructor.
+            Assert.Equal(2, typeResult.Locations.Count());
+            Assert.Equal(1, constructorResult.Locations.Count());
+
+            // those locations should not be the same
+            Assert.True(typeResult.Locations.All(loc => loc.Location.SourceSpan != constructorResult.Locations.Single().Location.SourceSpan));
+
+            // Constructor still binds to the alias.
+            Assert.NotNull(constructorResult.Locations.Single().Alias);
+
+            // One type reference is to the type itself, and one is through the alias.
+            Assert.True(typeResult.Locations.Count(loc => loc.Alias == null) == 1);
+            Assert.True(typeResult.Locations.Count(loc => loc.Alias != null) == 1);
         }
 
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)

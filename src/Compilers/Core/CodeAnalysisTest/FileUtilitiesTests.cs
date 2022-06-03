@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -265,6 +267,59 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestChangeExtension(path: null, extension: null, expected: null);
 
             Assert.Equal("*", PathUtilities.RemoveExtension("*.dll"));
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"x:\a\b\file.cs", "x:/a/b/file.cs")]
+        [InlineData(@"x:/a/b/file.cs", "x:/a/b/file.cs")]
+        [InlineData(@"x:\a\b\", "x:/a/b/")]
+        [InlineData(@"x:\a\b", "x:/a/b")]
+        [InlineData(@"x:\a\..\b\file.cs", "x:/b/file.cs")]
+        [InlineData(@"x:/a/../b/file.cs", "x:/b/file.cs")]
+        [InlineData(@"x:\a\b\..\c\", "x:/a/c/")]
+        [InlineData(@"x:\a\.\.\b\..\c\", "x:/a/c/")]
+        [InlineData(@"x:\..\..\a\.\.\b\..\c\", "x:/a/c/")]
+        [InlineData(@"\\server\a\b\", @"\\server\a\b\")]
+        [InlineData(@"\\server\..\a\.\.\b\..\c\", @"\\server\..\a\.\.\b\..\c\")]
+        [InlineData(@"x:a.cs", "x:a.cs")]
+        [InlineData(@"x:a//b//..//a.cs", "x:a//b//..//a.cs")]
+        [InlineData(@"ab:\c\d\", @"ab:\c\d\")]
+        [InlineData(@"ab:/c/d", @"ab:/c/d")]
+        [InlineData(@"ab:\c\..\d\", @"ab:\c\..\d\")]
+        [InlineData(@"\\.\C:\a\b.cs", @"\\.\C:\a\b.cs")]
+        [InlineData(@"\\.\C:\a\..\b.cs", @"\\.\C:\a\..\b.cs")]
+        [InlineData(@"\\?\C:\a\b.cs", @"\\?\C:\a\b.cs")]
+        [InlineData(@"\\.\Volume{00000000-0000-0000-0000-000000000000}\a\b.cs", @"\\.\Volume{00000000-0000-0000-0000-000000000000}\a\b.cs")]
+        [InlineData(@"\", @"\")]
+        [InlineData(@"\\", @"\\")]
+        [InlineData(@"\\server", @"\\server")]
+        [InlineData(@"x:", "x:")]
+        [InlineData(@"x:\", @"x:/")]
+        public void TestExpandAbsolutePathWithRelativeParts_Windows(string input, string expected) => TestExpandAbsolutePathWithRelativeParts(input, expected);
+
+        [Theory]
+        [InlineData("/", "/")]
+        [InlineData("/a/b/c", "/a/b/c")]
+        [InlineData("/a/b/c/file.cs", "/a/b/c/file.cs")]
+        [InlineData("/a/b/../c/file.cs", "/a/c/file.cs")]
+        [InlineData("/a/../b/../c/file.cs", "/c/file.cs")]
+        [InlineData("/../../c/file.cs", "/c/file.cs")]
+        [InlineData("/a/../b/./././../c/file.cs", "/c/file.cs")]
+        // not absolute paths
+        [InlineData("a/b/c", "a/b/c")]
+        [InlineData("./a/b/c", "./a/b/c")]
+        [InlineData("./a/../b/c", "./a/../b/c")]
+        [InlineData("../a/../b/c", "../a/../b/c")]
+        [InlineData("foo", "foo")]
+        [InlineData("", "")]
+        [InlineData(".", ".")]
+        [InlineData("..", "..")]
+        [InlineData("../", "../")]
+        [InlineData("./", "./")]
+        public void TestExpandAbsolutePathWithRelativeParts(string input, string expected)
+        {
+            var result = PathUtilities.ExpandAbsolutePathWithRelativeParts(input);
+            Assert.Equal(expected, result);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string MarkerFormatDefinition_HighlightedDefinition = "MarkerFormatDefinition/HighlightedDefinition";
         public const string MarkerFormatDefinition_HighlightedWrittenReference = "MarkerFormatDefinition/HighlightedWrittenReference";
 
-        public static Type GetTagTypeByName(string typeName)
+        public static Type? GetTagTypeByName(string typeName)
         {
             switch (typeName)
             {

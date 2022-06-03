@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 
@@ -51,17 +49,27 @@ namespace Microsoft.CodeAnalysis.Options
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
         public Option2(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation2>())
+            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
-        public Option2(string feature, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
+        public Option2(string feature, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, ImmutableArray.Create(storageLocation))
+        {
+        }
+
+        public Option2(string feature, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
             : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
         {
         }
 
-        internal Option2(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
-            : this(feature, group, name, defaultValue, storageLocations.ToImmutableArray())
+        internal Option2(string feature, OptionGroup group, string name, T defaultValue)
+            : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
+        {
+        }
+
+        internal Option2(string feature, OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+            : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
@@ -115,6 +123,6 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static implicit operator OptionKey2(Option2<T> option)
-            => new OptionKey2(option);
+            => new(option);
     }
 }

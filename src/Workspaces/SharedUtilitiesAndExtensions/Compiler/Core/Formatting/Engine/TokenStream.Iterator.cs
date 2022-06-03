@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -15,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
         private class Iterator : IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)>
         {
-            private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
+            private readonly SegmentedList<SyntaxToken> _tokensIncludingZeroWidth;
 
-            public Iterator(List<SyntaxToken> tokensIncludingZeroWidth)
+            public Iterator(SegmentedList<SyntaxToken> tokensIncludingZeroWidth)
                 => _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
 
             public IEnumerator<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> GetEnumerator()
@@ -28,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private struct Enumerator : IEnumerator<(int index, SyntaxToken currentToken, SyntaxToken nextToken)>
             {
-                private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
+                private readonly SegmentedList<SyntaxToken> _tokensIncludingZeroWidth;
                 private readonly int _maxCount;
 
                 private (int index, SyntaxToken currentToken, SyntaxToken nextToken) _current;
                 private int _index;
 
-                public Enumerator(List<SyntaxToken> tokensIncludingZeroWidth)
+                public Enumerator(SegmentedList<SyntaxToken> tokensIncludingZeroWidth)
                 {
                     _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
                     _maxCount = _tokensIncludingZeroWidth.Count - 1;

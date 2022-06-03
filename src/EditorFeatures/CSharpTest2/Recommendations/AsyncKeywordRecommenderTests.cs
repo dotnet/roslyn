@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -35,6 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyKeywordAsync(@"class C
 {
     $$ public void goo() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMethodDeclarationAsyncAfterCursor()
+        {
+            await VerifyKeywordAsync(@"class C
+{
+    public $$ async void goo() { }
 }");
         }
 
@@ -217,7 +228,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotIfAlreadyAsync2()
+        public async Task TestNotIfAlreadyAsyncInLambda()
         {
             await VerifyAbsenceAsync(@"
 class Program
@@ -226,6 +237,30 @@ class Program
     {
         var z = async $$ () => 2;
     }
+}");
+        }
+
+        [WorkItem(60340, "https://github.com/dotnet/roslyn/issues/60340")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotIfAlreadyAsyncBeforeOtherMember()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    async $$    
+
+    public void M() {}
+}");
+        }
+
+        [WorkItem(60340, "https://github.com/dotnet/roslyn/issues/60340")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotIfAlreadyAsyncAsLastMember()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    async $$
 }");
         }
 
@@ -276,7 +311,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -286,7 +321,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction2(bool topLevelStatement)
         {
@@ -297,7 +332,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction3(bool topLevelStatement)
         {
@@ -308,7 +343,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction4(bool topLevelStatement)
         {
@@ -318,7 +353,7 @@ class Goo
 
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction5()
         {
@@ -338,7 +373,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction6(bool topLevelStatement)
         {
@@ -349,7 +384,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7(bool topLevelStatement)
         {

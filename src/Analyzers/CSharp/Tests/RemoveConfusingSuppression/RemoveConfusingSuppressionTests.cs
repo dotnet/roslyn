@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -132,8 +133,6 @@ class C
             }.RunAsync();
         }
 
-#if !CODE_STYLE
-
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsExpression_CSharp9()
         {
@@ -166,12 +165,9 @@ class C
             }.RunAsync();
         }
 
-#endif
-
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsPattern_CSharp9()
         {
-            // this will change to `if (o is not string s)` once it's legal to have declarations under a `not` pattern.
             await new VerifyCS.Test
             {
                 TestCode =
@@ -194,7 +190,7 @@ class C
 {
     void M(object o)
     {
-        if (!(o is string s))
+        if (o is not string s)
         {
         }
     }

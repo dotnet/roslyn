@@ -24,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MakeNullLiteral(node, objectType)
             Else
                 If Not rewrittenReceiver.Type.IsObjectType Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenReceiver.Type, objectType, useSiteDiagnostics)
-                    _diagnostics.Add(node, useSiteDiagnostics)
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+                    Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenReceiver.Type, objectType, useSiteInfo)
+                    _diagnostics.Add(node, useSiteInfo)
                     rewrittenReceiver = New BoundDirectCast(node, rewrittenReceiver, convKind, objectType)
                 End If
 
@@ -130,9 +130,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim argument = rewrittenArguments(i)
                 argument = argument.MakeRValue
                 If Not argument.Type.IsObjectType Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteDiagnostics)
-                    _diagnostics.Add(node, useSiteDiagnostics)
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+                    Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteInfo)
+                    _diagnostics.Add(node, useSiteInfo)
                     argument = New BoundDirectCast(node, argument, convKind, objectType)
                 End If
 
@@ -169,11 +169,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
 
             If Not rewrittenValue.Type.IsObjectType Then
-                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenValue.Type, objectType, useSiteDiagnostics)
-                _diagnostics.Add(node, useSiteDiagnostics)
+                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenValue.Type, objectType, useSiteInfo)
+                _diagnostics.Add(node, useSiteInfo)
                 rewrittenValue = New BoundDirectCast(node, rewrittenValue, convKind, objectType)
             End If
 
@@ -219,8 +219,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim argument = rewrittenArguments(i)
                 argument = argument.MakeRValue
                 If Not argument.Type.IsObjectType Then
-                    Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteDiagnostics)
-                    _diagnostics.Add(argument, useSiteDiagnostics)
+                    Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteInfo)
+                    _diagnostics.Add(argument, useSiteInfo)
                     argument = New BoundDirectCast(node, argument, convKind, objectType)
                 End If
 
@@ -235,8 +235,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' value goes last
             If Not rewrittenValue.Type.IsObjectType Then
-                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenValue.Type, objectType, useSiteDiagnostics)
-                _diagnostics.Add(rewrittenValue, useSiteDiagnostics)
+                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenValue.Type, objectType, useSiteInfo)
+                _diagnostics.Add(rewrittenValue, useSiteInfo)
                 rewrittenValue = New BoundDirectCast(node, rewrittenValue, convKind, objectType)
             End If
 
@@ -284,9 +284,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each argument In rewrittenArguments
                     argument = argument.MakeRValue
                     If Not argument.Type.IsObjectType Then
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteDiagnostics)
-                        _diagnostics.Add(argument, useSiteDiagnostics)
+                        Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+                        Dim convKind = Conversions.ClassifyDirectCastConversion(argument.Type, objectType, useSiteInfo)
+                        _diagnostics.Add(argument, useSiteInfo)
                         argument = New BoundDirectCast(node, argument, convKind, objectType)
                     End If
 
@@ -384,10 +384,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           type:=objectType)
 
                 End If
-
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim conversionKind = Conversions.ClassifyDirectCastConversion(objectType, targetType, useSiteDiagnostics)
-                Debug.Assert(useSiteDiagnostics.IsNullOrEmpty)
+#If DEBUG Then
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Me.Compilation.Assembly)
+#Else
+                Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).Discarded
+#End If
+                Dim conversionKind = Conversions.ClassifyDirectCastConversion(objectType, targetType, useSiteInfo)
+#If DEBUG Then
+                Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty)
+                Debug.Assert(useSiteInfo.Dependencies.IsNullOrEmpty)
+#End If
                 value = New BoundDirectCast(syntax, value, conversionKind, targetType)
             End If
 
@@ -967,17 +973,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                syntax As SyntaxNode,
                                                                Optional isOptional As Boolean = False) As Boolean
 
-            Dim diagInfo As DiagnosticInfo = Nothing
-            Dim memberSymbol = Binder.GetWellKnownTypeMember(Me.Compilation, memberId, diagInfo)
+            result = Nothing
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim memberSymbol = Binder.GetWellKnownTypeMember(Me.Compilation, memberId, useSiteInfo)
 
-            If diagInfo IsNot Nothing Then
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
                 If Not isOptional Then
-                    Binder.ReportDiagnostic(_diagnostics, New VBDiagnostic(diagInfo, syntax.GetLocation()))
+                    Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo)
                 End If
 
                 Return False
             End If
 
+            _diagnostics.AddDependencies(useSiteInfo)
             result = DirectCast(memberSymbol, T)
             Return True
         End Function
@@ -989,12 +997,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        memberId As SpecialMember,
                                                        syntax As SyntaxNode) As Boolean
 
-            Dim diagInfo As DiagnosticInfo = Nothing
-            Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, diagInfo)
+            result = Nothing
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, useSiteInfo)
 
-            If diagInfo IsNot Nothing Then
-                Binder.ReportDiagnostic(_diagnostics, New VBDiagnostic(diagInfo, syntax.GetLocation()))
-                result = Nothing
+            If Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo) Then
                 Return False
             End If
 

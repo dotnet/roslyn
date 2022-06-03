@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,25 +15,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
-                private readonly object _gate;
+                private readonly object _gate = new();
                 private readonly SemaphoreSlim _semaphore;
+                private bool _disposed;
 
                 private readonly Workspace _workspace;
                 private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
-                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap;
+                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
 
                 public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                 {
-                    _gate = new object();
                     _semaphore = new SemaphoreSlim(initialCount: 0);
-                    _cancellationMap = new Dictionary<object, CancellationTokenSource>();
 
                     _workspace = workspace;
                     _progressReporter = progressReporter;
@@ -80,6 +77,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     lock (_gate)
                     {
+                        if (_disposed)
+                        {
+                            // The work queue was shut down, so mark the request as complete and return false to
+                            // indicate the work was not queued.
+                            item.AsyncToken.Dispose();
+                            return false;
+                        }
+
                         if (AddOrReplace_NoLock(item))
                         {
                             // the item is new item that got added to the queue.
@@ -139,6 +144,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     List<CancellationTokenSource>? cancellations;
                     lock (_gate)
                     {
+                        _disposed = true;
+
                         // here we don't need to care about progress reporter since
                         // it will be only called when host is shutting down.
                         // we do the below since we want to kill any pending tasks

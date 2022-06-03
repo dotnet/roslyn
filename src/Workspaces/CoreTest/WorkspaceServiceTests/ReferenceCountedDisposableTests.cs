@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -131,6 +134,61 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestDefaultWeakReference()
             => Assert.Null(default(ReferenceCountedDisposable<IDisposable>.WeakReference).TryAddReference());
+
+        /// <summary>
+        /// This test verifies that a weak reference cannot be created from a disposed reference, even if another strong
+        /// reference to the same object is still alive. It specifically covers the case where a weak reference HAS NOT
+        /// been created prior to the assertion.
+        /// </summary>
+        [Fact]
+        public void TestWeakReferenceCannotBeCreatedFromDisposedReference_NoPriorWeakReference()
+        {
+            var target = new DisposableObject();
+            var reference = new ReferenceCountedDisposable<DisposableObject>(target);
+
+            var secondReference = reference.TryAddReference();
+            Assert.NotNull(secondReference);
+
+            reference.Dispose();
+
+            var weakReference = new ReferenceCountedDisposable<DisposableObject>.WeakReference(reference);
+            Assert.Null(weakReference.TryAddReference());
+        }
+
+        /// <summary>
+        /// This test verifies that a weak reference cannot be created from a disposed reference, even if another strong
+        /// reference to the same object is still alive. It specifically covers the case where a weak reference HAS been
+        /// created prior to the assertion.
+        /// </summary>
+        [Fact]
+        public void TestWeakReferenceCannotBeCreatedFromDisposedReference_WithPriorWeakReference()
+        {
+            var target = new DisposableObject();
+            var reference = new ReferenceCountedDisposable<DisposableObject>(target);
+
+            // Create an initial weak reference at a point where the reference is alive. This ensures the internal
+            // shared WeakReference<T> is initialized.
+            var weakReference = new ReferenceCountedDisposable<DisposableObject>.WeakReference(reference);
+            Assert.NotNull(weakReference.TryAddReference());
+
+            var secondReference = reference.TryAddReference();
+            Assert.NotNull(secondReference);
+
+            reference.Dispose();
+
+            var secondWeakReference = new ReferenceCountedDisposable<DisposableObject>.WeakReference(reference);
+            Assert.Null(secondWeakReference.TryAddReference());
+        }
+
+        [Fact]
+        public void TestWeakReferenceCannotTear()
+        {
+            // WeakReference contains a single field which is a reference type, so reads/writes cannot tear
+            var field = Assert.Single(typeof(ReferenceCountedDisposable<>.WeakReference)
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
+
+            Assert.True(field.FieldType.IsClass);
+        }
 
         private sealed class DisposableObject : IDisposable
         {

@@ -8,9 +8,11 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ImplementInterface;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(span.Start);
             if (!token.Span.IntersectsWith(span))
@@ -48,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 return;
             }
 
-            var service = document.GetLanguageService<IImplementInterfaceService>();
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()
                                       .Where(_interfaceName)
-                                      .Select(n => service.GetCodeActions(document, model, n, cancellationToken))
+                                      .Select(n => service.GetCodeActions(document, context.Options.GetImplementTypeGenerationOptions(document.Project.LanguageServices), model, n, cancellationToken))
                                       .FirstOrDefault(a => !a.IsEmpty);
 
             if (actions.IsDefaultOrEmpty)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -35,20 +37,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.AttributeConstructor.IsDefaultValueTypeConstructor())
             {
-                // Parameter constructors for structs exist in symbol table, but are not emitted.
-                // Produce an error since we cannot use it (instead of crashing):
+                // Default parameterless constructors for structs exist in symbol table, but are not emitted.
+                // Produce an error since we cannot use it (instead of crashing).
                 // Details: https://github.com/dotnet/roslyn/issues/19394
 
                 if (reportDiagnostics)
                 {
-                    context.Diagnostics.Add(ErrorCode.ERR_NotAnAttributeClass, context.SyntaxNodeOpt?.Location ?? NoLocation.Singleton, this.AttributeClass);
+                    context.Diagnostics.Add(ErrorCode.ERR_NotAnAttributeClass, context.SyntaxNode?.Location ?? NoLocation.Singleton, this.AttributeClass);
                 }
 
                 return null;
             }
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return (Cci.IMethodReference)moduleBeingBuilt.Translate(this.AttributeConstructor, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+            return (Cci.IMethodReference)moduleBeingBuilt.Translate(this.AttributeConstructor, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
         }
 
         ImmutableArray<Cci.IMetadataNamedArgument> Cci.ICustomAttribute.GetNamedArguments(EmitContext context)
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeReference Cci.ICustomAttribute.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.AttributeClass, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return moduleBeingBuilt.Translate(this.AttributeClass, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
         }
 
         bool Cci.ICustomAttribute.AllowMultiple
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!argument.Values.IsDefault);
             var values = argument.Values;
-            var arrayType = Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)argument.TypeInternal);
+            var arrayType = ((PEModuleBuilder)context.Module).Translate((ArrayTypeSymbol)argument.TypeInternal);
 
             if (values.Length == 0)
             {
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(argument.ValueInternal != null);
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            var syntaxNodeOpt = (CSharpSyntaxNode)context.SyntaxNodeOpt;
+            var syntaxNodeOpt = (CSharpSyntaxNode)context.SyntaxNode;
             var diagnostics = context.Diagnostics;
             return new MetadataTypeOf(moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics),
                                       moduleBeingBuilt.Translate((TypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics));
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static MetadataConstant CreateMetadataConstant(ITypeSymbolInternal type, object value, EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.CreateConstant((TypeSymbol)type, value, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return moduleBeingBuilt.CreateConstant((TypeSymbol)type, value, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
         }
 
         private Cci.IMetadataNamedArgument CreateMetadataNamedArgument(string name, TypedConstant argument, EmitContext context)
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return new MetadataNamedArgument(symbol, moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics), value);
+            return new MetadataNamedArgument(symbol, moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics), value);
         }
 
         private Symbol LookupName(string name)

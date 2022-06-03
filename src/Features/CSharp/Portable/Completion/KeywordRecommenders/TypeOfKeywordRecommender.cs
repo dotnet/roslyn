@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 (context.IsAnyExpressionContext && !context.IsConstantExpressionContext) ||
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
-                IsAttributeArgumentContext(context);
+                IsAttributeArgumentContext(context) ||
+                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
         }
 
         private static bool IsAttributeArgumentContext(CSharpSyntaxContext context)

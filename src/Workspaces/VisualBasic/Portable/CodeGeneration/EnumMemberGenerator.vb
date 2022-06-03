@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Function AddEnumMemberTo(
             destination As EnumBlockSyntax,
             enumMember As IFieldSymbol,
-            options As CodeGenerationOptions) As EnumBlockSyntax
+            options As CodeGenerationContextInfo) As EnumBlockSyntax
 
             Dim member = GenerateEnumMemberDeclaration(enumMember, destination, options)
             If member Is Nothing Then
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GenerateEnumMemberDeclaration(enumMember As IFieldSymbol,
                                                              enumDeclarationOpt As EnumBlockSyntax,
-                                                             options As CodeGenerationOptions) As EnumMemberDeclarationSyntax
+                                                             options As CodeGenerationContextInfo) As EnumMemberDeclarationSyntax
             ' We never generate the special enum backing field.
             If enumMember.Name = WellKnownMemberNames.EnumBackingFieldName Then
                 Return Nothing
@@ -93,8 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                 If numericLiteral.Token.ValueText = "1" Then
                                     ' The user is left shifting ones, stick with that pattern
                                     Dim shiftValue = IntegerUtilities.LogBase2(value)
+
+                                    ' Using the numericLiteral text will ensure the correct type character, ignoring the None that is passed in below
                                     Return SyntaxFactory.LeftShiftExpression(
-                                    left:=SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken("1", LiteralBase.Decimal, TypeCharacter.None, 1)),
+                                    left:=SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(numericLiteral.Token.Text, LiteralBase.Decimal, TypeCharacter.None, 1)),
                                     right:=SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(shiftValue.ToString(), LiteralBase.Decimal, TypeCharacter.None, IntegerUtilities.ToUnsigned(shiftValue))))
                                 End If
                             End If

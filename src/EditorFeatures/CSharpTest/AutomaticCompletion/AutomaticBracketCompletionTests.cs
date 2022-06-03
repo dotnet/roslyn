@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+#nullable disable
+
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -247,11 +250,50 @@ class C { }";
             CheckStart(session.Session);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ListPattern()
+        {
+            var code = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is$$
+    }
+}
+";
+            var expectedBeforeReturn = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is []
+    }
+}
+";
+            var expected = @"
+class C
+{
+    void M(object o)
+    {
+        _ = o is
+        [
+
+        ]
+    }
+}
+";
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 12, expected);
+        }
+
         internal static Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.Bracket.OpenCharacter, BraceCompletionSessionProvider.Bracket.CloseCharacter);
+                Bracket.OpenCharacter, Bracket.CloseCharacter);
         }
     }
 }

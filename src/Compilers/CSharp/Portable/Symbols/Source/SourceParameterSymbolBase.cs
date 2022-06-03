@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceParameterSymbolBase(Symbol containingSymbol, int ordinal)
         {
             Debug.Assert((object)containingSymbol != null);
+            Debug.Assert(containingSymbol.ContainingAssembly != null);
             _ordinal = (ushort)ordinal;
             _containingSymbol = containingSymbol;
         }
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var symbol = obj as SourceParameterSymbolBase;
-            return (object)symbol != null
+            return symbol is not null
                 && symbol.Ordinal == this.Ordinal
                 && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal abstract ConstantValue DefaultValueFromAttributes { get; }
+
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (type.Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
         [WorkItem(8333, "https://github.com/dotnet/roslyn/issues/8333")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInExpressionBody()
         {
             var markup = @"
@@ -26,7 +28,7 @@ class Ext
         }
 
         [WorkItem(1905, "https://github.com/dotnet/roslyn/issues/1905")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCommand()
         {
             var markup = @"
@@ -63,7 +65,7 @@ class Program
                 expectedUpdatedInvocationDocumentCode: expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestOnLambdaWithTwoDiscardParameters_ViaCommand()
         {
             var markup = @"
@@ -90,7 +92,7 @@ class Program
                 expectedUpdatedInvocationDocumentCode: expectedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestOnAnonymousMethodWithTwoParameters_ViaCommand()
         {
             var markup = @"
@@ -104,7 +106,7 @@ class Program
             await TestMissingAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestOnAnonymousMethodWithTwoDiscardParameters_ViaCommand()
         {
             var markup = @"
@@ -118,7 +120,7 @@ class Program
             await TestMissingAsync(markup);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCodeAction()
         {
             var markup = @"
@@ -139,7 +141,7 @@ class Program
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingWhitespace()
         {
             var markup = @"
@@ -155,7 +157,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingTrivia()
         {
             var markup = @"
@@ -171,7 +173,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingTrivia2()
         {
             var markup = @"
@@ -187,7 +189,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingDocComment()
         {
             var markup = @"
@@ -203,7 +205,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingDocComment2()
         {
             var markup = @"
@@ -219,7 +221,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingAttributes1()
         {
             var markup = @"
@@ -235,7 +237,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingAttributes2()
         {
             var markup = @"
@@ -251,7 +253,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInLeadingAttributes3()
         {
             var markup = @"
@@ -267,7 +269,7 @@ class Ext
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestNotInConstraints()
         {
             var markup = @"

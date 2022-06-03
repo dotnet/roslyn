@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class Checksum
     {
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
-            new ObjectPool<IncrementalHash>(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
+            new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
         public static Checksum Create(IEnumerable<string> values)
         {
@@ -83,13 +83,12 @@ namespace Microsoft.CodeAnalysis
             return From(bytes);
         }
 
-        public static Checksum Create(WellKnownSynchronizationKind kind, IObjectWritable @object)
+        public static Checksum Create(IObjectWritable @object)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
-                objectWriter.WriteInt32((int)kind);
                 @object.WriteTo(objectWriter);
             }
 
@@ -97,50 +96,84 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
-        public static Checksum Create(WellKnownSynchronizationKind kind, IEnumerable<Checksum> checksums)
+        public static Checksum Create(Checksum checksum1, Checksum checksum2)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                writer.WriteInt32((int)kind);
+                checksum1.WriteTo(writer);
+                checksum2.WriteTo(writer);
+            }
 
+            stream.Position = 0;
+            return Create(stream);
+        }
+
+        public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                checksum1.WriteTo(writer);
+                checksum2.WriteTo(writer);
+                checksum3.WriteTo(writer);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
+        public static Checksum Create(IEnumerable<Checksum> checksums)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
                 foreach (var checksum in checksums)
-                {
                     checksum.WriteTo(writer);
-                }
             }
 
             stream.Position = 0;
             return Create(stream);
         }
 
-        public static Checksum Create(WellKnownSynchronizationKind kind, ImmutableArray<byte> bytes)
+        public static Checksum Create(ImmutableArray<byte> bytes)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                writer.WriteInt32((int)kind);
-
                 for (var i = 0; i < bytes.Length; i++)
-                {
                     writer.WriteByte(bytes[i]);
-                }
             }
 
             stream.Position = 0;
             return Create(stream);
         }
 
-        public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, ISerializerService serializer)
+        public static Checksum Create<T>(T value, ISerializerService serializer)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var context = new SolutionReplicationContext();
+
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            {
+                serializer.Serialize(value!, objectWriter, context, CancellationToken.None);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
+        public static Checksum Create(ParseOptions value, ISerializerService serializer)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
-                objectWriter.WriteInt32((int)kind);
-                serializer.Serialize(value, objectWriter, CancellationToken.None);
+                serializer.SerializeParseOptions(value, objectWriter);
             }
 
             stream.Position = 0;

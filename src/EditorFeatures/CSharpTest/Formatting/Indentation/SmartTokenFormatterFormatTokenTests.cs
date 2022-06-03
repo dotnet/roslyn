@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -643,12 +645,9 @@ class Program
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
-
             var buffer = workspace.Documents.First().GetTextBuffer();
 
-            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{');
+            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{', useTabs);
             Assert.Equal(expected, actual);
         }
 

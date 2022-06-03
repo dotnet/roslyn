@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis
             => PooledObject<HashSet<TItem>>.Create(pool);
 
         public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
+            where TKey : notnull
             => PooledObject<Dictionary<TKey, TValue>>.Create(pool);
 
         public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool)
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static PooledObject<T> GetPooledObject<T>(this ObjectPool<T> pool) where T : class
-            => new PooledObject<T>(pool, p => p.Allocate(), (p, o) => p.Free(o));
+            => new(pool, p => p.Allocate(), (p, o) => p.Free(o));
 
         public static StringBuilder AllocateAndClear(this ObjectPool<StringBuilder> pool)
         {
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
+            where TKey : notnull
         {
             var map = pool.Allocate();
             map.Clear();
@@ -123,6 +126,22 @@ namespace Microsoft.CodeAnalysis
             pool.Free(set);
         }
 
+        public static void ClearAndFree<T>(this ObjectPool<ConcurrentSet<T>> pool, ConcurrentSet<T> set) where T : notnull
+        {
+            if (set == null)
+                return;
+
+            // if set grew too big, don't put it back to pool
+            if (set.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(set);
+                return;
+            }
+
+            set.Clear();
+            pool.Free(set);
+        }
+
         public static void ClearAndFree<T>(this ObjectPool<Stack<T>> pool, Stack<T> set)
         {
             if (set == null)
@@ -160,6 +179,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static void ClearAndFree<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool, Dictionary<TKey, TValue> map)
+            where TKey : notnull
         {
             if (map == null)
             {
