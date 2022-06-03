@@ -174,9 +174,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public unsafe void CreateFromUnmanagedMemoryStream_LeaveOpenTrue()
         {
-            if (true)
-                throw new Exception();
-
             var assembly = TestResources.Basic.Members;
             fixed (byte* assemblyPtr = assembly)
             {
