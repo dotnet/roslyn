@@ -187,8 +187,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 return true;
             };
 
-            Assert.True(await sessionProxy.HasChangesAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, "test.cs", CancellationToken.None).ConfigureAwait(false));
-
             // EmitSolutionUpdate
 
             var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
