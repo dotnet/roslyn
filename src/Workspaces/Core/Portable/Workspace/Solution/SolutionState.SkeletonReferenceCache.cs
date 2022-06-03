@@ -202,19 +202,12 @@ internal partial class SolutionState
             if (storage == null)
                 return null;
 
-            var stream = storage.ReadStream(cancellationToken);
-            var directMemoryAccess = stream as ISupportDirectMemoryAccess;
-
-            // TODO: Update CreateFromStream to be efficient if we pass along a stream which exposes raw memory access.
-            var metadata = directMemoryAccess != null
-                ? AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(directMemoryAccess.GetPointer(), (int)stream.Length))
-                : AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
+            var metadata = AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false);
 
             // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
             // the stream as well.
             return new SkeletonReferenceSet(
                 metadata,
-                directMemoryAccess,
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
         }
