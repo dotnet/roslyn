@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
     public sealed partial class ModuleMetadata : Metadata
     {
-        private bool _isDisposed;
-
         private readonly PEModule _module;
 
         /// <summary>
@@ -36,6 +34,8 @@ namespace Microsoft.CodeAnalysis
         /// the <see cref="PEStreamOptions.LeaveOpen"/> flag in <see cref="CreateFromStream(Stream, PEStreamOptions)"/>.
         /// </summary>
         private readonly bool _disposeOwner;
+
+        private bool _isDisposed;
 
         private ModuleMetadata(PEReader peReader, IDisposable? owner = null, bool disposeOwner = false)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
