@@ -1332,7 +1332,7 @@ class C1
         }
 
         [Fact]
-        public async Task RudeEdits2()
+        public async Task DeferredApplyChangeWithActiveStatementRudeEdits()
         {
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
             var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
