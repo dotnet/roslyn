@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private ISymbol _currentContainingSymbol;
             private IOperation _currentRootOperation;
             private CancellationToken _cancellationToken;
-            private PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
+            private PooledDictionary<IOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
 
             private static readonly ObjectPool<Walker> s_visitorPool = new(() => new Walker());
             private Walker() { }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 Debug.Assert(_currentRootOperation == null);
                 Debug.Assert(_pendingWritesMap == null);
 
-                _pendingWritesMap = PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
+                _pendingWritesMap = PooledDictionary<IOperation, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 try
                 {
                     _currentContainingSymbol = containingSymbol;
@@ -164,27 +164,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 if (operation.Parent is IAssignmentOperation assignmentOperation &&
                     assignmentOperation.Target == operation)
                 {
-                    var set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                    set.Add((symbolOpt, operation));
-                    _pendingWritesMap.Add(assignmentOperation, set);
+                    AddPendingWrite(assignmentOperation, symbolOpt, operation);
                     return true;
                 }
                 else if (operation.IsInLeftOfDeconstructionAssignment(out var deconstructionAssignment))
                 {
-                    if (!_pendingWritesMap.TryGetValue(deconstructionAssignment, out var set))
-                    {
-                        set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                        _pendingWritesMap.Add(deconstructionAssignment, set);
-                    }
-
-                    set.Add((symbolOpt, operation));
+                    AddPendingWrite(deconstructionAssignment, symbolOpt, operation);
+                    return true;
+                }
+                else if (operation.IsOutArgument(out var invocationOperation))
+                {
+                    AddPendingWrite(invocationOperation, symbolOpt, operation);
                     return true;
                 }
 
                 return false;
+
+                // Local functions
+                void AddPendingWrite(IOperation assignmentOperation, ISymbol symbolOpt, IOperation operation)
+                {
+                    if (!_pendingWritesMap.TryGetValue(assignmentOperation, out var set))
+                    {
+                        set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
+                        _pendingWritesMap.Add(assignmentOperation, set);
+                    }
+
+                    set.Add((symbolOpt, operation));
+                }
             }
 
-            private void ProcessPendingWritesForAssignmentTarget(IAssignmentOperation operation)
+            private void ProcessPendingWritesForAssignmentTarget(IOperation operation)
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
                 {
@@ -312,6 +321,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         AnalyzeLocalFunctionInvocation(operation.TargetMethod);
                         break;
                 }
+
+                ProcessPendingWritesForAssignmentTarget(operation);
             }
 
             private void AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction)
