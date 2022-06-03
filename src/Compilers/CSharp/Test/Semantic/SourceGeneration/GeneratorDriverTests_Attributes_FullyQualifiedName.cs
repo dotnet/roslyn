@@ -76,7 +76,6 @@ namespace N2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
@@ -115,7 +114,6 @@ namespace N2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" }));
@@ -142,7 +140,6 @@ using System;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()));
@@ -168,7 +165,6 @@ using System;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()));
@@ -194,7 +190,6 @@ using System;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.Last()));
@@ -223,7 +218,6 @@ using System;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()),
@@ -255,7 +249,6 @@ void LocalFunc()
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is LocalFunctionStatementSyntax { Identifier.ValueText: "LocalFunc" }));
@@ -289,7 +282,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is MethodDeclarationSyntax { Identifier.ValueText: "M" }));
@@ -323,7 +315,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is MethodDeclarationSyntax { Identifier.ValueText: "M" }));
@@ -355,7 +346,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is VariableDeclaratorSyntax { Identifier.ValueText: "m" }));
@@ -387,7 +377,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.Collection(step.Outputs,
@@ -421,7 +410,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is VariableDeclaratorSyntax { Identifier.ValueText: "m" }));
@@ -453,7 +441,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.Collection(step.Outputs,
@@ -483,7 +470,6 @@ Func<int, int> v = [CLSCompliant(true)] (int i) => i;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is LambdaExpressionSyntax));
@@ -518,7 +504,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is AccessorDeclarationSyntax { RawKind: (int)SyntaxKind.GetAccessorDeclaration }));
@@ -548,7 +533,6 @@ class C<[CLSCompliant(true)]T>
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is TypeParameterSyntax { Identifier.ValueText: "T" }));
@@ -586,7 +570,6 @@ class Outer2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
@@ -624,7 +607,6 @@ class Outer2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" }));
@@ -662,7 +644,6 @@ class Outer2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
@@ -700,7 +681,6 @@ class Outer2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" }));
@@ -738,7 +718,6 @@ class Outer2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
     }
@@ -775,7 +754,6 @@ class Outer2
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
     }
@@ -811,7 +789,6 @@ class XAttribute : System.Attribute
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -861,7 +838,6 @@ class XAttribute : System.Attribute
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -911,7 +887,6 @@ class XAttribute : System.Attribute
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -958,7 +933,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
 
@@ -1009,7 +983,6 @@ class C2 { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
 
@@ -1066,7 +1039,6 @@ class C2 { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
 

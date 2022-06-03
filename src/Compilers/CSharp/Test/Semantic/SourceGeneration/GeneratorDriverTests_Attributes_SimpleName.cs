@@ -42,7 +42,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -69,7 +68,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -96,7 +94,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -123,7 +120,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -150,7 +146,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -177,7 +172,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -204,7 +198,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -231,7 +224,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -258,7 +250,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -285,7 +276,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -312,7 +302,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -339,7 +328,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -366,7 +354,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -393,7 +380,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -419,7 +405,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -445,7 +430,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -474,7 +458,6 @@ class D { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step =>
@@ -507,7 +490,6 @@ class D { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step =>
@@ -540,7 +522,6 @@ class D { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step =>
@@ -575,7 +556,6 @@ class C
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step =>
@@ -609,7 +589,6 @@ namespace N
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" })));
@@ -636,7 +615,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -663,7 +641,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -690,7 +667,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -719,7 +695,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -748,7 +723,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -777,7 +751,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -806,7 +779,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -835,7 +807,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -864,7 +835,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -893,7 +863,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -921,7 +890,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -953,7 +921,6 @@ namespace N
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -987,7 +954,6 @@ namespace N
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1020,7 +986,6 @@ namespace N
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1053,7 +1018,6 @@ namespace N
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1082,7 +1046,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1111,7 +1074,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1140,7 +1102,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1168,7 +1129,6 @@ using A = XAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1196,7 +1156,6 @@ using AAttribute = XAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1224,7 +1183,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1253,7 +1211,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1283,7 +1240,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1313,7 +1269,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1342,7 +1297,6 @@ global using A = XAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1371,7 +1325,6 @@ global using AAttribute = XAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1401,7 +1354,6 @@ using B = AAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1430,7 +1382,6 @@ global using BAttribute = AAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
     }
@@ -1459,7 +1410,6 @@ global using AAttribute = XAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1489,7 +1439,6 @@ global using AAttribute = XAttribute;
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1522,7 +1471,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1563,7 +1511,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1608,7 +1555,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1658,7 +1604,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1706,7 +1651,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
 
@@ -1758,7 +1702,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1808,7 +1751,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1851,7 +1793,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
 
@@ -1894,7 +1835,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
 
@@ -1942,7 +1882,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1990,7 +1929,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -2049,7 +1987,6 @@ class C { }
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
-        Console.WriteLine(runResult);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));

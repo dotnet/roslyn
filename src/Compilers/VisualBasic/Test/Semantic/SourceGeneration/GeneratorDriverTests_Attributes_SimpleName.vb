@@ -48,7 +48,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -75,7 +74,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -102,7 +100,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -129,7 +126,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -156,7 +152,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -183,7 +178,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -210,7 +204,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -237,7 +230,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -264,7 +256,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -291,7 +282,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -318,7 +308,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -345,7 +334,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -372,7 +360,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -399,7 +386,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -425,7 +411,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -451,7 +436,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -481,7 +465,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
@@ -514,7 +497,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
@@ -547,7 +529,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
@@ -580,7 +561,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
@@ -612,7 +592,6 @@ end namespace
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "C"))))
@@ -639,7 +618,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -666,7 +644,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -693,7 +670,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -722,7 +698,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -751,7 +726,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -780,7 +754,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -809,7 +782,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -838,7 +810,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -867,7 +838,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -896,7 +866,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -924,7 +893,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -955,7 +923,6 @@ end namespace
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
@@ -987,7 +954,6 @@ end namespace
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
@@ -1018,7 +984,6 @@ end namespace
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
@@ -1049,7 +1014,6 @@ end namespace
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1078,7 +1042,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1107,7 +1070,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1136,7 +1098,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1164,7 +1125,6 @@ imports A = XAttribute
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1192,7 +1152,6 @@ imports AAttribute = XAttribute
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1220,7 +1179,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1248,7 +1206,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1278,7 +1235,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1308,7 +1264,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1336,7 +1291,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1363,7 +1317,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1393,7 +1346,6 @@ imports B = AAttribute
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1422,7 +1374,6 @@ global imports BAttribute = AAttribute
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
         End Sub
@@ -1449,7 +1400,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1477,7 +1427,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1510,7 +1459,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1551,7 +1499,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1593,7 +1540,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1638,7 +1584,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1682,7 +1627,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
 
@@ -1730,7 +1674,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1769,7 +1712,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
 
@@ -1811,7 +1753,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
 
@@ -1854,7 +1795,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1898,7 +1838,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1953,7 +1892,6 @@ end class
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-            Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
