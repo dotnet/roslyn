@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
-            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
                 document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string patternName, string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
-            SyntaxTreeIndex index,
+            TopLevelSyntaxTreeIndex index,
             CancellationToken cancellationToken)
         {
             var containerMatcher = patternContainer != null
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
                 var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
-                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).ConfigureAwait(false);
+                var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).ConfigureAwait(false);
 
                 // See if the index for the other file also contains this same info.  If so, merge the results so the
                 // user only sees them as a single hit in the UI.

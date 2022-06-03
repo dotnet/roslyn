@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// The list of <see cref="AnalyzerConfig" />s in this set. This list has been sorted per <see cref="AnalyzerConfig.DirectoryLengthComparer"/>.
+        /// This does not include any of the global configs that were merged into <see cref="_globalConfig"/>.
         /// </summary>
         private readonly ImmutableArray<AnalyzerConfig> _analyzerConfigs;
 
@@ -197,13 +198,14 @@ namespace Microsoft.CodeAnalysis
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
             normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
 
-            // If we have a global config, add any sections that match the full path 
+            // If we have a global config, add any sections that match the full path. We can have at most one section since
+            // we would have merged them earlier.
             foreach (var section in _globalConfig.NamedSections)
             {
-                var escapedSectionName = TryUnescapeSectionName(section.Name, out var sectionName);
-                if (escapedSectionName && normalizedPath.Equals(sectionName, Section.NameComparer))
+                if (normalizedPath.Equals(section.Name, Section.NameComparer))
                 {
                     sectionKey.Add(section);
+                    break;
                 }
             }
             int globalConfigOptionsCount = sectionKey.Count;
@@ -502,7 +504,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (IsAbsoluteEditorConfigPath(section.Name))
                     {
-                        MergeSection(config.PathToFile, section, config.GlobalLevel, isGlobalSection: false);
+                        // Let's recreate the section with the name unescaped, since we can then properly merge and match it later
+                        var unescapedSection = new Section(UnescapeSectionName(section.Name), section.Properties);
+
+                        MergeSection(config.PathToFile, unescapedSection, config.GlobalLevel, isGlobalSection: false);
                     }
                     else
                     {

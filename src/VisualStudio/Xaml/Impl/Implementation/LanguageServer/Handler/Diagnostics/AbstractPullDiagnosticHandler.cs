@@ -25,13 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : AbstractStatelessRequestHandler<TDiagnosticsParams, TReport[]?>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : VSInternalDiagnosticReport
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         /// <summary>
         /// Gets the progress object to stream results to.
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _xamlDiagnosticService = xamlDiagnosticService;
         }
 
-        public override async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     if (previousResult.TextDocument != null)
                     {
-                        var document = context.Solution.GetDocument(previousResult.TextDocument, context.ClientName);
+                        var document = context.Solution.GetDocument(previousResult.TextDocument);
                         if (document == null)
                         {
                             // We can no longer get this document, return null for both diagnostics and resultId
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Range = ProtocolConversions.TextSpanToRange(new TextSpan(d.Offset, d.Length), text),
                 Tags = ConvertTags(d),
                 Source = d.Tool,
-                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.HelpLink),
+                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.GetHelpLinkUri()),
                 Projects = new[]
                 {
                     new VSDiagnosticProjectInformation
@@ -189,5 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             return result.ToArray();
         }
+
+        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams request);
     }
 }

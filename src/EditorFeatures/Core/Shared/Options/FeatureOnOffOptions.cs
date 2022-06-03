@@ -11,36 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class FeatureOnOffOptions : IOptionProvider
+    internal sealed class FeatureOnOffOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FeatureOnOffOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            EndConstruct,
-            AutomaticInsertionOfAbstractOrInterfaceMembers,
-            LineSeparator,
-            Outlining,
-            KeywordHighlighting,
-            ReferenceHighlighting,
-            AutoInsertBlockCommentStartString,
-            PrettyListing,
-            RenameTrackingPreview,
-            RenameTracking,
-            RefactoringVerification,
-            NavigateToDecompiledSources,
-            AddImportsOnPaste,
-            OfferRemoveUnusedReferences,
-            OfferRemoveUnusedReferencesFeatureFlag,
-            ShowInheritanceMargin,
-            InheritanceMarginCombinedWithIndicatorMargin,
-            AutomaticallyCompleteStatementOnSemicolon,
-            SkipAnalyzersForImplicitlyTriggeredBuilds);
-
         private const string FeatureName = "FeatureOnOffOptions";
 
         public static readonly PerLanguageOption2<bool> EndConstruct = new(FeatureName, "EndConstruct", defaultValue: true,
@@ -68,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> PrettyListing = new(FeatureName, "PrettyListing", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
 
+        public static readonly PerLanguageOption2<bool> StringIdentation = new(FeatureName, "StringIdentation", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.StringIdentation"));
+
         public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new(FeatureName, "RenameTrackingPreview", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
@@ -88,19 +63,25 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> RefactoringVerification = new(
             FeatureName, "RefactoringVerification", defaultValue: false);
 
-        public static readonly Option2<bool> NavigateToDecompiledSources = new(
-            FeatureName, "NavigateToDecompiledSources", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateToDecompiledSources"));
+        public static readonly Option2<bool> NavigateAsynchronously = new(
+            FeatureName, "NavigateAsynchronously", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
 
-        public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
-            FeatureName, "AddImportsOnPaste", defaultValue: null,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste"));
+        /// <summary>
+        /// This option was previously "bool?" to accomodate different supported defaults
+        /// that were being provided via remote settings. The feature has stabalized and moved
+        /// to on by default, so the storage location was changed to
+        /// TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2 (note the 2 suffix).
+        /// </summary>
+        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
+            FeatureName, "AddImportsOnPaste", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2"));
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.OfferRemoveUnusedReferences"));
 
-        public static readonly Option<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
+        public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
             FeatureName, "OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.RemoveUnusedReferences"));
 
@@ -112,9 +93,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false,
             new RoamingProfileStorageLocation("TextEditor.InheritanceMarginCombinedWithIndicatorMargin"));
 
+        public static readonly PerLanguageOption2<bool> InheritanceMarginIncludeGlobalImports = new(
+            FeatureName, "InheritanceMarginIncludeGlobalImports", defaultValue: true,
+            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports"));
+
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             FeatureName, "AutomaticallyCompleteStatementOnSemicolon", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.AutomaticallyCompleteStatementOnSemicolon"));
+
+        public static readonly PerLanguageOption2<bool> AutomaticallyFixStringContentsOnPaste = new(
+            FeatureName, "AutomaticallyFixStringContentsOnPaste", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste"));
 
         /// <summary>
         /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -18,16 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
 
+        private static readonly Func<NullableTypeSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyNullableType = SimplifyNullableType;
+
         public CSharpNullableAnnotationReducer() : base(s_pool)
         {
         }
 
-        private static readonly Func<NullableTypeSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyNullableType = SimplifyNullableType;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static SyntaxNode SimplifyNullableType(
             NullableTypeSyntax node,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            SimplifierOptions options,
             CancellationToken cancellationToken)
         {
             // If annotations are enabled, there's no further simplification to do

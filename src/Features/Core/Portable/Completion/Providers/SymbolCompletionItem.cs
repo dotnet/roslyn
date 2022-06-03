@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static partial class SymbolCompletionItem
     {
+        private const string InsertionTextProperty = "InsertionText";
+
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
         private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
         private static readonly char[] s_projectSeperators = new[] { ';' };
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (insertionText != null)
             {
-                props = props.Add("InsertionText", insertionText);
+                props = props.Add(InsertionTextProperty, insertionText);
             }
 
             props = props.Add("ContextPosition", contextPosition.ToString());
@@ -254,7 +257,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetContextPosition(item);
 
         public static string GetInsertionText(CompletionItem item)
-            => item.Properties["InsertionText"];
+            => item.Properties[InsertionTextProperty];
+
+        public static bool TryGetInsertionText(CompletionItem item, [NotNullWhen(true)] out string? insertionText)
+            => item.Properties.TryGetValue(InsertionTextProperty, out insertionText);
 
         // COMPAT OVERLOAD: This is used by IntelliCode.
         public static CompletionItem CreateWithSymbolId(

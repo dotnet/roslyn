@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         /// </summary>
         public abstract Task<FSharpInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, CancellationToken cancellationToken);
 
-        async Task<IInlineRenameReplacementInfo> IInlineRenameLocationSet.GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
+        async Task<IInlineRenameReplacementInfo> IInlineRenameLocationSet.GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
             => await GetReplacementsAsync(replacementText, cancellationToken).ConfigureAwait(false);
     }
 }

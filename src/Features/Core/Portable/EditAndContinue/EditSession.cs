@@ -153,8 +153,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
         /// </summary>
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
-        public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(documentAnalyses.IsEmpty);
+
             var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             if (availability.Status == ManagedHotReloadAvailabilityStatus.ModuleNotLoaded)
             {
@@ -167,7 +169,69 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(availability.Status);
-            return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, availability.LocalizedMessage }));
+            var messageArgs = new[] { newProject.Name, availability.LocalizedMessage };
+
+            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+
+            await foreach (var location in CreateChangedLocationsAsync(oldProject, newProject, documentAnalyses, cancellationToken).ConfigureAwait(false))
+            {
+                diagnostics.Add(Diagnostic.Create(descriptor, location, messageArgs));
+            }
+
+            return diagnostics.ToImmutable();
+        }
+
+        private static async IAsyncEnumerable<Location> CreateChangedLocationsAsync(Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var hasRemovedOrAddedDocument = false;
+            foreach (var documentAnalysis in documentAnalyses)
+            {
+                if (!documentAnalysis.HasChanges)
+                {
+                    continue;
+                }
+
+                var oldDocument = await oldProject.GetDocumentAsync(documentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var newDocument = await newProject.GetDocumentAsync(documentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                if (oldDocument == null || newDocument == null)
+                {
+                    hasRemovedOrAddedDocument = true;
+                    continue;
+                }
+
+                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newTree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                // document location:
+                yield return Location.Create(newTree, GetFirstLineDifferenceSpan(oldText, newText));
+            }
+
+            // project location:
+            if (hasRemovedOrAddedDocument)
+            {
+                yield return Location.None;
+            }
+        }
+
+        private static TextSpan GetFirstLineDifferenceSpan(SourceText oldText, SourceText newText)
+        {
+            var oldLineCount = oldText.Lines.Count;
+            var newLineCount = newText.Lines.Count;
+
+            for (var i = 0; i < Math.Min(oldLineCount, newLineCount); i++)
+            {
+                var oldLineSpan = oldText.Lines[i].Span;
+                var newLineSpan = newText.Lines[i].Span;
+                if (oldLineSpan != newLineSpan || !oldText.GetSubText(oldLineSpan).ContentEquals(newText.GetSubText(newLineSpan)))
+                {
+                    return newText.Lines[i].Span;
+                }
+            }
+
+            return (oldLineCount == newLineCount) ? default :
+                   (newLineCount > oldLineCount) ? newText.Lines[oldLineCount].Span :
+                   TextSpan.FromBounds(newText.Lines[newLineCount - 1].End, newText.Lines[newLineCount - 1].EndIncludingLineBreak);
         }
 
         private async Task<EditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
@@ -546,6 +610,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _3 = ArrayBuilder<DocumentActiveStatementChanges>.GetInstance(out var activeStatementsInChangedDocuments);
 
                 var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var requiredCapabilities = EditAndContinueCapabilities.None;
 
                 foreach (var analysis in changedDocumentAnalyses)
                 {
@@ -562,6 +627,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     allEdits.AddRange(analysis.SemanticEdits);
                     allLineEdits.AddRange(analysis.LineEdits);
+                    requiredCapabilities |= analysis.RequiredCapabilities;
 
                     if (analysis.ActiveStatements.Length > 0)
                     {
@@ -580,7 +646,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     mergedEdits,
                     allLineEdits.ToImmutable(),
                     addedSymbols,
-                    activeStatementsInChangedDocuments.ToImmutable());
+                    activeStatementsInChangedDocuments.ToImmutable(),
+                    requiredCapabilities);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -780,10 +847,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, documentDiagnostics));
                     }
 
+                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
+                    if (projectSummary == ProjectAnalysisSummary.NoChanges)
+                    {
+                        continue;
+                    }
+
+                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    Contract.ThrowIfNull(oldProject);
+
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
                     // we need to check with the debugger.
-                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, newProject.Name, cancellationToken).ConfigureAwait(false);
+                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
                     var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
                     if (isModuleEncBlocked)
@@ -792,7 +869,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         isBlocked = true;
                     }
 
-                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
                     if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
                     {
                         // only remember the first syntax error we encounter:
@@ -832,10 +908,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
-
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -905,7 +977,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 updatedMethodTokens,
                                 changedTypeTokens,
                                 activeStatementsInUpdatedMethods,
-                                exceptionRegionUpdates));
+                                exceptionRegionUpdates,
+                                projectChanges.RequiredCapabilities));
 
                             nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                             emitBaselines.Add((newProject.Id, emitResult.Baseline));
@@ -1011,8 +1084,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // when break state was entered and now being updated (regardless of whether the active span changed or not).
                             if (isMethodUpdated)
                             {
-                                var lineDelta = oldSpan.Span.GetLineDelta(newSpan: newSpan.Span);
-                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
+                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, newSpan, isExceptionRegion)));
                             }
                             else if (!isExceptionRegion)
                             {
@@ -1024,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 // That said, we still add a non-remappable region for this active statement, so that we know in future sessions
                                 // that this active statement existed and its span has not changed. We don't report these regions to the debugger,
                                 // but we use them to map active statement spans to the baseline snapshots of following edit sessions.
-                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, lineDelta: 0, isExceptionRegion: false)));
+                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, oldSpan, isExceptionRegion: false)));
                             }
                         }
                         else if (oldSpan.Span != newSpan.Span)
@@ -1080,17 +1152,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     foreach (var region in regionsInMethod)
                     {
                         // We have calculated changes against a base snapshot (last break state):
-                        var baseSpan = region.Span.AddLineDelta(region.LineDelta);
+                        var baseSpan = region.NewSpan;
 
                         NonRemappableRegion newRegion;
                         if (changedNonRemappableSpans.TryGetValue((methodInstance.Method, baseSpan), out var newSpan))
                         {
                             // all spans must be of the same size:
                             Debug.Assert(newSpan.Span.End.Line - newSpan.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
-                            Debug.Assert(region.Span.Span.End.Line - region.Span.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
-                            Debug.Assert(newSpan.Path == region.Span.Path);
+                            Debug.Assert(region.OldSpan.Span.End.Line - region.OldSpan.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
+                            Debug.Assert(newSpan.Path == region.OldSpan.Path);
 
-                            newRegion = region.WithLineDelta(region.Span.Span.GetLineDelta(newSpan: newSpan.Span));
+                            newRegion = region.WithNewSpan(newSpan);
                         }
                         else
                         {
@@ -1123,8 +1195,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 r => r.Region.IsExceptionRegion,
                 r => new ManagedExceptionRegionUpdate(
                     r.Method,
-                    -r.Region.LineDelta,
-                    r.Region.Span.AddLineDelta(r.Region.LineDelta).Span.ToSourceSpan()));
+                    -r.Region.OldSpan.Span.GetLineDelta(r.Region.NewSpan.Span),
+                    r.Region.NewSpan.Span.ToSourceSpan()));
         }
     }
 }

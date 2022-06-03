@@ -1622,7 +1622,7 @@ class C
         }
 
         [Fact]
-        public void Lambda_SynthesizedDeletage_06()
+        public void Lambda_SynthesizedDelegate_06()
         {
             var source0 = MarkedSource(
 @"class C
@@ -1730,6 +1730,55 @@ class C
                 Handle(6, TableIndex.TypeRef),
                 Handle(2, TableIndex.MethodDef),
                 Handle(2, TableIndex.AssemblyRef));
+        }
+
+        [WorkItem(60804, "https://github.com/dotnet/roslyn/issues/60804")]
+        [Fact]
+        public void PartialMethod_WithLambda()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: @"
+partial class C
+{
+    partial void M();
+
+    partial void M()
+    {
+        var y = 4;
+        var x = () => y + 4;
+    }
+}
+",
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<>c__DisplayClass0_0");
+                        g.VerifyMethodDefNames("M", ".ctor", ".ctor", "<M>b__0");
+                    })
+
+                .AddGeneration(
+                    source: @"
+partial class C
+{
+    partial void M();
+
+    partial void M()
+    {
+        var y = 5;
+        var x = () => y + 4;
+    }
+}
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.M").PartialImplementationPart)
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames("M", ".ctor", "<M>b__0#1");
+                    })
+
+                .Verify();
         }
 
         [Fact]
@@ -12896,7 +12945,8 @@ namespace N
                 Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default), // R.PrintMembers
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(20, TableIndex.TypeRef),
@@ -12904,6 +12954,7 @@ namespace N
                 Handle(22, TableIndex.TypeRef),
                 Handle(10, TableIndex.MethodDef),
                 Handle(3, TableIndex.Param),
+                Handle(21, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.TypeSpec),
                 Handle(2, TableIndex.AssemblyRef));

@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         internal interface ICallback
         {
+            ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
             ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
@@ -32,14 +33,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         ValueTask FindReferencesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken);
 
         ValueTask FindImplementationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken);
@@ -56,6 +57,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (FindUsagesServerCallback)base.GetCallback(callbackId);
+
+        public ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+            => GetCallback(callbackId).GetOptionsAsync(language, cancellationToken);
 
         public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
             => GetCallback(callbackId).AddItemsAsync(count, cancellationToken);
@@ -90,6 +94,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             _solution = solution;
             _context = context;
         }
+
+        public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => _context.GetOptionsAsync(language, cancellationToken);
 
         public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
             => _context.ProgressTracker.AddItemsAsync(count, cancellationToken);

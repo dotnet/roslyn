@@ -24,11 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion request.
     /// </summary>
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
+    [ExportStatelessXamlLspService(typeof(CompletionHandler)), Shared]
+    [Method(Methods.TextDocumentCompletionName)]
+    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionList?>
     {
-        public override string Method => Methods.TextDocumentCompletionName;
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
         private static readonly Command s_retriggerCompletionCommand = new Command()
@@ -37,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             Title = "Re-trigger completions"
         };
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,9 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
 
-        public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             if (request.Context is VSInternalCompletionContext completionContext && completionContext.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
             {

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -291,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 OperatorKind.Multiply => SyntaxKind.AsteriskToken,
                 OperatorKind.OnesComplement => SyntaxKind.TildeToken,
                 OperatorKind.RightShift => SyntaxKind.GreaterThanGreaterThanToken,
+                OperatorKind.UnsignedRightShift => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
                 OperatorKind.Subtraction => SyntaxKind.MinusToken,
                 OperatorKind.True => SyntaxKind.TrueKeyword,
                 OperatorKind.UnaryNegation => SyntaxKind.MinusToken,
@@ -997,11 +999,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var existingAttributes = this.GetAttributes(declaration);
             if (index >= 0 && index < existingAttributes.Count)
             {
-                return this.InsertNodesBefore(declaration, existingAttributes[index], newAttributes);
+                return this.InsertNodesBefore(declaration, existingAttributes[index], WithRequiredTargetSpecifier(newAttributes, declaration));
             }
             else if (existingAttributes.Count > 0)
             {
-                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], newAttributes);
+                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], WithRequiredTargetSpecifier(newAttributes, declaration));
             }
             else
             {
@@ -1056,6 +1058,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.List(
                     attributes.Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)))));
+        }
+
+        private static SyntaxList<AttributeListSyntax> WithRequiredTargetSpecifier(SyntaxList<AttributeListSyntax> attributes, SyntaxNode declaration)
+        {
+            if (!declaration.IsKind(SyntaxKind.CompilationUnit))
+            {
+                return attributes;
+            }
+
+            return AsAssemblyAttributes(attributes);
         }
 
         public override IReadOnlyList<SyntaxNode> GetAttributeArguments(SyntaxNode attributeDeclaration)
@@ -1364,6 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Const |
             DeclarationModifiers.New |
             DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Required |
             DeclarationModifiers.Static |
             DeclarationModifiers.Unsafe |
             DeclarationModifiers.Volatile;
@@ -1393,6 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.New |
             DeclarationModifiers.Override |
             DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Required |
             DeclarationModifiers.Sealed |
             DeclarationModifiers.Static |
             DeclarationModifiers.Virtual |
@@ -1454,6 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static readonly DeclarationModifiers s_localFunctionModifiers =
             DeclarationModifiers.Async |
             DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe |
             DeclarationModifiers.Extern;
 
         private static readonly DeclarationModifiers s_lambdaModifiers =
@@ -1645,6 +1660,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (modifiers.IsExtern)
                 list.Add(SyntaxFactory.Token(SyntaxKind.ExternKeyword));
 
+            if (modifiers.IsRequired)
+                list.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
+
             // partial and ref must be last
             if (modifiers.IsRef)
                 list.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
@@ -1682,14 +1700,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
         }
 
-        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations)
+        internal override SyntaxNode WithExplicitInterfaceImplementations(
+                SyntaxNode declaration,
+                ImmutableArray<ISymbol> explicitInterfaceImplementations,
+                bool removeDefaults)
             => WithAccessibility(declaration switch
             {
-                MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                PropertyDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                EventDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                MethodDeclarationSyntax method
+                    => WithoutContraints(method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p, removeDefaults))
+                                               .WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations))),
+                PropertyDeclarationSyntax member
+                    => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                EventDeclarationSyntax member
+                    => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
                 _ => declaration,
             }, Accessibility.NotApplicable);
+
+        private static MethodDeclarationSyntax WithoutContraints(MethodDeclarationSyntax method)
+        {
+            if (method.ConstraintClauses.Count == 0)
+                return method;
+
+            return method.WithConstraintClauses(default)
+                         .WithParameterList(method.ParameterList.WithTrailingTrivia(
+                            method.ParameterList.GetTrailingTrivia().Add(SyntaxFactory.ElasticMarker).AddRange(method.ConstraintClauses.Last().GetTrailingTrivia())));
+        }
+
+        private static SyntaxNode RemoveDefaultValue(ParameterSyntax parameter, bool removeDefaults)
+        {
+            if (!removeDefaults)
+                return parameter;
+
+            if (parameter.Default == null)
+                return parameter;
+
+            parameter = parameter.WithDefault(null);
+            if (!parameter.Identifier.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                parameter = parameter.WithIdentifier(parameter.Identifier.WithoutTrailingTrivia());
+
+            return parameter;
+        }
 
         private static ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<ISymbol> explicitInterfaceImplementations)
             => SyntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
@@ -2008,12 +2058,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var newParameters = AsParameterList(parameters);
 
             var currentList = declaration.GetParameterList();
-            if (currentList == null)
-            {
-                currentList = declaration.IsKind(SyntaxKind.IndexerDeclaration)
-                    ? SyntaxFactory.BracketedParameterList()
-                    : SyntaxFactory.ParameterList();
-            }
+            currentList ??= declaration.IsKind(SyntaxKind.IndexerDeclaration)
+                ? SyntaxFactory.BracketedParameterList()
+                : SyntaxFactory.ParameterList();
 
             var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));
             return WithParameterList(declaration, newList);

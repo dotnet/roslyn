@@ -276,16 +276,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend MustOverride ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
 
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedType1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedType1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
-        Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me, HighestPriorityUseSiteError).DiagnosticInfo
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedType1
+                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me).DiagnosticInfo
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -359,18 +357,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IsNullChecked As Boolean Implements IParameterSymbol.IsNullChecked
-            Get
-                Return False
-            End Get
-        End Property
-
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitParameter(Me)
         End Sub
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitParameter(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitParameter(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

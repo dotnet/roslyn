@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  Literals (including the null literal).
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.UTF8StringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
                 case SyntaxKind.ExclusiveOrExpression:

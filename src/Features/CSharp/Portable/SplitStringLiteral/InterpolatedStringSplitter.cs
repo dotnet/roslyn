@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
@@ -20,21 +21,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression;
 
             public InterpolatedStringSplitter(
-                Document document, int position,
-                SyntaxNode root, SourceText sourceText,
+                Document document,
+                int position,
+                SyntaxNode root,
+                SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
-                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle,
+                IndentationOptions options,
+                bool useTabs,
+                int tabSize,
                 CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
+                : base(document, position, root, sourceText, options, useTabs, tabSize, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }
 
             protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
 
-            // Don't offer on $@"" strings.  They support newlines directly in their content.
+            // Don't offer on $@"" strings and raw string literals.  They support newlines directly in their content.
             protected override bool CheckToken()
-                => _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                => _interpolatedStringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken;
 
             protected override BinaryExpressionSyntax CreateSplitString()
             {

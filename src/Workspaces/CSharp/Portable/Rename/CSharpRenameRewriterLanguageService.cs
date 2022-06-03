@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renamedSymbol = parameters.RenameSymbol;
                 _replacementTextValid = parameters.ReplacementTextValid;
                 _renameSpansTracker = parameters.RenameSpansTracker;
-                _isRenamingInStrings = parameters.OptionSet.RenameInStrings;
-                _isRenamingInComments = parameters.OptionSet.RenameInComments;
+                _isRenamingInStrings = parameters.IsRenamingInStrings;
+                _isRenamingInComments = parameters.IsRenamingInComments;
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans;
                 _renameAnnotations = parameters.RenameAnnotations;
 

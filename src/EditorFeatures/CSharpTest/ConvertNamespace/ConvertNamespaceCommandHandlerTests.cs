@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -115,8 +114,7 @@ class C
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -199,8 +197,7 @@ class C
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -305,8 +302,7 @@ namespace N;$$
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -334,8 +330,7 @@ using B;
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -355,8 +350,7 @@ class C
 
 class C
 {
-}
-");
+}");
         }
     }
 }

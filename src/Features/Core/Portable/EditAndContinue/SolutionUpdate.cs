@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Diagnostic? syntaxError,
             bool hasEmitErrors)
             => new(
-                new(syntaxError != null || hasEmitErrors ? ManagedModuleUpdateStatusEx.Blocked : ManagedModuleUpdateStatusEx.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty),
+                new(syntaxError != null || hasEmitErrors ? ManagedModuleUpdateStatus.Blocked : ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty),
                 ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
                 ImmutableArray<(ProjectId, EmitBaseline)>.Empty,
                 diagnostics,

@@ -24,8 +24,12 @@ if ($help) {
 # makes them non-deterministic.
 $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
-  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll"
+  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
+
+  # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
+  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key"
 )
+
 function Run-Build([string]$rootDir, [string]$logFileName) {
 
   # Clean out the previous run
@@ -79,7 +83,7 @@ function Get-BinDir([string]$rootDir) {
 # directory.
 function Get-FilesToProcess([string]$rootDir) {
   $objDir = Get-ObjDir $rootDir
-  foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb,*.sourcelink.json $objDir) {
+  foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb,*.sourcelink.json,*.key $objDir) {
     $filePath = $item.FullName
     $fileName = Split-Path -leaf $filePath
     $relativeDirectory = Split-Path -parent $filePath

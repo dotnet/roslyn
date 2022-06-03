@@ -868,6 +868,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.ChildOperations);
         }
 
+        public override void VisitUTF8String(IUTF8StringOperation operation)
+        {
+            Assert.Equal(OperationKind.UTF8String, operation.Kind);
+            Assert.Empty(operation.ChildOperations);
+            Assert.NotNull(operation.Value);
+        }
+
         public override void VisitAwait(IAwaitOperation operation)
         {
             Assert.Equal(OperationKind.Await, operation.Kind);

@@ -2354,7 +2354,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -2386,7 +2387,8 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -5960,7 +5962,8 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 #End Region
 
@@ -6084,7 +6087,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             VerifySemanticDiagnostics(
                 editScript:=edits,
-                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore})
+                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
 #End Region
@@ -6195,7 +6199,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             VerifySemanticDiagnostics(
                 edits,
-                targetFrameworks:={TargetFramework.MinimalAsync})
+                targetFrameworks:={TargetFramework.MinimalAsync},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 #End Region
     End Class

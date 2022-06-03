@@ -1179,7 +1179,7 @@ class D
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
@@ -1252,7 +1252,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1286,7 +1286,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1319,7 +1319,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1349,7 +1349,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1384,7 +1384,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1411,7 +1411,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1438,7 +1438,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1464,7 +1464,7 @@ testHost, composition, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1493,7 +1493,7 @@ public partial class C
                 },
                 composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1503,6 +1503,72 @@ public partial class C
                     new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                 },
                 await _aggregator.GetItemsAsync("C"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(59231, "https://github.com/dotnet/roslyn/issues/59231")]
+        public async Task FindMethodWithTuple(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"class Goo
+{
+    public void Method(
+        (int x, Dictionary<int,string> y) t1,
+        (bool b, global::System.Int32 c) t2)
+    {
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Method")).Single();
+    VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,string> y), (bool b, global::System.Int32 c))", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        public async Task FindRecordMember1(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        public async Task FindRecordMember2(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+    public int Member { get; } = Member;
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
+        public async Task FindRecordMember3(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+    public int Member = Member;
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Field);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPublic);
+});
         }
     }
 }

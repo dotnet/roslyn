@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -34,8 +35,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             _service = service;
         }
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
+        public Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
             Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        {
+            return ((INavigationBarItemService)this).GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
+        }
+
+        async Task<ImmutableArray<NavigationBarItem>> INavigationBarItemService.GetItemsAsync(
+            Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return ConvertItems(items, textVersion);
@@ -49,15 +56,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         {
             // Spans.First() is safe here as we filtered out any items with no spans above in ConvertItems.
             var navigationSpan = item.GetCurrentItemSpan(textVersion, item.Spans.First());
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var workspace = document.Project.Solution.Workspace;
-            var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
-            navigationService.TryNavigateToPosition(
-                workspace, document.Id, navigationSpan.Start,
-                virtualSpace: 0, options: null, cancellationToken: cancellationToken);
-
-            return true;
+            var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+            return await navigationService.TryNavigateToPositionAsync(
+                _threadingContext, workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
         public bool ShowItemGrayedIfNear(NavigationBarItem item)

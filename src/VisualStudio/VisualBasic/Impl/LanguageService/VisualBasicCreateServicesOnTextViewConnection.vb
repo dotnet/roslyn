@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.Text.Editor
@@ -23,10 +24,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
             workspace As VisualStudioWorkspace,
+            globalOptions As IGlobalOptionService,
             listenerProvider As IAsynchronousOperationListenerProvider,
             threadingContext As IThreadingContext)
 
-            MyBase.New(workspace, listenerProvider, threadingContext, languageName:=LanguageNames.VisualBasic)
+            MyBase.New(workspace, globalOptions, listenerProvider, threadingContext, languageName:=LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

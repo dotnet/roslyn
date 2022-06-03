@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // We've constructed the export order of completion providers so 
             // that snippets are exported after everything else. That way,
             // when we choose a single item per display text, snippet 
-            // glyphs appear by snippets. This breaks preselection of items
+            // glyphs appear by snippets. This breaks pre-selection of items
             // whose display text is also a snippet (workitem 852578),
             // the snippet item doesn't have its preselect bit set.
             // We'll special case this by not preferring later items
@@ -34,17 +34,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return base.GetBetterItem(item, existingItem);
-        }
-
-        internal override Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
-            Document document,
-            int caretPosition,
-            CompletionOptions options,
-            CompletionTrigger trigger,
-            ImmutableHashSet<string>? roles,
-            CancellationToken cancellationToken)
-        {
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken);
         }
 
         protected static bool IsKeywordItem(CompletionItem item)

@@ -72,7 +72,7 @@ comment */|}";
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,
-                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                request, CancellationToken.None);
         }
 
         private static LSP.FoldingRange CreateFoldingRange(LSP.FoldingRangeKind kind, LSP.Range range)

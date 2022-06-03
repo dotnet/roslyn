@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     internal readonly struct VirtualChar : IEquatable<VirtualChar>, IComparable<VirtualChar>, IComparable<char>
     {
         /// <summary>
-        /// The value of this <see cref="VirtualChar"/> as a <see cref="Rune"/> if such a represention is possible.
+        /// The value of this <see cref="VirtualChar"/> as a <see cref="Rune"/> if such a representation is possible.
         /// <see cref="Rune"/>s can represent Unicode codepoints that can appear in a <see cref="string"/> except for
         /// unpaired surrogates.  If an unpaired high or low surrogate character is present, this value will be <see
         /// cref="Rune.ReplacementChar"/>.  The value of this character can be retrieved from
@@ -87,6 +87,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
 
+        public bool IsDigit
+            => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
+
+        public bool IsLetterOrDigit
+            => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
+
+        public bool IsWhiteSpace
+            => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
+
         #region equality
 
         public static bool operator ==(VirtualChar char1, VirtualChar char2)
@@ -122,6 +131,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         #region string operations
 
+        /// <inheritdoc/>
         public override string ToString()
             => SurrogateChar != 0 ? SurrogateChar.ToString() : Rune.ToString();
 

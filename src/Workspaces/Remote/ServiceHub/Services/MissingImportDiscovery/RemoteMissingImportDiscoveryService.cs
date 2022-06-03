@@ -32,20 +32,18 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             TextSpan span,
             string diagnosticId,
             int maxResults,
-            bool allowInHiddenRegions,
-            bool searchReferenceAssemblies,
+            AddImportOptions options,
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<IAddImportFeatureService>();
@@ -54,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var result = await service.GetFixesAsync(
                     document, span, diagnosticId, maxResults,
-                    allowInHiddenRegions,
-                    symbolSearchService, searchReferenceAssemblies,
+                    symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
                 return result;
@@ -63,18 +60,17 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             TextSpan span,
             ImmutableArray<string> diagnosticIds,
-            bool searchReferenceAssemblies,
+            AddImportOptions options,
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<IAddImportFeatureService>();
@@ -83,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var result = await service.GetUniqueFixesAsync(
                     document, span, diagnosticIds,
-                    symbolSearchService, searchReferenceAssemblies,
+                    symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
                 return result;

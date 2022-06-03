@@ -299,5 +299,45 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Equal("error CS0103: The name 'value' does not exist in the current context", error);
             });
         }
+
+        [Fact]
+        [WorkItem(59093, "https://github.com/dotnet/roslyn/issues/59093")]
+        public void DeclaringCompilationIsNotNull()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(@"
+new Action<int>(x =>
+{
+    int F(int y)
+    {
+        switch (y)
+        {
+            case > 0: return 1;
+            case < 0: return -1;
+            case 0: return 0;
+            default: return 0;
+        }
+    }
+    F(x);
+}).Invoke(1)
+", out error, testData);
+                Assert.Null(error);
+            });
+        }
     }
 }

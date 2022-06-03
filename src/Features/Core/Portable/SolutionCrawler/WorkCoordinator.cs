@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,14 +22,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         internal sealed partial class WorkCoordinator
         {
             private readonly Registration _registration;
-            private readonly object _gate;
+            private readonly object _gate = new();
 
-            private readonly LogAggregator _logAggregator;
+            private readonly LogAggregator _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
+            private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
-            private readonly CancellationTokenSource _shutdownNotificationSource;
+            private readonly CancellationTokenSource _shutdownNotificationSource = new();
             private readonly CancellationToken _shutdownToken;
             private readonly TaskQueue _eventProcessingQueue;
 
@@ -42,48 +44,41 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                  bool initializeLazily,
                  Registration registration)
             {
-                _logAggregator = new LogAggregator();
-
                 _registration = registration;
-                _gate = new object();
 
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
                 _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues
-                _shutdownNotificationSource = new CancellationTokenSource();
                 _shutdownToken = _shutdownNotificationSource.Token;
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
 
-                var activeFileBackOffTimeSpan = InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpan;
-                var allFilesWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan;
-                var entireProjectWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpan;
+                var activeFileBackOffTimeSpan = SolutionCrawlerTimeSpan.ActiveFileWorkerBackOff;
+                var allFilesWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
+                var entireProjectWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
                     listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
 
-                var semanticBackOffTimeSpan = InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpan;
-                var projectBackOffTimeSpan = InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpan;
+                var semanticBackOffTimeSpan = SolutionCrawlerTimeSpan.SemanticChangeBackOff;
+                var projectBackOffTimeSpan = SolutionCrawlerTimeSpan.ProjectPropagationBackOff;
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
-                // if option is on
-                if (_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
-                {
-                    _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                    _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                    _registration.Workspace.DocumentClosed += OnDocumentClosed;
-                }
+                _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                _registration.Workspace.DocumentClosed += OnDocumentClosed;
+
+                // subscribe to active document changed event for active file background analysis scope.
+                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
 
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
                 _optionService.OptionChanged += OnOptionChanged;
-
-                // subscribe to active document changed event for active file background analysis scope.
-                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -101,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -140,35 +135,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                // if solution crawler got turned off or on.
-                if (e.Option == InternalSolutionCrawlerOptions.SolutionCrawler)
-                {
-                    Contract.ThrowIfNull(e.Value);
-
-                    var value = (bool)e.Value;
-                    if (value)
-                    {
-                        _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                        _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                        _registration.Workspace.DocumentClosed += OnDocumentClosed;
-                    }
-                    else
-                    {
-                        _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                        _registration.Workspace.DocumentOpened -= OnDocumentOpened;
-                        _registration.Workspace.DocumentClosed -= OnDocumentClosed;
-                    }
-
-                    SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
-                    return;
-                }
-
-                if (!_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
-                {
-                    // Bail out if solution crawler is disabled.
-                    return;
-                }
-
                 ReanalyzeOnOptionChange(sender, e);
             }
 
@@ -205,20 +171,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnActiveDocumentChanged(object? sender, DocumentId? activeDocumentId)
+            private void OnActiveDocumentSwitched(object? sender, DocumentId? activeDocumentId)
             {
-                var solution = _registration.GetSolutionToAnalyze();
-                if (solution.GetProject(activeDocumentId?.ProjectId) is not { } activeProject)
+                if (activeDocumentId == null)
                     return;
 
-                RoslynDebug.AssertNotNull(activeDocumentId);
-                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
-                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
-                {
-                    // When the active document changes and we are only analyzing the active file, trigger a document
-                    // changed event to reanalyze the newly-active file.
-                    EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
-                }
+                var solution = _registration.GetSolutionToAnalyze();
+                EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
@@ -426,6 +385,41 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         var newProject = newSolution.GetRequiredProject(documentId.ProjectId);
 
                         await EnqueueChangedDocumentWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(false);
+
+                        // If all features are enabled for source generated documents, the solution crawler needs to
+                        // include them in incremental analysis.
+                        if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
+                        {
+                            // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
+                            // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
+                            var oldProjectSourceGeneratedDocuments = await oldProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                            var oldProjectSourceGeneratedDocumentsById = oldProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+                            var newProjectSourceGeneratedDocuments = await newProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                            var newProjectSourceGeneratedDocumentsById = newProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+
+                            foreach (var (oldDocumentId, _) in oldProjectSourceGeneratedDocumentsById)
+                            {
+                                if (!newProjectSourceGeneratedDocumentsById.ContainsKey(oldDocumentId))
+                                {
+                                    // This source generated document was removed
+                                    EnqueueFullDocumentEvent(oldSolution, oldDocumentId, InvocationReasons.DocumentRemoved, "OnWorkspaceChanged");
+                                }
+                            }
+
+                            foreach (var (newDocumentId, newDocument) in newProjectSourceGeneratedDocumentsById)
+                            {
+                                if (!oldProjectSourceGeneratedDocumentsById.TryGetValue(newDocumentId, out var oldDocument))
+                                {
+                                    // This source generated document was added
+                                    EnqueueFullDocumentEvent(newSolution, newDocumentId, InvocationReasons.DocumentAdded, "OnWorkspaceChanged");
+                                }
+                                else
+                                {
+                                    // This source generated document may have changed
+                                    await EnqueueChangedDocumentWorkItemAsync(oldDocument, newDocument).ConfigureAwait(continueOnCapturedContext: false);
+                                }
+                            }
+                        }
                     },
                     _shutdownToken);
             }
@@ -479,6 +473,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 foreach (var documentId in project.AnalyzerConfigDocumentIds)
                     await EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+                // If all features are enabled for source generated documents, the solution crawler needs to
+                // include them in incremental analysis.
+                if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
+                {
+                    foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
+                        await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
+                }
             }
 
             private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
@@ -771,7 +773,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var project = solution.GetProject(documentId.ProjectId);
                                 if (project != null)
-                                    yield return (project, documentId);
+                                {
+                                    // ReanalyzeScopes are created and held in a queue before they are processed later; it's possible the document
+                                    // that we queued for is no longer present.
+                                    if (project.ContainsDocument(documentId))
+                                        yield return (project, documentId);
+                                }
+
                                 break;
                             }
                     }

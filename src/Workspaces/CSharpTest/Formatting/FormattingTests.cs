@@ -2986,8 +2986,8 @@ class C
     int Method()
     {
         var q = from c in Get(1 +
-                            2 +
-                            3)
+                                2 +
+                                3)
                 from b in Get(1 +
                             2 +
                             3)
@@ -4628,7 +4628,7 @@ class innerClass
 
             Assert.NotNull(property);
             using var workspace = new AdhocWorkspace();
-            var newProperty = Formatter.Format(property, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
+            var newProperty = Formatter.Format(property, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
             Assert.Equal(expected, newProperty.ToFullString());
         }
@@ -5770,28 +5770,6 @@ void bar()
         object? x = null;
         object? y = null;
         return x! ?? (y)! ?? o[0]!;
-    }
-}";
-
-            await AssertFormatAsync(expectedCode, code);
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task SpacingInNullCheckedParameter()
-        {
-            var code =
-@"class C
-{
-    static object F(string s !!)
-    {
-    }
-}";
-            var expectedCode =
-@"class C
-{
-    static object F(string s!!)
-    {
     }
 }";
 
@@ -7734,7 +7712,33 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = $""Hello, { a }"";
+        var b = $""Hello, {a}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedRawStrings3()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $""""""Hello, { a }"""""";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $""""""Hello, {a}"""""";
     }
 }";
 
@@ -7762,7 +7766,7 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = $""{ a }, { b }"";
+        var c = $""{a}, {b}"";
     }
 }";
 
@@ -7842,7 +7846,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = $@""Hello, { a }"";
+        var b = $@""Hello, {a}"";
     }
 }";
 
@@ -7870,7 +7874,7 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = $@""{ a }, { b }"";
+        var c = $@""{a}, {b}"";
     }
 }";
 
@@ -7896,7 +7900,7 @@ class C
     void M()
     {
         var a = ""Hello"";
-        var c = $""{ a }, World"";
+        var c = $""{a}, World"";
     }
 }";
 
@@ -7921,6 +7925,187 @@ class C
     void M()
     {
         var s = $""{42,-4:x}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedRawStrings10()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""""""{42 , -4 :x}"""""";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""""""{42,-4:x}"""""";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        public async Task InterpolatedStrings11()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var hostAddress = ""host"";
+        var nasTypeId = ""nas"";
+        var version = ""1.2"";
+        var c = $""{      hostAddress?? """"}/{nasTypeId   }/{version??""""}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var hostAddress = ""host"";
+        var nasTypeId = ""nas"";
+        var version = ""1.2"";
+        var c = $""{hostAddress ?? """"}/{nasTypeId}/{version ?? """"}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        public async Task InterpolatedStrings12()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{   a : 000.00 }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{a: 000.00 }"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        public async Task InterpolatedStrings13()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{ (a > 2?""a"":""b""}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{(a > 2 ? ""a"" : ""b""}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings14()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{ 42 , -4 :x}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4:x}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings15()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{   42 , -4   }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings16()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{  42 , -4 : x }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4: x }"";
     }
 }";
 
@@ -7986,7 +8171,7 @@ class Program
 {
     static string F(int a, int b, int c)
     {
-        return $""{a} (index: 0x{ b}, size: { c}): ""
+        return $""{a} (index: 0x{b}, size: {c}): ""
     }
 }", @"class Program
 {
@@ -8138,7 +8323,7 @@ class Program
         public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
-            Formatter.Format(block, new AdhocWorkspace().Services, SyntaxFormattingOptions.Default, CancellationToken.None);
+            Formatter.Format(block, new AdhocWorkspace().Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -9213,7 +9398,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
-            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
+            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatIndexExpression()
@@ -10146,6 +10331,62 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern_Parentheses()
+        {
+            var code = @"
+class C
+{
+    void M((int[], int[]) a) {
+_ = a is([1,2,>=3],[1,2]);
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M((int[], int[]) a)
+    {
+        _ = a is ([1, 2, >= 3], [1, 2]);
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M((int[], int[]) a)
+    {
+        _ = a is ([1,2,>= 3],[1,2]);
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M((int[ ], int[ ]) a)
+    {
+        _ = a is ([ 1 , 2 , >= 3 ], [ 1 , 2 ]);
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatListPattern_TrailingComma()
         {
             var code = @"
@@ -10729,6 +10970,30 @@ f([Attribute] () => { });
 ",
                 code: @"
 f( [Attribute] () => { });
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRawStringInterpolation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var s = $""""""{s}""""""
+",
+                code: @"
+var s = $""""""{s}""""""
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRawStringInterpolation2()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var s = $""""""{s,0: x }""""""
+",
+                code: @"
+var s = $""""""{s, 0 : x }""""""
 ");
         }
     }

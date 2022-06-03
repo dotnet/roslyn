@@ -10,6 +10,7 @@ using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
-            IWpfDifferenceViewerFactoryService differenceViewerService)
+            IWpfDifferenceViewerFactoryService differenceViewerService,
+            IGlobalOptionService globalOptions)
             : base(threadingContext,
                   textBufferFactoryService,
                   contentTypeRegistryService,
@@ -44,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                   differenceSelectorService,
                   differenceBufferService,
                   textEditorFactoryService.CreateTextViewRoleSet(
-                      TextViewRoles.PreviewRole, PredefinedTextViewRoles.Analyzable))
+                      TextViewRoles.PreviewRole, PredefinedTextViewRoles.Analyzable),
+                  globalOptions)
         {
             _differenceViewerService = differenceViewerService;
         }

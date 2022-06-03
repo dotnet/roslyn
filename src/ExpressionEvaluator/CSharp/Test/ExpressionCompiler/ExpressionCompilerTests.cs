@@ -1841,6 +1841,35 @@ class C
         }
 
         [Fact]
+        public void EvaluateUTF8StringLiteral_01()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.F",
+                expr: @"""hello""u8",
+                targetFramework: TargetFramework.NetCoreApp);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.F3AEFE62965A91903610F0E23CC8A69D5B87CEA6D28E75489B0D2CA02ED7993C""
+  IL_0005:  ldc.i4.5
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
         public void AssignOutParameter()
         {
             var source =
@@ -2304,7 +2333,7 @@ class C
         /// normally be allowed.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void Await()
         {
             var source = @"
@@ -2340,7 +2369,7 @@ class C
         /// This would be illegal in any non-debugger context.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -6087,7 +6116,7 @@ class C
         /// <summary>
         /// Ignore accessibility in async rewriter.
         /// </summary>
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void AsyncRewriterIgnoreAccessibility()
         {
             var source =

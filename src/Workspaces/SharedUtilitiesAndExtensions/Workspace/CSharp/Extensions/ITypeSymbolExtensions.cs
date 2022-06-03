@@ -43,20 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
             var type = symbol as ITypeSymbol;
-            if (type != null && type.ContainsAnonymousType())
+            var containsAnonymousType = type != null && type.ContainsAnonymousType();
+
+            if (containsAnonymousType && allowVar)
             {
                 // something with an anonymous type can only be represented with 'var', regardless
                 // of what the user's preferences might be.
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
-                               .WithAdditionalAnnotations(Simplifier.Annotation);
+            var syntax = containsAnonymousType
+                ? TypeSyntaxGeneratorVisitor.CreateSystemObject()
+                : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
+                        .WithAdditionalAnnotations(Simplifier.Annotation);
 
             if (!allowVar)
-            {
                 syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
-            }
 
             if (type != null && type.IsReferenceType)
             {
@@ -68,10 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
                 };
 
-                if (additionalAnnotation is object)
-                {
+                if (additionalAnnotation is not null)
                     syntax = syntax.WithAdditionalAnnotations(additionalAnnotation);
-                }
             }
 
             return syntax;

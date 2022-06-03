@@ -470,7 +470,8 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            var comp = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
@@ -5938,13 +5939,13 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //                 2=>2,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 18),
                 // (6,18): error CS8504: Pattern missing
                 //                 2=>2,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 18),
                 // (13,18): error CS1003: Syntax error, ',' expected
                 //                 2=>2,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(13, 18),
                 // (13,18): error CS8504: Pattern missing
                 //                 2=>2,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(13, 18)

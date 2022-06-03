@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Return the nearest enclosing node being bound as a nameof(...) argument, if any, or null if none.
-        protected virtual SyntaxNode? EnclosingNameofArgument => null;
+        protected virtual SyntaxNode? EnclosingNameofArgument => NextRequired.EnclosingNameofArgument;
 
-        private bool IsInsideNameof => this.EnclosingNameofArgument != null;
+        internal virtual bool IsInsideNameof => NextRequired.IsInsideNameof;
 
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// context is unchecked unless external factors (such as compiler switches and execution 
         /// environment configuration) call for checked evaluation.
         /// </remarks>
-        protected bool CheckOverflowAtRuntime
+        internal bool CheckOverflowAtRuntime
         {
             get
             {
@@ -257,8 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax.NullableContextState.State.Disabled => false,
                 Syntax.NullableContextState.State.ExplicitlyRestored => GetGlobalAnnotationState(),
                 Syntax.NullableContextState.State.Unknown =>
-                    !csTree.IsGeneratedCode(this.Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
-                    && AreNullableAnnotationsGloballyEnabled(),
+                    // IsGeneratedCode may be slow, check global state first:
+                    AreNullableAnnotationsGloballyEnabled() &&
+                    !csTree.IsGeneratedCode(this.Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None),
                 _ => throw ExceptionUtilities.UnexpectedValue(context.AnnotationsState)
             };
         }
@@ -267,12 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(token.SyntaxTree is object);
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
-        }
-
-        internal bool IsGeneratedCode(SyntaxToken token)
-        {
-            var tree = (CSharpSyntaxTree)token.SyntaxTree!;
-            return tree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None);
         }
 
         internal virtual bool AreNullableAnnotationsGloballyEnabled()

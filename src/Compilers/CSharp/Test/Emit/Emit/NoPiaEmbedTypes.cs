@@ -1779,9 +1779,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -4708,11 +4708,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -5185,11 +5185,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]

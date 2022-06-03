@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 argumentName:=Nothing, argumentNames:=Nothing)
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim node As TSyntaxNode = Nothing
             If TryGetSyntaxNode(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, node) AndAlso
                 currentSpan.Start = node.SpanStart Then

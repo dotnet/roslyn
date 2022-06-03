@@ -8,10 +8,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.LanguageServices;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -31,8 +35,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
             else
             {
-                var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-                var lineText = view.Caret.Position.BufferPosition.GetContainingLine().GetText();
+                var lineText = await TestServices.Editor.GetCurrentLineTextAsync(cancellationToken);
                 Assert.Equal(expectedText, lineText);
             }
         }
@@ -52,12 +55,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var expectedTextBeforeCaret = expectedText.Substring(0, expectedCaretIndex);
             var expectedTextAfterCaret = expectedText.Substring(expectedCaretMarkupEndIndex);
 
-            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-            var bufferPosition = view.Caret.Position.BufferPosition;
-            var line = bufferPosition.GetContainingLine();
-            var lineText = line.GetText();
-            var lineTextBeforeCaret = lineText[..(bufferPosition.Position - line.Start)];
-            var lineTextAfterCaret = lineText[(bufferPosition.Position - line.Start)..];
+            var lineText = await TestServices.Editor.GetCurrentLineTextAsync(cancellationToken);
+            var lineTextBeforeCaret = await TestServices.Editor.GetLineTextBeforeCaretAsync(cancellationToken);
+            var lineTextAfterCaret = await TestServices.Editor.GetLineTextAfterCaretAsync(cancellationToken);
 
             Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
             Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
@@ -145,6 +145,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             bool blockUntilComplete = true,
             CancellationToken cancellationToken = default)
         {
+            var events = new List<WorkspaceChangeEventArgs>();
+            void WorkspaceChangedHandler(object sender, WorkspaceChangeEventArgs e) => events.Add(e);
+
+            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
+            using var workspaceEventRestorer = WithWorkspaceChangedHandler(workspace, WorkspaceChangedHandler);
+
             await TestServices.Editor.ShowLightBulbAsync(cancellationToken);
 
             if (verifyNotShowing)
@@ -178,12 +184,33 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             if (!RoslynString.IsNullOrEmpty(applyFix))
             {
+                var codeActionLogger = new CodeActionLogger();
+                using var loggerRestorer = WithLogger(AggregateLogger.AddOrReplace(codeActionLogger, Logger.GetLogger(), logger => logger is CodeActionLogger));
+
                 var result = await TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete, cancellationToken);
 
                 if (blockUntilComplete)
                 {
                     // wait for action to complete
-                    await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
+                    await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                        new[]
+                        {
+                            FeatureAttribute.Workspace,
+                            FeatureAttribute.LightBulb,
+                        },
+                        cancellationToken);
+
+                    if (codeActionLogger.Messages.Any())
+                    {
+                        foreach (var e in events)
+                        {
+                            codeActionLogger.Messages.Add($"{e.OldSolution.WorkspaceVersion} to {e.NewSolution.WorkspaceVersion}: {e.Kind} {e.DocumentId}");
+                        }
+                    }
+
+                    AssertEx.EqualOrDiff(
+                        "",
+                        string.Join(Environment.NewLine, codeActionLogger.Messages));
                 }
 
                 return result;
@@ -203,6 +230,90 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task CaretPositionAsync(int expectedCaretPosition, CancellationToken cancellationToken)
         {
             Assert.Equal(expectedCaretPosition, await TestServices.Editor.GetCaretPositionAsync(cancellationToken));
+        }
+
+        public async Task ErrorTagsAsync(string[] expectedTags, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
+                cancellationToken);
+
+            var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedTags),
+                string.Join(Environment.NewLine, actualTags));
+        }
+
+        private static WorkspaceEventRestorer WithWorkspaceChangedHandler(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)
+        {
+            workspace.WorkspaceChanged += eventHandler;
+            return new WorkspaceEventRestorer(workspace, eventHandler);
+        }
+
+        private static LoggerRestorer WithLogger(ILogger logger)
+        {
+            return new LoggerRestorer(Logger.SetLogger(logger));
+        }
+
+        private sealed class CodeActionLogger : ILogger
+        {
+            public List<string> Messages { get; } = new();
+
+            public bool IsEnabled(FunctionId functionId)
+            {
+                return functionId == FunctionId.Workspace_ApplyChanges;
+            }
+
+            public void Log(FunctionId functionId, LogMessage logMessage)
+            {
+                if (functionId != FunctionId.Workspace_ApplyChanges)
+                    return;
+
+                lock (Messages)
+                {
+                    Messages.Add(logMessage.GetMessage());
+                }
+            }
+
+            public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
+            {
+            }
+
+            public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
+            {
+            }
+        }
+
+        private readonly struct WorkspaceEventRestorer : IDisposable
+        {
+            private readonly Workspace _workspace;
+            private readonly EventHandler<WorkspaceChangeEventArgs> _eventHandler;
+
+            public WorkspaceEventRestorer(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)
+            {
+                _workspace = workspace;
+                _eventHandler = eventHandler;
+            }
+
+            public void Dispose()
+            {
+                _workspace.WorkspaceChanged -= _eventHandler;
+            }
+        }
+
+        private readonly struct LoggerRestorer : IDisposable
+        {
+            private readonly ILogger? _logger;
+
+            public LoggerRestorer(ILogger? logger)
+            {
+                _logger = logger;
+            }
+
+            public void Dispose()
+            {
+                Logger.SetLogger(_logger);
+            }
         }
     }
 }

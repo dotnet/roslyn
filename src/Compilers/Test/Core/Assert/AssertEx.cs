@@ -927,10 +927,12 @@ namespace Roslyn.Test.Utilities
             if (exceptions is null)
                 return;
 
-            var stringBuilder = new StringBuilder($"{exceptions.Count} out of {assertions.Length} assertions failed.");
+            var stringBuilder = new StringBuilder()
+                .AppendLine($"{exceptions.Count} out of {assertions.Length} assertions failed.")
+                .AppendLine();
             foreach (var (index, ex) in exceptions)
             {
-                var stack = ex.StackTrace.Split(new[] { "\r\n" }, StringSplitOptions.None);
+                var stack = ex.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 stringBuilder
                     .AppendLine($"Assertion failed at index {index}:")
                     .AppendLine(stack[^2]) // Prints the failing line in the original test case.

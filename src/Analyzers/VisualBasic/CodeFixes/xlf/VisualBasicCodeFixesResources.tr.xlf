@@ -7,14 +7,34 @@
         <target state="translated">Me' ekleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="new">Add &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_0_to_Iterator">
+        <source>Convert {0} to Iterator</source>
+        <target state="new">Convert {0} to Iterator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_GetType_to_NameOf">
         <source>Convert 'GetType' to 'NameOf'</source>
         <target state="translated">'GetType' metodunu 'NameOf' metoduna dönüştürün</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="new">Make '{0}' inheritable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Gereksiz İçeri Aktarmaları Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_Return_with_Yield">
+        <source>Replace 'Return' with 'Yield</source>
+        <target state="new">Replace 'Return' with 'Yield</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_creation">

@@ -392,5 +392,78 @@ internal static class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingMember_NotApplicable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"{|FixAllInContainingMember:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingType()
+        {
+            await TestInRegularAndScript1Async(
+@"{|FixAllInContainingType:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}",
+@"internal static class C
+{
+    internal static class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task RequiredAfterAllOnProp()
+        {
+            await TestInRegularAndScriptAsync("""
+                class C
+                {
+                    [|required|] public virtual unsafe int Prop { get; init; }
+                }
+                """,
+                """
+                class C
+                {
+                    public virtual unsafe required int Prop { get; init; }
+                }
+                """);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task RequiredAfterAllButVolatileOnField()
+        {
+            await TestInRegularAndScriptAsync("""
+                class C
+                {
+                    [|required|] public unsafe volatile int Field;
+                }
+                """,
+                """
+                class C
+                {
+                    public unsafe required volatile int Field;
+                }
+                """);
+        }
     }
 }

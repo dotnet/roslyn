@@ -5,17 +5,15 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 ImmutableArray<ISignatureHelpProvider> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
-                AssertIsForeground();
+                this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
                 var caretPosition = Controller.TextView.GetCaretPoint(Controller.SubjectBuffer).Value;
                 var disconnectedBufferGraph = new DisconnectedBufferGraph(Controller.SubjectBuffer, Controller.TextView.TextBuffer);
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 {
                     using (Logger.LogBlock(FunctionId.SignatureHelp_ModelComputation_ComputeModelInBackground, cancellationToken))
                     {
-                        AssertIsBackground();
+                        this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
                         cancellationToken.ThrowIfCancellationRequested();
 
                         var document = Controller.DocumentProvider.GetDocument(caretPosition.Snapshot, cancellationToken);
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             }
                         }
 
-                        var options = SignatureHelpOptions.From(document.Project);
+                        var options = Controller.GlobalOptions.GetSignatureHelpOptions(document.Project.Language);
 
                         // first try to query the providers that can trigger on the specified character
                         var (provider, items) = await ComputeItemsAsync(

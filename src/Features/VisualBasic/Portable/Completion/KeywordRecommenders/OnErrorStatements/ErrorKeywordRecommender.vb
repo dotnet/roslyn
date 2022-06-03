@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
             End If
 
             ' The Error statement (i.e. "Error 11" to raise an error)
-            If context.IsMultiLineStatementContext OrElse context.IsSingleLineStatementContext Then
+            If context.IsMultiLineStatementContext OrElse context.IsStatementContext Then
                 Return ImmutableArray.Create(New RecommendedKeyword("Error", VBFeaturesResources.Simulates_the_occurrence_of_an_error))
             End If
 

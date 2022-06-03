@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -46,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
         private static ExpressionSyntax Prefix(SyntaxKind kind, ExpressionSyntax operand)
             => SyntaxFactory.PrefixUnaryExpression(kind, operand);
+
+        protected override SyntaxTriviaList PrepareRightExpressionLeadingTrivia(SyntaxTriviaList initialTrivia) => initialTrivia.SkipWhile(el => el.Kind() is SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia).ToSyntaxTriviaList();
 
         protected override bool PreferPostfix(ISyntaxFactsService syntaxFacts, AssignmentExpressionSyntax currentAssignment)
         {

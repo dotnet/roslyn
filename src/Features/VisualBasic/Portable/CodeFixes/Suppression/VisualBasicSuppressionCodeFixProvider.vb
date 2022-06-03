@@ -6,7 +6,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting

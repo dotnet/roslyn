@@ -19,6 +19,7 @@ using Castle.Core.Resource;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -949,8 +950,9 @@ class Hello
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
                             result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
-                            Assert.Equal("", result.Output);
-                            Assert.Equal(0, result.ExitCode);
+                            // Instrumenting to assist investigation of flakiness. Tracked by https://github.com/dotnet/roslyn/issues/19763
+                            RoslynDebug.AssertOrFailFast("" == result.Output);
+                            RoslynDebug.AssertOrFailFast(0 == result.ExitCode);
 
                             // Run hello3.exe. Should work.
                             RunCompilerOutput(hello3_file, "Hello3 from library3");
