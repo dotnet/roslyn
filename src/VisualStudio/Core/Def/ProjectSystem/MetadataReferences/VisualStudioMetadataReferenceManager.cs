@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
 
             // don't dispose assembly metadata since it shares module metadata
-            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
+            if (!_metadataCache.GetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages), out metadata))
             {
                 newMetadata.Dispose();
             }
@@ -161,12 +161,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage>? storages)
         {
-            GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream, out var pImage);
+            GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream);
 
-            var metadata = ModuleMetadata.CreateFromMetadata(pImage, (int)stream.Length);
-
-            // first time, the metadata is created. tie lifetime.
-            s_lifetimeMap.Add(metadata, stream);
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+            var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
 
             // hold onto storage if requested
             storages?.Add(storage);
@@ -174,7 +172,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private void GetStorageInfoFromTemporaryStorage(FileKey moduleFileKey, out ITemporaryStreamStorage storage, out Stream stream, out IntPtr pImage)
+        private void GetStorageInfoFromTemporaryStorage(
+            FileKey moduleFileKey, out ITemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
         {
             int size;
             using (var copyStream = SerializableBytes.CreateWritableStream())
@@ -204,18 +203,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 storage.WriteStream(copyStream);
             }
 
-            // get stream that owns direct access memory
-            stream = storage.ReadStream(CancellationToken.None);
+            // get stream that owns direct access memory.
+            // In VS host, direct access should be supported through an UnmanagedMemoryStream
+            stream = (UnmanagedMemoryStream)storage.ReadStream(CancellationToken.None);
 
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
 
-            // In VS host, direct access should be supported through an UnmanagedMemoryStream
-            var directAccess = (UnmanagedMemoryStream)stream;
-            unsafe
-            {
-                pImage = (IntPtr)directAccess.PositionPointer;
-            }
+            return;
         }
 
         private static void StreamCopy(Stream source, Stream destination, int start, int length)

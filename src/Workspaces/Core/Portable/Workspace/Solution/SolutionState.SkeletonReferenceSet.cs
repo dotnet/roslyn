@@ -28,6 +28,7 @@ internal partial class SolutionState
         /// </summary>
         private readonly DeferredDocumentationProvider _documentationProvider;
 
+        /// <summary>
         /// Lock this object while reading/writing from it.  Used so we can return the same reference for the same
         /// properties.  While this is isn't strictly necessary (as the important thing to keep the same is the
         /// AssemblyMetadata), this allows higher layers to see that reference instances are the same which allow

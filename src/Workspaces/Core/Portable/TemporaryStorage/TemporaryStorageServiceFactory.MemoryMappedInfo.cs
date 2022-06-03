@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _memoryMappedFile.Dispose();
             }
 
-            private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream, ISupportDirectMemoryAccess
+            private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
                 private byte* _start;
