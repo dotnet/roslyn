@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
             Return context.ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName,
                 Function(node, c) TypeOf node Is t,
-                Function(ctx, c) DirectCast(ctx.AttributeTarget, t))
+                Function(ctx, c) DirectCast(ctx.TargetNode, t))
         End Function
     End Module
 

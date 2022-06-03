@@ -32,7 +32,7 @@ internal static class IncrementalGeneratorInitializationContextExtensions
         return context.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName,
             (node, _) => node is T,
-            (context, cancellationToken) => (T)context.AttributeTarget);
+            (context, cancellationToken) => (T)context.TargetNode);
     }
 }
 
