@@ -160,12 +160,16 @@ namespace N2
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" }));
     }
 
-    [Fact]
-    public void FindAssemblyAttribute1()
+    [Theory]
+    [InlineData("CLSCompliant(true)")]
+    [InlineData("CLSCompliantAttribute(true)")]
+    [InlineData("System.CLSCompliant(true)")]
+    [InlineData("System.CLSCompliantAttribute(true)")]
+    public void FindAssemblyAttribute1(string attribute)
     {
-        var source = @"
+        var source = @$"
 using System;
-[assembly: CLSCompliant(true)]
+[assembly: {attribute}]
 ";
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
