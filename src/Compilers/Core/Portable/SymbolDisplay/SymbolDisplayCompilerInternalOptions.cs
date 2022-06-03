@@ -62,5 +62,10 @@ namespace Microsoft.CodeAnalysis
         /// Display `System.[U]IntPtr` instead of `n[u]int`.
         /// </summary>
         UseNativeIntegerUnderlyingType = 1 << 7,
+
+        /// <summary>
+        /// Includes the <c>scoped</c> keyword.
+        /// </summary>
+        IncludeScoped = 1 << 8,
     }
 }

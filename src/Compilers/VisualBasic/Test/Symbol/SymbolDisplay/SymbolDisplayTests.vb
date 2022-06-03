@@ -5318,6 +5318,113 @@ ref struct S<T>
                 SymbolDisplayPartKind.TypeParameterName)
         End Sub
 
+        ''' <summary>
+        ''' IParameterSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' </summary>
+        <Theory>
+        <InlineData(False)>
+        <InlineData(True)>
+        Public Sub ScopedParameter(includeScoped As Boolean)
+            Dim source =
+"ref struct R { }
+class Program
+{
+    static void F(scoped R r1, in scoped R r2, scoped ref R r3) { }
+}"
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            comp.VerifyDiagnostics()
+            Dim method = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("F").Single()
+
+            Dim format = SymbolDisplayFormat.TestFormat
+            If includeScoped Then
+                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+            End If
+
+            Verify(SymbolDisplay.ToDisplayParts(method, format),
+                "Sub Program.F(r1 As R, r2 As R, r3 As R)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation)
+        End Sub
+
+        ''' <summary>
+        ''' ILocalSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' </summary>
+        <Theory>
+        <InlineData(False)>
+        <InlineData(True)>
+        Public Sub ScopedLocal(includeScoped As Boolean)
+            Dim source =
+"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        scoped R r1;
+        ref readonly scoped R r2 = ref r1;
+        scoped ref R r3 = ref r1;
+    }
+}"
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim decls = tree.GetRoot().DescendantNodes().OfType(Of Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax)().ToArray()
+            Dim locals = decls.Select(Function(d) model.GetDeclaredSymbol(d)).ToArray()
+
+            Dim format = SymbolDisplayFormat.TestFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
+            If includeScoped Then
+                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+            End If
+
+            Verify(SymbolDisplay.ToDisplayParts(locals(0), format),
+                "r1 As R",
+                SymbolDisplayPartKind.LocalName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName)
+
+            Verify(SymbolDisplay.ToDisplayParts(locals(1), format),
+                "r2 As R",
+                SymbolDisplayPartKind.LocalName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName)
+
+            Verify(SymbolDisplay.ToDisplayParts(locals(2), format),
+                "r3 As R",
+                SymbolDisplayPartKind.LocalName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(

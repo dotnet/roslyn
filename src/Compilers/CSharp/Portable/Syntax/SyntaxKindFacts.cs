@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnmanagedKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ScopedKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1191,6 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordKeyword:
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
+                case SyntaxKind.ScopedKeyword:
                     return true;
                 default:
                     return false;
@@ -1310,6 +1311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ManagedKeyword;
                 case "unmanaged":
                     return SyntaxKind.UnmanagedKeyword;
+                case "scoped":
+                    return SyntaxKind.ScopedKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1751,6 +1754,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "managed";
                 case SyntaxKind.UnmanagedKeyword:
                     return "unmanaged";
+                case SyntaxKind.ScopedKeyword:
+                    return "scoped";
                 default:
                     return string.Empty;
             }

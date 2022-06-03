@@ -611,6 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
+                    // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                    Debug.Assert((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope is null or DeclarationScope.Unscoped);
+
                     AddParameterRefKind(param.RefKind);
 
                     AddCustomModifiersIfRequired(param.RefCustomModifiers);
@@ -767,8 +770,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                AddParameterRefKindIfRequired(symbol.RefKind);
+                AddParameterRefKindIfRequired(symbol);
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+
+                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope == DeclarationScope.ValueScoped &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
 
                 if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
                 {
@@ -1050,11 +1061,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddParameterRefKindIfRequired(RefKind refKind)
+        private void AddParameterRefKindIfRequired(IParameterSymbol symbol)
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                AddParameterRefKind(refKind);
+                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().Scope == DeclarationScope.RefScoped &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+
+                AddParameterRefKind(symbol.RefKind);
             }
         }
 

@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
+
         #region Not used by MethodSignatureComparer
 
         internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }

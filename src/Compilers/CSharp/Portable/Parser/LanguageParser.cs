@@ -1163,6 +1163,8 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
+                        case SyntaxKind.ScopedKeyword:
+                            return DeclarationModifiers.Scoped;
                     }
 
                     goto default;
@@ -1253,6 +1255,14 @@ tryAgain:
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
                         break;
 
+                    case DeclarationModifiers.Scoped:
+                        if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+                        modTok = ConvertToKeyword(this.EatToken());
+                        break;
+
                     default:
                         modTok = this.EatToken();
                         break;
@@ -1283,7 +1293,7 @@ tryAgain:
 
         private bool ShouldAsyncBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken && GetModifier(this.CurrentToken) != DeclarationModifiers.None);
 
             // Adapted from CParser::IsAsyncMethod.
 
@@ -2654,15 +2664,12 @@ parse_member_name:;
                         return true;
                 }
             }
-
-
         }
 
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -4399,7 +4406,7 @@ tryAgain:
                     return this.IsTrueIdentifier();
 
                 default:
-                    return IsParameterModifier(this.CurrentToken.Kind) || IsPredefinedType(this.CurrentToken.Kind);
+                    return IsParameterModifier(this.CurrentToken) || IsPredefinedType(this.CurrentToken.Kind);
             }
         }
 
@@ -4583,9 +4590,9 @@ tryAgain:
 
 #nullable disable
 
-        private static bool IsParameterModifier(SyntaxKind kind, bool isFunctionPointerParameter = false)
+        private static bool IsParameterModifier(SyntaxToken token, bool isFunctionPointerParameter = false)
         {
-            switch (kind)
+            switch (token.Kind)
             {
                 case SyntaxKind.ThisKeyword:
                 case SyntaxKind.RefKeyword:
@@ -4593,6 +4600,7 @@ tryAgain:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ReadOnlyKeyword when isFunctionPointerParameter:
+                case SyntaxKind.IdentifierToken when token.ContextualKind == SyntaxKind.ScopedKeyword:
                     return true;
             }
 
@@ -4601,8 +4609,18 @@ tryAgain:
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter = false)
         {
-            while (IsParameterModifier(this.CurrentToken.Kind, isFunctionPointerParameter))
+            while (IsParameterModifier(this.CurrentToken, isFunctionPointerParameter))
             {
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+                {
+                    if (!shouldTreatAsModifier())
+                    {
+                        return;
+                    }
+                    modifiers.Add(EatContextualToken(SyntaxKind.ScopedKeyword));
+                    continue;
+                }
+
                 var modifier = this.EatToken();
 
                 switch (modifier.Kind)
@@ -4640,6 +4658,25 @@ tryAgain:
                 }
 
                 modifiers.Add(modifier);
+            }
+
+            bool shouldTreatAsModifier()
+            {
+                var resetPoint = this.GetResetPoint();
+
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+                this.EatToken();
+
+                bool validAsModifier = IsParameterModifier(this.CurrentToken, isFunctionPointerParameter) ||
+                    (ScanType() != ScanTypeFlags.NotType &&
+                        isFunctionPointerParameter ?
+                            this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken :
+                            this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+
+                return validAsModifier;
             }
         }
 
@@ -7180,8 +7217,25 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
+                SyntaxToken scopedKeyword = null;
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
+                {
+                    var resetPoint = this.GetResetPoint();
+
+                    this.EatToken();
+                    bool shouldTreatAsModifier = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
+
+                    this.Reset(ref resetPoint);
+                    this.Release(ref resetPoint);
+
+                    if (shouldTreatAsModifier)
+                    {
+                        scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
+                    }
+                }
+
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
-                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
+                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, scopedKeyword, type);
             }
 
             return ParseTypeCore(mode);
@@ -7967,6 +8021,12 @@ done:;
             }
 
             tk = this.CurrentToken.ContextualKind;
+
+            if (tk == SyntaxKind.ScopedKeyword &&
+                ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true))
+            {
+                return true;
+            }
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
                 && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true));
@@ -9928,20 +9988,9 @@ tryAgain:
                 if (k == SyntaxKind.AsyncKeyword)
                 {
                     // check for things like "async async()" where async is the type and/or the function name
+                    if (!shouldTreatAsModifier())
                     {
-                        var resetPoint = this.GetResetPoint();
-
-                        var invalid = !IsPossibleStartOfTypeDeclaration(this.EatToken().Kind) &&
-                            !IsDeclarationModifier(this.CurrentToken.Kind) && !IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) &&
-                            (ScanType() == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken);
-
-                        this.Reset(ref resetPoint);
-                        this.Release(ref resetPoint);
-
-                        if (invalid)
-                        {
-                            break;
-                        }
+                        break;
                     }
 
                     mod = this.EatContextualToken(k);
@@ -9949,6 +9998,14 @@ tryAgain:
                     {
                         mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureAsync);
                     }
+                }
+                else if (k == SyntaxKind.ScopedKeyword)
+                {
+                    if (!shouldTreatAsModifier())
+                    {
+                        break;
+                    }
+                    mod = this.EatContextualToken(k);
                 }
                 else
                 {
@@ -9967,6 +10024,23 @@ tryAgain:
 
                 list.Add(mod);
             }
+
+            bool shouldTreatAsModifier()
+            {
+                var resetPoint = this.GetResetPoint();
+
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+                this.EatToken();
+
+                bool validAsModifier = IsDeclarationModifier(this.CurrentToken.Kind) ||
+                    IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) ||
+                    (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+
+                return validAsModifier;
+            }
         }
 
         private static bool IsDeclarationModifier(SyntaxKind kind)
@@ -9977,6 +10051,7 @@ tryAgain:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.VolatileKeyword:
+                case SyntaxKind.ScopedKeyword:
                     return true;
                 default:
                     return false;
@@ -11762,28 +11837,20 @@ tryAgain:
 
                     _ = ParseAttributeDeclarations();
 
-                    // Eat 'out', 'ref', and 'in'. Even though not allowed in a lambda,
-                    // we treat `params` similarly for better error recovery.
-                    switch (this.CurrentToken.Kind)
+                    bool hasModifier = IsParameterModifier(this.CurrentToken);
+                    if (hasModifier)
                     {
-                        case SyntaxKind.RefKeyword:
-                            this.EatToken();
-                            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
-                            {
-                                this.EatToken();
-                            }
-                            break;
-                        case SyntaxKind.OutKeyword:
-                        case SyntaxKind.InKeyword:
-                        case SyntaxKind.ParamsKeyword:
-                            this.EatToken();
-                            break;
+                        SyntaxListBuilder modifiers = _pool.Allocate();
+                        ParseParameterModifiers(modifiers);
+                        _pool.Free(modifiers);
                     }
 
-                    // NOTE: advances CurrentToken
-                    if (this.ScanType() == ScanTypeFlags.NotType)
+                    if (hasModifier || ShouldParseLambdaParameterType())
                     {
-                        return false;
+                        if (this.ScanType() == ScanTypeFlags.NotType)
+                        {
+                            return false;
+                        }
                     }
 
                     // eat the parameter name.
@@ -13212,18 +13279,18 @@ tryAgain:
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
-            bool hasModifier = IsParameterModifier(this.CurrentToken.Kind);
+            bool hasModifier = IsParameterModifier(this.CurrentToken);
+
+            SyntaxListBuilder modifiers = _pool.Allocate();
+            if (hasModifier)
+            {
+                ParseParameterModifiers(modifiers);
+            }
 
             TypeSyntax paramType = null;
-            SyntaxListBuilder modifiers = _pool.Allocate();
-
-            if (ShouldParseLambdaParameterType(hasModifier))
+            // If we have "ref/out/in/params" always try to parse out a type.
+            if (hasModifier || ShouldParseLambdaParameterType())
             {
-                if (hasModifier)
-                {
-                    ParseParameterModifiers(modifiers);
-                }
-
                 paramType = ParseType(ParseTypeMode.Parameter);
             }
 
@@ -13253,14 +13320,8 @@ tryAgain:
             return parameter;
         }
 
-        private bool ShouldParseLambdaParameterType(bool hasModifier)
+        private bool ShouldParseLambdaParameterType()
         {
-            // If we have "ref/out/in/params" always try to parse out a type.
-            if (hasModifier)
-            {
-                return true;
-            }
-
             // If we have "int/string/etc." always parse out a type.
             if (IsPredefinedType(this.CurrentToken.Kind))
             {

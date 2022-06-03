@@ -2267,5 +2267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Checking escape scopes is not valid here.
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }
 }
