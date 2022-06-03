@@ -838,8 +838,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
-        <source>The #line span directive requires space before the first parenthesis, before the character offset and before the file name</source>
-        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset and before the file name</target>
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="new">The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
@@ -1580,11 +1580,6 @@
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="translated">zwracany typ lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">dyrektywa zakresu wierszy</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
