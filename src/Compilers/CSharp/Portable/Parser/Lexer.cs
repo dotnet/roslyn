@@ -2229,6 +2229,8 @@ LoopExit:
 
             if (this.ScanIdentifier(ref info))
             {
+                RoslynDebug.AssertNotNull(info.Text);
+
                 // check to see if it is an actual keyword
                 if (!info.IsVerbatim && !info.HasIdentifierEscapeSequence)
                 {
