@@ -40,5 +40,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
         public static AspNetCoreVirtualCharSequence FromBounds(
             AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2) =>
             new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
+
+        public override string ToString()
+        {
+            return _virtualCharSequence.ToString();
+        }
     }
 }
