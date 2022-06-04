@@ -19,12 +19,6 @@ internal partial class SolutionState
         /// </summary>
         private readonly AssemblyMetadata _metadata;
 
-        /// <summary>
-        /// Used to tie lifetime of the underlying direct memory to any metadata reference we pass out.  This way the
-        /// memory will not be GC'ed while this reference is alive.
-        /// </summary>
-        private readonly ISupportDirectMemoryAccess? _directMemoryAccess;
-
         private readonly string? _assemblyName;
 
         /// <summary>
@@ -40,16 +34,14 @@ internal partial class SolutionState
         /// AssemblyMetadata), this allows higher layers to see that reference instances are the same which allow
         /// reusing the same higher level objects (for example, the set of references a compilation has).
         /// </summary>
-        private readonly Dictionary<MetadataReferenceProperties, SkeletonPortableExecutableReference> _referenceMap = new();
+        private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = new();
 
         public SkeletonReferenceSet(
             AssemblyMetadata metadata,
-            ISupportDirectMemoryAccess? directMemoryAccess,
             string? assemblyName,
             DeferredDocumentationProvider documentationProvider)
         {
             _metadata = metadata;
-            _directMemoryAccess = directMemoryAccess;
             _assemblyName = assemblyName;
             _documentationProvider = documentationProvider;
         }
@@ -60,12 +52,12 @@ internal partial class SolutionState
             {
                 if (!_referenceMap.TryGetValue(properties, out var value))
                 {
-                    value = new SkeletonPortableExecutableReference(
-                        _metadata,
-                        properties,
+                    value = _metadata.GetReference(
                         _documentationProvider,
-                        _assemblyName,
-                        _directMemoryAccess);
+                        aliases: properties.Aliases,
+                        embedInteropTypes: properties.EmbedInteropTypes,
+                        display: _assemblyName);
+
                     _referenceMap.Add(properties, value);
                 }
 
