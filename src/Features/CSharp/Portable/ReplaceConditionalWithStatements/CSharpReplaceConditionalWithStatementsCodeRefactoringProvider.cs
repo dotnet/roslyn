@@ -18,13 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceConditionalWithStatements;
 internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
     AbstractReplaceConditionalWithStatementsCodeRefactoringProvider<
         ExpressionSyntax,
-        InvocationExpressionSyntax,
         ConditionalExpressionSyntax,
         StatementSyntax,
+        ThrowStatementSyntax,
+        YieldStatementSyntax,
         ReturnStatementSyntax,
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         ArgumentSyntax,
+        BaseArgumentListSyntax,
         VariableDeclaratorSyntax,
         VariableDeclaratorSyntax,
         EqualsValueClauseSyntax>
