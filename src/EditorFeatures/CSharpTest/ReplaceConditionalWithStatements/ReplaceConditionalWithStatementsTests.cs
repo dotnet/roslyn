@@ -1020,6 +1020,81 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestDeepThrowOnOneSide()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                int M(bool b)
+                {
+                    return N(N($$b ? 42 : throw new Exception()));
+                }
+
+                int N(int v) => v;
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                int M(bool b)
+                {
+                    if (b)
+                    {
+                        return N(N(42));
+                    }
+                    else
+                    {
+                        throw new Exception();
+                    }
+                }
+
+                int N(int v) => v;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestDeepThrowOnOneSide_LocalDeclaration()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    int v = N(N($$b ? 42 : throw new Exception()));
+                }
+
+                int N(int v) => v;
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    int v;
+                    if (b)
+                    {
+                        v = N(N(42));
+                    }
+                    else
+                    {
+                        throw new Exception();
+                    }
+                }
+
+                int N(int v) => v;
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestYieldReturn1()
     {
         await VerifyCS.VerifyRefactoringAsync(
