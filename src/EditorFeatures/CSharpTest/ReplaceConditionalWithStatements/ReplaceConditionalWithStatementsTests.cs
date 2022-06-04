@@ -457,6 +457,43 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestLocalDeclarationStatement_ThrowExpression()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    int v = N(N($$b ? 42 : throw new Exception()));
+                }
+
+                int N(int v) => v;
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        v = N(N(42));
+                    }
+                    else
+                    {
+                        v = throw new Exception();
+                    }
+                }
+            
+                int N(int v) => v;
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestLocalDeclarationStatement_TopLevel1()
     {
         await new VerifyCS.Test
