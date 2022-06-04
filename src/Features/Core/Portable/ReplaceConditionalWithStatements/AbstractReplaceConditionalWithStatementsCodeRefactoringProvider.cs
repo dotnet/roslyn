@@ -333,9 +333,9 @@ outer:
             if (syntaxFacts.IsThrowExpression(expression))
                 return generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
 
-            var valueWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
-            Contract.ThrowIfNull(valueWithConditionalReplaced);
-            return wrapConvertedSyntax(valueWithConditionalReplaced);
+            var containerWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+            Contract.ThrowIfNull(containerWithConditionalReplaced);
+            return wrapConvertedSyntax(containerWithConditionalReplaced);
         }
     }
 }
