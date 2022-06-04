@@ -98,22 +98,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-#if false
-        var topExpression = (TExpressionSyntax)syntaxFacts.WalkUpParentheses(conditionalExpression);
-
-        if (topExpression.GetAncestor<TStatementSyntax>() is { } assignmentStatement &&
-            syntaxFacts.IsSimpleAssignmentStatement(assignmentStatement))
-        {
-            syntaxFacts.GetPartsOfAssignmentStatement(assignmentStatement, out _, out var right);
-            if (right == topExpression)
-            {
-                context.RegisterRefactoring(CodeAction.Create(
-                    FeaturesResources.Replace_conditional_expression_with_statements,
-                    c => ReplaceConditionalExpressionInAssignmentStatementAsync(document, conditionalExpression, assignmentStatement, c)));
-                return;
-            }
-        }
-
         if (topExpression.Parent is TEqualsValueClauseSyntax equalsValue &&
             equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator &&
             conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>() is { } localDeclarationStatement &&
@@ -126,26 +110,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
                     document, conditionalExpression, variable, localDeclarationStatement, c)));
             return;
         }
-
-        if (topExpression.Parent is TReturnStatementSyntax returnStatement)
-        {
-            context.RegisterRefactoring(CodeAction.Create(
-                FeaturesResources.Replace_conditional_expression_with_statements,
-                c => ReplaceConditionalExpressionInReturnStatementAsync(document, conditionalExpression, returnStatement, c)));
-            return;
-        }
-
-        if (topExpression.Parent is TArgumentSyntax argument &&
-            argument.Parent?.Parent is TInvocationExpressionSyntax invocationExpression &&
-            invocationExpression.Parent is TExpressionStatementSyntax expressionStatement)
-        {
-            context.RegisterRefactoring(CodeAction.Create(
-                FeaturesResources.Replace_conditional_expression_with_statements,
-                c => ReplaceConditionalExpressionInInvocationExpressionAsync(
-                    document, conditionalExpression, argument, invocationExpression, expressionStatement, c)));
-            return;
-        }
-#endif
     }
 
     private static TExpressionSyntax GetTopExpression(TConditionalExpressionSyntax conditionalExpression)
@@ -211,45 +175,6 @@ outer:
                     conditionalType));
     }
 
-    private static async Task<Document> ReplaceConditionalExpressionInAssignmentStatementAsync(
-        Document document,
-        TConditionalExpressionSyntax conditionalExpression,
-        TStatementSyntax assignmentStatement,
-        CancellationToken cancellationToken)
-    {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        var generator = SyntaxGenerator.GetGenerator(document);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-        // When we have `a = x ? y : z`, then the type of 'y' and 'z' can influence each other.
-        // If we convert this into:
-        //
-        //   if (x)
-        //     a = y;
-        //   else
-        //     a = z;
-        //
-        // Then we need to preserve that meaning so that 'y' and 'z' have the same type/value, even after the
-        // transformation.
-        var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
-
-        syntaxFacts.GetPartsOfAssignmentStatement(assignmentStatement, out var left, out _);
-        syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
-        var ifStatement = generator.IfStatement(
-            condition,
-            new[] { generator.AssignmentStatement(left, TryCast(generator, whenTrue, conditionalType)) },
-            new[] { generator.AssignmentStatement(left, TryCast(generator, whenFalse, conditionalType)) }).WithTriviaFrom(assignmentStatement);
-
-        var editor = new SyntaxEditor(root, generator);
-        editor.ReplaceNode(
-            assignmentStatement,
-            ifStatement);
-
-        return document.WithSyntaxRoot(editor.GetChangedRoot());
-    }
-
     private async Task<Document> ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
         Document document,
         TConditionalExpressionSyntax conditionalExpression,
@@ -285,111 +210,15 @@ outer:
 
         var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(generator, localDeclarationStatement, symbol);
         var ifStatement = generator.IfStatement(
-            condition,
-            new[] { generator.AssignmentStatement(identifier, TryCast(generator, whenTrue, conditionalType)) },
-            new[] { generator.AssignmentStatement(identifier, TryCast(generator, whenFalse, conditionalType)) });
+            condition.WithoutTrivia(),
+            new[] { Rewrite((TExpressionSyntax)whenTrue) },
+            new[] { Rewrite((TExpressionSyntax)whenFalse) });
 
-        var editor = new SyntaxEditor(root, generator);
-        editor.ReplaceNode(
-            localDeclarationStatement,
-            (_, _) =>
-            {
-                return new[]
-                {
-                    updatedLocalDeclarationStatement,
-                    ifStatement,
-                };
-            });
+        var newRoot = root.ReplaceNode(localDeclarationStatement, new[] { updatedLocalDeclarationStatement, ifStatement });
+        return document.WithSyntaxRoot(newRoot);
 
-        return document.WithSyntaxRoot(editor.GetChangedRoot());
+        SyntaxNode Rewrite(TExpressionSyntax expression)
+            => generator.AssignmentStatement(
+                identifier, TryCast(generator, expression.WithTriviaFrom(conditionalExpression), conditionalType));
     }
-
-    private static async Task<Document> ReplaceConditionalExpressionInReturnStatementAsync(
-        Document document,
-        TConditionalExpressionSyntax conditionalExpression,
-        TReturnStatementSyntax returnStatement,
-        CancellationToken cancellationToken)
-    {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        var generator = SyntaxGenerator.GetGenerator(document);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-        // When we have `return x ? y : z`, then the type of 'y' and 'z' can influence each other.
-        // If we convert this into:
-        //
-        // object M()
-        // {
-        //   if (x)
-        //     return y;
-        //   else
-        //     return z;
-        //
-        // Then we need to preserve that meaning so that 'y' and 'z' have the same type/value, even after the
-        // transformation.
-        var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
-
-        syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
-        var ifStatement = generator.IfStatement(
-            condition,
-            new[] { generator.ReturnStatement(TryCast(generator, whenTrue, conditionalType)) },
-            new[] { generator.ReturnStatement(TryCast(generator, whenFalse, conditionalType)) }).WithTriviaFrom(returnStatement);
-
-        var editor = new SyntaxEditor(root, generator);
-        editor.ReplaceNode(
-            returnStatement,
-            ifStatement);
-
-        return document.WithSyntaxRoot(editor.GetChangedRoot());
-    }
-
-    //private async Task<Document> ReplaceConditionalExpressionInInvocationExpressionAsync(
-    //    Document document,
-    //    TConditionalExpressionSyntax conditionalExpression,
-    //    TArgumentSyntax argument,
-    //    TInvocationExpressionSyntax invocationExpression,
-    //    TExpressionStatementSyntax expressionStatement,
-    //    CancellationToken cancellationToken)
-    //{
-    //    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-    //    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-    //    var generator = SyntaxGenerator.GetGenerator(document);
-    //    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-    //    // When we have `Goo(x ? y : z)`, then the type of 'y' and 'z' can influence each other.
-    //    // If we convert this into:
-    //    //
-    //    //  void Goo(object o);
-    //    //  ...
-    //    //   if (x)
-    //    //     Goo(y);
-    //    //   else
-    //    //     Goo(z);
-    //    //
-    //    // Then we need to preserve that meaning so that 'y' and 'z' have the same type/value, even after the
-    //    // transformation.
-    //    var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
-
-    //    syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
-    //    var ifStatement = generator.IfStatement(
-    //        condition,
-    //        new[] { Rewrite(whenTrue) },
-    //        new[] { Rewrite(whenFalse) }).WithTriviaFrom(expressionStatement);
-
-    //    var editor = new SyntaxEditor(root, generator);
-    //    editor.ReplaceNode(
-    //        expressionStatement,
-    //        ifStatement);
-
-    //    return document.WithSyntaxRoot(editor.GetChangedRoot());
-
-    //    TExpressionStatementSyntax Rewrite(SyntaxNode expression)
-    //        => WithElasticTrivia(
-    //            generator,
-    //            expressionStatement.ReplaceNode(conditionalExpression,
-    //            WithAddedElasticTrivia(
-    //                generator, TryCast(generator, expression, conditionalType))));
-    //}
 }
