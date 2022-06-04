@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -227,115 +229,140 @@ outer:
             : generator.ConvertExpression(conditionalType, expression);
     }
 
-    private static async Task<Document> ReplaceConditionalExpressionInSingleStatementAsync(
-        Document document,
-        TConditionalExpressionSyntax conditionalExpression,
-        TStatementSyntax statement,
-        CancellationToken cancellationToken)
+    private abstract class AbstractConditionalExpressionReplacer<TContainingStatement>
+        where TContainingStatement : TStatementSyntax
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        public Document Document { get; }
+        public TContainingStatement ContainingStatement { get; }
+        public TConditionalExpressionSyntax ConditionalExpression { get; }
 
-        var generator = SyntaxGenerator.GetGenerator(document);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        public SemanticModel SemanticModel { get; private set; } = null!;
+        public SyntaxNode Root { get; private set; } = null!;
+        public SyntaxGenerator Generator { get; private set; } = null!;
+        public ISyntaxFacts SyntaxFacts => this.Generator.SyntaxFacts;
 
-        var ifStatement = ConvertToIfStatement(
-            semanticModel,
-            generator,
-            container: statement,
-            conditionalExpression,
-            convertedSyntax => convertedSyntax,
-            cancellationToken).WithTriviaFrom(statement);
-
-        var newRoot = root.ReplaceNode(statement, ifStatement);
-        return document.WithSyntaxRoot(newRoot);
-    }
-
-    private async Task<Document> ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
-        Document document,
-        TConditionalExpressionSyntax conditionalExpression,
-        TVariableSyntax variable,
-        TLocalDeclarationStatementSyntax localDeclarationStatement,
-        CancellationToken cancellationToken)
-    {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        var generator = SyntaxGenerator.GetGenerator(document);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-        var declarator = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement).Single();
-        var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
-        Contract.ThrowIfNull(initializer);
-        var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
-
-        var symbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(variable, cancellationToken);
-
-        var identifier = generator.IdentifierName(symbol.Name);
-
-        var isGlobalStatement = syntaxFacts.IsGlobalStatement(localDeclarationStatement.Parent);
-        var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(generator, localDeclarationStatement, symbol);
-        var ifStatement = ConvertToIfStatement(
-            semanticModel,
-            generator,
-            container: value,
-            conditionalExpression,
-            convertedSyntax => generator.AssignmentStatement(identifier, convertedSyntax),
-            cancellationToken);
-
-        var newRoot = root.ReplaceNode(
-            isGlobalStatement ? localDeclarationStatement.GetRequiredParent() : localDeclarationStatement,
-            new[]
-            {
-                WrapGlobal(updatedLocalDeclarationStatement),
-                WrapGlobal(ifStatement),
-            });
-
-        return document.WithSyntaxRoot(newRoot);
-
-        SyntaxNode WrapGlobal(TStatementSyntax statement)
-            => isGlobalStatement ? generator.GlobalStatement(statement) : statement;
-    }
-
-    private static TStatementSyntax ConvertToIfStatement(
-        SemanticModel semanticModel,
-        SyntaxGenerator generator,
-        SyntaxNode container,
-        TConditionalExpressionSyntax conditionalExpression,
-        Func<SyntaxNode, SyntaxNode> wrapConvertedSyntax,
-        CancellationToken cancellationToken)
-    {
-        // When we have `object v = x ? y : z`, then the type of 'y' and 'z' can influence each other.
-        // If we convert this into:
-        //
-        // object v;
-        // if (x)
-        //   v = y;
-        // else
-        //   v = z;
-        //
-        // Then we need to preserve that meaning so that 'y' and 'z' have the same type/value, even after the
-        // transformation.
-        //
-        // Similarly, if we have 'var v', we need to give it a strong type at the declaration point.
-        var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
-
-        var syntaxFacts = generator.SyntaxFacts;
-        syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
-
-        return (TStatementSyntax)generator.IfStatement(
-            condition.WithoutTrivia(),
-            new[] { Rewrite((TExpressionSyntax)whenTrue) },
-            new[] { Rewrite((TExpressionSyntax)whenFalse) });
-
-        SyntaxNode Rewrite(TExpressionSyntax expression)
+        protected AbstractConditionalExpressionReplacer(
+            Document document,
+            TContainingStatement containingStatement,
+            TConditionalExpressionSyntax conditionalExpression)
         {
-            if (syntaxFacts.IsThrowExpression(expression))
-                return generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
+            Document = document;
+            ContainingStatement = containingStatement;
+            ConditionalExpression = conditionalExpression;
+        }
 
-            var containerWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
-            Contract.ThrowIfNull(containerWithConditionalReplaced);
-            return wrapConvertedSyntax(containerWithConditionalReplaced);
+        protected abstract ImmutableArray<TStatementSyntax> GetReplacementStatements(CancellationToken cancellationToken);
+
+        public async Task<Document> ReplaceAsync(CancellationToken cancellationToken)
+        {
+            this.SemanticModel = await this.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            this.Root = await this.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            this.Generator = SyntaxGenerator.GetGenerator(this.Document);
+
+            var replacementStatements = GetReplacementStatements(cancellationToken);
+
+            var isGlobalStatement = this.SyntaxFacts.IsGlobalStatement(this.ContainingStatement.Parent);
+            var newRoot = this.Root.ReplaceNode(
+                isGlobalStatement ? this.ContainingStatement.GetRequiredParent() : this.ContainingStatement,
+                replacementStatements.Select(WrapGlobal));
+
+            return this.Document.WithSyntaxRoot(newRoot);
+
+            SyntaxNode WrapGlobal(TStatementSyntax statement)
+                => isGlobalStatement ? this.Generator.GlobalStatement(statement) : statement;
+        }
+
+        protected TStatementSyntax ConvertToIfStatement(
+            SyntaxNode container,
+            Func<SyntaxNode, SyntaxNode> wrapConvertedSyntax,
+            CancellationToken cancellationToken)
+        {
+            // When we have `object v = x ? y : z`, then the type of 'y' and 'z' can influence each other.
+            // If we convert this into:
+            //
+            // object v;
+            // if (x)
+            //   v = y;
+            // else
+            //   v = z;
+            //
+            // Then we need to preserve that meaning so that 'y' and 'z' have the same type/value, even after the
+            // transformation.
+            //
+            // Similarly, if we have 'var v', we need to give it a strong type at the declaration point.
+            var conditionalType = this.SemanticModel.GetTypeInfo(this.ConditionalExpression, cancellationToken).Type;
+
+            this.SyntaxFacts.GetPartsOfConditionalExpression(this.ConditionalExpression, out var condition, out var whenTrue, out var whenFalse);
+
+            return (TStatementSyntax)this.Generator.IfStatement(
+                condition.WithoutTrivia(),
+                new[] { Rewrite((TExpressionSyntax)whenTrue) },
+                new[] { Rewrite((TExpressionSyntax)whenFalse) });
+
+            SyntaxNode Rewrite(TExpressionSyntax expression)
+            {
+                if (this.SyntaxFacts.IsThrowExpression(expression))
+                    return this.Generator.ThrowStatement(this.SyntaxFacts.GetExpressionOfThrowExpression(expression));
+
+                var containerWithConditionalReplaced = container.ReplaceNode(
+                    this.ConditionalExpression,
+                    TryConvert(this.Generator, expression, conditionalType).WithTriviaFrom(this.ConditionalExpression));
+                Contract.ThrowIfNull(containerWithConditionalReplaced);
+                return wrapConvertedSyntax(containerWithConditionalReplaced);
+            }
+        }
+    }
+
+    private class ConditionalExpressionInLocalDeclarationStatementReplacer :
+        AbstractConditionalExpressionReplacer<TLocalDeclarationStatementSyntax>
+    {
+        public ConditionalExpressionInLocalDeclarationStatementReplacer(
+            Document document, TLocalDeclarationStatementSyntax containingStatement, TConditionalExpressionSyntax conditionalExpression)
+            : base(document, containingStatement, conditionalExpression)
+        {
+        }
+
+        protected override ImmutableArray<TStatementSyntax> GetReplacementStatements(CancellationToken cancellationToken)
+        {
+            var declarator = this.SyntaxFacts.GetVariablesOfLocalDeclarationStatement(ContainingStatement).Single();
+            var initializer = this.SyntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+            Contract.ThrowIfNull(initializer);
+            var value = this.SyntaxFacts.GetValueOfEqualsValueClause(initializer);
+
+            var symbol = (ILocalSymbol)this.SemanticModel.GetRequiredDeclaredSymbol(variable, cancellationToken);
+
+            var identifier = this.Generator.IdentifierName(symbol.Name);
+
+            var isGlobalStatement = this.SyntaxFacts.IsGlobalStatement(this.ContainingStatement.Parent);
+            var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(
+                this.Generator, this.ContainingStatement, symbol);
+            var ifStatement = ConvertToIfStatement(
+                container: value,
+                convertedSyntax => this.Generator.AssignmentStatement(identifier, convertedSyntax),
+                cancellationToken);
+
+            return ImmutableArray.Create(updatedLocalDeclarationStatement, ifStatement);
+        }
+    }
+
+    private class ConditionalExpressionInSingleStatementReplacer :
+        AbstractConditionalExpressionReplacer<TStatementSyntax>
+    {
+        public ConditionalExpressionInSingleStatementReplacer(
+            Document document, TStatementSyntax containingStatement, TConditionalExpressionSyntax conditionalExpression)
+            : base(document, containingStatement, conditionalExpression)
+        {
+        }
+
+        protected override ImmutableArray<TStatementSyntax> GetReplacementStatements(CancellationToken cancellationToken)
+        {
+            var ifStatement = ConvertToIfStatement(
+                container: this.ContainingStatement,
+                convertedSyntax => convertedSyntax,
+                cancellationToken).WithTriviaFrom(this.ContainingStatement);
+
+            return ImmutableArray.Create(ifStatement);
         }
     }
 }
