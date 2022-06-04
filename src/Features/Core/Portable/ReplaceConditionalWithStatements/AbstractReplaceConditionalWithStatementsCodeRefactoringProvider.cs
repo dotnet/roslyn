@@ -244,8 +244,15 @@ outer:
         return document.WithSyntaxRoot(newRoot);
 
         TStatementSyntax Rewrite(SyntaxNode expression)
-            => statement.ReplaceNode(conditionalExpression,
+        {
+            if (syntaxFacts.IsThrowExpression(expression))
+            {
+                return (TStatementSyntax)generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
+            }
+
+            return statement.ReplaceNode(conditionalExpression,
                 TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+        }
     }
 
     private async Task<Document> ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
@@ -304,6 +311,11 @@ outer:
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
         {
+            if (syntaxFacts.IsThrowExpression(expression))
+            {
+                return (TStatementSyntax)generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
+            }
+
             var valueWithConditionalReplaced = value.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
             Contract.ThrowIfNull(valueWithConditionalReplaced);
             return generator.AssignmentStatement(
