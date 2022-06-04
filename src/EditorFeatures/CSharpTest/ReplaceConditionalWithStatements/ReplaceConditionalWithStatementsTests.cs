@@ -208,4 +208,105 @@ public class ReplaceConditionalWithStatementsTests
             }
             """);
     }
+
+    [Fact]
+    public async Task ExpressionStatement_SecondInvocationArgument()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    Console.WriteLine(b ? "" : "", $$b ? 0 : 1L);
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        Console.WriteLine(b ? "" : "", (long)0);
+                    }
+                    else
+                    {
+                        Console.WriteLine(b ? "" : "", 1L);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestThrowStatement1()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    throw $$b ? new Exception("x") : new Exception("y");
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        throw new Exception("x");
+                    }
+                    else
+                    {
+                        throw new Exception("y");
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestYieldReturn1()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                IEnumerable<object> M(bool b)
+                {
+                    yield return $$b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                IEnumerable<object> M(bool b)
+                {
+                    if (b)
+                    {
+                        yield return (long)0;
+                    }
+                    else
+                    {
+                        yield return 1L;
+                    }
+                }
+            }
+            """);
+    }
 }
