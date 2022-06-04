@@ -122,8 +122,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' PERF CRITICAL
         Friend Function Peek() As Char
-            Debug.Assert(CanGet())
-
             Dim page = _curPage
             Dim position = _lineBufferOffset
             Dim ch = page._arr(position And s_PAGE_MASK)
