@@ -162,7 +162,7 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         {
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Replace_conditional_expression_with_statements,
-                c => ReplaceConditionalExpressionInSingleStatementAsync(document, conditionalExpression, parentStatement, c)),
+                c => new ConditionalExpressionInSingleStatementReplacer(document, parentStatement, conditionalExpression).ReplaceAsync(c)),
                 conditionalExpression.Span);
             return;
         }
@@ -188,8 +188,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         {
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Replace_conditional_expression_with_statements,
-                c => ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
-                    document, conditionalExpression, variable, localDeclarationStatement, c)),
+                c => new ConditionalExpressionInLocalDeclarationStatementReplacer(
+                    document, localDeclarationStatement, conditionalExpression, variable).ReplaceAsync(c)),
                 conditionalExpression.Span);
             return;
         }
@@ -317,10 +317,16 @@ outer:
     private class ConditionalExpressionInLocalDeclarationStatementReplacer :
         AbstractConditionalExpressionReplacer<TLocalDeclarationStatementSyntax>
     {
+        private readonly TVariableSyntax _variable;
+
         public ConditionalExpressionInLocalDeclarationStatementReplacer(
-            Document document, TLocalDeclarationStatementSyntax containingStatement, TConditionalExpressionSyntax conditionalExpression)
+            Document document,
+            TLocalDeclarationStatementSyntax containingStatement,
+            TConditionalExpressionSyntax conditionalExpression,
+            TVariableSyntax variable)
             : base(document, containingStatement, conditionalExpression)
         {
+            _variable = variable;
         }
 
         protected override ImmutableArray<TStatementSyntax> GetReplacementStatements(CancellationToken cancellationToken)
@@ -330,7 +336,7 @@ outer:
             Contract.ThrowIfNull(initializer);
             var value = this.SyntaxFacts.GetValueOfEqualsValueClause(initializer);
 
-            var symbol = (ILocalSymbol)this.SemanticModel.GetRequiredDeclaredSymbol(variable, cancellationToken);
+            var symbol = (ILocalSymbol)this.SemanticModel.GetRequiredDeclaredSymbol(_variable, cancellationToken);
 
             var identifier = this.Generator.IdentifierName(symbol.Name);
 
