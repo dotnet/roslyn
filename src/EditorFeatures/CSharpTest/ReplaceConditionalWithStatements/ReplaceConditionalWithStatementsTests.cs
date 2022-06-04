@@ -113,4 +113,99 @@ public class ReplaceConditionalWithStatementsTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestReturnStatement_ObjectReturn()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                object M(bool b)
+                {
+                    return $$b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                object M(bool b)
+                {
+                    if (b)
+                    {
+                        return (long)0;
+                    }
+                    else
+                    {
+                        return 1L;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestReturnStatement_AcualTypeReturn()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                long M(bool b)
+                {
+                    return $$b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                long M(bool b)
+                {
+                    if (b)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        return 1L;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExpressionStatement_SimpleInvocationArgument()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    Console.WriteLine($$b ? 0 : 1L);
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        Console.WriteLine((long)0);
+                    }
+                    else
+                    {
+                        Console.WriteLine(1L);
+                    }
+                }
+            }
+            """);
+    }
 }

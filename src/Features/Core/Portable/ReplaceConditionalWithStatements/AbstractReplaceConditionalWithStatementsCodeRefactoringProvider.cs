@@ -115,6 +115,9 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     private static TSyntaxNode WithElasticTrivia<TSyntaxNode>(SyntaxGenerator generator, TSyntaxNode node) where TSyntaxNode : SyntaxNode
         => node.WithLeadingTrivia(generator.ElasticMarker).WithTrailingTrivia(generator.ElasticMarker);
 
+    private static TSyntaxNode WithAddedElasticTrivia<TSyntaxNode>(SyntaxGenerator generator, TSyntaxNode node) where TSyntaxNode : SyntaxNode
+        => node.WithPrependedLeadingTrivia(generator.ElasticMarker).WithAppendedTrailingTrivia(generator.ElasticMarker);
+
     private static async Task<Document> ReplaceConditionalExpressionInAssignmentStatementAsync(
         Document document,
         TConditionalExpressionSyntax conditionalExpression,
@@ -290,6 +293,10 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         return document.WithSyntaxRoot(editor.GetChangedRoot());
 
         TExpressionStatementSyntax Rewrite(SyntaxNode expression)
-            => WithElasticTrivia(generator, expressionStatement.ReplaceNode(conditionalExpression, TryCast(generator, expression, conditionalType)));
+            => WithElasticTrivia(
+                generator,
+                expressionStatement.ReplaceNode(conditionalExpression,
+                WithAddedElasticTrivia(
+                    generator, TryCast(generator, expression, conditionalType))));
     }
 }
