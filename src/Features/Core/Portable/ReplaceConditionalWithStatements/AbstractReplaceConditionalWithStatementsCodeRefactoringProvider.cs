@@ -263,6 +263,7 @@ outer:
 
         var declarator = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement).Single();
         var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+        Contract.ThrowIfNull(initializer);
         var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
 
         var symbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(variable, cancellationToken);
