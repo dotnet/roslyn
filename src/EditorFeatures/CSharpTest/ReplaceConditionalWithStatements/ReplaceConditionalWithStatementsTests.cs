@@ -597,6 +597,43 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestExpressionStatement_InvocationWithInference1()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    F($$b ? (int)42 : (int?)null);
+                }
+
+                void F<T>(T value) => Console.WriteLine(typeof(T));
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        F((int?)(int)42);
+                    }
+                    else
+                    {
+                        F((int?)null);
+                    }
+                }
+            
+                void F<T>(T value) => Console.WriteLine(typeof(T));
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestExpressionStatement_SimpleInvocationArgument_OnStatement()
     {
         await VerifyCS.VerifyRefactoringAsync(
