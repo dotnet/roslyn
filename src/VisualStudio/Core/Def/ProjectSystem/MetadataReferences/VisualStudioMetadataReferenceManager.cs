@@ -205,8 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 storage.WriteStream(copyStream);
             }
 
-            // get stream that owns direct access memory.
-            // In VS host, direct access should be supported through an UnmanagedMemoryStream
+            // get stream that owns the underlying unmanaged memory.
             stream = storage.ReadStream(CancellationToken.None);
 
             // stream size must be same as what metadata reader said the size should be.
