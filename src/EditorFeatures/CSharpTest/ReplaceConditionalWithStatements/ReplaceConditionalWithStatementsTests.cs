@@ -117,6 +117,43 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestAssignment_RefConditional()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            #nullable enable
+
+            public class C
+            {
+                private C? y, z;
+                void M(bool b, ref C? x)
+                {
+                    x = ref ($$b ? ref y : ref z);
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            public class C
+            {
+                private C? y, z;
+                void M(bool b, ref C? x)
+                {
+                    if (b)
+                    {
+                        x = ref y;
+                    }
+                    else
+                    {
+                        x = ref z;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestAssignment_Discard()
     {
         await VerifyCS.VerifyRefactoringAsync(
