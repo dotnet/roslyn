@@ -239,27 +239,17 @@ outer:
         var generator = SyntaxGenerator.GetGenerator(document);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        // When we have `x ? y : z`, then the type of 'y' and 'z' can influence each other.  So when we break them into
-        // pieces, ensure the type of each remains consistent.
-        var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
-
-        syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
-        var ifStatement = generator.IfStatement(
-            condition.WithoutTrivia(),
-            new[] { Rewrite(whenTrue) },
-            new[] { Rewrite(whenFalse) }).WithTriviaFrom(statement);
+        var ifStatement = ConvertToIfStatement(
+            statement,
+            conditionalExpression,
+            convertedSyntax => convertedSyntax,
+            semanticModel,
+            generator,
+            syntaxFacts,
+            cancellationToken).WithTriviaFrom(statement);
 
         var newRoot = root.ReplaceNode(statement, ifStatement);
         return document.WithSyntaxRoot(newRoot);
-
-        TStatementSyntax Rewrite(SyntaxNode expression)
-        {
-            if (syntaxFacts.IsThrowExpression(expression))
-                return (TStatementSyntax)generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
-
-            return statement.ReplaceNode(conditionalExpression,
-                TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
-        }
     }
 
     private async Task<Document> ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
@@ -282,6 +272,42 @@ outer:
 
         var symbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(variable, cancellationToken);
 
+        var identifier = generator.IdentifierName(symbol.Name);
+
+        var isGlobalStatement = syntaxFacts.IsGlobalStatement(localDeclarationStatement.Parent);
+        var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(generator, localDeclarationStatement, symbol);
+        var ifStatement = ConvertToIfStatement(
+            value,
+            conditionalExpression,
+            convertedSyntax => generator.AssignmentStatement(identifier, convertedSyntax),
+            semanticModel,
+            generator,
+            syntaxFacts,
+            cancellationToken);
+
+        var newRoot = root.ReplaceNode(
+            isGlobalStatement ? localDeclarationStatement.GetRequiredParent() : localDeclarationStatement,
+            new[]
+            {
+                WrapGlobal(updatedLocalDeclarationStatement),
+                WrapGlobal(ifStatement),
+            });
+
+        return document.WithSyntaxRoot(newRoot);
+
+        SyntaxNode WrapGlobal(TStatementSyntax statement)
+            => isGlobalStatement ? generator.GlobalStatement(statement) : statement;
+    }
+
+    private static TStatementSyntax ConvertToIfStatement(
+        SyntaxNode syntax,
+        TConditionalExpressionSyntax conditionalExpression,
+        Func<SyntaxNode, SyntaxNode> wrapConvertedSyntax,
+        SemanticModel semanticModel,
+        SyntaxGenerator generator,
+        ISyntaxFactsService syntaxFacts,
+        CancellationToken cancellationToken)
+    {
         // When we have `object v = x ? y : z`, then the type of 'y' and 'z' can influence each other.
         // If we convert this into:
         //
@@ -298,37 +324,20 @@ outer:
         var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
 
         syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
-        var identifier = generator.IdentifierName(symbol.Name);
 
-        var isGlobalStatement = syntaxFacts.IsGlobalStatement(localDeclarationStatement.Parent);
-        var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(generator, localDeclarationStatement, symbol);
-        var ifStatement = (TStatementSyntax)generator.IfStatement(
+        return (TStatementSyntax)generator.IfStatement(
             condition.WithoutTrivia(),
             new[] { Rewrite((TExpressionSyntax)whenTrue) },
             new[] { Rewrite((TExpressionSyntax)whenFalse) });
-
-        var newRoot = root.ReplaceNode(
-            isGlobalStatement ? localDeclarationStatement.GetRequiredParent() : localDeclarationStatement,
-            new[]
-            {
-                WrapGlobal(updatedLocalDeclarationStatement),
-                WrapGlobal(ifStatement),
-            });
-
-        return document.WithSyntaxRoot(newRoot);
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
         {
             if (syntaxFacts.IsThrowExpression(expression))
                 return generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
 
-            var valueWithConditionalReplaced = value.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+            var valueWithConditionalReplaced = syntax.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
             Contract.ThrowIfNull(valueWithConditionalReplaced);
-            return generator.AssignmentStatement(
-                identifier, valueWithConditionalReplaced);
+            return wrapConvertedSyntax(valueWithConditionalReplaced);
         }
-
-        SyntaxNode WrapGlobal(TStatementSyntax statement)
-            => isGlobalStatement ? generator.GlobalStatement(statement) : statement;
     }
 }
