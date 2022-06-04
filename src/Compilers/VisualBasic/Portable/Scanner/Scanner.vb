@@ -727,9 +727,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return False
                     End If
 
-                    ' Keep the new line check last because Peek(-1) might need to recopy the buffer,
+                    ' Keep the new line check last because IsAtNewLine() might need to recopy the buffer,
                     ' although that's rare in practice.
-                    Return _lineBufferOffset = 0 OrElse SyntaxFacts.IsNewLine(Peek(-1))
+                    Return IsAtNewLine()
                 End If
             End If
 
