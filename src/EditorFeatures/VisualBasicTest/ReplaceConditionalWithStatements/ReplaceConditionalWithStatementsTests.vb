@@ -93,36 +93,6 @@ end class
         End Function
 
         <Fact>
-        Public Async Function TestAssignment_Discard() As Task
-            Await VerifyVB.VerifyRefactoringAsync(
-                "
-class C
-{
-    sub M(b as boolean)
-    {
-        _ = $$If(b, 0, 1L)
-    }
-}
-            ",
-                "
-class C
-{
-    sub M(b as boolean)
-    {
-        If b Then
-        {
-            _ = CType(0, Long)
-        }
-        Else
-        {
-            _ = 1L
-        }
-    }
-}
-            ")
-        End Function
-
-        <Fact>
         Public Async Function TestCompoundAssignment() As Task
             Await VerifyVB.VerifyRefactoringAsync(
                 "
@@ -210,33 +180,26 @@ class C
         End Function
 
         <Fact>
-        Public Async Function TestLocalDeclarationStatement_WithVar() As Task
+        Public Async Function TestLocalDeclarationStatement_WithNoAsClause() As Task
             Await VerifyVB.VerifyRefactoringAsync(
                 "
 class C
-{
     sub M(b as boolean)
-    {
-        var a = $$If(b, 0, 1L)
-    }
-}
+        dim a = $$If(b, 0, 1L)
+    end sub
+end class
             ",
                 "
 class C
-{
     sub M(b as boolean)
-    {
-        long a
+        dim a As Long
         If b Then
-        {
             a = 0
-        }
         Else
-        {
             a = 1L
-        }
-    }
-}
+        End If
+    end sub
+end class
             ")
         End Function
 
@@ -315,29 +278,22 @@ end class
                 "
 imports System
 class C
-{
     sub M(b as boolean)
-    {
         Console.WriteLine($$If(b, 0, 1L))
-    }
-}
+    end sub
+end class
             ",
                 "
 imports System
 class C
-{
     sub M(b as boolean)
-    {
         If b Then
-        {
             Console.WriteLine(CType(0, Long))
-        }
         Else
-        {
             Console.WriteLine(1L)
-        }
-    }
-}
+        End If
+    end sub
+end class
             ")
         End Function
 
@@ -379,29 +335,22 @@ class C
                 "
 imports System
 class C
-{
     sub M(b as boolean)
-    {
-        Console.WriteLine(b ? "" : "", $$If(b, 0, 1L))
-    }
-}
+        Console.WriteLine(If(b, "", ""), $$If(b, 0, 1L))
+    end sub
+end class
             ",
                 "
 imports System
 class C
-{
     sub M(b as boolean)
-    {
         If b Then
-        {
-            Console.WriteLine(b ? "" : "", CType(0, Long))
-        }
+            Console.WriteLine(If(b, "", ""), CType(0, Long))
         Else
-        {
-            Console.WriteLine(b ? "" : "", 1L)
-        }
-    }
-}
+            Console.WriteLine(If(b, "", ""), 1L)
+        End If
+    end sub
+end class
             ")
         End Function
 
@@ -411,31 +360,24 @@ class C
                 "
 imports System
 class C
-{
-    bool M(b as boolean)
-    {
-        M(M(M($$b ? true : false)))
-        return default
-    }
-}
+    function M(b as boolean) as boolean
+        M(M(M($$If(b, true, false))))
+        return nothing
+    end function
+end class
             ",
                 "
 imports System
 class C
-{
-    bool M(b as boolean)
-    {
+    function M(b as boolean) as boolean
         If b Then
-        {
             M(M(M(true)))
-        }
         Else
-        {
             M(M(M(false)))
-        }
-        return default
-    }
-}
+        End If
+        return nothing
+    end function
+end class
             ")
         End Function
 
@@ -537,7 +479,7 @@ class C
             throw new Exception(""x"")
         Else
             throw new Exception(""y"")
-        End IF
+        End If
     end sub
 end class
             ")
@@ -550,30 +492,23 @@ end class
 imports System
 imports System.Collections.Generic
 class C
-{
-    IEnumerable<object> M(b as boolean)
-    {
-        yield return $$If(b, 0, 1L)
-    }
-}
+    iterator function M(b as boolean) as IEnumerable(of object)
+        yield $$If(b, 0, 1L)
+    end function
+end class
             ",
                 "
 imports System
 imports System.Collections.Generic
 class C
-{
-    IEnumerable<object> M(b as boolean)
-    {
+    iterator function M(b as boolean) as IEnumerable(of object)
         If b Then
-        {
-            yield return CType(0, Long)
-        }
+            yield CType(0, Long)
         Else
-        {
-            yield return 1L
-        }
-    }
-}
+            yield 1L
+        End If
+    end function
+end class
             ")
         End Function
 
@@ -584,30 +519,23 @@ class C
 imports System
 imports System.Collections.Generic
 class C
-{
-    IEnumerable<object> M(b as boolean)
-    {
-        $$yield return If(b, 0, 1L)
-    }
-}
+    iterator function M(b as boolean) as IEnumerable(of object)
+        $$yield If(b, 0, 1L)
+    end function
+end class
             ",
             "
 imports System
 imports System.Collections.Generic
 class C
-{
-    IEnumerable<object> M(b as boolean)
-    {
+    iterator function M(b as boolean) as IEnumerable(of object)
         If b Then
-        {
-            yield return CType(0, Long)
-        }
+            yield CType(0, Long)
         Else
-        {
-            yield return 1L
-        }
-    }
-}
+            yield 1L
+        End If
+    end function
+end class
             ")
         End Function
     End Class
