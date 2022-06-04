@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -259,6 +260,10 @@ outer:
         var generator = SyntaxGenerator.GetGenerator(document);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+        var declarator = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement).Single();
+        var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(declarator);
+        var value = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+
         var symbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(variable, cancellationToken);
 
         // When we have `object v = x ? y : z`, then the type of 'y' and 'z' can influence each other.
@@ -298,7 +303,8 @@ outer:
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
             => generator.AssignmentStatement(
-                identifier, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+                identifier,
+                value.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression)));
 
         SyntaxNode WrapGlobal(TStatementSyntax statement)
             => isGlobalStatement ? generator.GlobalStatement(statement) : statement;

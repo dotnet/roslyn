@@ -478,13 +478,14 @@ public class ReplaceConditionalWithStatementsTests
             {
                 void M(bool b)
                 {
+                    int v;
                     if (b)
                     {
                         v = N(N(42));
                     }
                     else
                     {
-                        v = throw new Exception();
+                        v = N(N((int)throw new Exception()));
                     }
                 }
             
