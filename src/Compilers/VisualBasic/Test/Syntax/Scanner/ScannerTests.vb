@@ -128,26 +128,6 @@ Public Class ScannerTests
     End Sub
 
     <Fact>
-    Public Sub TestLessThanConflictMarkerMultipleNewLines()
-        Dim token = SyntaxFactory.ParseTokens("<<<<<<< text" & vbCrLf & vbCrLf).First()
-        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
-        Assert.True(token.HasLeadingTrivia)
-        Assert.Equal(3, token.LeadingTrivia.Count)
-
-        Dim trivia1 = token.LeadingTrivia(0)
-        Assert.Equal(SyntaxKind.ConflictMarkerTrivia, trivia1.Kind())
-        Assert.Equal("<<<<<<< text", trivia1.ToFullString())
-
-        Dim trivia2 = token.LeadingTrivia(1)
-        Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia2.Kind())
-        Assert.Equal(vbCrLf, trivia2.ToFullString())
-
-        Dim trivia3 = token.LeadingTrivia(2)
-        Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia3.Kind())
-        Assert.Equal(vbCrLf, trivia3.ToFullString())
-    End Sub
-
-    <Fact>
     Public Sub TestGreaterThanConflictMarker1()
         ' Needs to be followed by a space.
         Dim token = SyntaxFactory.ParseTokens(">>>>>>>").First()
@@ -468,30 +448,6 @@ Public Class ScannerTests
         Assert.True(trivia4.ContainsDiagnostics)
         err = trivia4.Errors().First
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
-    End Sub
-
-    <Fact>
-    Public Sub TestEqualsConflictMarkerMultipleNewLines()
-        Dim token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= trailing" & vbCrLf & vbCrLf & "disabled" & vbCrLf & "text" & vbCrLf & vbCrLf & ">>>>>>> end").Skip(2).First()
-        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
-        Assert.True(token.HasLeadingTrivia)
-        Assert.Equal(4, token.LeadingTrivia.Count)
-
-        Dim trivia1 = token.LeadingTrivia(0)
-        Assert.Equal(SyntaxKind.ConflictMarkerTrivia, trivia1.Kind())
-        Assert.Equal("======= trailing", trivia1.ToFullString())
-
-        Dim trivia2 = token.LeadingTrivia(1)
-        Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia2.Kind())
-        Assert.Equal(vbCrLf, trivia2.ToFullString())
-
-        Dim trivia3 = token.LeadingTrivia(2)
-        Assert.Equal(SyntaxKind.DisabledTextTrivia, trivia3.Kind())
-        Assert.Equal(vbCrLf + "disabled" + vbCrLf + "text" + vbCrLf + vbCrLf, trivia3.ToFullString())
-
-        Dim trivia4 = token.LeadingTrivia(3)
-        Assert.Equal(SyntaxKind.ConflictMarkerTrivia, trivia4.Kind())
-        Assert.Equal(">>>>>>> end", trivia4.ToFullString())
     End Sub
 
     <Fact>

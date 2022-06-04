@@ -727,9 +727,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return False
                     End If
 
-                    ' Keep the new line check last because IsAtNewLine() might need to recopy the buffer,
+                    ' Keep the new line check last because Peek(-1) might need to recopy the buffer,
                     ' although that's rare in practice.
-                    Return IsAtNewLine()
+                    Return _lineBufferOffset = 0 OrElse SyntaxFacts.IsNewLine(Peek(-1))
                 End If
             End If
 
@@ -772,10 +772,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Sub ScanConflictMarkerEndOfLine(tList As SyntaxListBuilder)
-            Dim ch = Peek()
+            Dim start = _lineBufferOffset
 
-            If IsNewLine(ch) Then
-                tList.Add(ScanNewlineAsTrivia(ch))
+            While CanGet() AndAlso SyntaxFacts.IsNewLine(Peek())
+                AdvanceChar()
+            End While
+
+            Dim width = _lineBufferOffset - start
+            If width > 0 Then
+                tList.Add(SyntaxFactory.EndOfLineTrivia(GetText(start, width)))
             End If
         End Sub
 
