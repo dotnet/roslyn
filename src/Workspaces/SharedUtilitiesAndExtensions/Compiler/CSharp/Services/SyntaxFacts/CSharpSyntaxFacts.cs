@@ -263,6 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
+        public SyntaxNode GetExpressionOfRefExpression(SyntaxNode node)
+            => ((RefExpressionSyntax)node).Expression;
+
         public SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node)
             => ((ReturnStatementSyntax)node).Expression;
 

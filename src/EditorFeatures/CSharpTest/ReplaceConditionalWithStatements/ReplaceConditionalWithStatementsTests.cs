@@ -142,11 +142,11 @@ public class ReplaceConditionalWithStatementsTests
                 {
                     if (b)
                     {
-                        x = ref y;
+                        x = ref (y);
                     }
                     else
                     {
-                        x = ref z;
+                        x = ref (z);
                     }
                 }
             }

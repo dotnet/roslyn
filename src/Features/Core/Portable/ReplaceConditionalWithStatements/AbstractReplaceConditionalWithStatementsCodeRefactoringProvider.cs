@@ -213,10 +213,19 @@ outer:
         return current;
     }
 
-    private static SyntaxNode TryConvert(SyntaxGenerator generator, SyntaxNode whenTrue, ITypeSymbol? conditionalType)
-        => conditionalType is null or IErrorTypeSymbol
-            ? whenTrue
-            : generator.ConvertExpression(conditionalType, whenTrue);
+    private static SyntaxNode TryConvert(
+        SyntaxGenerator generator,
+        SyntaxNode expression,
+        ITypeSymbol? conditionalType)
+    {
+        var syntaxFacts = generator.SyntaxFacts;
+        if (syntaxFacts.IsRefExpression(expression))
+            return syntaxFacts.GetExpressionOfRefExpression(expression);
+
+        return conditionalType is null or IErrorTypeSymbol
+            ? expression
+            : generator.ConvertExpression(conditionalType, expression);
+    }
 
     private static async Task<Document> ReplaceConditionalExpressionInSingleStatementAsync(
         Document document,

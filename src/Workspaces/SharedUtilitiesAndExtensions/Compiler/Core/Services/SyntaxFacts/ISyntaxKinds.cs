@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
         int? RangeExpression { get; }
+        int? RefExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }

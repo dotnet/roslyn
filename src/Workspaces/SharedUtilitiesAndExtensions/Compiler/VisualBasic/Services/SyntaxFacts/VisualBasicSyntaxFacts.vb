@@ -237,6 +237,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is MethodBlockBaseSyntax
         End Function
 
+        Public Function GetExpressionOfRefExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfRefExpression
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Function
+
         Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfReturnStatement
             Return DirectCast(node, ReturnStatementSyntax).Expression
         End Function

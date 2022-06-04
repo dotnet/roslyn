@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;
         public int QueryExpression => (int)SyntaxKind.QueryExpression;
         public int? RangeExpression => (int)SyntaxKind.RangeExpression;
+        public int? RefExpression => (int)SyntaxKind.RefExpression;
         public int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
         public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
         public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
