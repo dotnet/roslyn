@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         Script,
         Submission,
         ImplicitClass,
-        SimpleProgram,
         Record,
         RecordStruct
     }

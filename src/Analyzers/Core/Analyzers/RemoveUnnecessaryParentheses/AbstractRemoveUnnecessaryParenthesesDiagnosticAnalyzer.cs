@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                     break;
             }
 
-            var option = GetLanguageOption(precedence);
-            var preference = context.GetOption(option, parenthesizedExpression.Language);
+            var options = context.GetAnalyzerOptions();
+            var preference = GetLanguageOption(options, precedence);
 
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {

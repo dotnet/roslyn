@@ -143,6 +143,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         PercentEqualsToken = 8283,
         /// <summary>Represents <c>??=</c> token.</summary>
         QuestionQuestionEqualsToken = 8284,
+        // Don't use 8285. It corresponds to the deleted kind ExclamationExclamationToken which was previously shipped.
+
+        /// <summary>Represents <c>&gt;&gt;&gt;</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanToken = 8286,
+        /// <summary>Represents <c>&gt;&gt;&gt;=</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanEqualsToken = 8287,
+
+        // When adding punctuation, the following functions must be adapted:
+        // <see cref="SyntaxFacts.IsPunctuation"/>
+        // <see cref="SyntaxFacts.GetPunctuationKinds"/>
 
         // Keywords
         /// <summary>Represents <see langword="bool"/>.</summary>
@@ -394,6 +404,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ManagedKeyword = 8445,
         /// <summary>Represents <see langword="unmanaged"/>.</summary>
         UnmanagedKeyword = 8446,
+        /// <summary>Represents <see langword="required"/>.</summary>
+        RequiredKeyword = 8447,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
@@ -483,9 +495,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlTextLiteralToken = 8513,    // xml text node text
         XmlTextLiteralNewLineToken = 8514,
 
-        InterpolatedStringToken = 8515,                 // terminal for a whole interpolated string $" ... { expr } ..."
-                                                        // This only exists in transient form during parsing.
+        /// <summary>
+        /// Token for a whole interpolated string <c>$""" ... { expr } ..."""</c>. This only exists in transient form during parsing.
+        /// </summary>
+        InterpolatedStringToken = 8515,
         InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
+
+        SingleLineRawStringLiteralToken = 8518,
+        MultiLineRawStringLiteralToken = 8519,
+
+        UTF8StringLiteralToken = 8520,
+        UTF8SingleLineRawStringLiteralToken = 8521,
+        UTF8MultiLineRawStringLiteralToken = 8522,
 
         // trivia
         EndOfLineTrivia = 8539,
@@ -609,6 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SimpleMemberAccessExpression = 8689,  // dot access:   a.b
         PointerMemberAccessExpression = 8690,  // arrow access:   a->b
         ConditionalAccessExpression = 8691,    // question mark access:   a?.b , a?[1]
+        UnsignedRightShiftExpression = 8692,
 
         // binding expressions
         MemberBindingExpression = 8707,
@@ -627,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LeftShiftAssignmentExpression = 8723,
         RightShiftAssignmentExpression = 8724,
         CoalesceAssignmentExpression = 8725,
+        UnsignedRightShiftAssignmentExpression = 8726,
 
         // unary expressions
         UnaryPlusExpression = 8730,
@@ -653,6 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
         DefaultLiteralExpression = 8755,
+        UTF8StringLiteralExpression = 8756,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -829,6 +853,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndPattern = 9032,
         NotPattern = 9033,
 
+        // new patterns added in C# 11.0
+        SlicePattern = 9034,
+        ListPattern = 9035,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 
         DeclarationExpression = 9040,
@@ -862,5 +890,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionColon = 9069,
         LineDirectivePosition = 9070,
         LineSpanDirectiveTrivia = 9071,
+
+        InterpolatedSingleLineRawStringStartToken = 9072,   // $"""
+        InterpolatedMultiLineRawStringStartToken = 9073,    // $""" (whitespace and newline are included in the Text for this token)
+        InterpolatedRawStringEndToken = 9074,               // """ (preceding whitespace and newline are included in the Text for this token)
     }
 }

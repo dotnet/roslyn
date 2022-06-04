@@ -7,9 +7,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 
@@ -28,20 +30,33 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
             QuickInfoContext context,
             SyntaxToken token)
-            => Task.FromResult(BuildQuickInfo(token));
+            => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
 
         protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
             CommonQuickInfoContext context,
             SyntaxToken token)
-            => Task.FromResult(BuildQuickInfo(token));
+            => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
 
-        private static QuickInfoItem? BuildQuickInfo(SyntaxToken token)
+        private static QuickInfoItem? BuildQuickInfo(SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (token.Kind() != SyntaxKind.CloseBraceToken)
+            switch (token.Kind())
             {
-                return null;
+                case SyntaxKind.CloseBraceToken:
+                    return BuildQuickInfoCloseBrace(token);
+                case SyntaxKind.HashToken:
+                case SyntaxKind.EndRegionKeyword:
+                case SyntaxKind.EndIfKeyword:
+                case SyntaxKind.ElseKeyword:
+                case SyntaxKind.ElifKeyword:
+                case SyntaxKind.EndOfDirectiveToken:
+                    return BuildQuickInfoDirectives(token, cancellationToken);
+                default:
+                    return null;
             }
+        }
 
+        private static QuickInfoItem? BuildQuickInfoCloseBrace(SyntaxToken token)
+        {
             // Don't show for interpolations
             if (token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation) &&
                 interpolation.CloseBraceToken == token)
@@ -124,6 +139,31 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             return nearbyTrivia.IsSingleOrMultiLineComment();
+        }
+
+        private static QuickInfoItem? BuildQuickInfoDirectives(SyntaxToken token, CancellationToken cancellationToken)
+        {
+            if (token.Parent is DirectiveTriviaSyntax directiveTrivia)
+            {
+                if (directiveTrivia is EndRegionDirectiveTriviaSyntax)
+                {
+                    var regionStart = directiveTrivia.GetMatchingDirective(cancellationToken);
+                    if (regionStart is not null)
+                        return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
+                }
+                else if (directiveTrivia is ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
+                {
+                    var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
+                    var matchesBefore = matchingDirectives
+                        .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
+                        .Select(d => d.Span)
+                        .ToImmutableArray();
+                    if (matchesBefore.Length > 0)
+                        return QuickInfoItem.Create(token.Span, relatedSpans: matchesBefore);
+                }
+            }
+
+            return null;
         }
     }
 }

@@ -177,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
 
+        public abstract TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument);
+
         public string GetDocumentationCommentId()
             => null;
 
@@ -207,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return this.Name;
             }
         }
+
+        public int MetadataToken => 0;
 
         public bool HasUnsupportedMetadata => false;
 

@@ -139,11 +139,51 @@ class Test
 {
     void Method()
     {
+        var t1 = [||](a: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, B: 2);
+    }
+}
+
+internal record struct NewStruct(int a, int B)
+{
+    public static implicit operator (int a, int B)(NewStruct value)
+    {
+        return (value.a, value.B);
+    }
+
+    public static implicit operator NewStruct((int a, int B) value)
+    {
+        return new NewStruct(value.a, value.B);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_FileScopedNamespace(TestHost host)
+        {
+            var text = @"
+namespace N;
+
+class Test
+{
+    void Method()
+    {
         var t1 = [||](a: 1, b: 2);
     }
 }
 ";
             var expected = @"
+namespace N;
+
 class Test
 {
     void Method()
@@ -168,7 +208,7 @@ internal record struct NewStruct(int a, int b)
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertSingleTupleTypeToRecord_MismatchedNameCasing(TestHost host)
+        public async Task ConvertSingleTupleTypeToRecord_MatchedNameCasing(TestHost host)
         {
             var text = @"
 class Test
@@ -184,27 +224,12 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(a: 1, b: 2);
+        var t1 = new NewStruct(A: 1, B: 2);
     }
 }
 
-internal record struct NewStruct
+internal record struct NewStruct(int A, int B)
 {
-    public int A;
-    public int B;
-
-    public NewStruct(int a, int b)
-    {
-        A = a;
-        B = b;
-    }
-
-    public void Deconstruct(out int a, out int b)
-    {
-        a = A;
-        b = B;
-    }
-
     public static implicit operator (int A, int B)(NewStruct value)
     {
         return (value.A, value.B);
@@ -350,7 +375,7 @@ internal struct NewStruct
     }
 }";
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name2",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
                 accessibilityList: default,
@@ -2296,10 +2321,10 @@ internal struct NewStruct
     DiagnosticResult.CompilerError("CS7036").WithSpan(6, 22, 6, 31).WithArguments("a", "NewStruct.NewStruct(int, int)"),
     // /0/Test0.cs(13,16): error CS0102: The type 'NewStruct' already contains a definition for 'a'
     DiagnosticResult.CompilerError("CS0102").WithSpan(13, 16, 13, 17).WithArguments("NewStruct", "a"),
-    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
-    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
-    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
-    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
+    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a", "preview"),
+    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a", "preview"),
     // /0/Test0.cs(15,33): error CS0100: The parameter name 'a' is a duplicate
     DiagnosticResult.CompilerError("CS0100").WithSpan(15, 33, 15, 34).WithArguments("a"),
     // /0/Test0.cs(17,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'

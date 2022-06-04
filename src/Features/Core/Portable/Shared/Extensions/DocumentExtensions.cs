@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -23,12 +24,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class DocumentExtensions
     {
-        public static bool ShouldHideAdvancedMembers(this Document document)
-        {
-            // Since we don't actually have a way to configure this per-document, we can fetch from the solution
-            return document.Project.Solution.Options.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
-        }
-
         public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
             where TNode : SyntaxNode
         {
@@ -108,26 +103,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// that match if the user hasn't specified any for a particular symbol type.  The are added at the end so they
         /// will only be used if the user hasn't specified a preference.
         /// </summary>
-        public static Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-            this Document document, CancellationToken cancellationToken)
-            => document.GetNamingRulesAsync(FallbackNamingRules.Default, cancellationToken);
-
-        /// <summary>
-        /// Get the user-specified naming rules, with the added <paramref name="defaultRules"/>.
-        /// </summary>
-        public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(this Document document,
-            ImmutableArray<NamingRule> defaultRules, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
+            this Document document, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(NamingStyleOptions.NamingPreferences);
-            var rules = namingStyleOptions.CreateRules().NamingRules;
-
-            return defaultRules.IsDefaultOrEmpty ? rules : rules.AddRange(defaultRules);
+            var options = await document.GetNamingStylePreferencesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
         }
 
-        public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, CancellationToken cancellationToken)
+        public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(symbol))
@@ -138,9 +123,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-            this Document document, SymbolKind symbolKind, Accessibility accessibility, CancellationToken cancellationToken)
+            this Document document, SymbolKind symbolKind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(symbolKind, accessibility))
@@ -151,9 +136,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-            this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, CancellationToken cancellationToken)
+            this Document document, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(kind, modifiers, accessibility))

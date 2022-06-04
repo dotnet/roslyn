@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod
-    Public Class GenerateMethodTests
+    Partial Public Class GenerateMethodTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -31,6 +31,16 @@ Class C
 
     Private Sub Goo()
         Throw New NotImplementedException()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestNotForExpressionOnLeftOfAssign() As Task
+            Await TestMissingAsync(
+"Class C
+    Sub M()
+        [|Goo|] = Bar()
     End Sub
 End Class")
         End Function
@@ -1903,7 +1913,7 @@ Module Program
         goo(,,)
     End Sub
 
-    Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional p3 As Object = Nothing)
+    Private Sub goo(Optional value1 As Object = Nothing, Optional value2 As Object = Nothing, Optional value3 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1925,7 +1935,7 @@ Module Program
         goo(1,,)
     End Sub
 
-    Private Sub goo(v As Integer, Optional p1 As Object = Nothing, Optional p2 As Object = Nothing)
+    Private Sub goo(v As Integer, Optional value1 As Object = Nothing, Optional value2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1947,7 +1957,7 @@ Module Program
         goo(, 1,)
     End Sub
 
-    Private Sub goo(Optional p1 As Object = Nothing, Optional v As Integer = Nothing, Optional p2 As Object = Nothing)
+    Private Sub goo(Optional value1 As Object = Nothing, Optional v As Integer = Nothing, Optional value2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1969,7 +1979,7 @@ Module Program
         goo(,, 1)
     End Sub
 
-    Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional v As Integer = Nothing)
+    Private Sub goo(Optional value1 As Object = Nothing, Optional value2 As Object = Nothing, Optional v As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -1991,7 +2001,7 @@ Module Program
         goo(1,, 1)
     End Sub
 
-    Private Sub goo(v1 As Integer, Optional p As Object = Nothing, Optional v2 As Integer = Nothing)
+    Private Sub goo(v1 As Integer, Optional value As Object = Nothing, Optional v2 As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2013,7 +2023,7 @@ Module Program
         goo(1, 1, )
     End Sub
 
-    Private Sub goo(v1 As Integer, v2 As Integer, Optional p As Object = Nothing)
+    Private Sub goo(v1 As Integer, v2 As Integer, Optional value As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2078,7 +2088,7 @@ Module M
         Bar(x, Function() y) ' Generate Bar 
     End Sub
 
-    Private Sub Bar(Of T, S)(x As List(Of T), p As Func(Of List(Of S)))
+    Private Sub Bar(Of T, S)(x As List(Of T), value As Func(Of List(Of S)))
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2151,7 +2161,7 @@ Module Program
         Bar(1, {1})
     End Sub
 
-    Private Sub Bar(v As Integer, p() As Integer)
+    Private Sub Bar(v As Integer, value() As Integer)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2173,7 +2183,7 @@ Module M
         Goo({{1}})
     End Sub
 
-    Private Sub Goo(p(,) As Integer)
+    Private Sub Goo(value(,) As Integer)
         Throw New NotImplementedException()
     End Sub
 End Module")
@@ -2257,7 +2267,7 @@ Module Program
             End Function)
     End Sub
 
-    Private Sub Baz(p As Func(Of String))
+    Private Sub Baz(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 
@@ -2295,7 +2305,7 @@ Module Program
             End Function)
     End Sub
 
-    Private Sub Baz(p As Func(Of String))
+    Private Sub Baz(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 
@@ -2333,7 +2343,7 @@ Module Program
             End Function)
     End Sub
 
-    Private Sub Baz(p As Func(Of String))
+    Private Sub Baz(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 
@@ -2635,7 +2645,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(vs1() As T1, vs2() As T2)
+    Private Sub sub1(Of T1, T2)(integers() As T1, strings() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -3249,7 +3259,7 @@ Class C
         M2(Function() NameOf(M))
     End Sub
 
-    Private Sub M2(p As Func(Of String))
+    Private Sub M2(value As Func(Of String))
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -4109,7 +4119,7 @@ Class Program
         Dim d As (Integer, String) = NewMethod((1, ""hello""))
     End Sub
 
-    Private Shared Function NewMethod(p As (Integer, String)) As (Integer, String)
+    Private Shared Function NewMethod(value As (Integer, String)) As (Integer, String)
         Throw New NotImplementedException()
     End Function
 End Class")
@@ -4186,7 +4196,7 @@ Class Program
         Dim d As (a As Integer, b As String) = NewMethod((c:=1, d:=""hello""))
     End Sub
 
-    Private Shared Function NewMethod(p As (c As Integer, d As String)) As (a As Integer, b As String)
+    Private Shared Function NewMethod(value As (c As Integer, d As String)) As (a As Integer, b As String)
         Throw New NotImplementedException()
     End Function
 End Class")
@@ -4207,7 +4217,7 @@ Class Program
         Dim d As (a As Integer, String) = NewMethod((c:=1, ""hello""))
     End Sub
 
-    Private Shared Function NewMethod(p As (c As Integer, String)) As (a As Integer, String)
+    Private Shared Function NewMethod(value As (c As Integer, String)) As (a As Integer, String)
         Throw New NotImplementedException()
     End Function
 End Class")
@@ -4390,290 +4400,72 @@ Namespace Goo
 End Namespace")
         End Function
 
-        Public Class GenerateConversionTests
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        <WorkItem(61542, "https://github.com/dotnet/roslyn/issues/61542")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestAcrossFiles() As Task
+            Await TestInRegularAndScriptAsync(
+"<Workspace>
+    <Project Language=""Visual Basic"">
+        <Document>
+Public Class DataContainer
+    Property PossibleInProcessTests As string
+    Property PossibleEndProcessTests As string
+    Property Mixtures As string
+    Property Customers As string
+    Property Synonyms As string
+    Property Ingredients As string
+    Property Preservatives As string
+    Property TeamMembers As string
+    Property Vessels As string
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-                Return (Nothing, New GenerateConversionCodeFixProvider())
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionGenericClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = CType([|1|], C(Of Integer))
-    End Sub
-End Class
-
-Class C(Of T)
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = CType(1, C(Of Integer))
-    End Sub
-End Class
-
-Class C(Of T)
-    Public Shared Narrowing Operator CType(v As Integer) As C(Of T)
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = CType([|1|], C)
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = CType(1, C)
-    End Sub
-End Class
-
-Class C
-    Public Shared Narrowing Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionAwaitExpression() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = CType([|Await a|], C)
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = CType(Await a, C)
-    End Sub
-End Class
-
-Class C
-    Public Shared Narrowing Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionTargetTypeNotInSource() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = [|dig|]
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
-    End Sub
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = dig
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
+    Sub Goo()
     End Sub
 
-    Public Shared Widening Operator CType(v As Digit) As Double
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionGenericClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = [|1|]
-    End Sub
-End Class
-
-Class C(Of T)
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C(Of Integer) = 1
-    End Sub
-End Class
-
-Class C(Of T)
-    Public Shared Widening Operator CType(v As Integer) As C(Of T)
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionClass() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = [|1|]
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim a As C = 1
-    End Sub
-End Class
-
-Class C
-    Public Shared Widening Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateImplicitConversionAwaitExpression() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = [|Await a|]
-    End Sub
-End Class
-
-Class C
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim a = Task.FromResult(1)
-        Dim b As C = Await a
-    End Sub
-End Class
-
-Class C
-    Public Shared Widening Operator CType(v As Integer) As C
-        Throw New NotImplementedException()
-    End Operator
-End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-
-            <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-            Public Async Function TestGenerateExplicitConversionTargetTypeNotInSource() As Task
-                Await TestInRegularAndScriptAsync(
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = CType([|dig|], Double)
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
-    End Sub
-End Class
-</text>.Value.Replace(vbLf, vbCrLf),
-    <text>Imports System
-Imports System.Threading.Tasks
-
-Class Program
-    Private Shared Async Sub Main(args As String())
-        Dim dig As Digit = New Digit(7)
-        Dim number As Double = CType(dig, Double)
-    End Sub
-End Class
-
-Class Digit
-    Private val As Double
-
-    Public Sub New(v As Double)
-        Me.val = v
+    Sub Bar()
     End Sub
 
-    Public Shared Narrowing Operator CType(v As Digit) As Double
-        Throw New NotImplementedException()
-    End Operator
+    Function Bazz() As Object
+        Return Nothing
+    End Function
+
+End Class</Document>
+        <Document>
+Public Class FileContainer
+    Sub S()
+        Dim DC As New DataContainer
+         ' importantly, we don't want use the position of 'S' to determine where in Doc1 we generate this method. 
+        DC.[|ArbitraryPositionMethod|]()
+    End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf))
-            End Function
-        End Class
+        </Document>
+    </Project>
+</Workspace>",
+"
+Public Class DataContainer
+    Property PossibleInProcessTests As string
+    Property PossibleEndProcessTests As string
+    Property Mixtures As string
+    Property Customers As string
+    Property Synonyms As string
+    Property Ingredients As string
+    Property Preservatives As string
+    Property TeamMembers As string
+    Property Vessels As string
+
+    Sub Goo()
+    End Sub
+
+    Sub Bar()
+    End Sub
+
+    Friend Sub ArbitraryPositionMethod()
+    End Sub
+
+    Function Bazz() As Object
+        Return Nothing
+    End Function
+
+End Class")
+        End Function
     End Class
 End Namespace

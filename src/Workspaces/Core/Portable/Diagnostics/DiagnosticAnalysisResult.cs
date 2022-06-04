@@ -24,17 +24,30 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public readonly ProjectId ProjectId;
         public readonly VersionStamp Version;
 
-        // set of documents that has any kind of diagnostics on it
+        /// <summary>
+        /// The set of documents that has any kind of diagnostics on it.
+        /// </summary>
         public readonly ImmutableHashSet<DocumentId>? DocumentIds;
         public readonly bool IsEmpty;
 
-        // map for each kind of diagnostics
-        // syntax locals and semantic locals are self explanatory.
-        // non locals means diagnostics that belong to a tree that are produced by analyzing other files.
-        // others means diagnostics that doesnt have locations.
+        /// <summary>
+        /// Syntax diagnostics from this file.
+        /// </summary>
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _syntaxLocals;
+
+        /// <summary>
+        /// Semantic diagnostics from this file.
+        /// </summary>
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _semanticLocals;
+
+        /// <summary>
+        /// Diagnostics that were produced for these documents, but came from the analysis of other files.
+        /// </summary>
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _nonLocals;
+
+        /// <summary>
+        /// Diagnostics that don't have locations.
+        /// </summary>
         private readonly ImmutableArray<DiagnosticData> _others;
 
         private DiagnosticAnalysisResult(ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds, bool isEmpty, bool fromBuild)
@@ -320,7 +333,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
-                Debug.Assert(project.GetTextDocument(documentId)?.SupportsDiagnostics() == true);
+                // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is being used here for a debug-only assertion. The
+                // assertion is claiming that the document in which the diagnostic appears is known to exist in the
+                // project. This requires the source generators already have run.
+                var textDocument = project.GetTextDocument(documentId) ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                Debug.Assert(textDocument?.SupportsDiagnostics() == true);
             }
         }
     }

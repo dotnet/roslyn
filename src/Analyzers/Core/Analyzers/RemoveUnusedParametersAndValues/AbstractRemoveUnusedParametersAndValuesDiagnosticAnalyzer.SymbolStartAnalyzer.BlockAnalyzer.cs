@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
                     if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
-                                                                                firstBlock.Language,
                                                                                 context.Options,
-                                                                                context.CancellationToken,
                                                                                 out var options))
                     {
                         return;
@@ -152,9 +150,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (firstOp == null)
                             return false;
 
-                        // unwrap: { throw new NYI(); }
                         if (firstOp is IExpressionStatementOperation expressionStatement)
+                        {
+                            // unwrap: { throw new NYI(); }
                             firstOp = expressionStatement.Operation;
+                        }
+                        else if (firstOp is IReturnOperation returnOperation)
+                        {
+                            // unwrap: 'int M(int p) => throw new NYI();'
+                            // For this case, the throw operation is wrapped within a conversion operation to 'int',
+                            // which in turn is wrapped within a return operation.
+                            firstOp = returnOperation.ReturnedValue.WalkDownConversion();
+                        }
 
                         // => throw new NotImplementedOperation(...)
                         return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
@@ -177,7 +184,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return firstOp;
                     }
 
-                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation operation)
+                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation? operation)
                         => operation is IThrowOperation throwOperation &&
                            UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
                            notImplementedExceptionType.Equals(objectCreation.Type);
@@ -586,7 +593,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                     if (shouldReport)
                                     {
-                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options);
                                     }
                                 }
 
@@ -613,7 +620,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         ISymbol symbol,
                         IOperation unreadWriteOperation,
                         SymbolUsageResult resultFromFlowAnalysis,
-                        out ImmutableDictionary<string, string>? properties)
+                        out ImmutableDictionary<string, string?>? properties)
                     {
                         Debug.Assert(symbol is not ILocalSymbol local || !local.IsRef);
 

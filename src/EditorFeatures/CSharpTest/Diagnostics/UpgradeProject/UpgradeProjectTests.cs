@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+                var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
 
-                var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
+                var appliedChanges = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
                 var newSolution = appliedChanges.Item2;
                 Assert.All(newSolution.Projects.Where(p => p.Language == LanguageNames.CSharp),
@@ -1054,7 +1054,7 @@ class Test
         }
 
         [Fact]
-        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMemebers_CS8704()
+        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMembers_CS8704()
         {
             await TestLanguageVersionUpgradedAsync(
 @"
@@ -1085,6 +1085,62 @@ class C
 }",
                 expected: LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, WorkItem(57154, "https://github.com/dotnet/roslyn/issues/57154")]
+        public async Task UpgradeProjectForNewLinesInInterpolations()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+class Test
+{
+    void M()
+    {
+        var v = $""x{
+                    1 + 1
+                 [|}|]y"";
+    }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_1()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_2()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X;
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact, WorkItem(60167, "https://github.com/dotnet/roslyn/issues/60167")]
+        public async Task UpgradeProjectForStructAutoDefaultError_3()
+        {
+            await TestLanguageVersionUpgradedAsync(@"
+struct Test
+{
+    public int X { get; set; }
+    public [|Test|]() { this.ToString(); }
+}",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp10));
         }
     }
 }

@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 {
     internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixProvider
     {
-        public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
-
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
 
@@ -35,7 +33,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(c => FixNodeAsync(context.Document, context.Diagnostics.First(), c)),
+                CodeAction.Create(
+                    FeaturesResources.Make_method_synchronous,
+                    c => FixNodeAsync(context.Document, context.Diagnostics.First(), c),
+                    nameof(FeaturesResources.Make_method_synchronous)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var syntaxPath = new SyntaxPath(node);
 
             // Rename the method to remove the 'Async' suffix, then remove the 'async' keyword.
-            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, new SymbolRenameOptions(), newName, cancellationToken).ConfigureAwait(false);
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxPath.TryResolve(newRoot, out SyntaxNode newNode))
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                 if (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol methodSymbol)
                 {
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
-                        methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        ImmutableArray.Create<ISymbol>(methodSymbol), document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                     var referencedSymbol = references.FirstOrDefault(r => Equals(r.Definition, methodSymbol));
                     if (referencedSymbol != null)
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, currentSolution.Workspace);
+            var editor = new SyntaxEditor(root, currentSolution.Workspace.Services);
 
             foreach (var location in group)
             {
@@ -248,14 +249,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                         });
                     }
                 }
-            }
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(FeaturesResources.Make_method_synchronous, createChangedSolution, AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey)
-            {
             }
         }
     }

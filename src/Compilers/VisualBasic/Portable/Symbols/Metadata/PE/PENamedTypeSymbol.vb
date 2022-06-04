@@ -19,6 +19,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports TypeAttributes = System.Reflection.TypeAttributes
 Imports FieldAttributes = System.Reflection.FieldAttributes
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -163,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If makeBad OrElse metadataArity < containerMetadataArity Then
-                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
+                _lazyCachedUseSiteInfo.Initialize(If(DeriveCompilerFeatureRequiredDiagnostic(), ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
             End If
 
             Debug.Assert(Not _mangleName OrElse _name.Length < name.Length)
@@ -237,6 +238,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend ReadOnly Property Handle As TypeDefinitionHandle
             Get
                 Return _handle
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -1267,6 +1274,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
+            ' GetCompilerFeatureRequiredDiagnostic depends on this being the highest priority use-site diagnostic. If another
+            ' diagnostic was calculated first and cached, it will return incorrect results and assert in Debug mode.
+            Dim compilerFeatureRequiredDiagnostic = DeriveCompilerFeatureRequiredDiagnostic()
+            If compilerFeatureRequiredDiagnostic IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(compilerFeatureRequiredDiagnostic)
+            End If
+
             Dim useSiteInfo = CalculateUseSiteInfo()
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
@@ -1309,6 +1323,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Return useSiteInfo
+        End Function
+
+        Friend Function GetCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
+            Dim typeUseSiteInfo = GetUseSiteInfo()
+            If typeUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedCompilerFeature Then
+                Return typeUseSiteInfo.DiagnosticInfo
+            End If
+
+            Debug.Assert(DeriveCompilerFeatureRequiredDiagnostic() Is Nothing)
+
+            Return Nothing
+        End Function
+
+        Private Function DeriveCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
+            Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
+
+            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+
+            If diagnostic IsNot Nothing Then
+                Return diagnostic
+            End If
+
+            For Each typeParameter In TypeParameters
+                diagnostic = DirectCast(typeParameter, PETypeParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
+
+                If diagnostic IsNot Nothing Then
+                    Return diagnostic
+                End If
+            Next
+
+            Dim containingPEType = TryCast(ContainingType, PENamedTypeSymbol)
+
+            Return If(containingPEType IsNot Nothing, containingPEType.GetCompilerFeatureRequiredDiagnostic(), ContainingPEModule.GetCompilerFeatureRequiredDiagnostic())
         End Function
 
         ''' <summary>

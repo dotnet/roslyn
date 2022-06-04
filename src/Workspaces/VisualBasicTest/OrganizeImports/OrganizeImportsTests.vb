@@ -5,29 +5,37 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.[Shared].Extensions
+Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>
     Public Class OrganizeImportsTests
         Private Shared Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
-                                          Optional separateImportGroups As Boolean = False) As Task
+                                          Optional separateImportGroups As Boolean = False,
+                                                 Optional endOfLine As String = Nothing) As Task
             Using workspace = New AdhocWorkspace()
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
-                Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
+                Dim document = project.AddDocument("Document", SourceText.From(initial.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine))))
 
-                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
-                document = document.WithSolutionOptions(options)
+                Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
+                Dim options = New OrganizeImportsOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                    .SeparateImportDirectiveGroups = separateImportGroups,
+                    .NewLine = If(endOfLine, OrganizeImportsOptions.Default.NewLine)
+                }
 
-                Dim newRoot = Await (Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
-                Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
+                Dim newDocument = Await service.OrganizeImportsAsync(document, options, CancellationToken.None)
+                Dim newRoot = Await newDocument.GetSyntaxRootAsync()
+                Assert.Equal(final.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine)), newRoot.ToFullString())
             End Using
         End Function
 
@@ -38,12 +46,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
 
-                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
-                document = document.WithSolutionOptions(options)
+                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With {.SeparateImportDirectiveGroups = separateImportGroups}
+                }
 
-                Dim organizedDocument = Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)
-                Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, workspace.Options, CancellationToken.None)
+                Dim organizeOptions = New OrganizeImportsOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                    .SeparateImportDirectiveGroups = separateImportGroups
+                }
+
+                Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
+                Dim organizedDocument = Await service.OrganizeImportsAsync(document, organizeOptions, CancellationToken.None)
+                Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, formattingOptions, CancellationToken.None)
 
                 Dim newRoot = Await formattedDocument.GetSyntaxRootAsync()
                 Assert.Equal(final.Value.NormalizeLineEndings(), newRoot.ToFullString())
@@ -824,6 +840,48 @@ Imports <xmlns:zz="http://NextNamespace">
 ]]></content>
 
             Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True)
+        End Function
+
+        <WorkItem(19306, "https://github.com/dotnet/roslyn/issues/19306")>
+        <Theory, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <InlineData(vbLf)>
+        <InlineData(vbCrLf)>
+        Public Async Function TestGrouping3(endOfLine As String) As Task
+            Dim initial =
+<content><![CDATA[' Banner
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports Roslyn.Utilities
+Imports IntList = System.Collections.Generic.List(Of Integer)
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Dim final =
+<content><![CDATA[' Banner
+
+Imports System.Collections.Generic
+Imports System.Linq
+
+Imports Microsoft.CodeAnalysis.CSharp.Extensions
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+
+Imports Roslyn.Utilities
+
+Imports IntList = System.Collections.Generic.List(Of Integer)
+
+Imports <xmlns:ab="http://NewNamespace">
+Imports <xmlns="http://DefaultNamespace">
+Imports <xmlns:zz="http://NextNamespace">
+]]></content>
+
+            Await CheckAsync(initial, final, placeSystemNamespaceFirst:=True, separateImportGroups:=True, endOfLine:=endOfLine)
         End Function
 
         <WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")>

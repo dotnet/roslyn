@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -101,6 +99,14 @@ $$");
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -352,6 +358,7 @@ $$
 global using Bar;");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint()
         {
@@ -359,6 +366,15 @@ global using Bar;");
 @"class C<T> where T : $$");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T> where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint2()
         {
@@ -368,6 +384,17 @@ global using Bar;");
     where U : U");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterClassTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T>
+    where T : IList<$$
+    where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
@@ -377,6 +404,17 @@ global using Bar;");
       where T : $$");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo<T>()
+      where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
@@ -384,6 +422,17 @@ global using Bar;");
 @"class C {
     void Goo<T>()
       where T : $$
+      where U : T");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodTypeParameterConstraintWhenNotDirectlyInConstraint2()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo<T>()
+      where T : IList<$$
       where U : T");
         }
 
@@ -400,13 +449,6 @@ global using Bar;");
         {
             await VerifyKeywordAsync(
 @"record $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterFileScopedNamespace()
-        {
-            await VerifyKeywordAsync(
-@"namespace NS; $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

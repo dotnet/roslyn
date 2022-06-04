@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
             ArgumentSyntax,
             TupleTypeSyntax,
             TypeDeclarationSyntax,
-            NamespaceDeclarationSyntax>
+            BaseNamespaceDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

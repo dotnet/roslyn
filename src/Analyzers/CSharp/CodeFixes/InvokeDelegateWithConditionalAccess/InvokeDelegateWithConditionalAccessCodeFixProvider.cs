@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -35,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         // Filter out the diagnostics we created for the faded out code.  We don't want
         // to try to fix those as well as the normal diagnostics we created.
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -44,15 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-               context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_delegate_invocation, nameof(CSharpAnalyzersResources.Simplify_delegate_invocation));
             return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -104,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             newStatement = newStatement.WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia());
 
             if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
-                ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax block))
+                ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? block))
             {
                 newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
             }
@@ -136,11 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             cancellationToken.ThrowIfCancellationRequested();
 
             var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
-            var parentBlock = (BlockSyntax)localDeclarationStatement.Parent;
+            var parentBlock = (BlockSyntax)localDeclarationStatement.GetRequiredParent();
 
             var newStatement = expressionStatement.WithExpression(
                 SyntaxFactory.ConditionalAccessExpression(
-                    localDeclarationStatement.Declaration.Variables[0].Initializer.Value.Parenthesize(),
+                    localDeclarationStatement.Declaration.Variables[0].Initializer!.Value.Parenthesize(),
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
 
@@ -161,14 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var ifStatementTrivia = ifStatement.GetTrailingTrivia();
 
             return newStatement.WithTrailingTrivia(expressionTriviaWithoutEndOfLine.Concat(ifStatementTrivia));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified, createChangedDocument, nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified))
-            {
-            }
         }
     }
 }

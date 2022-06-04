@@ -62,6 +62,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchOperation)
             => PopulateSwitchStatementHelpers.GetMissingEnumMembers(switchOperation);
 
+        protected sealed override bool HasNullSwitchArm(ISwitchOperation switchOperation)
+            => PopulateSwitchStatementHelpers.HasNullSwitchArm(switchOperation);
+
         protected sealed override TSwitchSyntax InsertSwitchArms(SyntaxGenerator generator, TSwitchSyntax switchNode, int insertLocation, List<TSwitchArmSyntax> newArms)
             => (TSwitchSyntax)generator.InsertSwitchSections(switchNode, insertLocation, newArms);
 
@@ -70,6 +73,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected sealed override TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel)
             => (TSwitchArmSyntax)generator.SwitchSection(caseLabel, new[] { generator.ExitSwitchStatement() });
+
+        protected override TSwitchArmSyntax CreateNullSwitchArm(SyntaxGenerator generator, Compilation compilation)
+            => (TSwitchArmSyntax)generator.SwitchSection(generator.NullLiteralExpression(), new[] { generator.ExitSwitchStatement() });
 
         protected sealed override int InsertPosition(ISwitchOperation switchStatement)
         {

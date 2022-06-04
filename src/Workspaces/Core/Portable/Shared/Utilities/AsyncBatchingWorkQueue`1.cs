@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Roslyn.Utilities
@@ -16,7 +16,7 @@ namespace Roslyn.Utilities
     {
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, ValueTask> processBatchAsync,
+            Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
             : this(delay,
@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, ValueTask> processBatchAsync,
+            Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ namespace Roslyn.Utilities
         {
         }
 
-        private static Func<ImmutableArray<TItem>, CancellationToken, ValueTask<VoidResult>> Convert(Func<ImmutableArray<TItem>, CancellationToken, ValueTask> processBatchAsync)
+        private static Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<VoidResult>> Convert(Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync)
             => async (items, ct) =>
             {
                 await processBatchAsync(items, ct).ConfigureAwait(false);

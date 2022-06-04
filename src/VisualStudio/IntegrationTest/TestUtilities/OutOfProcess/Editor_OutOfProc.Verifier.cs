@@ -23,16 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
             }
 
-            public void IsNotSaved()
-            {
-                _textViewWindow._editorInProc.VerifyNotSaved();
-            }
-
-            public string IsSaved()
-            {
-                return _textViewWindow._editorInProc.VerifySaved();
-            }
-
             public void CurrentLineText(
                 string expectedText,
                 bool assertCaretPosition = false,
@@ -158,13 +148,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 Assert.Equal(expectedItem, currentItem);
             }
 
-            public void VerifyCurrentSignature(
-                Signature expectedSignature)
-            {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(expectedSignature, currentSignature);
-            }
-
             public void CurrentSignature(string content)
             {
                 var currentSignature = _textViewWindow.GetCurrentSignature();
@@ -215,11 +198,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 AssertEx.EqualOrDiff(
                     string.Join(Environment.NewLine, expectedTags),
                     string.Join(Environment.NewLine, actualTags));
-            }
-
-            public void IsProjectItemDirty(bool expectedValue)
-            {
-                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
             }
         }
     }

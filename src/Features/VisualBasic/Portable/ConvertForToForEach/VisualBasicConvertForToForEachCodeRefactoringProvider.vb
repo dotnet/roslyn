@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
 
         Protected Overrides Function ConvertForNode(
                 currentFor As ForBlockSyntax, typeNode As TypeSyntax,
-                foreachIdentifier As SyntaxToken, collectionExpression As ExpressionSyntax, iterationVariableType As ITypeSymbol, options As OptionSet) As SyntaxNode
+                foreachIdentifier As SyntaxToken, collectionExpression As ExpressionSyntax, iterationVariableType As ITypeSymbol) As SyntaxNode
 
             Dim forStatement = currentFor.ForStatement
             Return SyntaxFactory.ForEachBlock(
