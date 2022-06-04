@@ -3482,21 +3482,9 @@ class C
         }
 
         [Fact]
-        public void TestLessThanConflictMarkerInvalidCharacter()
-        {
-            var token = Lex($"<<<<<<< {SlidingTextWindow.InvalidCharacter}text").First();
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
-            Assert.True(token.HasLeadingTrivia);
-
-            var trivia = token.LeadingTrivia.Single();
-            Assert.Equal(SyntaxKind.ConflictMarkerTrivia, trivia.Kind());
-            Assert.Equal($"<<<<<<< {SlidingTextWindow.InvalidCharacter}text", trivia.ToFullString());
-        }
-
-        [Fact]
         public void TestGreaterThanConflictMarker1()
         {
-            // Greater-than's should never be merged as conflict markers, except if they follow
+            // Less-than's should never be merged as conflict markers, except if they follow
             // an ======= region
 
             var token = Lex(">>>>>>>").First();
@@ -3524,7 +3512,7 @@ class C
         [Fact]
         public void TestGreaterThanConflictMarker2()
         {
-            // Greater-than's should never be merged as conflict markers, except if they follow
+            // Less-than's should never be merged as conflict markers, except if they follow
             // an ======= region
 
             var token = Lex("{\r\n>>>>>>>").Skip(1).First();
@@ -3812,31 +3800,6 @@ class C
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(36, trivia4.Span.Start);
             Assert.Equal(24, trivia4.Span.Length);
-        }
-
-        [Fact]
-        public void TestEqualsConflictMarkerInvalidCharacter()
-        {
-            var token = Lex($"{{\r\n======= {SlidingTextWindow.InvalidCharacter}trailing\r\ndisabled\r\n{SlidingTextWindow.InvalidCharacter}text\r\n>>>>>>> {SlidingTextWindow.InvalidCharacter}end").Skip(1).First();
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
-            Assert.True(token.HasLeadingTrivia);
-            Assert.Equal(4, token.LeadingTrivia.Count);
-
-            var trivia1 = token.LeadingTrivia[0];
-            Assert.Equal(SyntaxKind.ConflictMarkerTrivia, trivia1.Kind());
-            Assert.Equal($"======= {SlidingTextWindow.InvalidCharacter}trailing", trivia1.ToFullString());
-
-            var trivia2 = token.LeadingTrivia[1];
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia2.Kind());
-            Assert.Equal("\r\n", trivia2.ToFullString());
-
-            var trivia3 = token.LeadingTrivia[2];
-            Assert.Equal(SyntaxKind.DisabledTextTrivia, trivia3.Kind());
-            Assert.Equal($"disabled\r\n{SlidingTextWindow.InvalidCharacter}text\r\n", trivia3.ToFullString());
-
-            var trivia4 = token.LeadingTrivia[3];
-            Assert.Equal(SyntaxKind.ConflictMarkerTrivia, trivia4.Kind());
-            Assert.Equal($">>>>>>> {SlidingTextWindow.InvalidCharacter}end", trivia4.ToFullString());
         }
     }
 }
