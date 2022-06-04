@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal partial class TemporaryStorageServiceFactory
+    internal partial class TemporaryStorageService
     {
         /// <summary>
         /// Our own abstraction on top of memory map file so that we can have shared views over mmf files. 
