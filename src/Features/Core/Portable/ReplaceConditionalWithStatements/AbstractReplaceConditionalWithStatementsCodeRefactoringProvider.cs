@@ -45,11 +45,13 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     where TVariableDeclaratorSyntax : SyntaxNode
     where TEqualsValueClauseSyntax : SyntaxNode
 {
+    protected abstract bool IsAssignmentStatement(TStatementSyntax? statement);
     protected abstract bool HasSingleVariable(TLocalDeclarationStatementSyntax localDeclarationStatement, [NotNullWhen(true)] out TVariableSyntax? variable);
     protected abstract TLocalDeclarationStatementSyntax GetUpdatedLocalDeclarationStatement(SyntaxGenerator generator, TLocalDeclarationStatementSyntax localDeclarationStatement, ILocalSymbol symbol);
 
-    private static bool IsSupportedSimpleStatement([NotNullWhen(true)] TStatementSyntax? statement)
-        => statement is TExpressionStatementSyntax or
+    private bool IsSupportedSimpleStatement([NotNullWhen(true)] TStatementSyntax? statement)
+        => IsAssignmentStatement(statement) ||
+           statement is TExpressionStatementSyntax or
                         TReturnStatementSyntax or
                         TThrowStatementSyntax or
                         TYieldStatementSyntax;
@@ -131,6 +133,7 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
             return;
 
         var (document, _, cancellationToken) = context;
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         // Walk upwards from this conditional, through parent expressions and arguments until we find the owning construct.
         var topExpression = GetTopExpression(conditionalExpression);
@@ -170,8 +173,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         //      else
         //          v = c;
 
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
         if (topExpression.Parent is TEqualsValueClauseSyntax equalsValue &&
             equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator &&
             conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>() is { } localDeclarationStatement &&
@@ -207,10 +208,10 @@ outer:
         return current;
     }
 
-    private static SyntaxNode TryCast(SyntaxGenerator generator, SyntaxNode whenTrue, ITypeSymbol? conditionalType)
+    private static SyntaxNode TryConvert(SyntaxGenerator generator, SyntaxNode whenTrue, ITypeSymbol? conditionalType)
         => conditionalType is null or IErrorTypeSymbol
             ? whenTrue
-            : generator.CastExpression(conditionalType, whenTrue);
+            : generator.ConvertExpression(conditionalType, whenTrue);
 
     private static async Task<Document> ReplaceConditionalExpressionInSingleStatementAsync(
         Document document,
@@ -239,9 +240,7 @@ outer:
 
         TStatementSyntax Rewrite(SyntaxNode expression)
             => statement.ReplaceNode(conditionalExpression,
-                TryCast(generator,
-                    expression.WithTriviaFrom(conditionalExpression),
-                    conditionalType));
+                TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
     }
 
     private async Task<Document> ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
@@ -296,7 +295,7 @@ outer:
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
             => generator.AssignmentStatement(
-                identifier, TryCast(generator, expression.WithTriviaFrom(conditionalExpression), conditionalType));
+                identifier, TryConvert(generator, expression.WithTriviaFrom(conditionalExpression), conditionalType));
 
         SyntaxNode WrapGlobal(TStatementSyntax statement)
             => isGlobalStatement ? generator.GlobalStatement(statement) : statement;

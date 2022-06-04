@@ -37,6 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsAssignmentStatement(statement As StatementSyntax) As Boolean
+            Return TypeOf statement Is AssignmentStatementSyntax
+        End Function
+
         Protected Overrides Function HasSingleVariable(
                 localDeclarationStatement As LocalDeclarationStatementSyntax,
                 <Out> ByRef variable As ModifiedIdentifierSyntax) As Boolean
@@ -63,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
                 localDeclarationStatement = localDeclarationStatement.ReplaceNode(
                     declarator, declarator.WithAsClause(SyntaxFactory.SimpleAsClause(
                         symbol.Type.GenerateTypeSyntax())))
-            End If 
+            End If
 
             declarator = localDeclarationStatement.declarators(0)
             Return localDeclarationStatement.ReplaceNode(

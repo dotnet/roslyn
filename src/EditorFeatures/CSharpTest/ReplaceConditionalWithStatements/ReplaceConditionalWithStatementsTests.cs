@@ -633,6 +633,44 @@ public class ReplaceConditionalWithStatementsTests
             """);
     }
 
+    [Fact(Skip = "Causes assert in compiler layer")]
+    public async Task TestExpressionStatement_InvocationWithSimpleObjectCreation()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    F($$b ? new X() : new());
+                }
+
+                void F(object value) => Console.WriteLine(value.GetType());
+            }
+            class X { }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        F(new X());
+                    }
+                    else
+                    {
+                        F((X)new());
+                    }
+                }
+            
+                void F(object value) => Console.WriteLine(value.GetType());
+            }
+            """);
+    }
+
     [Fact]
     public async Task TestExpressionStatement_SimpleInvocationArgument_OnStatement()
     {

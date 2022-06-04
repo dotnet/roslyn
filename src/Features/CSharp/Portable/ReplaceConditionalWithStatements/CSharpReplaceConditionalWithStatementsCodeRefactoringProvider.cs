@@ -37,6 +37,9 @@ internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
     {
     }
 
+    protected override bool IsAssignmentStatement(StatementSyntax? statement)
+        => false;
+
     protected override bool HasSingleVariable(
         LocalDeclarationStatementSyntax localDeclarationStatement,
         [NotNullWhen(true)] out VariableDeclaratorSyntax? variable)
