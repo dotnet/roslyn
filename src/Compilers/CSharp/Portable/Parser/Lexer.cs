@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.AmpersandEqualsToken;
                     }
-                    else if (character == '&')
+                    else if (TextWindow.PeekChar() == '&')
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.AmpersandAmpersandToken;
@@ -707,12 +707,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '|':
                     TextWindow.AdvanceChar();
-                    if ((character = TextWindow.PeekChar()) == '=')
+                    if (TextWindow.PeekChar() == '=')
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.BarEqualsToken;
                     }
-                    else if (character == '|')
+                    else if (TextWindow.PeekChar() == '|')
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.BarBarToken;
@@ -726,12 +726,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '<':
                     TextWindow.AdvanceChar();
-                    if ((character = TextWindow.PeekChar()) == '=')
+                    if (TextWindow.PeekChar() == '=')
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.LessThanEqualsToken;
                     }
-                    else if (character == '<')
+                    else if (TextWindow.PeekChar() == '<')
                     {
                         TextWindow.AdvanceChar();
                         if (TextWindow.PeekChar() == '=')
@@ -938,44 +938,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 index++;
             }
 
-            switch (TextWindow.PeekChar(index))
+            if (TextWindow.PeekChar(index) == '"')
             {
-                case '"':
-                    // @"
-                    ScanVerbatimStringLiteral(ref info);
-                    return true;
-                case '$':
-                    // @$"
-                    ScanInterpolatedStringLiteral(ref info);
-                    return true;
-                default:
-                    return false;
+                // @"
+                this.ScanVerbatimStringLiteral(ref info);
+                return true;
             }
+            else if (TextWindow.PeekChar(index) == '$')
+            {
+                // @$"
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+
+            return false;
         }
 
         private bool TryScanInterpolatedString(ref TokenInfo info)
         {
             Debug.Assert(TextWindow.PeekChar() == '$');
 
-            switch (TextWindow.PeekChar(1))
+            if (TextWindow.PeekChar(1) == '$')
             {
-                case '$':
-                    // $$ - definitely starts a raw interpolated string.
-                    ScanInterpolatedStringLiteral(ref info);
-                    return true;
-                case '@' when TextWindow.PeekChar(2) == '@':
-                    // $@@ - Error case.  Detect if user is trying to user verbatim and raw interpolations together.
-                    ScanInterpolatedStringLiteral(ref info);
-                    return true;
-                case '"':
-                    ScanInterpolatedStringLiteral(ref info);
-                    return true;
-                case '@':
-                    ScanInterpolatedStringLiteral(ref info);
-                    return true;
-                default:
-                    return false;
+                // $$ - definitely starts a raw interpolated string.
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
             }
+            else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '@')
+            {
+                // $@@ - Error case.  Detect if user is trying to user verbatim and raw interpolations together.
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '"')
+            {
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '@')
+            {
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+
+            return false;
         }
 
         private void CheckFeatureAvailability(MessageID feature)
@@ -1098,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         hasUSuffix = true;
                     }
                 }
-                else if (ch == 'u' || ch == 'U')
+                else if ((ch = TextWindow.PeekChar()) == 'u' || ch == 'U')
                 {
                     TextWindow.AdvanceChar();
                     hasUSuffix = true;
@@ -2034,7 +2040,7 @@ top:
                         // When we're ready to implement this behavior, we can drop the position
                         // check and use AdvanceIfMatches instead of PeekChar.
                         if (!isEscaped && (TextWindow.Position == beforeConsumed + 1) &&
-                            (TextWindow.PeekChar() is 'u' or 'U'))
+                            (TextWindow.PeekChar() == 'u' || TextWindow.PeekChar() == 'U'))
                         {
                             Debug.Assert(consumedSurrogate == SlidingTextWindow.InvalidCharacter, "Since consumedChar == '\\'");
 
@@ -3200,45 +3206,46 @@ top:
         {
             Debug.Assert(TextWindow.PeekChar() == '<');
 
-            switch (TextWindow.PeekChar(1))
+            if (TextWindow.PeekChar(1) == '!')
             {
-                case '!':
-                    if (TextWindow.PeekChar(2) == '-'
-                     && TextWindow.PeekChar(3) == '-')
-                    {
-                        TextWindow.AdvanceChar(4);
-                        info.Kind = SyntaxKind.XmlCommentStartToken;
-                    }
-                    else if (TextWindow.PeekChar(2) == '['
-                          && TextWindow.PeekChar(3) == 'C'
-                          && TextWindow.PeekChar(4) == 'D'
-                          && TextWindow.PeekChar(5) == 'A'
-                          && TextWindow.PeekChar(6) == 'T'
-                          && TextWindow.PeekChar(7) == 'A'
-                          && TextWindow.PeekChar(8) == '[')
-                    {
-                        TextWindow.AdvanceChar(9);
-                        info.Kind = SyntaxKind.XmlCDataStartToken;
-                    }
-                    else
-                    {
-                        // TODO: Take the < by itself, I guess?
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.LessThanToken;
-                    }
-                    break;
-                case '/':
-                    TextWindow.AdvanceChar(2);
-                    info.Kind = SyntaxKind.LessThanSlashToken;
-                    break;
-                case '?':
-                    TextWindow.AdvanceChar(2);
-                    info.Kind = SyntaxKind.XmlProcessingInstructionStartToken;
-                    break;
-                default:
+                if (TextWindow.PeekChar(2) == '-'
+                    && TextWindow.PeekChar(3) == '-')
+                {
+                    TextWindow.AdvanceChar(4);
+                    info.Kind = SyntaxKind.XmlCommentStartToken;
+                }
+                else if (TextWindow.PeekChar(2) == '['
+                    && TextWindow.PeekChar(3) == 'C'
+                    && TextWindow.PeekChar(4) == 'D'
+                    && TextWindow.PeekChar(5) == 'A'
+                    && TextWindow.PeekChar(6) == 'T'
+                    && TextWindow.PeekChar(7) == 'A'
+                    && TextWindow.PeekChar(8) == '[')
+                {
+                    TextWindow.AdvanceChar(9);
+                    info.Kind = SyntaxKind.XmlCDataStartToken;
+                }
+                else
+                {
+                    // TODO: Take the < by itself, I guess?
                     TextWindow.AdvanceChar();
                     info.Kind = SyntaxKind.LessThanToken;
-                    break;
+                }
+            }
+            else if (TextWindow.PeekChar(1) == '/')
+            {
+                TextWindow.AdvanceChar(2);
+                info.Kind = SyntaxKind.LessThanSlashToken;
+            }
+            else if (TextWindow.PeekChar(1) == '?')
+            {
+                TextWindow.AdvanceChar(2);
+                info.Kind = SyntaxKind.XmlProcessingInstructionStartToken;
+            }
+            else
+            {
+                TextWindow.AdvanceChar();
+                info.Kind = SyntaxKind.LessThanToken;
             }
         }
 
