@@ -240,12 +240,11 @@ outer:
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         var ifStatement = ConvertToIfStatement(
-            statement,
-            conditionalExpression,
-            convertedSyntax => convertedSyntax,
             semanticModel,
             generator,
-            syntaxFacts,
+            container: statement,
+            conditionalExpression,
+            convertedSyntax => convertedSyntax,
             cancellationToken).WithTriviaFrom(statement);
 
         var newRoot = root.ReplaceNode(statement, ifStatement);
@@ -277,12 +276,11 @@ outer:
         var isGlobalStatement = syntaxFacts.IsGlobalStatement(localDeclarationStatement.Parent);
         var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(generator, localDeclarationStatement, symbol);
         var ifStatement = ConvertToIfStatement(
-            value,
-            conditionalExpression,
-            convertedSyntax => generator.AssignmentStatement(identifier, convertedSyntax),
             semanticModel,
             generator,
-            syntaxFacts,
+            container: value,
+            conditionalExpression,
+            convertedSyntax => generator.AssignmentStatement(identifier, convertedSyntax),
             cancellationToken);
 
         var newRoot = root.ReplaceNode(
@@ -300,12 +298,11 @@ outer:
     }
 
     private static TStatementSyntax ConvertToIfStatement(
-        SyntaxNode syntax,
-        TConditionalExpressionSyntax conditionalExpression,
-        Func<SyntaxNode, SyntaxNode> wrapConvertedSyntax,
         SemanticModel semanticModel,
         SyntaxGenerator generator,
-        ISyntaxFactsService syntaxFacts,
+        SyntaxNode container,
+        TConditionalExpressionSyntax conditionalExpression,
+        Func<SyntaxNode, SyntaxNode> wrapConvertedSyntax,
         CancellationToken cancellationToken)
     {
         // When we have `object v = x ? y : z`, then the type of 'y' and 'z' can influence each other.
@@ -323,6 +320,7 @@ outer:
         // Similarly, if we have 'var v', we need to give it a strong type at the declaration point.
         var conditionalType = semanticModel.GetTypeInfo(conditionalExpression, cancellationToken).Type;
 
+        var syntaxFacts = generator.SyntaxFacts;
         syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
         return (TStatementSyntax)generator.IfStatement(
@@ -335,7 +333,7 @@ outer:
             if (syntaxFacts.IsThrowExpression(expression))
                 return generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
 
-            var valueWithConditionalReplaced = syntax.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+            var valueWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
             Contract.ThrowIfNull(valueWithConditionalReplaced);
             return wrapConvertedSyntax(valueWithConditionalReplaced);
         }
