@@ -1942,7 +1942,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // stop observing it and let GC reclaim it
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
-                Assert.IsType<TemporaryStorageServiceFactory.TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
                 observedText.AssertReleased();
             }
             else

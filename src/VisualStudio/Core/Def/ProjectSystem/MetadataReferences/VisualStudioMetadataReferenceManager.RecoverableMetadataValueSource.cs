@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class RecoverableMetadataValueSource : ValueSource<Optional<AssemblyMetadata>>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
-            private readonly List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage> _storages;
+            private readonly List<TemporaryStorageService.TemporaryStreamStorage> _storages;
 
-            public RecoverableMetadataValueSource(AssemblyMetadata value, List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage> storages)
+            public RecoverableMetadataValueSource(AssemblyMetadata value, List<TemporaryStorageService.TemporaryStreamStorage> storages)
             {
                 Contract.ThrowIfFalse(storages.Count > 0);
 
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             private static ModuleMetadata GetModuleMetadata(
-                TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage storage)
+                TemporaryStorageService.TemporaryStreamStorage storage)
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
                 return ModuleMetadata.CreateFromMetadata(storage.ReadStream(CancellationToken.None), leaveOpen: false);

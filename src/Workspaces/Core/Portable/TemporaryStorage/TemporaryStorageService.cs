@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -25,33 +24,6 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal partial class TemporaryStorageService : ITemporaryStorageService2
     {
-        [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
-        internal partial class Factory : IWorkspaceServiceFactory
-        {
-            private readonly IWorkspaceThreadingService? _workspaceThreadingService;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(
-                [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService)
-            {
-                _workspaceThreadingService = workspaceThreadingService;
-            }
-
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
-
-                // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
-                // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-                // until https://github.com/dotnet/runtime/issues/30878 is fixed.
-                return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                    ? new TemporaryStorageService(_workspaceThreadingService, textFactory)
-                    : TrivialTemporaryStorageService.Instance;
-            }
-        }
-
         /// <summary>
         /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
         /// storage units.

@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
-        private readonly TemporaryStorageServiceFactory.TemporaryStorageService _temporaryStorageService;
+        private readonly TemporaryStorageService _temporaryStorageService;
 
         internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
 
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VisualStudioMetadataReferenceManager(
             IServiceProvider serviceProvider,
-            TemporaryStorageServiceFactory.TemporaryStorageService temporaryStorageService)
+            TemporaryStorageService temporaryStorageService)
         {
             _runtimeDirectories = GetRuntimeDirectories();
 
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // use temporary storage
-            var storages = new List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage>();
+            var storages = new List<TemporaryStorageService.TemporaryStreamStorage>();
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
 
             // don't dispose assembly metadata since it shares module metadata
@@ -154,14 +154,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
         private AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage(
-            FileKey fileKey, List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage> storages)
+            FileKey fileKey, List<TemporaryStorageService.TemporaryStreamStorage> storages)
         {
             var moduleMetadata = CreateModuleMetadataFromTemporaryStorage(fileKey, storages);
             return CreateAssemblyMetadata(fileKey, moduleMetadata, storages, CreateModuleMetadataFromTemporaryStorage);
         }
 
         private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(
-            FileKey moduleFileKey, List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage>? storages)
+            FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
         {
             GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream);
 
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private void GetStorageInfoFromTemporaryStorage(
-            FileKey moduleFileKey, out TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
+            FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
         {
             int size;
             using (var copyStream = SerializableBytes.CreateWritableStream())
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return metadata;
         }
 
-        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage>? storages)
+        private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<TemporaryStorageService.TemporaryStreamStorage>? storages)
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
             if (metadata == null)
@@ -312,8 +312,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
         private static AssemblyMetadata CreateAssemblyMetadata(
-            FileKey fileKey, ModuleMetadata manifestModule, List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage>? storages,
-            Func<FileKey, List<TemporaryStorageServiceFactory.TemporaryStorageService.TemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
+            FileKey fileKey, ModuleMetadata manifestModule, List<TemporaryStorageService.TemporaryStreamStorage>? storages,
+            Func<FileKey, List<TemporaryStorageService.TemporaryStreamStorage>?, ModuleMetadata> moduleMetadataFactory)
         {
             var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
