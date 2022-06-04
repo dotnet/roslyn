@@ -485,7 +485,7 @@ public class ReplaceConditionalWithStatementsTests
                     }
                     else
                     {
-                        v = N(N((int)throw new Exception()));
+                        throw new Exception();
                     }
                 }
             

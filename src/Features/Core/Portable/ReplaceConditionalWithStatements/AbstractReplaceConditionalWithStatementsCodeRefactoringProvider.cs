@@ -246,9 +246,7 @@ outer:
         TStatementSyntax Rewrite(SyntaxNode expression)
         {
             if (syntaxFacts.IsThrowExpression(expression))
-            {
                 return (TStatementSyntax)generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
-            }
 
             return statement.ReplaceNode(conditionalExpression,
                 TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
@@ -313,9 +311,7 @@ outer:
         SyntaxNode Rewrite(TExpressionSyntax expression)
         {
             if (syntaxFacts.IsThrowExpression(expression))
-            {
-                return (TStatementSyntax)generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
-            }
+                return generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
 
             var valueWithConditionalReplaced = value.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
             Contract.ThrowIfNull(valueWithConditionalReplaced);
