@@ -359,6 +359,41 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task ExpressionStatement_NestedInvocationArgument()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                bool M(bool b)
+                {
+                    M(M(M($$b ? true : false)));
+                    return default;
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                bool M(bool b)
+                {
+                    if (b)
+                    {
+                        M(M(M(true)));
+                    }
+                    else
+                    {
+                        M(M(M(false)));
+                    }
+                    return default;
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestThrowStatement1()
     {
         await VerifyCS.VerifyRefactoringAsync(

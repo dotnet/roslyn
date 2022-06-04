@@ -197,7 +197,7 @@ outer:
 
         syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
         var ifStatement = generator.IfStatement(
-            condition,
+            condition.WithoutTrivia(),
             new[] { Rewrite(whenTrue) },
             new[] { Rewrite(whenFalse) }).WithTriviaFrom(statement);
 
@@ -205,11 +205,10 @@ outer:
         return document.WithSyntaxRoot(newRoot);
 
         TStatementSyntax Rewrite(SyntaxNode expression)
-            => WithElasticTrivia(
-                generator,
-                statement.ReplaceNode(conditionalExpression,
-                WithAddedElasticTrivia(
-                    generator, TryCast(generator, expression, conditionalType))));
+            => statement.ReplaceNode(conditionalExpression,
+                TryCast(generator,
+                    expression.WithTriviaFrom(conditionalExpression),
+                    conditionalType));
     }
 
     private static async Task<Document> ReplaceConditionalExpressionInAssignmentStatementAsync(
