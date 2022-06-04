@@ -49,6 +49,7 @@ public class ReplaceConditionalWithStatementsTests
             }
             """);
     }
+
     [Fact]
     public async Task TestAssignment_ObjectType_OnAssigment()
     {
@@ -202,6 +203,41 @@ public class ReplaceConditionalWithStatementsTests
             }
             """
         }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRefLocalDeclaration1()
+    {
+        var source =
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    var y = new C();
+                    var z = new C();
+                    ref var x = ref ($$b ? ref y : ref z);
+                }
+            }
+            """;
+        await VerifyCS.VerifyRefactoringAsync(source, source);
+    }
+
+    [Fact]
+    public async Task TestUsingLocalDeclaration1()
+    {
+        var source =
+            """
+            using System;
+            class C
+            {
+                void M(bool b, IDisposable d1, IDisposable d2)
+                {
+                    using var x = $$b ? d1 : d2;
+                }
+            }
+            """;
+        await VerifyCS.VerifyRefactoringAsync(source, source);
     }
 
     [Fact]

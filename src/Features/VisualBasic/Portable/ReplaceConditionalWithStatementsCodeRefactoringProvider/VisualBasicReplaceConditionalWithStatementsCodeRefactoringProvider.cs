@@ -41,6 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
             Return TypeOf statement Is AssignmentStatementSyntax
         End Function
 
+        Protected Overrides Function CanRewriteLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax) As Boolean
+            Return true
+        End Function
+
         Protected Overrides Function HasSingleVariable(
                 localDeclarationStatement As LocalDeclarationStatementSyntax,
                 <Out> ByRef variable As ModifiedIdentifierSyntax) As Boolean

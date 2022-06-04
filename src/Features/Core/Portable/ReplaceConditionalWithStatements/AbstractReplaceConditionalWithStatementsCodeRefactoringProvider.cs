@@ -47,6 +47,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 {
     protected abstract bool IsAssignmentStatement(TStatementSyntax? statement);
     protected abstract bool HasSingleVariable(TLocalDeclarationStatementSyntax localDeclarationStatement, [NotNullWhen(true)] out TVariableSyntax? variable);
+    protected abstract bool CanRewriteLocalDeclarationStatement(TLocalDeclarationStatementSyntax localDeclarationStatement);
+
     protected abstract TLocalDeclarationStatementSyntax GetUpdatedLocalDeclarationStatement(SyntaxGenerator generator, TLocalDeclarationStatementSyntax localDeclarationStatement, ILocalSymbol symbol);
 
     private bool IsSupportedSimpleStatement([NotNullWhen(true)] TStatementSyntax? statement)
@@ -177,7 +179,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
             equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator &&
             conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>() is { } localDeclarationStatement &&
             HasSingleVariable(localDeclarationStatement, out var variable) &&
-            syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(variableDeclarator, localDeclarationStatement))
+            syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(variableDeclarator, localDeclarationStatement) &&
+            CanRewriteLocalDeclarationStatement(localDeclarationStatement))
         {
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Replace_conditional_expression_with_statements,

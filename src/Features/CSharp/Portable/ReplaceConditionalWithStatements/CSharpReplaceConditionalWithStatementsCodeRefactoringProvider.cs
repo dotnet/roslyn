@@ -40,6 +40,19 @@ internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
     protected override bool IsAssignmentStatement(StatementSyntax? statement)
         => false;
 
+    protected override bool CanRewriteLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
+    {
+        // A using local decl must have an initializer, so we can't rewrite this to no longer have one.
+        if (localDeclarationStatement.UsingKeyword != default)
+            return false;
+
+        // ref local variables must have an initializer, so we can't rewrite this to no longer have one.
+        if (localDeclarationStatement.Declaration.Type is RefTypeSyntax)
+            return false;
+
+        return true;
+    }
+
     protected override bool HasSingleVariable(
         LocalDeclarationStatementSyntax localDeclarationStatement,
         [NotNullWhen(true)] out VariableDeclaratorSyntax? variable)
