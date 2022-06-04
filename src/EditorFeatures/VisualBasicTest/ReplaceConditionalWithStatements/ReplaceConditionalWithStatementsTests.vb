@@ -122,29 +122,23 @@ end class
             Await VerifyVB.VerifyRefactoringAsync(
                 "
 class C
-{
     sub M(b as boolean)
-    {
-        object a = $$If(b, 0, 1L)
-    }
-}
+        dim a as object = $$If(b, 0, 1L)
+    end sub
+end class
             ",
                 "
 class C
-{
     sub M(b as boolean)
-    {
-        object a
+        dim a as object
+
         If b Then
-        {
             a = CType(0, Long)
-        }
         Else
-        {
             a = 1L
-        }
-    }
-}
+        End If
+    end sub
+end class
             ")
         End Function
 
@@ -153,29 +147,23 @@ class C
             Await VerifyVB.VerifyRefactoringAsync(
                 "
 class C
-{
     sub M(b as boolean)
-    {
-        $$object a = If(b, 0, 1L)
-    }
-}
+        $$dim a as object = If(b, 0, 1L)
+    end sub
+end class
             ",
                 "
 class C
-{
     sub M(b as boolean)
-    {
-        object a
+        dim a as object
+
         If b Then
-        {
             a = CType(0, Long)
-        }
         Else
-        {
             a = 1L
-        }
-    }
-}
+        End If
+    end sub
+end class
             ")
         End Function
 
@@ -193,6 +181,7 @@ end class
 class C
     sub M(b as boolean)
         dim a As Long
+
         If b Then
             a = 0
         Else
@@ -303,29 +292,22 @@ end class
                 "
 imports System
 class C
-{
     sub M(b as boolean)
-    {
         $$Console.WriteLine(If(b, 0, 1L))
-    }
-}
+    end sub
+end class
             ",
                 "
 imports System
 class C
-{
     sub M(b as boolean)
-    {
         If b Then
-        {
             Console.WriteLine(CType(0, Long))
-        }
         Else
-        {
             Console.WriteLine(1L)
-        }
-    }
-}
+        End If
+    end sub
+end class
             ")
         End Function
 
@@ -336,7 +318,7 @@ class C
 imports System
 class C
     sub M(b as boolean)
-        Console.WriteLine(If(b, "", ""), $$If(b, 0, 1L))
+        Console.WriteLine(If(b, """", """"), $$If(b, 0, 1L))
     end sub
 end class
             ",
@@ -345,9 +327,9 @@ imports System
 class C
     sub M(b as boolean)
         If b Then
-            Console.WriteLine(If(b, "", ""), CType(0, Long))
+            Console.WriteLine(If(b, """", """"), CType(0, Long))
         Else
-            Console.WriteLine(If(b, "", ""), 1L)
+            Console.WriteLine(If(b, """", """"), 1L)
         End If
     end sub
 end class

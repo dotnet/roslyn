@@ -295,7 +295,7 @@ outer:
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
             => generator.AssignmentStatement(
-                identifier, TryConvert(generator, expression.WithTriviaFrom(conditionalExpression), conditionalType));
+                identifier, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
 
         SyntaxNode WrapGlobal(TStatementSyntax statement)
             => isGlobalStatement ? generator.GlobalStatement(statement) : statement;
