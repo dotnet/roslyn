@@ -84,6 +84,35 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestAssignment_GlobalStatement()
+    {
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            TestCode =
+            """
+            bool b = true;
+            long a;
+            a = $$b ? 0 : 1L;
+            """,
+            FixedCode =
+            """
+            bool b = true;
+            long a;
+            if (b)
+            {
+                a = 0;
+            }
+            else
+            {
+                a = 1L;
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestCompoundAssignment()
     {
         await VerifyCS.VerifyRefactoringAsync(
@@ -388,6 +417,41 @@ public class ReplaceConditionalWithStatementsTests
                         M(M(M(false)));
                     }
                     return default;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAwaitExpression1()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                async void M(bool b, Task x, Task y)
+                {
+                    await ($$b ? x : y);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                async void M(bool b, Task x, Task y)
+                {
+                    if (b)
+                    {
+                        await (x);
+                    }
+                    else
+                    {
+                        await (y);
+                    }
                 }
             }
             """);
