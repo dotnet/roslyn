@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpReplaceConditionalWithState
 public class ReplaceConditionalWithStatementsTests
 {
     [Fact]
-    public async Task TestAssignment1()
+    public async Task TestAssignment_ObjectType()
     {
         await VerifyCS.VerifyRefactoringAsync(
             """
@@ -48,6 +48,122 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestAssignment_SameType()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    long a;
+                    a = $$b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    long a;
+                    if (b)
+                    {
+                        a = 0;
+                    }
+                    else
+                    {
+                        a = 1L;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCompoundAssignment()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    int a = 0;
+                    a += $$b ? 1 : 2;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    int a = 0;
+                    if (b)
+                    {
+                        a += 1;
+                    }
+                    else
+                    {
+                        a += 2;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithExpression()
+    {
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
+            TestCode =
+            """
+            record X(int A);
+            class C
+            {
+                void M(bool b, X x)
+                {
+                    x = x with { A = $$b ? 1 : 2 };
+                }
+            }
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class IsExternalInit
+                {
+                }
+            }
+            """,
+            FixedCode =
+            """
+            record X(int A);
+            class C
+            {
+                void M(bool b, X x)
+                {
+                    if (b)
+                    {
+                        x = x with { A = 1 };
+                    }
+                    else
+                    {
+                        x = x with { A = 2 };
+                    }
+                }
+            }
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class IsExternalInit
+                {
+                }
+            }
+            """
+        }.RunAsync();
     }
 
     [Fact]

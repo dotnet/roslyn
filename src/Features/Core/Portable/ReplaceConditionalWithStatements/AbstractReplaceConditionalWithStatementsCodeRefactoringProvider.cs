@@ -84,11 +84,17 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
             return;
         }
 
-        // supports:
-        // 1. a = x ? y : z;
-        // 2. var a = x ? y : z;
-        // 3. return x ? y : z;
-        // 4. Invocation(x ? y : z);
+        // However, if we're parented by a local decl, e.g.:
+        //
+        //      object v = a ? b : c;
+        //
+        // Then we want to break this into two statements.  One for the declaration, and one for the if-statement:
+        //
+        //      object v;
+        //      if (a)
+        //          v = b;
+        //      else
+        //          v = c;
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
