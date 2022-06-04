@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplaceConditionalWithStatements;
 
@@ -302,9 +303,12 @@ outer:
         return document.WithSyntaxRoot(newRoot);
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
-            => generator.AssignmentStatement(
-                identifier,
-                value.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression)));
+        {
+            var valueWithConditionalReplaced = value.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+            Contract.ThrowIfNull(valueWithConditionalReplaced);
+            return generator.AssignmentStatement(
+                identifier, valueWithConditionalReplaced);
+        }
 
         SyntaxNode WrapGlobal(TStatementSyntax statement)
             => isGlobalStatement ? generator.GlobalStatement(statement) : statement;
