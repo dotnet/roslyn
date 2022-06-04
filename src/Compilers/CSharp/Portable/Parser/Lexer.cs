@@ -1805,7 +1805,7 @@ top:
                                 // Debugger syntax allows @0x[hexdigit]+ for object address identifiers.
                                 if (info.IsVerbatim &&
                                     this.ModeIs(LexerMode.DebuggerSyntax) &&
-                                    (char.ToLowerInvariant(TextWindow.PeekChar(1)) == 'x'))
+                                    (char.ToLower(TextWindow.PeekChar(1)) == 'x'))
                                 {
                                     isObjectAddress = true;
                                 }
@@ -1963,8 +1963,8 @@ Fail:
             {
                 return true;
             }
-
-            return char.ToLowerInvariant(c) is >= 'a' and <= 'f';
+            c = char.ToLower(c);
+            return (c >= 'a') && (c <= 'f');
         }
 
         /// <summary>
