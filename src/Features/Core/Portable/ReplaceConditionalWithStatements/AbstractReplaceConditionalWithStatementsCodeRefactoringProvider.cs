@@ -48,16 +48,92 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     protected abstract bool HasSingleVariable(TLocalDeclarationStatementSyntax localDeclarationStatement, [NotNullWhen(true)] out TVariableSyntax? variable);
     protected abstract TLocalDeclarationStatementSyntax GetUpdatedLocalDeclarationStatement(SyntaxGenerator generator, TLocalDeclarationStatementSyntax localDeclarationStatement, ILocalSymbol symbol);
 
+    private static bool IsSupportedSimpleStatement([NotNullWhen(true)] TStatementSyntax? statement)
+        => statement is TExpressionStatementSyntax or
+                        TReturnStatementSyntax or
+                        TThrowStatementSyntax or
+                        TYieldStatementSyntax;
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
+        var (document, _, cancellationToken) = context;
+
+        // First, see if we're inside a conditional.  If so, attempt to use that to offer fixes on.
         var conditionalExpression = await context.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>().ConfigureAwait(false);
+        if (conditionalExpression is not null)
+        {
+            TryHandleConditionalExpression(context, conditionalExpression);
+            return;
+        }
+
+        // If not, see if we're on an supported statement.  If so, see if it has an applicable conditional within it
+        // that we could support this on.
+        var statement = await context.TryGetRelevantNodeAsync<TStatementSyntax>().ConfigureAwait(false);
+        if (IsSupportedSimpleStatement(statement))
+        {
+            TryHandleConditionalExpression(context, TryFindConditional(statement, cancellationToken));
+            return;
+        }
+
+        if (statement is TLocalDeclarationStatementSyntax localDeclarationStatement)
+        {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
+            if (variables.Count == 1)
+            {
+                TryHandleConditionalExpression(
+                    context, TryFindConditional(syntaxFacts.GetInitializerOfVariableDeclarator(variables[0]), cancellationToken));
+                return;
+            }
+        }
+    }
+
+    private static TConditionalExpressionSyntax? TryFindConditional(SyntaxNode? top, CancellationToken cancellationToken)
+    {
+        return Recurse(top);
+
+        TConditionalExpressionSyntax? Recurse(SyntaxNode? node)
+        {
+            if (node is not null)
+            {
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsToken)
+                        continue;
+
+                    var result = CheckNode(child.AsNode());
+                    if (result != null)
+                        return result;
+                }
+            }
+
+            return null;
+        }
+
+        TConditionalExpressionSyntax? CheckNode(SyntaxNode? node)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (node is TConditionalExpressionSyntax conditionalExpression)
+                return conditionalExpression;
+
+            if (node is TExpressionSyntax or TArgumentListSyntax or TArgumentSyntax)
+                return Recurse(node);
+
+            return null;
+        }
+    }
+
+    private void TryHandleConditionalExpression(
+        CodeRefactoringContext context,
+        TConditionalExpressionSyntax? conditionalExpression)
+    {
         if (conditionalExpression is null)
             return;
 
         var (document, _, cancellationToken) = context;
 
         // Walk upwards from this conditional, through parent expressions and arguments until we find the owning construct.
-        var topExpression = AbstractReplaceConditionalWithStatementsCodeRefactoringProvider<TExpressionSyntax, TConditionalExpressionSyntax, TStatementSyntax, TThrowStatementSyntax, TYieldStatementSyntax, TReturnStatementSyntax, TExpressionStatementSyntax, TLocalDeclarationStatementSyntax, TArgumentSyntax, TArgumentListSyntax, TVariableSyntax, TVariableDeclaratorSyntax, TEqualsValueClauseSyntax>.GetTopExpression(conditionalExpression);
+        var topExpression = GetTopExpression(conditionalExpression);
 
         // Check if we're parented by one of the simple statement types.  In all these cases, we just convert the
         //
@@ -73,14 +149,12 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         // (in other words, we duplicate the statement wholesale, just replacing the conditional with the
         // when-true/false portions.
         var parentStatement = topExpression.Parent as TStatementSyntax;
-        if (parentStatement is TExpressionStatementSyntax or
-                               TReturnStatementSyntax or
-                               TThrowStatementSyntax or
-                               TYieldStatementSyntax)
+        if (IsSupportedSimpleStatement(parentStatement))
         {
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Replace_conditional_expression_with_statements,
-                c => ReplaceConditionalExpressionInSingleStatementAsync(document, conditionalExpression, parentStatement, c)));
+                c => ReplaceConditionalExpressionInSingleStatementAsync(document, conditionalExpression, parentStatement, c)),
+                conditionalExpression.Span);
             return;
         }
 
@@ -107,7 +181,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Replace_conditional_expression_with_statements,
                 c => ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
-                    document, conditionalExpression, variable, localDeclarationStatement, c)));
+                    document, conditionalExpression, variable, localDeclarationStatement, c)),
+                conditionalExpression.Span);
             return;
         }
     }
@@ -136,12 +211,6 @@ outer:
         => conditionalType is null or IErrorTypeSymbol
             ? whenTrue
             : generator.CastExpression(conditionalType, whenTrue);
-
-    private static TSyntaxNode WithElasticTrivia<TSyntaxNode>(SyntaxGenerator generator, TSyntaxNode node) where TSyntaxNode : SyntaxNode
-        => node.WithLeadingTrivia(generator.ElasticMarker).WithTrailingTrivia(generator.ElasticMarker);
-
-    private static TSyntaxNode WithAddedElasticTrivia<TSyntaxNode>(SyntaxGenerator generator, TSyntaxNode node) where TSyntaxNode : SyntaxNode
-        => node.WithPrependedLeadingTrivia(generator.ElasticMarker).WithAppendedTrailingTrivia(generator.ElasticMarker);
 
     private static async Task<Document> ReplaceConditionalExpressionInSingleStatementAsync(
         Document document,

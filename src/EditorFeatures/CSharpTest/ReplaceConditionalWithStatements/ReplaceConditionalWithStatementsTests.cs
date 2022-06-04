@@ -49,6 +49,38 @@ public class ReplaceConditionalWithStatementsTests
             }
             """);
     }
+    [Fact]
+    public async Task TestAssignment_ObjectType_OnAssigment()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    object a;
+                    $$a = b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    object a;
+                    if (b)
+                    {
+                        a = (long)0;
+                    }
+                    else
+                    {
+                        a = 1L;
+                    }
+                }
+            }
+            """);
+    }
 
     [Fact]
     public async Task TestAssignment_SameType()
@@ -126,6 +158,35 @@ public class ReplaceConditionalWithStatementsTests
             bool b = true;
             long a;
             a = $$b ? 0 : 1L;
+            """,
+            FixedCode =
+            """
+            bool b = true;
+            long a;
+            if (b)
+            {
+                a = 0;
+            }
+            else
+            {
+                a = 1L;
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAssignment_GlobalStatement_OnAssignment()
+    {
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            TestCode =
+            """
+            bool b = true;
+            long a;
+            $$a = b ? 0 : 1L;
             """,
             FixedCode =
             """
@@ -259,6 +320,38 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestLocalDeclarationStatement1_OnDeclaration()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    $$object a = b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    object a;
+                    if (b)
+                    {
+                        a = (long)0;
+                    }
+                    else
+                    {
+                        a = 1L;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestLocalDeclarationStatement_WithVar()
     {
         await VerifyCS.VerifyRefactoringAsync(
@@ -301,6 +394,35 @@ public class ReplaceConditionalWithStatementsTests
             """
             bool b = true;
             object a = $$b ? 0 : 1L;
+            """,
+            FixedCode =
+            """
+            bool b = true;
+            object a;
+
+            if (b)
+            {
+                a = (long)0;
+            }
+            else
+            {
+                a = 1L;
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclarationStatement_TopLevel_OnDeclaration1()
+    {
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            TestCode =
+            """
+            bool b = true;
+            $$object a = b ? 0 : 1L;
             """,
             FixedCode =
             """
@@ -380,6 +502,37 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestReturnStatement_ObjectReturn_OnReturn()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                object M(bool b)
+                {
+                    $$return b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                object M(bool b)
+                {
+                    if (b)
+                    {
+                        return (long)0;
+                    }
+                    else
+                    {
+                        return 1L;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestReturnStatement_AcualTypeReturn()
     {
         await VerifyCS.VerifyRefactoringAsync(
@@ -411,7 +564,7 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
-    public async Task ExpressionStatement_SimpleInvocationArgument()
+    public async Task TestExpressionStatement_SimpleInvocationArgument()
     {
         await VerifyCS.VerifyRefactoringAsync(
             """
@@ -444,7 +597,40 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
-    public async Task ExpressionStatement_SecondInvocationArgument()
+    public async Task TestExpressionStatement_SimpleInvocationArgument_OnStatement()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    $$Console.WriteLine(b ? 0 : 1L);
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        Console.WriteLine((long)0);
+                    }
+                    else
+                    {
+                        Console.WriteLine(1L);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExpressionStatement_SecondInvocationArgument()
     {
         await VerifyCS.VerifyRefactoringAsync(
             """
@@ -477,7 +663,7 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
-    public async Task ExpressionStatement_NestedInvocationArgument()
+    public async Task TestExpressionStatement_NestedInvocationArgument()
     {
         await VerifyCS.VerifyRefactoringAsync(
             """
@@ -547,6 +733,41 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestAwaitExpression_OnAwait()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                async void M(bool b, Task x, Task y)
+                {
+                    $$await (b ? x : y);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                async void M(bool b, Task x, Task y)
+                {
+                    if (b)
+                    {
+                        await (x);
+                    }
+                    else
+                    {
+                        await (y);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestThrowStatement1()
     {
         await VerifyCS.VerifyRefactoringAsync(
@@ -557,6 +778,39 @@ public class ReplaceConditionalWithStatementsTests
                 void M(bool b)
                 {
                     throw $$b ? new Exception("x") : new Exception("y");
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        throw new Exception("x");
+                    }
+                    else
+                    {
+                        throw new Exception("y");
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestThrowStatement_OnThrow1()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    $$throw b ? new Exception("x") : new Exception("y");
                 }
             }
             """,
@@ -591,6 +845,41 @@ public class ReplaceConditionalWithStatementsTests
                 IEnumerable<object> M(bool b)
                 {
                     yield return $$b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                IEnumerable<object> M(bool b)
+                {
+                    if (b)
+                    {
+                        yield return (long)0;
+                    }
+                    else
+                    {
+                        yield return 1L;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestYieldReturn_OnYield1()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                IEnumerable<object> M(bool b)
+                {
+                    $$yield return b ? 0 : 1L;
                 }
             }
             """,
