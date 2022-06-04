@@ -1559,6 +1559,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
 
+        internal abstract SyntaxNode GlobalStatement(SyntaxNode statement);
+
         #endregion
 
         #region Expressions

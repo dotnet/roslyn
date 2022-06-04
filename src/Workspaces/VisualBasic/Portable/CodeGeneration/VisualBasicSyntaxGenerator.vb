@@ -678,6 +678,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotSupportedException()
         End Function
 
+        Friend Overrides Function GlobalStatement(statement As SyntaxNode) As SyntaxNode
+            ' Visual basic does not have global statements
+            Throw New NotSupportedException()
+        End Function
+
         Friend Overrides Function ParseExpression(stringToParse As String) As SyntaxNode
             Return SyntaxFactory.ParseExpression(stringToParse)
         End Function

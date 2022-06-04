@@ -208,17 +208,28 @@ outer:
         syntaxFacts.GetPartsOfConditionalExpression(conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
         var identifier = generator.IdentifierName(symbol.Name);
 
+        var isGlobalStatement = syntaxFacts.IsGlobalStatement(localDeclarationStatement.Parent);
         var updatedLocalDeclarationStatement = GetUpdatedLocalDeclarationStatement(generator, localDeclarationStatement, symbol);
-        var ifStatement = generator.IfStatement(
+        var ifStatement = (TStatementSyntax)generator.IfStatement(
             condition.WithoutTrivia(),
             new[] { Rewrite((TExpressionSyntax)whenTrue) },
             new[] { Rewrite((TExpressionSyntax)whenFalse) });
 
-        var newRoot = root.ReplaceNode(localDeclarationStatement, new[] { updatedLocalDeclarationStatement, ifStatement });
+        var newRoot = root.ReplaceNode(
+            isGlobalStatement ? localDeclarationStatement.GetRequiredParent() : localDeclarationStatement,
+            new[]
+            {
+                WrapGlobal(updatedLocalDeclarationStatement),
+                WrapGlobal(ifStatement),
+            });
+
         return document.WithSyntaxRoot(newRoot);
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
             => generator.AssignmentStatement(
                 identifier, TryCast(generator, expression.WithTriviaFrom(conditionalExpression), conditionalType));
+
+        SyntaxNode WrapGlobal(TStatementSyntax statement)
+            => isGlobalStatement ? generator.GlobalStatement(statement) : statement;
     }
 }

@@ -84,6 +84,37 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestAssignment_Discard()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    _ = $$b ? 0 : 1L;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b)
+                    {
+                        _ = (long)0;
+                    }
+                    else
+                    {
+                        _ = 1L;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestAssignment_GlobalStatement()
     {
         await new VerifyCS.Test
@@ -257,6 +288,64 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestLocalDeclarationStatement_TopLevel1()
+    {
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            TestCode =
+            """
+            bool b = true;
+            object a = $$b ? 0 : 1L;
+            """,
+            FixedCode =
+            """
+            bool b = true;
+            object a;
+
+            if (b)
+            {
+                a = (long)0;
+            }
+            else
+            {
+                a = 1L;
+            }
+            """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestLocalDeclarationStatement_TopLevel_WithVar1()
+    {
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            TestCode =
+            """
+            bool b = true;
+            var a = $$b ? 0 : 1L;
+            """,
+            FixedCode =
+            """
+            bool b = true;
+            long a;
+
+            if (b)
+            {
+                a = 0;
+            }
+            else
+            {
+                a = 1L;
+            }
+            """
+        }.RunAsync();
     }
 
     [Fact]
