@@ -197,20 +197,22 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     {
         TExpressionSyntax current = conditionalExpression;
 
-outer:
-        if (current.Parent is TExpressionSyntax parentExpression)
+        while (true)
         {
-            current = parentExpression;
-            goto outer;
-        }
+            if (current.Parent is TExpressionSyntax parentExpression)
+            {
+                current = parentExpression;
+                continue;
+            }
 
-        if (current.Parent is TArgumentSyntax { Parent: TArgumentListSyntax { Parent: TExpressionSyntax argumentParent } })
-        {
-            current = argumentParent;
-            goto outer;
-        }
+            if (current.Parent is TArgumentSyntax { Parent: TArgumentListSyntax { Parent: TExpressionSyntax argumentParent } })
+            {
+                current = argumentParent;
+                continue;
+            }
 
-        return current;
+            return current;
+        }
     }
 
     private static SyntaxNode TryConvert(
