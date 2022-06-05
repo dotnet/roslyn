@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // Left side of = assignment.
         bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node);
 
+        bool IsAnyAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement);
         bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement);
         void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfAssignmentExpressionOrStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);

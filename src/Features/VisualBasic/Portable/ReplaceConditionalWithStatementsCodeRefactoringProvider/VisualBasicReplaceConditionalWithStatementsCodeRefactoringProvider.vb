@@ -21,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
             ExpressionSyntax,
             TernaryConditionalExpressionSyntax,
             StatementSyntax,
-            ThrowStatementSyntax,
-            YieldStatementSyntax,
-            ReturnStatementSyntax,
-            ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax,
             ArgumentSyntax,
             ArgumentListSyntax,
@@ -36,10 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Protected Overrides Function IsAssignmentStatement(statement As StatementSyntax) As Boolean
-            Return TypeOf statement Is AssignmentStatementSyntax
-        End Function
 
         Protected Overrides Function CanRewriteLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax) As Boolean
             Return True

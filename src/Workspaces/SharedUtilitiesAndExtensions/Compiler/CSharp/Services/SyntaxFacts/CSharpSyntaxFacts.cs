@@ -1305,6 +1305,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = assignment.Right;
         }
 
+        // C# does not have assignment statements.
+        public bool IsAnyAssignmentStatement([NotNullWhen(true)] SyntaxNode? node)
+            => false;
+
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
             => ((SimpleNameSyntax)node).Identifier;
 

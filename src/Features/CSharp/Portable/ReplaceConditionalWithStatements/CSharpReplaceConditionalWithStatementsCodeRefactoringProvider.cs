@@ -20,10 +20,6 @@ internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
         ExpressionSyntax,
         ConditionalExpressionSyntax,
         StatementSyntax,
-        ThrowStatementSyntax,
-        YieldStatementSyntax,
-        ReturnStatementSyntax,
-        ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         ArgumentSyntax,
         BaseArgumentListSyntax,
@@ -36,9 +32,6 @@ internal class CSharpReplaceConditionalWithStatementsCodeRefactoringProvider :
     public CSharpReplaceConditionalWithStatementsCodeRefactoringProvider()
     {
     }
-
-    protected override bool IsAssignmentStatement(StatementSyntax? statement)
-        => false;
 
     protected override bool CanRewriteLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
     {

@@ -1354,6 +1354,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsAnyAssignmentStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyAssignmentStatement
+            Return TypeOf node Is AssignmentStatementSyntax
+        End Function
+
         Public Function IsSimpleAssignmentStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleAssignmentStatement
             Return node.IsKind(SyntaxKind.SimpleAssignmentStatement)
         End Function

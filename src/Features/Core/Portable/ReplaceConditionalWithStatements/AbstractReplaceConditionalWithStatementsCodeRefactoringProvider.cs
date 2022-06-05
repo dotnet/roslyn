@@ -22,10 +22,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     TExpressionSyntax,
     TConditionalExpressionSyntax,
     TStatementSyntax,
-    TThrowStatementSyntax,
-    TYieldStatementSyntax,
-    TReturnStatementSyntax,
-    TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TArgumentSyntax,
     TArgumentListSyntax,
@@ -36,10 +32,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     where TExpressionSyntax : SyntaxNode
     where TConditionalExpressionSyntax : TExpressionSyntax
     where TStatementSyntax : SyntaxNode
-    where TThrowStatementSyntax : TStatementSyntax
-    where TYieldStatementSyntax : TStatementSyntax
-    where TReturnStatementSyntax : TStatementSyntax
-    where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TArgumentSyntax : SyntaxNode
     where TArgumentListSyntax : SyntaxNode
@@ -47,18 +39,17 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
     where TVariableDeclaratorSyntax : SyntaxNode
     where TEqualsValueClauseSyntax : SyntaxNode
 {
-    protected abstract bool IsAssignmentStatement(TStatementSyntax? statement);
     protected abstract bool HasSingleVariable(TLocalDeclarationStatementSyntax localDeclarationStatement, [NotNullWhen(true)] out TVariableSyntax? variable);
     protected abstract bool CanRewriteLocalDeclarationStatement(TLocalDeclarationStatementSyntax localDeclarationStatement);
 
     protected abstract TLocalDeclarationStatementSyntax GetUpdatedLocalDeclarationStatement(SyntaxGenerator generator, TLocalDeclarationStatementSyntax localDeclarationStatement, ILocalSymbol symbol);
 
-    private bool IsSupportedSimpleStatement([NotNullWhen(true)] TStatementSyntax? statement)
-        => IsAssignmentStatement(statement) ||
-           statement is TExpressionStatementSyntax or
-                        TReturnStatementSyntax or
-                        TThrowStatementSyntax or
-                        TYieldStatementSyntax;
+    private static bool IsSupportedSimpleStatement(ISyntaxFacts syntaxFacts, [NotNullWhen(true)] TStatementSyntax? statement)
+        => syntaxFacts.IsAnyAssignmentStatement(statement) ||
+           syntaxFacts.IsExpressionStatement(statement) ||
+           syntaxFacts.IsReturnStatement(statement) ||
+           syntaxFacts.IsThrowStatement(statement) ||
+           syntaxFacts.IsYieldReturnStatement(statement);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -74,8 +65,9 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
         // If not, see if we're on an supported statement.  If so, see if it has an applicable conditional within it
         // that we could support this on.
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var statement = await context.TryGetRelevantNodeAsync<TStatementSyntax>().ConfigureAwait(false);
-        if (IsSupportedSimpleStatement(statement))
+        if (IsSupportedSimpleStatement(syntaxFacts, statement))
         {
             TryHandleConditionalExpression(context, TryFindConditional(statement, cancellationToken));
             return;
@@ -83,7 +75,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
         if (statement is TLocalDeclarationStatementSyntax localDeclarationStatement)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
             if (variables.Count == 1)
             {
@@ -156,7 +147,7 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         // (in other words, we duplicate the statement wholesale, just replacing the conditional with the
         // when-true/false portions.
         var parentStatement = topExpression.Parent as TStatementSyntax;
-        if (IsSupportedSimpleStatement(parentStatement))
+        if (IsSupportedSimpleStatement(syntaxFacts, parentStatement))
         {
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Replace_conditional_expression_with_statements,

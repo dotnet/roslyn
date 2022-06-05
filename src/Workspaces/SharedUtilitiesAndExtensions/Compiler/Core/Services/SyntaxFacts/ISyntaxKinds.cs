@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int YieldReturnStatement { get; }
 
         #endregion
 
