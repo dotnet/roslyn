@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
                 return;
 
             var classifiers = AspNetCoreClassifierExtensionProvider.GetExtensions(context.Project);
+            if (classifiers.Length == 0)
+                return;
+
             var aspContext = new AspNetCoreEmbeddedLanguageClassificationContext(context);
             foreach (var classifier in classifiers)
                 classifier.RegisterClassifications(aspContext);

@@ -6,7 +6,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -246,5 +248,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract CSharpSyntaxNode GetInitializer();
 
         protected abstract bool IsWithinExpressionOrBlockBody(int position, out int offset);
+
+#nullable enable
+        protected sealed override bool HasSetsRequiredMembersImpl
+            => GetEarlyDecodedWellKnownAttributeData()?.HasSetsRequiredMembersAttribute == true;
+
+        internal sealed override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        {
+            if (arguments.SymbolPart == AttributeLocation.None)
+            {
+                if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.SetsRequiredMembersAttribute))
+                {
+                    var earlyData = arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>();
+                    earlyData.HasSetsRequiredMembersAttribute = true;
+
+                    if (ContainingType.IsWellKnownSetsRequiredMembersAttribute())
+                    {
+                        // Avoid a binding cycle for this scenario.
+                        return (null, null);
+                    }
+
+                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out bool hasAnyDiagnostics);
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                    else
+                    {
+                        return (null, null);
+                    }
+                }
+            }
+
+            return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddRequiredMembersMarkerAttributes(ref attributes, this);
+        }
     }
 }

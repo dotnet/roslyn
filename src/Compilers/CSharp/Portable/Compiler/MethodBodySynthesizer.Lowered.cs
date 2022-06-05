@@ -290,6 +290,8 @@ start:
                 F.CloseMethod(F.ThrowNull());
             }
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 
     internal abstract partial class MethodToClassRewriter

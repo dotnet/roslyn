@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isEnumTypeMemberAccessContext,
             bool isFixedVariableDeclarationContext,
             bool isFunctionPointerTypeArgumentContext,
+            bool isGenericConstraintContext,
             bool isGenericTypeArgumentContext,
             bool isGlobalStatementContext,
             bool isImplicitOrExplicitOperatorTypeContext,
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isAttributeNameContext: isAttributeNameContext,
                   isAwaitKeywordContext: isAwaitKeywordContext,
                   isEnumTypeMemberAccessContext: isEnumTypeMemberAccessContext,
+                  isGenericConstraintContext: isGenericConstraintContext,
                   isGlobalStatementContext: isGlobalStatementContext,
                   isInImportsDirective: isInImportsDirective,
                   isInQuery: isInQuery,
@@ -263,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isEnumTypeMemberAccessContext: syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
                 isFixedVariableDeclarationContext: syntaxTree.IsFixedVariableDeclarationContext(position, leftToken),
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
+                isGenericConstraintContext: syntaxTree.IsGenericConstraintContext(targetToken),
                 isGenericTypeArgumentContext: syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken),
                 isGlobalStatementContext: isGlobalStatementContext,
                 isImplicitOrExplicitOperatorTypeContext: syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken),
@@ -384,6 +387,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             return this.SyntaxTree.IsMemberDeclarationContext(this.Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
         }
+
+        public bool IsRegularTopLevelStatementsContext()
+            => IsGlobalStatementContext && SyntaxTree.Options.Kind is SourceCodeKind.Regular;
 
         private static bool IsLeftSideOfUsingAliasDirective(SyntaxToken leftToken)
         {

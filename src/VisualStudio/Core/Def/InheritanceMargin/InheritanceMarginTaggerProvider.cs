@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -95,6 +96,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (document == null)
                 return;
 
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+                return;
+
             var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
                 return;
@@ -115,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 document,
                 spanToSearch,
                 includeGlobalImports,
+                frozenPartialSemantics: true,
                 cancellationToken).ConfigureAwait(false);
             var elapsed = stopwatch.Elapsed;
 

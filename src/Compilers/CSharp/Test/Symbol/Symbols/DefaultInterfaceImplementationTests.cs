@@ -1844,7 +1844,7 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
@@ -1855,7 +1855,7 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8706: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
@@ -1953,7 +1953,7 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                     );
             }
             else
@@ -1961,7 +1961,7 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8706: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15)
                     );
             }
         }
@@ -4406,31 +4406,31 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2").WithLocation(2, 15)
@@ -4501,31 +4501,31 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8706: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2").WithLocation(2, 15)
@@ -4631,19 +4631,19 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                     );
             }
             else
@@ -4651,19 +4651,19 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8706: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15)
                     );
             }
 
@@ -5953,31 +5953,31 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2").WithLocation(2, 15)
@@ -6062,19 +6062,19 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                 );
 
             ValidateIndexerImplementation_501(compilation3.SourceModule, "Test2");
@@ -7386,13 +7386,13 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8502: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support default interface implementation.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2").WithLocation(2, 15)
@@ -7446,13 +7446,13 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8706: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8929: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support static abstract members in interfaces.
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2").WithLocation(2, 15)
@@ -7541,10 +7541,10 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                     // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                     );
             }
             else
@@ -7552,10 +7552,10 @@ class Test2 : I1
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8706: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15),
                     // (2,15): error CS8706: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test2 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 15)
                     );
             }
 
@@ -32138,10 +32138,10 @@ class Test1 : I1
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS8506: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule, isStatic: false);
@@ -32224,10 +32224,10 @@ class Test1 : I1
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS8706: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
                 // (6,15): error CS8706: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
                 );
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule, isStatic: true);
@@ -36187,10 +36187,10 @@ class Test1 : I1
                 },
                 // (6,15): error CS8506: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
         }
 
@@ -36254,10 +36254,10 @@ class Test1 : I1
                 },
                 // (6,15): error CS8706: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
                 // (6,15): error CS8706: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
                 );
         }
 
@@ -39239,16 +39239,16 @@ class Test1 : I1
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS8506: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule, isStatic: false);
@@ -39329,16 +39329,16 @@ class Test1 : I1
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS8706: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
                 // (6,15): error CS8706: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
                 // (6,15): error CS8706: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
                 // (6,15): error CS8706: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
                 );
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule, isStatic: true);
@@ -41596,10 +41596,10 @@ class Test1 : I1
                 },
                 // (6,15): error CS8506: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.this[int].set' cannot implement interface member 'I4.this[int].set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
         }
 
@@ -67536,10 +67536,10 @@ class Test1 : I1<Test1>
                 compilation3.GetDiagnostics().VerifyErrorCodes(
                     // (6,15): error CS8706: 'I1<Test1>.I2<Test1>.operator +(Test1, int)' cannot implement interface member 'I2<Test1>.operator +(Test1, int)' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test1 : I1<Test1>
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1<Test1>"),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<Test1>"),
                     // (6,15): error CS8706: 'I1<Test1>.I4<Test1>.operator +(Test1, int)' cannot implement interface member 'I4<Test1>.operator +(Test1, int)' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // class Test1 : I1<Test1>
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1<Test1>")
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<Test1>")
                     );
 
 
