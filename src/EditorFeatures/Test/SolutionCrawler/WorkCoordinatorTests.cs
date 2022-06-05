@@ -1408,7 +1408,7 @@ class C
             Assert.False(worker.WaitForCancellation);
             Assert.False(worker.BlockedRun);
             var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
-            worker.Reset();
+            worker.Reset(workspace);
 
             service.Register(workspace);
 
@@ -1643,6 +1643,8 @@ class C
             public readonly HashSet<ProjectId> InvalidateProjectIds = new HashSet<ProjectId>();
             private readonly IGlobalOptionService _globalOptions;
 
+            private Workspace _workspace;
+
             public Analyzer(IGlobalOptionService globalOptions, bool waitForCancellation = false, bool blockedRun = false)
             {
                 _globalOptions = globalOptions;
@@ -1651,14 +1653,34 @@ class C
 
                 this.BlockEvent = new ManualResetEventSlim(initialState: false);
                 this.RunningEvent = new ManualResetEventSlim(initialState: false);
+
+                _globalOptions.OptionChanged += GlobalOptionChanged;
+            }
+
+            public void Shutdown()
+            {
+                _globalOptions.OptionChanged -= GlobalOptionChanged;
+            }
+
+            private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                if (e.Option == TestOption ||
+                    e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
+                    e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption)
+                {
+                    var service = _workspace.Services.GetService<ISolutionCrawlerService>();
+                    service?.Reanalyze(_workspace, this, projectIds: null, documentIds: null, highPriority: false);
+                }
             }
 
             public bool WaitForCancellation { get; }
 
             public bool BlockedRun { get; }
 
-            public void Reset()
+            public void Reset(Workspace workspace)
             {
+                _workspace = workspace;
+
                 BlockEvent.Reset();
                 RunningEvent.Reset();
 
@@ -1749,13 +1771,6 @@ class C
                 }
             }
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return e.Option == TestOption
-                    || e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption
-                    || e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption;
-            }
-
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -1798,7 +1813,6 @@ class C
             }
 
             #region unused 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
@@ -1818,6 +1832,10 @@ class C
             }
 
             public int Priority => 1;
+
+            public void Shutdown()
+            {
+            }
 
             #endregion
         }

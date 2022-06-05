@@ -35,15 +35,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
         private static TestWorkspace CreateWorkspace(
             string workspaceKind = null,
             bool disablePartialSolutions = true,
-            bool shareGlobalOptions = false,
             TestComposition composition = null)
         {
             composition ??= EditorTestCompositions.EditorFeatures;
-            if (shareGlobalOptions)
-            {
-                composition = composition.AddParts(typeof(TestOptionsServiceWithSharedGlobalOptionsServiceFactory));
-            }
-
             return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
         }
 
@@ -1308,9 +1302,8 @@ class D { }
         [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
         public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
         {
-            // Create workspaces with shared global options to replicate the true global options service shared between workspaces.
-            using var primaryWorkspace = CreateWorkspace(shareGlobalOptions: true);
-            using var secondaryWorkspace = CreateWorkspace(shareGlobalOptions: true);
+            using var primaryWorkspace = CreateWorkspace();
+            using var secondaryWorkspace = CreateWorkspace();
 
             var document = new TestHostDocument("class C { }");
 
@@ -1327,8 +1320,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
-            var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
-            optionService.OptionChanged += OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.OptionChanged += OptionService_OptionChanged;
 
             // Change workspace options through primary workspace
             if (testDeprecatedOptionsSetter)
@@ -1346,7 +1338,7 @@ class D { }
             VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
             VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
 
-            optionService.OptionChanged -= OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.OptionChanged -= OptionService_OptionChanged;
             return;
 
             void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
