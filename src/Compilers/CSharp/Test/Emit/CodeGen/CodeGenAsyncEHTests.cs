@@ -973,6 +973,10 @@ class Test
           <slot kind=""28"" offset=""156"" />
           <slot kind=""28"" offset=""156"" ordinal=""1"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""65"" />
+          <state number=""1"" offset=""156"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>

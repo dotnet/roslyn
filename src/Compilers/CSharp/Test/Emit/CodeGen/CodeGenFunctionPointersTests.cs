@@ -3753,6 +3753,34 @@ unsafe class C
             );
         }
 
+        [Fact, WorkItem(59454, "https://github.com/dotnet/roslyn/issues/59454")]
+        public void FunctionPointerInvocationInExpressionTree()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+using System.Linq.Expressions;
+namespace test
+{
+    unsafe class Program
+    {
+        static double f() => 0;
+        static delegate*<double> fp() => &f;
+        static void Main()
+        {
+            Expression<Func<double>> h = static () => fp()();
+            Console.WriteLine(h);
+        }
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (12,55): error CS1944: An expression tree may not contain an unsafe pointer operation
+                //             Expression<Func<double>> h = static () => fp()();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "fp()()").WithLocation(12, 55)
+            );
+        }
+
         [Fact]
         public void AmbiguousApplicableMethodsAreFilteredForStatic()
         {

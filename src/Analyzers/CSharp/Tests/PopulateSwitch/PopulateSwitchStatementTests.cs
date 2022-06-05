@@ -1043,5 +1043,185 @@ public enum Bar
 }
 ");
         }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableEnabled()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        [||]switch (myEnumValue)
+        {
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable enable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        switch (myEnumValue)
+        {
+            case MyEnum.Value1:
+                break;
+            case MyEnum.Value2:
+                break;
+            case null:
+                break;
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        [||]switch (myEnumValue)
+        {
+            case null:
+                throw null;
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable enable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        switch (myEnumValue)
+        {
+            case null:
+                throw null;
+            case MyEnum.Value1:
+                break;
+            case MyEnum.Value2:
+                break;
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        [||]switch (myEnumValue)
+        {
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        switch (myEnumValue)
+        {
+            case MyEnum.Value1:
+                break;
+            case MyEnum.Value2:
+                break;
+            case null:
+                break;
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        [||]switch (myEnumValue)
+        {
+            case null:
+                throw null;
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class TestClass
+{
+    public static void Test(MyEnum? myEnumValue)
+    {
+        switch (myEnumValue)
+        {
+            case null:
+                throw null;
+            case MyEnum.Value1:
+                break;
+            case MyEnum.Value2:
+                break;
+        }
+    }
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
     }
 }

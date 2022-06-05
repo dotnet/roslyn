@@ -12273,21 +12273,33 @@ False
 }");
             verifier.VerifyIL("Program.ShiftLeft",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shl
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.IntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shl
+  IL_000e:  ret
 }");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shr
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.IntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shr
+  IL_000e:  ret
 }");
         }
 
@@ -12486,21 +12498,33 @@ False
 }");
             verifier.VerifyIL("Program.ShiftLeft",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shl
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.UIntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shl
+  IL_000e:  ret
 }");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shr.un
-  IL_0003:  ret
+  IL_0002:  sizeof     ""System.UIntPtr""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shr.un
+  IL_000e:  ret
 }");
         }
 
@@ -15097,6 +15121,418 @@ struct Outer<@nint>
             Assert.False(symbol.IsNativeIntegerType);
             Assert.Equal("nint", symbol.ToTestDisplayString());
             Assert.Equal(TypeKind.TypeParameter, symbol.TypeKind);
+        }
+
+        [Fact, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
+        public void MaskShiftCount()
+        {
+            // positive nint shift right
+            validate("nint", "NIntMaxValue", ">> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr(0));
+            validate("nint", "NIntMaxValue", ">> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr(1));
+            validate("nint", "NIntMaxValue", ">> 31", "0x0", "0xFFFF_FFFF", nint_shr(31));
+            validate("nint", "NIntMaxValue", ">> 32", "0x7FFF_FFFF", "0x7FFF_FFFF", nint_shr(32));
+            validate("nint", "NIntMaxValue", ">> 33", "0x3FFF_FFFF", "0x3FFF_FFFF", nint_shr(33));
+            validate("nint", "NIntMaxValue", ">> 63", "0x0", "0x0", nint_shr(63));
+            validate("nint", "NIntMaxValue", ">> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr(64));
+            validate("nint", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr(65));
+
+            // negative nint shift right
+            validate("nint", "NIntNegativeValue", ">> 1", "0xE000_0000", "0xE000_0000_0000_0000", nint_shr(1));
+            validate("nint", "NIntNegativeValue", ">> 31", "0xFFFF_FFFF", "0xFFFF_FFFF_8000_0000", nint_shr(31));
+            validate("nint", "NIntNegativeValue", ">> 32", "0xC000_0001", "0xFFFF_FFFF_C000_0000", nint_shr(32));
+            validate("nint", "NIntNegativeValue", ">> 33", "0xE000_0000", "0xFFFF_FFFF_E000_0000", nint_shr(33));
+            validate("nint", "NIntNegativeValue", ">> 63", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nint_shr(63));
+            validate("nint", "NIntNegativeValue", ">> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr(64));
+
+            // positive nint shift left
+            validate("nint", "NIntMaxValue", "<< 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shl(0));
+            validate("nint", "NIntMaxValue", "<< 1", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", nint_shl(1));
+            validate("nint", "NIntMaxValue", "<< 31", "0x8000_0000", "0xFFFF_FFFF_8000_0000", nint_shl(31));
+            validate("nint", "NIntMaxValue", "<< 32", "0x7FFF_FFFF", "0xFFFF_FFFF_0000_0000", nint_shl(32));
+            validate("nint", "NIntMaxValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nint_shl(63));
+            validate("nint", "NIntMaxValue", "<< 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shl(64));
+
+            // negative nint shift left
+            validate("nint", "NIntNegativeValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nint_shl(63));
+
+            // nuint shift right
+            validate("nuint", "NUintMaxValue", ">> 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(0));
+            validate("nuint", "NUintMaxValue", ">> 1", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nuint_shr_un(1));
+            validate("nuint", "NUintMaxValue", ">> 31", "0x0000_0001", "0x0000_0001_FFFF_FFFF", nuint_shr_un(31));
+            validate("nuint", "NUintMaxValue", ">> 32", "0xFFFF_FFFF", "0x0000_0000_FFFF_FFFF", nuint_shr_un(32));
+            validate("nuint", "NUintMaxValue", ">> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
+            validate("nuint", "NUintMaxValue", ">> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
+
+            // nuint shift left
+            validate("nuint", "NUintMaxValue", "<< 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shl(0));
+            validate("nuint", "NUintMaxValue", "<< 1", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", nuint_shl(1));
+            validate("nuint", "NUintMaxValue", "<< 31", "0x8000_0000", "0xFFFF_FFFF_8000_0000", nuint_shl(31));
+            validate("nuint", "NUintMaxValue", "<< 32", "0xFFFF_FFFF", "0xFFFF_FFFF_0000_0000", nuint_shl(32));
+            validate("nuint", "NUintMaxValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nuint_shl(63));
+            validate("nuint", "NUintMaxValue", "<< 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shl(64));
+
+            // positive nint unsigned shift right
+            validate("nint", "NIntMaxValue", ">>> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr_un(0));
+            validate("nint", "NIntMaxValue", ">>> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr_un(1));
+            validate("nint", "NIntMaxValue", ">>> 31", "0x0", "0xFFFF_FFFF", nint_shr_un(31));
+            validate("nint", "NIntMaxValue", ">>> 32", "0x7FFF_FFFF", "0x7FFF_FFFF", nint_shr_un(32));
+            validate("nint", "NIntMaxValue", ">>> 63", "0x0", "0x0", nint_shr_un(63));
+            validate("nint", "NIntMaxValue", ">>> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr_un(64));
+
+            // negative nint unsigned shift right
+            validate("nint", "NIntNegativeValue", ">>> 0", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr_un(0));
+            validate("nint", "NIntNegativeValue", ">>> 1", "0x6000_0000", "0x6000_0000_0000_0000", nint_shr_un(1));
+            validate("nint", "NIntNegativeValue", ">>> 31", "0x1", "0x0000_0001_8000_0000", nint_shr_un(31));
+            validate("nint", "NIntNegativeValue", ">>> 32", "0xC000_0001", "0x0000_0000_C000_0000", nint_shr_un(32));
+            validate("nint", "NIntNegativeValue", ">>> 63", "0x1", "0x1", nint_shr_un(63));
+            validate("nint", "NIntNegativeValue", ">>> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr_un(64));
+
+            // nuint unsigned shift right
+            validate("nuint", "NUintMaxValue", ">>> 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(0));
+            validate("nuint", "NUintMaxValue", ">>> 1", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nuint_shr_un(1));
+            validate("nuint", "NUintMaxValue", ">>> 31", "0x0000_0001", "0x0000_0001_FFFF_FFFF", nuint_shr_un(31));
+            validate("nuint", "NUintMaxValue", ">>> 32", "0xFFFF_FFFF", "0x0000_0000_FFFF_FFFF", nuint_shr_un(32));
+            validate("nuint", "NUintMaxValue", ">>> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
+            validate("nuint", "NUintMaxValue", ">>> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
+
+            // lifted value
+            validate("nint?", "NIntMaxValue", ">> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(0, "nint?", "shr"));
+            validate("nint?", "NIntMaxValue", ">> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(1, "nint?", "shr"));
+            validate("nint?", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr"));
+            validate("nint?", "NIntNegativeValue", ">> 65", "0xE000_0000", "0xE000_0000_0000_0000", liftedValue(65, "nint?", "shr"));
+            validate("nint?", "NIntMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(65, "nint?", "shl"));
+            validate("nint?", "NIntNegativeValue", "<< 65", "0x8000_0002", "0x8000_0000_0000_0002", liftedValue(65, "nint?", "shl"));
+
+            validate("nuint?", "NUintMaxValue", ">> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
+            validate("nuint?", "NUintMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(65, "nuint?", "shl"));
+
+            validate("nint?", "NIntMaxValue", ">>> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr.un"));
+            validate("nint?", "NIntNegativeValue", ">>> 65", "0x6000_0000", "0x6000_0000_0000_0000", liftedValue(65, "nint?", "shr.un"));
+            validate("nuint?", "NUintMaxValue", ">>> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
+
+            // lifted count
+            CompileAndVerify("""
+class C
+{
+    nint? M(nint value, int? count) => value >> count;
+}
+""")
+                .VerifyIL("C.M", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (System.IntPtr V_0,
+                int? V_1,
+                nint? V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  call       ""bool int?.HasValue.get""
+  IL_000b:  brtrue.s   IL_0017
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  initobj    ""nint?""
+  IL_0015:  ldloc.2
+  IL_0016:  ret
+  IL_0017:  ldloc.0
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""int int?.GetValueOrDefault()""
+  IL_001f:  sizeof     ""System.IntPtr""
+  IL_0025:  ldc.i4.8
+  IL_0026:  mul
+  IL_0027:  ldc.i4.1
+  IL_0028:  sub
+  IL_0029:  and
+  IL_002a:  shr
+  IL_002b:  newobj     ""nint?..ctor(nint)""
+  IL_0030:  ret
+}
+");
+
+            // lifted value and lifted count
+            CompileAndVerify("""
+class C
+{
+    nint? M(nint? value, int? count) => value >> count;
+}
+""")
+                .VerifyIL("C.M", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  4
+  .locals init (nint? V_0,
+                int? V_1,
+                nint? V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""bool nint?.HasValue.get""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""bool int?.HasValue.get""
+  IL_0012:  and
+  IL_0013:  brtrue.s   IL_001f
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  initobj    ""nint?""
+  IL_001d:  ldloc.2
+  IL_001e:  ret
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""nint nint?.GetValueOrDefault()""
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  call       ""int int?.GetValueOrDefault()""
+  IL_002d:  sizeof     ""System.IntPtr""
+  IL_0033:  ldc.i4.8
+  IL_0034:  mul
+  IL_0035:  ldc.i4.1
+  IL_0036:  sub
+  IL_0037:  and
+  IL_0038:  shr
+  IL_0039:  newobj     ""nint?..ctor(nint)""
+  IL_003e:  ret
+}
+");
+            return;
+
+            static string nint_shr(int count) => shift(count, "System.IntPtr", "shr");
+            static string nint_shr_un(int count) => shift(count, "System.IntPtr", "shr.un");
+            static string nint_shl(int count) => shift(count, "System.IntPtr", "shl");
+            static string nuint_shr_un(int count) => shift(count, "System.UIntPtr", "shr.un");
+            static string nuint_shl(int count) => shift(count, "System.UIntPtr", "shl");
+
+            static string shift(int count, string type, string op)
+            {
+                if (count == 0)
+                {
+                    return $@"
+{{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}}
+";
+                }
+
+                if (count == 1)
+                {
+                    return $@"
+{{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  {op}
+  IL_0003:  ret
+}}
+";
+                }
+
+                if (count <= 31)
+                {
+                    return $@"
+{{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   {count}
+  IL_0003:  {op}
+  IL_0004:  ret
+}}
+";
+                }
+
+                return $@"
+{{
+  // Code size       16 (0x10)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   {count}
+  IL_0003:  sizeof     ""{type}""
+  IL_0009:  ldc.i4.8
+  IL_000a:  mul
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  and
+  IL_000e:  {op}
+  IL_000f:  ret
+}}
+";
+            }
+
+            static string liftedValue(int count, string type, string op)
+            {
+                var strippedType = type.Trim('?');
+                if (count == 0)
+                {
+                    return $@"
+{{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init ({type} V_0,
+                {type} V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{type}""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_001c:  newobj     ""{type}..ctor({strippedType})""
+  IL_0021:  ret
+}}";
+                }
+
+                if (count == 1)
+                {
+                    return $@"
+{{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init ({type} V_0,
+                {type} V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{type}""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_001c:  ldc.i4.1
+  IL_001d:  {op}
+  IL_001e:  newobj     ""{type}..ctor({strippedType})""
+  IL_0023:  ret
+}}
+";
+                }
+
+                Assert.True(count == 65);
+                var systemType = strippedType == "nint" ? "System.IntPtr" : "System.UIntPtr";
+
+                return $@"
+{{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init ({type} V_0,
+                {type} V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {type}.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{type}""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{strippedType} {type}.GetValueOrDefault()""
+  IL_001c:  ldc.i4.s   {count}
+  IL_001e:  sizeof     ""{systemType}""
+  IL_0024:  ldc.i4.8
+  IL_0025:  mul
+  IL_0026:  ldc.i4.1
+  IL_0027:  sub
+  IL_0028:  and
+  IL_0029:  {op}
+  IL_002a:  newobj     ""{type}..ctor({strippedType})""
+  IL_002f:  ret
+}}
+";
+            }
+
+            void validate(string type, string value, string binaryOp, string result32Bits, string result64Bits, string expectedIL)
+            {
+                validateWithCheckedOrUnchecked(type, value, binaryOp, expectedIL, result32Bits, result64Bits, isChecked: true);
+                validateWithCheckedOrUnchecked(type, value, binaryOp, expectedIL, result32Bits, result64Bits, isChecked: false);
+            }
+
+            void validateWithCheckedOrUnchecked(string type, string value, string binaryOp, string expectedIL, string result32Bits, string result64Bits, bool isChecked)
+            {
+                var checkedKeyword = isChecked ? "checked" : "unchecked";
+                var strippedType = type.Trim('?');
+
+                var source = $$"""
+class C
+{
+    public static unsafe nint NIntMaxValue
+        => (sizeof(nint) == 4) ? (nint)0x7FFF_FFFF : (nint)0x7FFF_FFFF_FFFF_FFFF;
+
+    public static unsafe nint NIntNegativeValue
+        => (sizeof(nint) == 4) ? (nint)0xC000_0001 : unchecked((nint)0xC000_0000_0000_0001);
+
+    public static unsafe nuint NUintMaxValue
+        => (sizeof(nint) == 4) ? (nuint)0xFFFF_FFFF : (nuint)0xFFFF_FFFF_FFFF_FFFF;
+
+    public static {{type}} M({{type}} value)
+    {
+        return {{checkedKeyword}}(value {{binaryOp}});
+    }
+    public static unsafe void Main()
+    {
+        if (sizeof(nint) == 4)
+        {
+            if (unchecked(({{type}}){{result32Bits}}) == ({{value}} {{binaryOp}}))
+            {
+                System.Console.Write("RAN");
+            }
+            else
+            {
+                System.Console.Write($"Actual for '{{value}} {{binaryOp}}' (32-bit): {{{value}} {{binaryOp}}}");
+            }
+        }
+        else if (sizeof(nint) == 8)
+        {
+            if (unchecked(({{type}}){{result64Bits}}) == ({{value}} {{binaryOp}}))
+            {
+                System.Console.Write("RAN");
+            }
+            else
+            {
+                System.Console.Write($"Actual for '{{value}} {{binaryOp}}' (64-bit): {{{value}} {{binaryOp}}}");
+            }
+        }
+    }
+}
+""";
+                var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+                var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+                verifier.VerifyIL("C.M", expectedIL);
+            }
+        }
+
+        [Theory, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
+        [InlineData("System.IntPtr", ">>")]
+        [InlineData("System.IntPtr", ">>>")]
+        [InlineData("System.IntPtr", "<<")]
+        [InlineData("System.UIntPtr", ">>")]
+        [InlineData("System.UIntPtr", ">>>")]
+        [InlineData("System.UIntPtr", "<<")]
+        public void MaskShiftCount_NotOnIntPtr(string type, string op)
+        {
+            var source = $$"""
+class C
+{
+    {{type}} M({{type}} x, int count)
+    {
+        return x {{op}} count;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0019: Operator 'op' cannot be applied to operands of type 'type' and 'int'
+                //         return x op count;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} count").WithArguments(op, type, "int").WithLocation(5, 16)
+                );
         }
     }
 }

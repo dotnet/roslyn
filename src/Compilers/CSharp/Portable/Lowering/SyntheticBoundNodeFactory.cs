@@ -643,6 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binary(BinaryOperatorKind.IntSubtraction, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
         }
 
+        public BoundBinaryOperator IntMultiply(BoundExpression left, BoundExpression right)
+        {
+            return Binary(BinaryOperatorKind.IntMultiplication, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
+        }
+
         public BoundLiteral Literal(byte value)
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Byte)) { WasCompilerGenerated = true };
@@ -983,7 +988,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckSwitchSections(sections);
+
             GeneratedLabelSymbol breakLabel = new GeneratedLabelSymbol("break");
+
             var caseBuilder = ArrayBuilder<(ConstantValue Value, LabelSymbol label)>.GetInstance();
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
             statements.Add(null!); // placeholder at statements[0] for the dispatch

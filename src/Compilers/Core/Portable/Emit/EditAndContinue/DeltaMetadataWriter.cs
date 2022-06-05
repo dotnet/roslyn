@@ -759,7 +759,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 body.ClosureDebugInfo,
                 body.StateMachineTypeName,
                 body.StateMachineHoistedLocalSlots,
-                body.StateMachineAwaiterSlots);
+                body.StateMachineAwaiterSlots,
+                body.StateMachineStatesDebugInfo);
 
             _addedOrChangedMethods.Add(body.MethodDefinition, info);
 

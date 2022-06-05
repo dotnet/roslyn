@@ -119,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 document,
                 spanToSearch,
                 includeGlobalImports,
+                frozenPartialSemantics: true,
                 cancellationToken).ConfigureAwait(false);
             var elapsed = stopwatch.Elapsed;
 

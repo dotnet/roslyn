@@ -15,5 +15,6 @@ namespace Microsoft.CodeAnalysis.InlineRename
         public static readonly Option2<bool> RenameInComments = new(FeatureName, "RenameInComments", defaultValue: false, storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RenameInComments"));
         public static readonly Option2<bool> RenameFile = new(FeatureName, "RenameFile", defaultValue: true, storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RenameFile"));
         public static readonly Option2<bool> PreviewChanges = new(FeatureName, "PreviewChanges", defaultValue: false, storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreviewRename"));
+        public static readonly Option2<bool> RenameAsynchronously = new(FeatureName, "RenameAsynchronously", defaultValue: true, storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RenameAsynchronously"));
     }
 }
