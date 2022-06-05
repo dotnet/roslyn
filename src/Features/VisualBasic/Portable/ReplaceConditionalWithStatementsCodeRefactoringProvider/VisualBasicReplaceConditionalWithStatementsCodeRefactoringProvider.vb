@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
 
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ReplaceConditionalWithStatements), [Shared]>
     Friend Class VisualBasicReplaceConditionalWithStatementsCodeRefactoringProvider
-        Inherits AbstractReplaceConditionalWithStatementsCodeRefactoringProvider(of
+        Inherits AbstractReplaceConditionalWithStatementsCodeRefactoringProvider(Of
             ExpressionSyntax,
             TernaryConditionalExpressionSyntax,
             StatementSyntax,
@@ -42,15 +42,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
         End Function
 
         Protected Overrides Function CanRewriteLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax) As Boolean
-            Return true
+            Return True
         End Function
 
         Protected Overrides Function HasSingleVariable(
                 localDeclarationStatement As LocalDeclarationStatementSyntax,
                 <Out> ByRef variable As ModifiedIdentifierSyntax) As Boolean
-            If localDeclarationStatement.Declarators.Count = 1
+            If localDeclarationStatement.Declarators.Count = 1 Then
                 Dim declarator = localDeclarationStatement.Declarators(0)
-                If declarator.Names.Count = 1
+                If declarator.Names.Count = 1 Then
                     variable = declarator.Names(0)
                     Return True
                 End If
@@ -67,16 +67,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
             ' If we have `dim x = if(a, b, c)`
             ' then we have to add an actual type of the local when breaking this into multiple statements.
             Dim declarator = localDeclarationStatement.Declarators(0)
-            If declarator.AsClause Is Nothing
+            If declarator.AsClause Is Nothing Then
                 localDeclarationStatement = localDeclarationStatement.ReplaceNode(
                     declarator, declarator.WithAsClause(SyntaxFactory.SimpleAsClause(
                         symbol.Type.GenerateTypeSyntax())))
             End If
 
-            declarator = localDeclarationStatement.declarators(0)
+            declarator = localDeclarationStatement.Declarators(0)
             Return localDeclarationStatement.ReplaceNode(
                 declarator,
-                declarator.WithInitializer(nothing))
+                declarator.WithInitializer(Nothing))
         End Function
     End Class
 End Namespace
