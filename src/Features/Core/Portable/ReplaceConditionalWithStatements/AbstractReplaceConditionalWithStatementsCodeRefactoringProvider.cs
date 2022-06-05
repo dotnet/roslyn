@@ -136,7 +136,7 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         if (conditionalExpression is null)
             return;
 
-        var (document, _, cancellationToken) = context;
+        var document = context.Document;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         // Walk upwards from this conditional, through parent expressions and arguments until we find the owning construct.
