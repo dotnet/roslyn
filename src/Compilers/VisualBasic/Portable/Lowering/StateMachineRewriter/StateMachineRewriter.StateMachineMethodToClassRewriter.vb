@@ -65,10 +65,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
+            Private ReadOnly _stateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo)
+
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            initialProxies As Dictionary(Of Symbol, TProxy),
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
                            diagnostics As BindingDiagnosticBag)
 
@@ -84,6 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.StateField = stateField
                 Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
                 Me._hoistedVariables = hoistedVariables
+                Me._stateDebugInfoBuilder = stateMachineStateDebugInfoBuilder
 
                 For Each p In initialProxies
                     Me.Proxies.Add(p.Key, p.Value)
