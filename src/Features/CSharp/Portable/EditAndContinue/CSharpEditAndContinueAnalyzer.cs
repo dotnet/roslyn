@@ -839,9 +839,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool ExperimentalFeaturesEnabled(SyntaxTree tree)
             => false;
 
-        protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
-            => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
-
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
             => SyntaxComparer.Statement.GetLabel(node1) == SyntaxComparer.Statement.GetLabel(node2);
 
@@ -2649,8 +2646,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region State Machines
 
+        protected override bool SupportsStateMachineUpdates
+            => true;
+
+        protected override bool IsStateMachineResumableStateSyntax(SyntaxNode node)
+            => SyntaxBindingUtilities.BindsToResumableStateMachineState(node);
+
+        protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
+            => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
+
         internal override bool IsStateMachineMethod(SyntaxNode declaration)
-            => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.GetSuspensionPoints(declaration).Any();
+            => SyntaxUtilities.IsAsyncDeclaration(declaration) || SyntaxUtilities.IsIterator(declaration);
 
         protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds)
         {
@@ -2658,7 +2664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             kinds = StateMachineKinds.None;
 
-            if (suspensionPoints.Any(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement)))
+            if (SyntaxUtilities.IsIterator(body))
             {
                 kinds |= StateMachineKinds.Iterator;
             }
@@ -2671,9 +2677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
-            // TODO: changes around suspension points (foreach, lock, using, etc.)
-
-            if (newNode.IsKind(SyntaxKind.AwaitExpression))
+            if (newNode.IsKind(SyntaxKind.AwaitExpression) && oldNode.IsKind(SyntaxKind.AwaitExpression))
             {
                 var oldContainingStatementPart = FindContainingStatementPart(oldNode);
                 var newContainingStatementPart = FindContainingStatementPart(newNode);

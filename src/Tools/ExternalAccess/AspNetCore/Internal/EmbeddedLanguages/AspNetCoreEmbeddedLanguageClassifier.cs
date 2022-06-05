@@ -31,12 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
             if (classifiers.Length == 0)
                 return;
 
-            var virtualChars = context.VirtualCharService.TryConvertToVirtualChars(context.SyntaxToken);
-            if (virtualChars.IsDefaultOrEmpty)
-                return;
-
-            var aspContext = new AspNetCoreEmbeddedLanguageClassificationContext(
-                context, new AspNetCoreVirtualCharSequence(virtualChars));
+            var aspContext = new AspNetCoreEmbeddedLanguageClassificationContext(context);
             foreach (var classifier in classifiers)
                 classifier.RegisterClassifications(aspContext);
         }

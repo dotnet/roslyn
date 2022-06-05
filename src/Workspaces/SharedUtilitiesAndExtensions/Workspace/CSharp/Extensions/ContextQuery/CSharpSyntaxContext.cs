@@ -388,6 +388,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return this.SyntaxTree.IsMemberDeclarationContext(this.Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
         }
 
+        public bool IsRegularTopLevelStatementsContext()
+            => IsGlobalStatementContext && SyntaxTree.Options.Kind is SourceCodeKind.Regular;
+
         private static bool IsLeftSideOfUsingAliasDirective(SyntaxToken leftToken)
         {
             var usingDirective = leftToken.GetAncestor<UsingDirectiveSyntax>();
