@@ -22,6 +22,8 @@ pr:
   paths:
     exclude:
       - docs/*
+      - eng/config/OptProf.json
+      - eng/config/PublishData.json
       - .vscode/*
       - .github/*
       - .devcontainer/*

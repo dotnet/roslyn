@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Use <see cref="GetDiagnosticsForSpanAsync(Document, TextSpan?, Func{string, bool}?, bool, CodeActionRequestPriority, Func{string, IDisposable?}?, CancellationToken)"/>
         /// if you want to force complete all analyzers and get up-to-date diagnostics for all analyzers for the given span.
         /// </summary>
-        Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
+        Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return up to date diagnostics for the given span for the document

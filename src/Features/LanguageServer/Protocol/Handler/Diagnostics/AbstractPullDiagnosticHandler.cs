@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
 
-        private readonly WellKnownLspServerKinds _serverKind;
         private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+        private readonly IGlobalOptionService _globalOptions;
 
         protected readonly IDiagnosticService DiagnosticService;
 
@@ -57,19 +57,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly VersionedPullCache<(int, VersionStamp), (int, Checksum)> _versionedCache;
+        private readonly VersionedPullCache<(int, VersionStamp?), (int, Checksum)> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
-            WellKnownLspServerKinds serverKind,
             IDiagnosticService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IGlobalOptionService globalOptions)
         {
-            _serverKind = serverKind;
             DiagnosticService = diagnosticService;
             _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+            _globalOptions = globalOptions;
             _versionedCache = new(this.GetType().Name);
         }
 
@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
+            var diagnosticMode = GetDiagnosticMode(context);
+            // For this handler to be called, we must have already checked the diagnostic mode
+            // and set the appropriate capabilities.
+            Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.Pull, $"{diagnosticMode} is not pull");
+
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
@@ -133,14 +138,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             foreach (var document in orderedDocuments)
             {
-                context.TraceInformation($"Processing: {document.FilePath}");
-
-                if (!IncludeDocument(document, context.ClientName))
-                {
-                    context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
-                    continue;
-                }
-
                 var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
 
                 var project = document.Project;
@@ -152,8 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -171,17 +167,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting diagnostics");
             return CreateReturn(progress);
-        }
-
-        private static bool IncludeDocument(Document document, string? clientName)
-        {
-            // Documents either belong to Razor or not.  We can determine this by checking if the doc has a span-mapping
-            // service or not.  If we're not in razor, we do not include razor docs.  If we are in razor, we only
-            // include razor docs.
-            var isRazorDoc = document.IsRazorDocument();
-            var wantsRazorDoc = clientName != null;
-
-            return wantsRazorDoc == isRazorDoc;
         }
 
         private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousDiagnosticParams(
@@ -203,36 +188,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return result;
         }
 
-        private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
-            RequestContext context,
-            Document document,
-            string resultId,
-            ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+        private DiagnosticMode GetDiagnosticMode(RequestContext context)
         {
-            var diagnosticModeOption = _serverKind switch
+            var diagnosticModeOption = context.ServerKind switch
             {
                 WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
                 WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 
-            var diagnosticMode = context.GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
-            var isPull = diagnosticMode == DiagnosticMode.Pull;
+            var diagnosticMode = _globalOptions.GetDiagnosticMode(diagnosticModeOption);
+            return diagnosticMode;
+        }
 
-            context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
-
+        private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
+            RequestContext context,
+            Document document,
+            string resultId,
+            ClientCapabilities clientCapabilities,
+            DiagnosticMode diagnosticMode,
+            CancellationToken cancellationToken)
+        {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
+            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {document.FilePath}");
 
-            if (isPull)
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
-                context.TraceInformation($"Got {diagnostics.Length} diagnostics");
-
-                foreach (var diagnostic in diagnostics)
-                    result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
-            }
+            foreach (var diagnostic in diagnostics)
+                result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
 
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }

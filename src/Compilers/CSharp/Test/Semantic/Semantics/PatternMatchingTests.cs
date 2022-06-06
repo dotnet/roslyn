@@ -5,15 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4786,7 +4782,7 @@ public class Program5815
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
                 // (9,32): error CS1003: Syntax error, ':' expected
                 //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "break").WithLocation(9, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(9, 32),
                 // (8,18): error CS0118: 'Color' is a variable but is used like a type
                 //             case Color Color:
                 Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(8, 18),
@@ -7365,6 +7361,3642 @@ class C
             comp.VerifyDiagnostics(
                 );
             CompileAndVerify(comp, expectedOutput: "in catch");
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""test string"");
+        Test(""test string? I think not!"");
+        Test(""WrongString"");
+    }
+    static void Test(ReadOnlySpan<char> chars) => Console.WriteLine(chars is ""test string"");
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"False
+True
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""test string""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  call       ""void System.Console.WriteLine(bool)""
+  IL_0015:  nop
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""String 1"");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""STRING 2"");
+        Test(""string 3"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""STRING 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+3
+1
+3
+2
+3")
+                .VerifyIL("C.Test", @"
+ {
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarg.0
+  IL_000a:  ldstr      ""string 1""
+  IL_000f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0014:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0019:  brtrue.s   IL_0033
+  IL_001b:  ldarg.0
+  IL_001c:  ldstr      ""STRING 2""
+  IL_0021:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0026:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_002b:  brtrue.s   IL_0037
+  IL_002d:  br.s       IL_003b
+  IL_002f:  ldc.i4.0
+  IL_0030:  stloc.0
+  IL_0031:  br.s       IL_003d
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.0
+  IL_0035:  br.s       IL_003d
+  IL_0037:  ldc.i4.2
+  IL_0038:  stloc.0
+  IL_0039:  br.s       IL_003d
+  IL_003b:  ldc.i4.3
+  IL_003c:  stloc.0
+  IL_003d:  ldloc.0
+  IL_003e:  call       ""void System.Console.WriteLine(int)""
+  IL_0043:  ret
+}");
+        }
+
+        // Similar to above but switching on a local value rather than a parameter.
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanChar_Local()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        ReadOnlySpan<char> chars = ""string 2"";
+        var number = chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"2")
+                .VerifyIL("C.Main",
+@"{
+  // Code size       79 (0x4f)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<char> V_0, //chars
+                int V_1)
+  IL_0000:  ldstr      ""string 2""
+  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0012:  brfalse.s  IL_003a
+  IL_0014:  ldloc.0
+  IL_0015:  ldstr      ""string 1""
+  IL_001a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0024:  brtrue.s   IL_003e
+  IL_0026:  ldloc.0
+  IL_0027:  ldstr      ""string 2""
+  IL_002c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0031:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0036:  brtrue.s   IL_0042
+  IL_0038:  br.s       IL_0046
+  IL_003a:  ldc.i4.0
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_0048
+  IL_003e:  ldc.i4.1
+  IL_003f:  stloc.1
+  IL_0040:  br.s       IL_0048
+  IL_0042:  ldc.i4.2
+  IL_0043:  stloc.1
+  IL_0044:  br.s       IL_0048
+  IL_0046:  ldc.i4.3
+  IL_0047:  stloc.1
+  IL_0048:  ldloc.1
+  IL_0049:  call       ""void System.Console.WriteLine(int)""
+  IL_004e:  ret
+}");
+        }
+
+        // Similar to above but switching on a field of a ref struct.
+        [Fact]
+        public void SwitchReadOnlySpanChar_RefStructField()
+        {
+            var source =
+@"using System;
+ref struct S
+{
+    public ReadOnlySpan<char> Chars;
+}
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(string str)
+    {
+        var s = new S() { Chars = str };
+        Test(ref s);
+    }
+    static void Test(ref S s)
+    {
+        var number = s.Chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test(ref S)",
+@"{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (int V_0,
+                System.ReadOnlySpan<char> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""System.ReadOnlySpan<char> S.Chars""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_000e:  brfalse.s  IL_0036
+  IL_0010:  ldloc.1
+  IL_0011:  ldstr      ""string 1""
+  IL_0016:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0020:  brtrue.s   IL_003a
+  IL_0022:  ldloc.1
+  IL_0023:  ldstr      ""string 2""
+  IL_0028:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0032:  brtrue.s   IL_003e
+  IL_0034:  br.s       IL_0042
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0044
+  IL_003a:  ldc.i4.1
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0044
+  IL_003e:  ldc.i4.2
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0044
+  IL_0042:  ldc.i4.3
+  IL_0043:  stloc.0
+  IL_0044:  ldloc.0
+  IL_0045:  call       ""void System.Console.WriteLine(int)""
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+        Test(""string 4"");
+        Test(""string 5"");
+        Test(""string 6"");
+        Test(""string 7"");
+        Test(""string 8"");
+        Test(""string 9"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            ""string 3"" => 3,
+            ""string 4"" => 4,
+            ""string 5"" => 5,
+            ""string 6"" => 6,
+            ""string 7"" => 7,
+            ""string 8"" => 8,
+            _ => 9,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      377 (0x179)
+  .maxstack  2
+  .locals init (int V_0,
+                uint V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeReadOnlySpanHash""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0137
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_016f
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.1
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_016f
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e7
+  IL_005a:  ldloc.1
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00fb
+  IL_0065:  br         IL_016f
+  IL_006a:  ldloc.1
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010f
+  IL_0075:  ldloc.1
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0123
+  IL_0080:  ldloc.1
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_016f
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0092:  brfalse    IL_014b
+  IL_0097:  br         IL_016f
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014f
+  IL_00b1:  br         IL_016f
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_0153
+  IL_00cb:  br         IL_016f
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_0157
+  IL_00e2:  br         IL_016f
+  IL_00e7:  ldarg.0
+  IL_00e8:  ldstr      ""string 4""
+  IL_00ed:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00f2:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00f7:  brtrue.s   IL_015b
+  IL_00f9:  br.s       IL_016f
+  IL_00fb:  ldarg.0
+  IL_00fc:  ldstr      ""string 5""
+  IL_0101:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0106:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_010b:  brtrue.s   IL_015f
+  IL_010d:  br.s       IL_016f
+  IL_010f:  ldarg.0
+  IL_0110:  ldstr      ""string 6""
+  IL_0115:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_011a:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_011f:  brtrue.s   IL_0163
+  IL_0121:  br.s       IL_016f
+  IL_0123:  ldarg.0
+  IL_0124:  ldstr      ""string 7""
+  IL_0129:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0133:  brtrue.s   IL_0167
+  IL_0135:  br.s       IL_016f
+  IL_0137:  ldarg.0
+  IL_0138:  ldstr      ""string 8""
+  IL_013d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0142:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0147:  brtrue.s   IL_016b
+  IL_0149:  br.s       IL_016f
+  IL_014b:  ldc.i4.0
+  IL_014c:  stloc.0
+  IL_014d:  br.s       IL_0172
+  IL_014f:  ldc.i4.1
+  IL_0150:  stloc.0
+  IL_0151:  br.s       IL_0172
+  IL_0153:  ldc.i4.2
+  IL_0154:  stloc.0
+  IL_0155:  br.s       IL_0172
+  IL_0157:  ldc.i4.3
+  IL_0158:  stloc.0
+  IL_0159:  br.s       IL_0172
+  IL_015b:  ldc.i4.4
+  IL_015c:  stloc.0
+  IL_015d:  br.s       IL_0172
+  IL_015f:  ldc.i4.5
+  IL_0160:  stloc.0
+  IL_0161:  br.s       IL_0172
+  IL_0163:  ldc.i4.6
+  IL_0164:  stloc.0
+  IL_0165:  br.s       IL_0172
+  IL_0167:  ldc.i4.7
+  IL_0168:  stloc.0
+  IL_0169:  br.s       IL_0172
+  IL_016b:  ldc.i4.8
+  IL_016c:  stloc.0
+  IL_016d:  br.s       IL_0172
+  IL_016f:  ldc.i4.s   9
+  IL_0171:  stloc.0
+  IL_0172:  ldloc.0
+  IL_0173:  call       ""void System.Console.WriteLine(int)""
+  IL_0178:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchStatementReadOnlySpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+        Test(""string 4"");
+        Test(""string 5"");
+        Test(""string 6"");
+        Test(""string 7"");
+        Test(""string 8"");
+        Test(""string 9"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        Console.WriteLine(GetResult(chars));
+    }
+    static int GetResult(ReadOnlySpan<char> chars) 
+    {
+        switch (chars)
+        {
+            case """": return 0;
+            case ""string 1"": return 1;
+            case ""string 2"": return 2;
+            case ""string 3"": return 3;
+            case ""string 4"": return 4;
+            case ""string 5"": return 5;
+            case ""string 6"": return 6;
+            case ""string 7"": return 7;
+            case ""string 8"": return 8;
+            default: return 9;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.GetResult", @"
+    {
+  // Code size      349 (0x15d)
+  .maxstack  2
+  .locals init (uint V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeReadOnlySpanHash""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0134
+  IL_0022:  ldloc.0
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_015a
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.0
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_015a
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.0
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e4
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00f8
+  IL_0065:  br         IL_015a
+  IL_006a:  ldloc.0
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010c
+  IL_0075:  ldloc.0
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0120
+  IL_0080:  ldloc.0
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_015a
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0092:  brfalse    IL_0148
+  IL_0097:  br         IL_015a
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014a
+  IL_00b1:  br         IL_015a
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_014c
+  IL_00cb:  br         IL_015a
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_014e
+  IL_00e2:  br.s       IL_015a
+  IL_00e4:  ldarg.0
+  IL_00e5:  ldstr      ""string 4""
+  IL_00ea:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00ef:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00f4:  brtrue.s   IL_0150
+  IL_00f6:  br.s       IL_015a
+  IL_00f8:  ldarg.0
+  IL_00f9:  ldstr      ""string 5""
+  IL_00fe:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0103:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0108:  brtrue.s   IL_0152
+  IL_010a:  br.s       IL_015a
+  IL_010c:  ldarg.0
+  IL_010d:  ldstr      ""string 6""
+  IL_0112:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0117:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_011c:  brtrue.s   IL_0154
+  IL_011e:  br.s       IL_015a
+  IL_0120:  ldarg.0
+  IL_0121:  ldstr      ""string 7""
+  IL_0126:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0130:  brtrue.s   IL_0156
+  IL_0132:  br.s       IL_015a
+  IL_0134:  ldarg.0
+  IL_0135:  ldstr      ""string 8""
+  IL_013a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_013f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0144:  brtrue.s   IL_0158
+  IL_0146:  br.s       IL_015a
+  IL_0148:  ldc.i4.0
+  IL_0149:  ret
+  IL_014a:  ldc.i4.1
+  IL_014b:  ret
+  IL_014c:  ldc.i4.2
+  IL_014d:  ret
+  IL_014e:  ldc.i4.3
+  IL_014f:  ret
+  IL_0150:  ldc.i4.4
+  IL_0151:  ret
+  IL_0152:  ldc.i4.5
+  IL_0153:  ret
+  IL_0154:  ldc.i4.6
+  IL_0155:  ret
+  IL_0156:  ldc.i4.7
+  IL_0157:  ret
+  IL_0158:  ldc.i4.8
+  IL_0159:  ret
+  IL_015a:  ldc.i4.s   9
+  IL_015c:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanCharOnConstantStringAndOtherPatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(ReadOnlySpan<char> chars) 
+    {
+        var number = chars switch {
+            { Length: 0 } => 0,
+            ""string 1"" and [..,'1'] => 1,
+            { Length: 8 } and ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  brfalse.s  IL_0046
+  IL_000b:  ldarg.0
+  IL_000c:  ldstr      ""string 1""
+  IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_001b:  brfalse.s  IL_002e
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  sub
+  IL_0022:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0027:  ldind.u2
+  IL_0028:  ldc.i4.s   49
+  IL_002a:  beq.s      IL_004a
+  IL_002c:  br.s       IL_0052
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.8
+  IL_0030:  bne.un.s   IL_0052
+  IL_0032:  ldarg.0
+  IL_0033:  ldstr      ""string 2""
+  IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0042:  brtrue.s   IL_004e
+  IL_0044:  br.s       IL_0052
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0054
+  IL_004a:  ldc.i4.1
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  ldc.i4.2
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0054
+  IL_0052:  ldc.i4.3
+  IL_0053:  stloc.0
+  IL_0054:  ldloc.0
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantStringInOrAndAndNot()
+        {
+            var source =
+    @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(ReadOnlySpan<char> chars)
+    {
+        Console.WriteLine(""or: "" + (chars is ""string 1"" or ""string 2""));
+        Console.WriteLine(""and: "" + (chars is ""string 1"" and { Length: 7 }));
+        Console.WriteLine(""not: "" + (chars is not ""string 1""));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"or: False
+and: False
+not: True
+or: True
+and: False
+not: False
+or: True
+and: False
+not: True
+or: False
+and: False
+not: True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      161 (0xa1)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""or: ""
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      ""string 1""
+  IL_000c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0011:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0016:  brtrue.s   IL_002a
+  IL_0018:  ldarg.0
+  IL_0019:  ldstr      ""string 2""
+  IL_001e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0023:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.0
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  call       ""string bool.ToString()""
+  IL_0033:  call       ""string string.Concat(string, string)""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  nop
+  IL_003e:  ldstr      ""and: ""
+  IL_0043:  ldarg.0
+  IL_0044:  ldstr      ""string 1""
+  IL_0049:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_004e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0053:  brfalse.s  IL_0061
+  IL_0055:  ldarga.s   V_0
+  IL_0057:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_005c:  ldc.i4.7
+  IL_005d:  ceq
+  IL_005f:  br.s       IL_0062
+  IL_0061:  ldc.i4.0
+  IL_0062:  stloc.0
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  call       ""string bool.ToString()""
+  IL_006a:  call       ""string string.Concat(string, string)""
+  IL_006f:  call       ""void System.Console.WriteLine(string)""
+  IL_0074:  nop
+  IL_0075:  ldstr      ""not: ""
+  IL_007a:  ldarg.0
+  IL_007b:  ldstr      ""string 1""
+  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_008a:  ldc.i4.0
+  IL_008b:  ceq
+  IL_008d:  stloc.0
+  IL_008e:  ldloca.s   V_0
+  IL_0090:  call       ""string bool.ToString()""
+  IL_0095:  call       ""string string.Concat(string, string)""
+  IL_009a:  call       ""void System.Console.WriteLine(string)""
+  IL_009f:  nop
+  IL_00a0:  ret
+}");
+        }
+
+        [Fact]
+        public void RecursivePatternMatchReadOnlySpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test(new S { Span = ""string 1"", Prop = true });
+        Test(new S { Span = ""string 1"", Prop = false });
+        Test(new S { Span = ""string 2"", Prop = true });
+        Test(new S { Span = ""string 2"", Prop = false });
+    }
+    static void Test(S s) => Console.WriteLine(s is { Prop: true, Span: ""string 1"" and { Length: 8 } });
+}
+
+ref struct S
+{
+    public ReadOnlySpan<char> Span { get; set; }
+    public bool Prop { get; set; }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"True
+False
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<char> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""readonly bool S.Prop.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""readonly System.ReadOnlySpan<char> S.Span.get""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ldstr      ""string 1""
+  IL_0017:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0021:  brfalse.s  IL_002f
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_002a:  ldc.i4.8
+  IL_002b:  ceq
+  IL_002d:  br.s       IL_0030
+  IL_002f:  ldc.i4.0
+  IL_0030:  call       ""void System.Console.WriteLine(bool)""
+  IL_0035:  nop
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars is """";
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //     static bool M(ReadOnlySpan<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 57),
+                    // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //     static bool M(ReadOnlySpan<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(5, 57));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static int M(ReadOnlySpan<char> chars) 
+    {
+        return chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+    }
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(8, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(9, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(9, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(10, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void PatternOrSwitchReadOnlySpanChar_MissingLengthAndIndexer()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+        public ReadOnlySpan(T[] array) { }
+    }
+    public static class MemoryExtensions
+    {
+        public static ReadOnlySpan<char> AsSpan(string s) => default;
+        public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b) => false;
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var s = new ReadOnlySpan<char>(new char[0]);
+        _ = s is ""str"";
+        _ = s is { Length: 0 } and """";
+        _ = s switch { ""str"" => 1, _ => 0 };
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                //         _ = s is "str";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(7, 18),
+                // (8,20): error CS0117: 'ReadOnlySpan<char>' does not contain a definition for 'Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("System.ReadOnlySpan<char>", "Length").WithLocation(8, 20),
+                // (8,36): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(8, 36),
+                // (9,24): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                //         _ = s switch { "str" => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars is """";
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(ReadOnlySpan<char> chars) => chars is "";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { """" => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatchReadOnlySpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M1(ReadOnlySpan<char> chars) => chars is null;
+    static bool M2(ReadOnlySpan<char> chars) => chars is default;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,58): error CS0150: A constant value is expected
+                //     static bool M1(ReadOnlySpan<char> chars) => chars is null;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 58),
+                // (6,58): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //     static bool M2(ReadOnlySpan<char> chars) => chars is default;
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 58));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,57): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 57));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M1(ReadOnlySpan<char> chars) => chars is (string)null;
+    static bool M2(ReadOnlySpan<char> chars) => chars is default(string);
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,58): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M1(ReadOnlySpan<char> chars) => chars is (string)null;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 58),
+                // (5,58): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M2(ReadOnlySpan<char> chars) => chars is default(string);
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "default(string)").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 58));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(ReadOnlySpan<char> chars) => chars is NullString;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,57): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars is NullString;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 57));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (5,63): error CS0150: A constant value is expected
+                    //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 63));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,63): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 63));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,63): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 63));
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(ReadOnlySpan<char> chars) => chars switch { NullString => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,63): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { NullString => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 63));
+        }
+
+        [Fact]
+        public void MatchReadOnlySpanCharOnImpossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void M(ReadOnlySpan<char> chars)
+    {
+        _ = chars is """" and "" "";
+        _ = chars is """" and not """";
+        _ = chars is """" and ("" "" or not """");
+    }
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and " ";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and "" """).WithArguments("System.ReadOnlySpan<char>").WithLocation(7, 13),
+                    // (8,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and not "";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(8, 13),
+                    // (9,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and (" " or not "");
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and ("" "" or not """")").WithArguments("System.ReadOnlySpan<char>").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void PatternMatchReadOnlySpanCharOnPossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test("" "");
+        Test(""  "");
+    }
+    static void Test(ReadOnlySpan<char> chars)
+    {
+        Console.WriteLine(""1."" + (chars is """" and not "" ""));
+        Console.WriteLine(""2."" + (chars is """" and ("" "" or """")));
+        Console.WriteLine(""3."" + (chars is """" or """"));
+        Console.WriteLine(""4."" + (chars is """" or not """"));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (16,35): warning CS8794: An expression of type 'ReadOnlySpan<char>' always matches the provided pattern.
+                    //         Console.WriteLine("4." + (chars is "" or not ""));
+                    Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(16, 35));
+            CompileAndVerify(compilation, expectedOutput: @"1.True
+2.True
+3.True
+4.True
+1.False
+2.False
+3.False
+4.True
+1.False
+2.False
+3.False
+4.True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      159 (0x9f)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  ldstr      ""1.""
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0010:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string bool.ToString()""
+  IL_001d:  call       ""string string.Concat(string, string)""
+  IL_0022:  call       ""void System.Console.WriteLine(string)""
+  IL_0027:  ldstr      ""2.""
+  IL_002c:  ldarg.0
+  IL_002d:  ldstr      """"
+  IL_0032:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0037:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_003c:  stloc.0
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  call       ""string bool.ToString()""
+  IL_0044:  call       ""string string.Concat(string, string)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ldstr      ""3.""
+  IL_0053:  ldarg.0
+  IL_0054:  ldstr      """"
+  IL_0059:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_005e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0063:  stloc.0
+  IL_0064:  ldloca.s   V_0
+  IL_0066:  call       ""string bool.ToString()""
+  IL_006b:  call       ""string string.Concat(string, string)""
+  IL_0070:  call       ""void System.Console.WriteLine(string)""
+  IL_0075:  ldarg.0
+  IL_0076:  ldstr      """"
+  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0085:  pop
+  IL_0086:  ldc.i4.1
+  IL_0087:  stloc.0
+  IL_0088:  ldstr      ""4.""
+  IL_008d:  ldloca.s   V_0
+  IL_008f:  call       ""string bool.ToString()""
+  IL_0094:  call       ""string string.Concat(string, string)""
+  IL_0099:  call       ""void System.Console.WriteLine(string)""
+  IL_009e:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadOnlySpanCharOnDuplicateString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch {
+        """" => true,
+        """" => false,
+        _ => false,
+    };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                    //         "" => false,
+                    Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""test string"".ToArray());
+        Test(""test string? I think not!"".ToArray());
+        Test(""WrongString"".ToArray());
+    }
+    static void Test(Span<char> chars) => Console.WriteLine(chars is ""test string"");
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"False
+True
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""test string""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  call       ""void System.Console.WriteLine(bool)""
+  IL_0015:  nop
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""String 1"".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""STRING 2"".ToArray());
+        Test(""string 3"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""STRING 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+3
+1
+3
+2
+3")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<char>.Length.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarg.0
+  IL_000a:  ldstr      ""string 1""
+  IL_000f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0014:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0019:  brtrue.s   IL_0033
+  IL_001b:  ldarg.0
+  IL_001c:  ldstr      ""STRING 2""
+  IL_0021:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0026:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_002b:  brtrue.s   IL_0037
+  IL_002d:  br.s       IL_003b
+  IL_002f:  ldc.i4.0
+  IL_0030:  stloc.0
+  IL_0031:  br.s       IL_003d
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.0
+  IL_0035:  br.s       IL_003d
+  IL_0037:  ldc.i4.2
+  IL_0038:  stloc.0
+  IL_0039:  br.s       IL_003d
+  IL_003b:  ldc.i4.3
+  IL_003c:  stloc.0
+  IL_003d:  ldloc.0
+  IL_003e:  call       ""void System.Console.WriteLine(int)""
+  IL_0043:  ret
+}");
+        }
+
+        // Similar to above but switching on a local value rather than a parameter.
+        [Fact]
+        public void SwitchSpanChar_Local()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static void Main()
+    {
+        Span<char> chars = ""string 2"".ToArray();
+        var number = chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"2")
+                .VerifyIL("C.Main",
+@"{
+  // Code size       84 (0x54)
+  .maxstack  2
+  .locals init (System.Span<char> V_0, //chars
+                int V_1)
+  IL_0000:  ldstr      ""string 2""
+  IL_0005:  call       ""char[] System.Linq.Enumerable.ToArray<char>(System.Collections.Generic.IEnumerable<char>)""
+  IL_000a:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.Span<char>.Length.get""
+  IL_0017:  brfalse.s  IL_003f
+  IL_0019:  ldloc.0
+  IL_001a:  ldstr      ""string 1""
+  IL_001f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0024:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0029:  brtrue.s   IL_0043
+  IL_002b:  ldloc.0
+  IL_002c:  ldstr      ""string 2""
+  IL_0031:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0036:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_003b:  brtrue.s   IL_0047
+  IL_003d:  br.s       IL_004b
+  IL_003f:  ldc.i4.0
+  IL_0040:  stloc.1
+  IL_0041:  br.s       IL_004d
+  IL_0043:  ldc.i4.1
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_004d
+  IL_0047:  ldc.i4.2
+  IL_0048:  stloc.1
+  IL_0049:  br.s       IL_004d
+  IL_004b:  ldc.i4.3
+  IL_004c:  stloc.1
+  IL_004d:  ldloc.1
+  IL_004e:  call       ""void System.Console.WriteLine(int)""
+  IL_0053:  ret
+}");
+        }
+
+        // Similar to above but switching on a field of a ref struct.
+        [Fact]
+        public void SwitchSpanChar_RefStructField()
+        {
+            var source =
+@"using System;
+using System.Linq;
+ref struct S
+{
+    public Span<char> Chars;
+}
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test(""string 1"");
+        Test(""string 2"");
+        Test(""string 3"");
+    }
+    static void Test(string str)
+    {
+        var s = new S() { Chars = str.ToArray() };
+        Test(ref s);
+    }
+    static void Test(ref S s)
+    {
+        var number = s.Chars switch
+        {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test(ref S)",
+@"{
+  // Code size       75 (0x4b)
+  .maxstack  2
+  .locals init (int V_0,
+                System.Span<char> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""System.Span<char> S.Chars""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""int System.Span<char>.Length.get""
+  IL_000e:  brfalse.s  IL_0036
+  IL_0010:  ldloc.1
+  IL_0011:  ldstr      ""string 1""
+  IL_0016:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0020:  brtrue.s   IL_003a
+  IL_0022:  ldloc.1
+  IL_0023:  ldstr      ""string 2""
+  IL_0028:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0032:  brtrue.s   IL_003e
+  IL_0034:  br.s       IL_0042
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.0
+  IL_0038:  br.s       IL_0044
+  IL_003a:  ldc.i4.1
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0044
+  IL_003e:  ldc.i4.2
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0044
+  IL_0042:  ldc.i4.3
+  IL_0043:  stloc.0
+  IL_0044:  ldloc.0
+  IL_0045:  call       ""void System.Console.WriteLine(int)""
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+        Test(""string 4"".ToArray());
+        Test(""string 5"".ToArray());
+        Test(""string 6"".ToArray());
+        Test(""string 7"".ToArray());
+        Test(""string 8"".ToArray());
+        Test(""string 9"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        var number = chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            ""string 3"" => 3,
+            ""string 4"" => 4,
+            ""string 5"" => 5,
+            ""string 6"" => 6,
+            ""string 7"" => 7,
+            ""string 8"" => 8,
+            _ => 9,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      377 (0x179)
+  .maxstack  2
+  .locals init (int V_0,
+                uint V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeSpanHash""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0137
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_016f
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.1
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_016f
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e7
+  IL_005a:  ldloc.1
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00fb
+  IL_0065:  br         IL_016f
+  IL_006a:  ldloc.1
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010f
+  IL_0075:  ldloc.1
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0123
+  IL_0080:  ldloc.1
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_016f
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.Span<char>.Length.get""
+  IL_0092:  brfalse    IL_014b
+  IL_0097:  br         IL_016f
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014f
+  IL_00b1:  br         IL_016f
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_0153
+  IL_00cb:  br         IL_016f
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_0157
+  IL_00e2:  br         IL_016f
+  IL_00e7:  ldarg.0
+  IL_00e8:  ldstr      ""string 4""
+  IL_00ed:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00f2:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00f7:  brtrue.s   IL_015b
+  IL_00f9:  br.s       IL_016f
+  IL_00fb:  ldarg.0
+  IL_00fc:  ldstr      ""string 5""
+  IL_0101:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0106:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_010b:  brtrue.s   IL_015f
+  IL_010d:  br.s       IL_016f
+  IL_010f:  ldarg.0
+  IL_0110:  ldstr      ""string 6""
+  IL_0115:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_011a:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_011f:  brtrue.s   IL_0163
+  IL_0121:  br.s       IL_016f
+  IL_0123:  ldarg.0
+  IL_0124:  ldstr      ""string 7""
+  IL_0129:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0133:  brtrue.s   IL_0167
+  IL_0135:  br.s       IL_016f
+  IL_0137:  ldarg.0
+  IL_0138:  ldstr      ""string 8""
+  IL_013d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0142:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0147:  brtrue.s   IL_016b
+  IL_0149:  br.s       IL_016f
+  IL_014b:  ldc.i4.0
+  IL_014c:  stloc.0
+  IL_014d:  br.s       IL_0172
+  IL_014f:  ldc.i4.1
+  IL_0150:  stloc.0
+  IL_0151:  br.s       IL_0172
+  IL_0153:  ldc.i4.2
+  IL_0154:  stloc.0
+  IL_0155:  br.s       IL_0172
+  IL_0157:  ldc.i4.3
+  IL_0158:  stloc.0
+  IL_0159:  br.s       IL_0172
+  IL_015b:  ldc.i4.4
+  IL_015c:  stloc.0
+  IL_015d:  br.s       IL_0172
+  IL_015f:  ldc.i4.5
+  IL_0160:  stloc.0
+  IL_0161:  br.s       IL_0172
+  IL_0163:  ldc.i4.6
+  IL_0164:  stloc.0
+  IL_0165:  br.s       IL_0172
+  IL_0167:  ldc.i4.7
+  IL_0168:  stloc.0
+  IL_0169:  br.s       IL_0172
+  IL_016b:  ldc.i4.8
+  IL_016c:  stloc.0
+  IL_016d:  br.s       IL_0172
+  IL_016f:  ldc.i4.s   9
+  IL_0171:  stloc.0
+  IL_0172:  ldloc.0
+  IL_0173:  call       ""void System.Console.WriteLine(int)""
+  IL_0178:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchStatementSpanCharOnConstantStringUsingHash()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+        Test(""string 4"".ToArray());
+        Test(""string 5"".ToArray());
+        Test(""string 6"".ToArray());
+        Test(""string 7"".ToArray());
+        Test(""string 8"".ToArray());
+        Test(""string 9"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        Console.WriteLine(GetResult(chars));
+    }
+    static int GetResult(Span<char> chars) 
+    {
+        switch (chars)
+        {
+            case """": return 0;
+            case ""string 1"": return 1;
+            case ""string 2"": return 2;
+            case ""string 3"": return 3;
+            case ""string 4"": return 4;
+            case ""string 5"": return 5;
+            case ""string 6"": return 6;
+            case ""string 7"": return 7;
+            case ""string 8"": return 8;
+            default: return 9;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9")
+                .VerifyIL("C.GetResult", @"
+    {
+  // Code size      349 (0x15d)
+  .maxstack  2
+  .locals init (uint V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ComputeSpanHash""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4     0x75b03721
+  IL_000d:  bgt.un.s   IL_0047
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4     0x73b033fb
+  IL_0015:  bgt.un.s   IL_002f
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4     0x6ab025d0
+  IL_001d:  beq        IL_0134
+  IL_0022:  ldloc.0
+  IL_0023:  ldc.i4     0x73b033fb
+  IL_0028:  beq.s      IL_009c
+  IL_002a:  br         IL_015a
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4     0x74b0358e
+  IL_0035:  beq.s      IL_00b6
+  IL_0037:  ldloc.0
+  IL_0038:  ldc.i4     0x75b03721
+  IL_003d:  beq        IL_00d0
+  IL_0042:  br         IL_015a
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4     0x77b03a47
+  IL_004d:  bgt.un.s   IL_006a
+  IL_004f:  ldloc.0
+  IL_0050:  ldc.i4     0x76b038b4
+  IL_0055:  beq        IL_00e4
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4     0x77b03a47
+  IL_0060:  beq        IL_00f8
+  IL_0065:  br         IL_015a
+  IL_006a:  ldloc.0
+  IL_006b:  ldc.i4     0x78b03bda
+  IL_0070:  beq        IL_010c
+  IL_0075:  ldloc.0
+  IL_0076:  ldc.i4     0x79b03d6d
+  IL_007b:  beq        IL_0120
+  IL_0080:  ldloc.0
+  IL_0081:  ldc.i4     0x811c9dc5
+  IL_0086:  bne.un     IL_015a
+  IL_008b:  ldarga.s   V_0
+  IL_008d:  call       ""int System.Span<char>.Length.get""
+  IL_0092:  brfalse    IL_0148
+  IL_0097:  br         IL_015a
+  IL_009c:  ldarg.0
+  IL_009d:  ldstr      ""string 1""
+  IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00ac:  brtrue     IL_014a
+  IL_00b1:  br         IL_015a
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldstr      ""string 2""
+  IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00c6:  brtrue     IL_014c
+  IL_00cb:  br         IL_015a
+  IL_00d0:  ldarg.0
+  IL_00d1:  ldstr      ""string 3""
+  IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00e0:  brtrue.s   IL_014e
+  IL_00e2:  br.s       IL_015a
+  IL_00e4:  ldarg.0
+  IL_00e5:  ldstr      ""string 4""
+  IL_00ea:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00ef:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00f4:  brtrue.s   IL_0150
+  IL_00f6:  br.s       IL_015a
+  IL_00f8:  ldarg.0
+  IL_00f9:  ldstr      ""string 5""
+  IL_00fe:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0103:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0108:  brtrue.s   IL_0152
+  IL_010a:  br.s       IL_015a
+  IL_010c:  ldarg.0
+  IL_010d:  ldstr      ""string 6""
+  IL_0112:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0117:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_011c:  brtrue.s   IL_0154
+  IL_011e:  br.s       IL_015a
+  IL_0120:  ldarg.0
+  IL_0121:  ldstr      ""string 7""
+  IL_0126:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0130:  brtrue.s   IL_0156
+  IL_0132:  br.s       IL_015a
+  IL_0134:  ldarg.0
+  IL_0135:  ldstr      ""string 8""
+  IL_013a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_013f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0144:  brtrue.s   IL_0158
+  IL_0146:  br.s       IL_015a
+  IL_0148:  ldc.i4.0
+  IL_0149:  ret
+  IL_014a:  ldc.i4.1
+  IL_014b:  ret
+  IL_014c:  ldc.i4.2
+  IL_014d:  ret
+  IL_014e:  ldc.i4.3
+  IL_014f:  ret
+  IL_0150:  ldc.i4.4
+  IL_0151:  ret
+  IL_0152:  ldc.i4.5
+  IL_0153:  ret
+  IL_0154:  ldc.i4.6
+  IL_0155:  ret
+  IL_0156:  ldc.i4.7
+  IL_0157:  ret
+  IL_0158:  ldc.i4.8
+  IL_0159:  ret
+  IL_015a:  ldc.i4.s   9
+  IL_015c:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharOnConstantStringAndOtherPatterns()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+    }
+    static void Test(Span<char> chars) 
+    {
+        var number = chars switch {
+            { Length: 0 } => 0,
+            ""string 1"" and [..,'1'] => 1,
+            { Length: 8 } and ""string 2"" => 2,
+            _ => 3,
+        };
+        Console.WriteLine(number);
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"0
+1
+2
+3")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       91 (0x5b)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<char>.Length.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  brfalse.s  IL_0046
+  IL_000b:  ldarg.0
+  IL_000c:  ldstr      ""string 1""
+  IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_001b:  brfalse.s  IL_002e
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  sub
+  IL_0022:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0027:  ldind.u2
+  IL_0028:  ldc.i4.s   49
+  IL_002a:  beq.s      IL_004a
+  IL_002c:  br.s       IL_0052
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.8
+  IL_0030:  bne.un.s   IL_0052
+  IL_0032:  ldarg.0
+  IL_0033:  ldstr      ""string 2""
+  IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0042:  brtrue.s   IL_004e
+  IL_0044:  br.s       IL_0052
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0054
+  IL_004a:  ldc.i4.1
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  ldc.i4.2
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0054
+  IL_0052:  ldc.i4.3
+  IL_0053:  stloc.0
+  IL_0054:  ldloc.0
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantStringInOrAndAndNot()
+        {
+            var source =
+    @"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test(""string 1"".ToArray());
+        Test(""string 2"".ToArray());
+        Test(""string 3"".ToArray());
+    }
+    static void Test(Span<char> chars)
+    {
+        Console.WriteLine(""or: "" + (chars is ""string 1"" or ""string 2""));
+        Console.WriteLine(""and: "" + (chars is ""string 1"" and { Length: 7 }));
+        Console.WriteLine(""not: "" + (chars is not ""string 1""));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"or: True
+and: False
+not: False
+or: True
+and: False
+not: True
+or: False
+and: False
+not: True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      161 (0xa1)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""or: ""
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      ""string 1""
+  IL_000c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0011:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0016:  brtrue.s   IL_002a
+  IL_0018:  ldarg.0
+  IL_0019:  ldstr      ""string 2""
+  IL_001e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0023:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.0
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  call       ""string bool.ToString()""
+  IL_0033:  call       ""string string.Concat(string, string)""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  nop
+  IL_003e:  ldstr      ""and: ""
+  IL_0043:  ldarg.0
+  IL_0044:  ldstr      ""string 1""
+  IL_0049:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_004e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0053:  brfalse.s  IL_0061
+  IL_0055:  ldarga.s   V_0
+  IL_0057:  call       ""int System.Span<char>.Length.get""
+  IL_005c:  ldc.i4.7
+  IL_005d:  ceq
+  IL_005f:  br.s       IL_0062
+  IL_0061:  ldc.i4.0
+  IL_0062:  stloc.0
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  call       ""string bool.ToString()""
+  IL_006a:  call       ""string string.Concat(string, string)""
+  IL_006f:  call       ""void System.Console.WriteLine(string)""
+  IL_0074:  nop
+  IL_0075:  ldstr      ""not: ""
+  IL_007a:  ldarg.0
+  IL_007b:  ldstr      ""string 1""
+  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_008a:  ldc.i4.0
+  IL_008b:  ceq
+  IL_008d:  stloc.0
+  IL_008e:  ldloca.s   V_0
+  IL_0090:  call       ""string bool.ToString()""
+  IL_0095:  call       ""string string.Concat(string, string)""
+  IL_009a:  call       ""void System.Console.WriteLine(string)""
+  IL_009f:  nop
+  IL_00a0:  ret
+}");
+        }
+
+        [Fact]
+        public void RecursivePatternMatchSpanCharOnConstantString()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test(new S { Span = ""string 1"".ToArray(), Prop = true });
+        Test(new S { Span = ""string 1"".ToArray(), Prop = false });
+        Test(new S { Span = ""string 2"".ToArray(), Prop = true });
+        Test(new S { Span = ""string 2"".ToArray(), Prop = false });
+    }
+    static void Test(S s) => Console.WriteLine(s is { Prop: true, Span: ""string 1"" and { Length: 8 } });
+}
+
+ref struct S
+{
+    public Span<char> Span { get; set; }
+    public bool Prop { get; set; }
+}";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics();
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"True
+False
+False
+False")
+                .VerifyIL("C.Test", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Span<char> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""readonly bool S.Prop.get""
+  IL_0007:  brfalse.s  IL_002f
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""readonly System.Span<char> S.Span.get""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ldstr      ""string 1""
+  IL_0017:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0021:  brfalse.s  IL_002f
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  call       ""int System.Span<char>.Length.get""
+  IL_002a:  ldc.i4.8
+  IL_002b:  ceq
+  IL_002d:  br.s       IL_0030
+  IL_002f:  ldc.i4.0
+  IL_0030:  call       ""void System.Console.WriteLine(bool)""
+  IL_0035:  nop
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(Span<char> chars) => chars is """";
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //     static bool M(Span<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 49),
+                    // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //     static bool M(Span<char> chars) => chars is "";
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(5, 49));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantStringMissingMemoryExtensions()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static int M(Span<char> chars) 
+    {
+        return chars switch {
+            """" => 0,
+            ""string 1"" => 1,
+            ""string 2"" => 2,
+            _ => 3,
+        };
+    }
+}
+";
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
+                    // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "" => 0,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(8, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(9, 13),
+                    // (9,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 1" => 1,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 1""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(9, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(10, 13),
+                    // (10,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                    //             "string 2" => 2,
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""string 2""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void PatternOrSwitchSpanChar_MissingLengthAndIndexer()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        public Span(T[] array) { }
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        public ReadOnlySpan(T[] array) { }
+    }
+    public static class MemoryExtensions
+    {
+        public static ReadOnlySpan<char> AsSpan(string s) => default;
+        public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b) => false;
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var s = new Span<char>(new char[0]);
+        _ = s is ""str"";
+        _ = s is { Length: 0 } and """";
+        _ = s switch { ""str"" => 1, _ => 0 };
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                //         _ = s is "str";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(7, 18),
+                // (8,20): error CS0117: 'Span<char>' does not contain a definition for 'Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("System.Span<char>", "Length").WithLocation(8, 20),
+                // (8,36): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.Span`1", "get_Length").WithLocation(8, 36),
+                // (9,24): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                //         _ = s switch { "str" => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(9, 24));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static bool M(Span<char> chars) => chars is """";
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(Span<char> chars) => chars is "";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { """" => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
+}
+";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M1(Span<char> chars) => chars is null;
+    static bool M2(Span<char> chars) => chars is default;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,50): error CS0150: A constant value is expected
+                //     static bool M1(Span<char> chars) => chars is null;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 50),
+                // (6,50): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //     static bool M2(Span<char> chars) => chars is default;
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 50));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatchSpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(Span<char> chars) => chars is (object)null;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(Span<char> chars) => chars is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 49));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M1(Span<char> chars) => chars is (string)null;
+    static bool M2(Span<char> chars) => chars is default(string);
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,50): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M1(Span<char> chars) => chars is (string)null;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.Span<char>").WithLocation(4, 50),
+                // (5,50): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M2(Span<char> chars) => chars is default(string);
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "default(string)").WithArguments("System.Span<char>").WithLocation(5, 50));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(Span<char> chars) => chars is NullString;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,49): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars is NullString;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.Span<char>").WithLocation(5, 49));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnNull_01()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { null => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (5,55): error CS0150: A constant value is expected
+                    //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 55));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharOnNull_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,55): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 55));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnNull_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,55): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.Span<char>").WithLocation(4, 55));
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,55): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.Span<char>").WithLocation(5, 55));
+        }
+
+        [Fact]
+        public void MatchSpanCharOnImpossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void M(Span<char> chars)
+    {
+        _ = chars is """" and "" "";
+        _ = chars is """" and not """";
+        _ = chars is """" and ("" "" or not """");
+    }
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
+                    //         _ = chars is "" and " ";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and "" """).WithArguments("System.Span<char>").WithLocation(7, 13),
+                    // (8,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
+                    //         _ = chars is "" and not "";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and not """"").WithArguments("System.Span<char>").WithLocation(8, 13),
+                    // (9,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
+                    //         _ = chars is "" and (" " or not "");
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and ("" "" or not """")").WithArguments("System.Span<char>").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void PatternMatchSpanCharOnPossiblePatterns()
+        {
+            var source =
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    static void Main()
+    {
+        Test("""".ToArray());
+        Test("" "".ToArray());
+        Test(""  "".ToArray());
+    }
+    static void Test(Span<char> chars)
+    {
+        Console.WriteLine(""1."" + (chars is """" and not "" ""));
+        Console.WriteLine(""2."" + (chars is """" and ("" "" or """")));
+        Console.WriteLine(""3."" + (chars is """" or """"));
+        Console.WriteLine(""4."" + (chars is """" or not """"));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyEmitDiagnostics(
+                    // (18,35): warning CS8794: An expression of type 'Span<char>' always matches the provided pattern.
+                    //         Console.WriteLine("4." + (chars is "" or not ""));
+                    Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.Span<char>").WithLocation(18, 35));
+            CompileAndVerify(compilation, expectedOutput: @"1.True
+2.True
+3.True
+4.True
+1.False
+2.False
+3.False
+4.True
+1.False
+2.False
+3.False
+4.True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      159 (0x9f)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  ldstr      ""1.""
+  IL_0005:  ldarg.0
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0010:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string bool.ToString()""
+  IL_001d:  call       ""string string.Concat(string, string)""
+  IL_0022:  call       ""void System.Console.WriteLine(string)""
+  IL_0027:  ldstr      ""2.""
+  IL_002c:  ldarg.0
+  IL_002d:  ldstr      """"
+  IL_0032:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0037:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_003c:  stloc.0
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  call       ""string bool.ToString()""
+  IL_0044:  call       ""string string.Concat(string, string)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ldstr      ""3.""
+  IL_0053:  ldarg.0
+  IL_0054:  ldstr      """"
+  IL_0059:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_005e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0063:  stloc.0
+  IL_0064:  ldloca.s   V_0
+  IL_0066:  call       ""string bool.ToString()""
+  IL_006b:  call       ""string string.Concat(string, string)""
+  IL_0070:  call       ""void System.Console.WriteLine(string)""
+  IL_0075:  ldarg.0
+  IL_0076:  ldstr      """"
+  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0085:  pop
+  IL_0086:  ldc.i4.1
+  IL_0087:  stloc.0
+  IL_0088:  ldstr      ""4.""
+  IL_008d:  ldloca.s   V_0
+  IL_008f:  call       ""string bool.ToString()""
+  IL_0094:  call       ""string string.Concat(string, string)""
+  IL_0099:  call       ""void System.Console.WriteLine(string)""
+  IL_009e:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchSpanCharOnDuplicateString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(Span<char> chars) => chars switch {
+        """" => true,
+        """" => false,
+        _ => false,
+    };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                    //         "" => false,
+                    Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void PatternMatchSpanOfT_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(ReadOnlySpan<T> span) => span is """";
+    static bool F2<T>(Span<T> span) => span is """";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'string'.
+                //     static bool F1<T>(ReadOnlySpan<T> span) => span is "";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("System.ReadOnlySpan<T>", "string").WithLocation(4, 56),
+                // (5,48): error CS8121: An expression of type 'Span<T>' cannot be handled by a pattern of type 'string'.
+                //     static bool F2<T>(Span<T> span) => span is "";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("System.Span<T>", "string").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanOfT_02()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class Program
+{
+    static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> _;
+    static bool F2<T>(Span<T> span) => span is Span<char> _;
+    static void F<T>(Span<T> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<T>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F<char>("""".ToArray());
+        F(new Span<char>(new char[] { '1', '2', '3' }));
+        F(new Span<int>(new int[] { '1', '2', '3' }));
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (5,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ReadOnlySpan<T>", "System.ReadOnlySpan<char>").WithLocation(5, 56),
+                // (6,48): error CS8121: An expression of type 'Span<T>' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(Span<T> span) => span is Span<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.Span<T>", "System.Span<char>").WithLocation(6, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanOfT_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and ""ABC"";
+    static bool F2<T>(Span<T> span) => span is Span<char> and ""123"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(ReadOnlySpan<T> span) => span is ReadOnlySpan<char> and "ABC";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ReadOnlySpan<T>", "System.ReadOnlySpan<char>").WithLocation(4, 56),
+                // (5,48): error CS8121: An expression of type 'Span<T>' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(Span<T> span) => span is Span<char> and "123";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.Span<T>", "System.Span<char>").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_BaseType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(object o) => o is ReadOnlySpan<char> _;
+    static bool F2<T>(object o) => o is Span<char> _;
+    static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> _;
+    static bool F4<T>(ValueType v) => v is Span<char> _;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(object o) => o is ReadOnlySpan<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 41),
+                // (5,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(object o) => o is Span<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("object", "System.Span<char>").WithLocation(5, 41),
+                // (6,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ValueType", "System.ReadOnlySpan<char>").WithLocation(6, 44),
+                // (7,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F4<T>(ValueType v) => v is Span<char> _;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.ValueType", "System.Span<char>").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_BaseType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(object o) => o is ReadOnlySpan<char> and ""ABC"";
+    static bool F2<T>(object o) => o is Span<char> and ""123"";
+    static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> and ""ABC"";
+    static bool F4<T>(ValueType v) => v is Span<char> and ""123"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F1<T>(object o) => o is ReadOnlySpan<char> and "ABC";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 41),
+                // (5,41): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F2<T>(object o) => o is Span<char> and "123";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("object", "System.Span<char>").WithLocation(5, 41),
+                // (6,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+                //     static bool F3<T>(ValueType v) => v is ReadOnlySpan<char> and "ABC";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("System.ValueType", "System.ReadOnlySpan<char>").WithLocation(6, 44),
+                // (7,44): error CS8121: An expression of type 'ValueType' cannot be handled by a pattern of type 'Span<char>'.
+                //     static bool F4<T>(ValueType v) => v is Span<char> and "123";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<char>").WithArguments("System.ValueType", "System.Span<char>").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_InterpolatedString_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    const int n = 123;
+    static bool F1(ReadOnlySpan<char> span) => span is $""{123}"";
+    static bool F2(Span<char> span) => span is $""{n}"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (5,56): error CS0150: A constant value is expected
+                //     static bool F1(ReadOnlySpan<char> span) => span is $"{123}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"$""{123}""").WithLocation(5, 56),
+                // (6,48): error CS0150: A constant value is expected
+                //     static bool F2(Span<char> span) => span is $"{n}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"$""{n}""").WithLocation(6, 48));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_InterpolatedString_02()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class Program
+{
+    const string s = ""123"";
+    static bool F1(ReadOnlySpan<char> span) => span is $"""";
+    static bool F2(Span<char> span) => span is $""{s}"";
+    static void F(Span<char> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<char>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F("""".ToArray());
+        F(""123"".ToArray());
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"(True, False)
+(False, True)
+");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_Conditional_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? """" : ""ABC"");
+    static bool F2(Span<char> span, bool b) => span is (b ? """" : ""123"");
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,65): error CS0150: A constant value is expected
+                //     static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? "" : "ABC");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b ? """" : ""ABC""").WithLocation(4, 65),
+                // (5,57): error CS0150: A constant value is expected
+                //     static bool F2(Span<char> span, bool b) => span is (b ? "" : "123");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b ? """" : ""123""").WithLocation(5, 57));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_Conditional_02()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is (true ? """" : ""ABC"");
+    static bool F2(Span<char> span) => span is (false ? """" : ""123"");
+    static void F(Span<char> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<char>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F("""".ToArray());
+        F(""123"".ToArray());
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"(True, False)
+(False, True)
+");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_SwitchExpression()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => """", false => ""ABC"" };
+    static bool F2(Span<char> span, bool b) => span is b switch { false => """", true => ""123"" };
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,64): error CS0150: A constant value is expected
+                //     static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => "", false => "ABC" };
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b switch { true => """", false => ""ABC"" }").WithLocation(4, 64),
+                // (5,56): error CS0150: A constant value is expected
+                //     static bool F2(Span<char> span, bool b) => span is b switch { false => "", true => "123" };
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b switch { false => """", true => ""123"" }").WithLocation(5, 56));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_ExpressionTree_01()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is ""123"";
+        Expression<Func<bool>> e2 = () => new Span<char>(null) is ""ABC"";
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (7,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is "123";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, @"new ReadOnlySpan<char>(null) is ""123""").WithLocation(7, 43),
+                // (7,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) is "123";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new ReadOnlySpan<char>(null)").WithArguments("ReadOnlySpan").WithLocation(7, 43),
+                // (8,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) is "ABC";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, @"new Span<char>(null) is ""ABC""").WithLocation(8, 43),
+                // (8,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) is "ABC";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Span<char>(null)").WithArguments("Span").WithLocation(8, 43));
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_ExpressionTree_02()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { ""123"" => true, _ => false };
+        Expression<Func<bool>> e2 = () => new Span<char>(null) switch { ""ABC"" => true, _ => false };
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (7,43): error CS8514: An expression tree may not contain a switch expression.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { "123" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, @"new ReadOnlySpan<char>(null) switch { ""123"" => true, _ => false }").WithLocation(7, 43),
+                // (7,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+                //         Expression<Func<bool>> e1 = () => new ReadOnlySpan<char>(null) switch { "123" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new ReadOnlySpan<char>(null)").WithArguments("ReadOnlySpan").WithLocation(7, 43),
+                // (8,43): error CS8514: An expression tree may not contain a switch expression.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) switch { "ABC" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, @"new Span<char>(null) switch { ""ABC"" => true, _ => false }").WithLocation(8, 43),
+                // (8,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+                //         Expression<Func<bool>> e2 = () => new Span<char>(null) switch { "ABC" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Span<char>(null)").WithArguments("Span").WithLocation(8, 43));
+        }
+
+        /// <summary>
+        /// Ensure that the synthesized switch hash method can handle a null
+        /// value if null is supported as a constant pattern in the future.
+        /// </summary>
+        [Fact]
+        public void PatternMatchSpanChar_SwitchHashWithNull()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int F1(ReadOnlySpan<char> span)
+    {
+        return span switch
+        {
+            (string)null => 0,
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            _ => 7,
+        };
+    }
+    static int F2(Span<char> span)
+    {
+        return span switch
+        {
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            default(string) => 7,
+            _ => 0,
+        };
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (8,13): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //             (string)null => 0,
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(8, 13),
+                // (28,13): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //             default(string) => 7,
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "default(string)").WithArguments("System.Span<char>").WithLocation(28, 13));
+        }
+
+        /// <summary>
+        /// DecisionDagRewriter.EnsureStringHashFunction() does not generate
+        /// a hash function if the span indexer is missing.
+        /// </summary>
+        [Fact]
+        public void PatternMatchSpanChar_MissingIndexer()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        internal T Get(int index) => _array[index];
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        internal T Get(int index) => _array[index];
+    }
+    public static class MemoryExtensions
+    {
+        public static ReadOnlySpan<char> AsSpan(string s)
+        {
+            var array = new char[s.Length];
+            for (int i = 0; i < s.Length; i++) array[i] = s[i];
+            return new ReadOnlySpan<char>(array);
+        }
+        public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b)
+        {
+            if (a.Length != b.Length) return false;
+            for (int i = 0; i < a.Length; i++)
+                if (!object.Equals(a.Get(i), b.Get(i))) return false;
+            return true;
+        }
+        public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b)
+        {
+            return SequenceEqual((ReadOnlySpan<T>)a, b);
+        }
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var r = new ReadOnlySpan<char>(new [] { '3' });
+        var s = new Span<char>(new [] { '6' });
+        Console.WriteLine((F1(r), F2(s)));
+    }
+    static int F1(ReadOnlySpan<char> s)
+    {
+        return s switch
+        {
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            ""7"" => 7,
+            _ => 0
+        };
+    }
+    static int F2(Span<char> s)
+    {
+        return s switch
+        {
+            ""1"" => 1,
+            ""2"" => 2,
+            ""3"" => 3,
+            ""4"" => 4,
+            ""5"" => 5,
+            ""6"" => 6,
+            ""7"" => 7,
+            _ => 0
+        };
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(3, 6)");
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size      160 (0xa0)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""1""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brtrue.s   IL_0080
+  IL_0012:  ldarg.0
+  IL_0013:  ldstr      ""2""
+  IL_0018:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0022:  brtrue.s   IL_0084
+  IL_0024:  ldarg.0
+  IL_0025:  ldstr      ""3""
+  IL_002a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0034:  brtrue.s   IL_0088
+  IL_0036:  ldarg.0
+  IL_0037:  ldstr      ""4""
+  IL_003c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0041:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0046:  brtrue.s   IL_008c
+  IL_0048:  ldarg.0
+  IL_0049:  ldstr      ""5""
+  IL_004e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0053:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0058:  brtrue.s   IL_0090
+  IL_005a:  ldarg.0
+  IL_005b:  ldstr      ""6""
+  IL_0060:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0065:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_006a:  brtrue.s   IL_0094
+  IL_006c:  ldarg.0
+  IL_006d:  ldstr      ""7""
+  IL_0072:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0077:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_007c:  brtrue.s   IL_0098
+  IL_007e:  br.s       IL_009c
+  IL_0080:  ldc.i4.1
+  IL_0081:  stloc.0
+  IL_0082:  br.s       IL_009e
+  IL_0084:  ldc.i4.2
+  IL_0085:  stloc.0
+  IL_0086:  br.s       IL_009e
+  IL_0088:  ldc.i4.3
+  IL_0089:  stloc.0
+  IL_008a:  br.s       IL_009e
+  IL_008c:  ldc.i4.4
+  IL_008d:  stloc.0
+  IL_008e:  br.s       IL_009e
+  IL_0090:  ldc.i4.5
+  IL_0091:  stloc.0
+  IL_0092:  br.s       IL_009e
+  IL_0094:  ldc.i4.6
+  IL_0095:  stloc.0
+  IL_0096:  br.s       IL_009e
+  IL_0098:  ldc.i4.7
+  IL_0099:  stloc.0
+  IL_009a:  br.s       IL_009e
+  IL_009c:  ldc.i4.0
+  IL_009d:  stloc.0
+  IL_009e:  ldloc.0
+  IL_009f:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size      160 (0xa0)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""1""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brtrue.s   IL_0080
+  IL_0012:  ldarg.0
+  IL_0013:  ldstr      ""2""
+  IL_0018:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0022:  brtrue.s   IL_0084
+  IL_0024:  ldarg.0
+  IL_0025:  ldstr      ""3""
+  IL_002a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_002f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0034:  brtrue.s   IL_0088
+  IL_0036:  ldarg.0
+  IL_0037:  ldstr      ""4""
+  IL_003c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0041:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0046:  brtrue.s   IL_008c
+  IL_0048:  ldarg.0
+  IL_0049:  ldstr      ""5""
+  IL_004e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0053:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0058:  brtrue.s   IL_0090
+  IL_005a:  ldarg.0
+  IL_005b:  ldstr      ""6""
+  IL_0060:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0065:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_006a:  brtrue.s   IL_0094
+  IL_006c:  ldarg.0
+  IL_006d:  ldstr      ""7""
+  IL_0072:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0077:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_007c:  brtrue.s   IL_0098
+  IL_007e:  br.s       IL_009c
+  IL_0080:  ldc.i4.1
+  IL_0081:  stloc.0
+  IL_0082:  br.s       IL_009e
+  IL_0084:  ldc.i4.2
+  IL_0085:  stloc.0
+  IL_0086:  br.s       IL_009e
+  IL_0088:  ldc.i4.3
+  IL_0089:  stloc.0
+  IL_008a:  br.s       IL_009e
+  IL_008c:  ldc.i4.4
+  IL_008d:  stloc.0
+  IL_008e:  br.s       IL_009e
+  IL_0090:  ldc.i4.5
+  IL_0091:  stloc.0
+  IL_0092:  br.s       IL_009e
+  IL_0094:  ldc.i4.6
+  IL_0095:  stloc.0
+  IL_0096:  br.s       IL_009e
+  IL_0098:  ldc.i4.7
+  IL_0099:  stloc.0
+  IL_009a:  br.s       IL_009e
+  IL_009c:  ldc.i4.0
+  IL_009d:  stloc.0
+  IL_009e:  ldloc.0
+  IL_009f:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharConstantStringAndListPatterns()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var s1 = new Span<char>(new char[0]);
+        var s2 = new Span<char>(new[] { 's', 't', 'r' });
+        Console.WriteLine(F1(s1));
+        Console.WriteLine(F1(s2));
+        Console.WriteLine(F2(s1));
+        Console.WriteLine(F2(s2));
+    }
+    static int F1(ReadOnlySpan<char> span) 
+    {
+        return span switch
+        {
+            ""str"" => 1,
+            [ 's', 't', 'r' ] => 2,
+            _ => 0,
+        };
+    }
+    static int F2(Span<char> span) 
+    {
+        return span switch
+        {
+            [ 's', 't', 'r' ] => 2,
+            ""str"" => 1,
+            _ => 0,
+        };
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"0
+1
+0
+2");
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""str""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brtrue.s   IL_0045
+  IL_0012:  ldarga.s   V_0
+  IL_0014:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0019:  ldc.i4.3
+  IL_001a:  bne.un.s   IL_004d
+  IL_001c:  ldarga.s   V_0
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0024:  ldind.u2
+  IL_0025:  ldc.i4.s   115
+  IL_0027:  bne.un.s   IL_004d
+  IL_0029:  ldarga.s   V_0
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0031:  ldind.u2
+  IL_0032:  ldc.i4.s   116
+  IL_0034:  bne.un.s   IL_004d
+  IL_0036:  ldarga.s   V_0
+  IL_0038:  ldc.i4.2
+  IL_0039:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_003e:  ldind.u2
+  IL_003f:  ldc.i4.s   114
+  IL_0041:  beq.s      IL_0049
+  IL_0043:  br.s       IL_004d
+  IL_0045:  ldc.i4.1
+  IL_0046:  stloc.0
+  IL_0047:  br.s       IL_004f
+  IL_0049:  ldc.i4.2
+  IL_004a:  stloc.0
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.0
+  IL_004f:  ldloc.0
+  IL_0050:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<char>.Length.get""
+  IL_0007:  ldc.i4.3
+  IL_0008:  bne.un.s   IL_0031
+  IL_000a:  ldarga.s   V_0
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0012:  ldind.u2
+  IL_0013:  ldc.i4.s   115
+  IL_0015:  bne.un.s   IL_0031
+  IL_0017:  ldarga.s   V_0
+  IL_0019:  ldc.i4.1
+  IL_001a:  call       ""ref char System.Span<char>.this[int].get""
+  IL_001f:  ldind.u2
+  IL_0020:  ldc.i4.s   116
+  IL_0022:  bne.un.s   IL_0031
+  IL_0024:  ldarga.s   V_0
+  IL_0026:  ldc.i4.2
+  IL_0027:  call       ""ref char System.Span<char>.this[int].get""
+  IL_002c:  ldind.u2
+  IL_002d:  ldc.i4.s   114
+  IL_002f:  beq.s      IL_0045
+  IL_0031:  ldarg.0
+  IL_0032:  ldstr      ""str""
+  IL_0037:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0041:  brtrue.s   IL_0049
+  IL_0043:  br.s       IL_004d
+  IL_0045:  ldc.i4.2
+  IL_0046:  stloc.0
+  IL_0047:  br.s       IL_004f
+  IL_0049:  ldc.i4.1
+  IL_004a:  stloc.0
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.0
+  IL_004f:  ldloc.0
+  IL_0050:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_ObsoleteMemoryExtensions()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        public ref T this[int index] => ref _array[index];
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        public ref T this[int index] => ref _array[index];
+    }
+    [Obsolete]
+    public static class MemoryExtensions
+    {
+        [Obsolete]
+        public static ReadOnlySpan<char> AsSpan(string s)
+        {
+            var array = new char[s.Length];
+            for (int i = 0; i < s.Length; i++) array[i] = s[i];
+            return new ReadOnlySpan<char>(array);
+        }
+        [Obsolete]
+        public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b)
+        {
+            if (a.Length != b.Length) return false;
+            for (int i = 0; i < a.Length; i++)
+                if (!object.Equals(a[i], b[i])) return false;
+            return true;
+        }
+        [Obsolete]
+        public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b)
+        {
+            return SequenceEqual((ReadOnlySpan<T>)a, b);
+        }
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is ""123"";
+    static bool F2(Span<char> span) => span is ""ABC"";
+    static void F(Span<char> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<char>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F(new Span<char>(new [] { 'A', 'B', 'C' }));
+        F(new Span<char>(new [] { '1', '2', '3' }));
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"(False, True)
+(True, False)
+");
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_GetTypeInfo()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is ""123"";
+    static bool F2(Span<char> span) => span is ""ABC"";
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, exprs.Length);
+            foreach (var expr in exprs)
+            {
+                var typeInfo = model.GetTypeInfo(expr);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_String, typeInfo.ConvertedType.SpecialType);
+            }
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_GetDeclaredSymbol()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is ""123"" and var r;
+    static bool F2(Span<char> span) => span is ""ABC"" and var s;
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var locals = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            var types = locals.Select(local => ((ILocalSymbol)model.GetDeclaredSymbol(local)).Type.ToTestDisplayString()).ToArray();
+            AssertEx.Equal(new[] { "System.ReadOnlySpan<System.Char>", "System.Span<System.Char>" }, types);
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_IOperation_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F(ReadOnlySpan<char> span)
+    {
+        return span is ""123"";
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return span is ""123"";')
+    ReturnedValue:
+      IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""123""')
+        Value:
+          IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.ReadOnlySpan<System.Char>) (Syntax: 'span')
+        Pattern:
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""123""') (InputType: System.ReadOnlySpan<System.Char>, NarrowedType: System.ReadOnlySpan<System.Char>)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
+",
+                actualText);
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(syntax, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""123""')
+          Value:
+            IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.ReadOnlySpan<System.Char>) (Syntax: 'span')
+          Pattern:
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""123""') (InputType: System.ReadOnlySpan<System.Char>, NarrowedType: System.ReadOnlySpan<System.Char>)
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""123"") (Syntax: '""123""')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                graph, symbol);
+        }
+
+        [Fact]
+        public void PatternMatchSpanChar_IOperation_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F(Span<char> span)
+    {
+        return span is ""ABC"";
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return span is ""ABC"";')
+    ReturnedValue:
+      IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""ABC""')
+        Value:
+          IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.Span<System.Char>) (Syntax: 'span')
+        Pattern:
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""ABC""') (InputType: System.Span<System.Char>, NarrowedType: System.Span<System.Char>)
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""ABC"") (Syntax: '""ABC""')
+",
+                actualText);
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(syntax, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp,
+@"Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'span is ""ABC""')
+          Value:
+            IParameterReferenceOperation: span (OperationKind.ParameterReference, Type: System.Span<System.Char>) (Syntax: 'span')
+          Pattern:
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '""ABC""') (InputType: System.Span<System.Char>, NarrowedType: System.Span<System.Char>)
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""ABC"") (Syntax: '""ABC""')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+",
+                graph, symbol);
         }
 
         [Fact, WorkItem(50301, "https://github.com/dotnet/roslyn/issues/50301")]

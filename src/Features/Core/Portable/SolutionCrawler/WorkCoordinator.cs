@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,15 +22,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         internal sealed partial class WorkCoordinator
         {
             private readonly Registration _registration;
-            private readonly object _gate;
+            private readonly object _gate = new();
 
-            private readonly LogAggregator _logAggregator;
+            private readonly LogAggregator _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
-            private readonly ISyntaxTreeConfigurationService? _syntaxTreeConfigurationService;
+            private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
-            private readonly CancellationTokenSource _shutdownNotificationSource;
+            private readonly CancellationTokenSource _shutdownNotificationSource = new();
             private readonly CancellationToken _shutdownToken;
             private readonly TaskQueue _eventProcessingQueue;
 
@@ -43,18 +44,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                  bool initializeLazily,
                  Registration registration)
             {
-                _logAggregator = new LogAggregator();
-
                 _registration = registration;
-                _gate = new object();
 
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
                 _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                _syntaxTreeConfigurationService = _registration.Workspace.Services.GetService<ISyntaxTreeConfigurationService>();
+                _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues
-                _shutdownNotificationSource = new CancellationTokenSource();
                 _shutdownToken = _shutdownNotificationSource.Token;
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
@@ -391,7 +388,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // If all features are enabled for source generated documents, the solution crawler needs to
                         // include them in incremental analysis.
-                        if (_syntaxTreeConfigurationService is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                        if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
                         {
                             // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
                             // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
@@ -479,7 +476,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // If all features are enabled for source generated documents, the solution crawler needs to
                 // include them in incremental analysis.
-                if (_syntaxTreeConfigurationService is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                if (_workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
                         await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);

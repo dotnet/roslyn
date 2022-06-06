@@ -5,12 +5,11 @@
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.SignatureHelp
+namespace Microsoft.CodeAnalysis.SignatureHelp;
+
+internal static class SignatureHelpOptionsStorage
 {
-    internal static class SignatureHelpOptionsStorage
-    {
-        public static SignatureHelpOptions GetSignatureHelpOptions(this IGlobalOptionService globalOptions, string language)
-          => new(
-              HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language));
-    }
+    public static SignatureHelpOptions GetSignatureHelpOptions(this IGlobalOptionService globalOptions, string language)
+      => new(
+          HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language));
 }

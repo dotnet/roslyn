@@ -110,10 +110,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (loadOnly)
                 return null;
 
-            var database = solution.Options.GetPersistentStorageDatabase();
-
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Workspace.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, database, metadata, cancellationToken).ConfigureAwait(false);
+                solution.Workspace.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<SymbolTreeInfo> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
@@ -130,7 +128,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SolutionKey solutionKey,
             PortableExecutableReference reference,
             Checksum checksum,
-            StorageDatabase database,
             Metadata metadata,
             CancellationToken cancellationToken)
         {
@@ -142,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var asyncLazy = s_metadataIdToInfo.GetValue(
                 metadata.Id,
                 id => new AsyncLazy<SymbolTreeInfo>(
-                    c => TryCreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, database, c),
+                    c => TryCreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
                     cacheResult: true));
 
             return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -183,7 +180,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SolutionKey solutionKey,
             PortableExecutableReference reference,
             Checksum checksum,
-            StorageDatabase database,
             CancellationToken cancellationToken)
         {
             var filePath = reference.FilePath;
@@ -192,20 +188,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 services,
                 solutionKey,
                 checksum,
-                database,
                 loadOnly: false,
-                createAsync: () => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, checksum, database, reference),
+                createAsync: () => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, database, filePath, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, filePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result);
             return result;
         }
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, StorageDatabase database, PortableExecutableReference reference)
+            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
         {
-            var creator = new MetadataInfoCreator(services, solutionKey, checksum, database, reference);
+            var creator = new MetadataInfoCreator(services, solutionKey, checksum, reference);
             return Task.FromResult(creator.Create());
         }
 
@@ -217,7 +212,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly HostWorkspaceServices _services;
             private readonly SolutionKey _solutionKey;
             private readonly Checksum _checksum;
-            private readonly StorageDatabase _database;
             private readonly PortableExecutableReference _reference;
 
             private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap;
@@ -228,7 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private MetadataReader _metadataReader;
 
             // The set of type definitions we've read out of the current metadata reader.
-            private readonly List<MetadataDefinition> _allTypeDefinitions;
+            private readonly List<MetadataDefinition> _allTypeDefinitions = new();
 
             // Map from node represents extension method to list of possible parameter type info.
             // We can have more than one if there's multiple methods with same name but different receiver type.
@@ -237,24 +231,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //      public static bool AnotherExtensionMethod1(this int x);
             //      public static bool AnotherExtensionMethod1(this bool x);
             //
-            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
+            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo = new();
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
-                HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, StorageDatabase database, PortableExecutableReference reference)
+                HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
             {
                 _services = services;
                 _solutionKey = solutionKey;
                 _checksum = checksum;
-                _database = database;
                 _reference = reference;
                 _metadataReader = null;
-                _allTypeDefinitions = new List<MetadataDefinition>();
                 _containsExtensionsMethod = false;
 
                 _inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
                 _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
-                _extensionMethodToParameterTypeInfo = new MultiDictionary<MetadataNode, ParameterTypeInfo>();
                 _rootNode = MetadataNode.Allocate(name: "");
             }
 
@@ -313,7 +304,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(extensionMethodsMap);
 
                 return CreateSymbolTreeInfo(
-                    _services, _solutionKey, _checksum, _database, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
+                    _services, _solutionKey, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
             }
 
             public void Dispose()

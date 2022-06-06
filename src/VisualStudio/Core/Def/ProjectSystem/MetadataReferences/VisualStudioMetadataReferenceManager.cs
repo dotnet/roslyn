@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
-        private readonly MetadataCache _metadataCache;
+        private readonly MetadataCache _metadataCache = new();
         private readonly ImmutableArray<string> _runtimeDirectories;
         private readonly ITemporaryStorageService _temporaryStorageService;
 
@@ -55,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IServiceProvider serviceProvider,
             ITemporaryStorageService temporaryStorageService)
         {
-            _metadataCache = new MetadataCache();
             _runtimeDirectories = GetRuntimeDirectories();
 
             XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));

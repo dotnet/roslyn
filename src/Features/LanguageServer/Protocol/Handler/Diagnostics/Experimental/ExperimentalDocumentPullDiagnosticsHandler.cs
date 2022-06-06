@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -28,11 +30,11 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
     public ExperimentalDocumentPullDiagnosticsHandler(
-        WellKnownLspServerKinds serverKind,
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
-        : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IGlobalOptionService globalOptions)
+        : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
         _analyzerService = analyzerService;
     }

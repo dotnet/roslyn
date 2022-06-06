@@ -2,12 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -17,10 +24,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
+    internal sealed class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
-            : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
+        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource, IGlobalOptionService globalOptions)
+            : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
         }
 
@@ -74,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
-            if (context.ClientName != null)
+            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
                 return ImmutableArray<Document>.Empty;
 
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
@@ -115,24 +122,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return;
                 }
 
-                // if the project doesn't necessarily have an open file in it, then only include it if the user has full
-                // solution analysis on.
-                if (!isOpen)
+                var isFSAOn = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
+                var documents = ImmutableArray<Document>.Empty;
+                // If FSA is on, then add all the documents in the project.  Other analysis scopes are handled by the document pull handler.
+                if (isFSAOn)
                 {
-                    if (globalOptions.GetBackgroundAnalysisScope(project.Language) != BackgroundAnalysisScope.FullSolution)
-                    {
-                        context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
-                        return;
-                    }
+                    documents = documents.AddRange(project.Documents);
                 }
 
-                // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
-                // documents from it. If all features are enabled for source generated documents, make sure they are
-                // included as well.
-                var documents = project.Documents;
-                if (solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                // If all features are enabled for source generated documents, make sure they are included when FSA is on or a file in the project is open.
+                // This is done because for either scenario we've already run generators, so there shouldn't be much cost in getting the diagnostics.
+                if ((isFSAOn || isOpen) && solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
-                    documents = documents.Concat(await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false));
+                    var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                    documents = documents.AddRange(sourceGeneratedDocuments);
                 }
 
                 foreach (var document in documents)
@@ -142,6 +145,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (context.IsTracking(document.GetURI()))
                     {
                         context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
+                    // for any razor file they are interested in.
+                    if (document.IsRazorDocument())
+                    {
                         continue;
                     }
 

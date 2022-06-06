@@ -4,7 +4,7 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 

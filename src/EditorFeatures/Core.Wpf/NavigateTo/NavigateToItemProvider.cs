@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
@@ -28,15 +29,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public NavigateToItemProvider(
             Workspace workspace,
-            IAsynchronousOperationListener asyncListener,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            IUIThreadOperationExecutor threadOperationExecutor,
+            IAsynchronousOperationListener asyncListener)
         {
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(asyncListener);
 
             _workspace = workspace;
             _asyncListener = asyncListener;
-            _displayFactory = new NavigateToItemDisplayFactory(threadingContext);
+            _displayFactory = new NavigateToItemDisplayFactory(
+                threadingContext, threadOperationExecutor, asyncListener);
             _threadingContext = threadingContext;
         }
 

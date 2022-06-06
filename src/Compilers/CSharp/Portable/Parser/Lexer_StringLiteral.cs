@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.PeekChar(1) == '"' &&
                 TextWindow.PeekChar(2) == '"')
             {
-                ScanRawStringLiteral(ref info);
+                ScanRawStringLiteral(ref info, inDirective);
                 if (inDirective)
                 {
                     // Reinterpret this as just a string literal so that the directive parser can consume this.  
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            info.Text = TextWindow.GetText(intern: true);
             if (quoteCharacter == '\'')
             {
+                info.Text = TextWindow.GetText(intern: true);
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
                 {
@@ -93,7 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                info.Kind = SyntaxKind.StringLiteralToken;
+                if (!inDirective && ScanUTF8Suffix())
+                {
+                    info.Kind = SyntaxKind.UTF8StringLiteralToken;
+                }
+                else
+                {
+                    info.Kind = SyntaxKind.StringLiteralToken;
+                }
+
+                info.Text = TextWindow.GetText(intern: true);
+
                 if (_builder.Length > 0)
                 {
                     info.StringValue = TextWindow.Intern(_builder);
@@ -103,6 +113,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.StringValue = string.Empty;
                 }
             }
+        }
+
+        private bool ScanUTF8Suffix()
+        {
+            if (TextWindow.PeekChar() is ('u' or 'U') && TextWindow.PeekChar(1) == '8')
+            {
+                TextWindow.AdvanceChar(2);
+                return true;
+            }
+
+            return false;
         }
 
         private char ScanEscapeSequence(out char surrogateCharacter)
@@ -210,7 +231,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(ch);
             }
 
-            info.Kind = SyntaxKind.StringLiteralToken;
+            if (ScanUTF8Suffix())
+            {
+                info.Kind = SyntaxKind.UTF8StringLiteralToken;
+            }
+            else
+            {
+                info.Kind = SyntaxKind.StringLiteralToken;
+            }
+
             info.Text = TextWindow.GetText(intern: false);
             info.StringValue = _builder.ToString();
         }

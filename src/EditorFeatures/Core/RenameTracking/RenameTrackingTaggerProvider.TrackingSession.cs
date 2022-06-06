@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,12 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// <summary>
         /// Determines whether the original token was a renameable identifier on a background thread
         /// </summary>
-        private class TrackingSession : ForegroundThreadAffinitizedObject
+        private class TrackingSession
         {
             private static readonly Task<TriggerIdentifierKind> s_notRenamableTask = Task.FromResult(TriggerIdentifierKind.NotRenamable);
             private readonly Task<TriggerIdentifierKind> _isRenamableIdentifierTask;
-            private readonly CancellationTokenSource _cancellationTokenSource;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
             private readonly CancellationToken _cancellationToken;
+            private readonly IThreadingContext _threadingContext;
             private readonly IAsynchronousOperationListener _asyncListener;
 
             private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
@@ -52,14 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private bool _forceRenameOverloads;
             public bool ForceRenameOverloads => _forceRenameOverloads;
 
-            public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
-                : base(stateMachine.ThreadingContext)
+            public TrackingSession(
+                StateMachine stateMachine,
+                SnapshotSpan snapshotSpan,
+                IAsynchronousOperationListener asyncListener)
             {
-                AssertIsForeground();
-
+                _threadingContext = stateMachine.ThreadingContext;
                 _asyncListener = asyncListener;
                 _trackingSpan = snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, SpanTrackingMode.EdgeInclusive);
-                _cancellationTokenSource = new CancellationTokenSource();
                 _cancellationToken = _cancellationTokenSource.Token;
 
                 if (snapshotSpan.Length > 0)
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _isRenamableIdentifierTask.SafeContinueWithFromAsync(
                         async t =>
                         {
-                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
 
                             stateMachine.UpdateTrackingSessionIfRenamable();
                         },
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 task.SafeContinueWithFromAsync(async t =>
                    {
-                       await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                       await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
 
                        if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
                        {
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             internal void CheckNewIdentifier(StateMachine stateMachine, ITextSnapshot snapshot)
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 _newIdentifierBindsTask = _isRenamableIdentifierTask.SafeContinueWithFromAsync(
                     async t => t.Result != TriggerIdentifierKind.NotRenamable &&
@@ -144,13 +146,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Cancel()
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 _cancellationTokenSource.Cancel();
             }
 
             private async Task<TriggerIdentifierKind> DetermineIfRenamableIdentifierAsync(SnapshotSpan snapshotSpan, bool initialCheck)
             {
-                AssertIsBackground();
+                _threadingContext.ThrowIfNotOnBackgroundThread();
                 var document = snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {

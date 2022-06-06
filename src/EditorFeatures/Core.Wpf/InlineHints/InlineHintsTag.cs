@@ -17,10 +17,10 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -266,13 +266,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (e.ClickCount == 2)
             {
                 e.Handled = true;
-                var replacementValue = _hint.ReplacementTextChange!.Value;
-                var subjectBuffer = _span.Snapshot.TextBuffer;
+                var textChange = _hint.ReplacementTextChange!.Value;
+
+                var snapshot = _span.Snapshot;
+                var subjectBuffer = snapshot.TextBuffer;
 
                 // Selected SpanTrackingMode to be EdgeExclusive by default.
                 // Will revise if there are some scenarios we did not think of that produce undesirable behavior.
-                var currentSnapshotSpan = _span.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
-                subjectBuffer.Replace(currentSnapshotSpan.Span, replacementValue.NewText);
+                subjectBuffer.Replace(
+                    textChange.Span.ToSnapshotSpan(snapshot).TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive),
+                    textChange.NewText);
             }
         }
     }

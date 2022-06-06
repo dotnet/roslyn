@@ -47,25 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Inline_variable_declaration, nameof(CSharpAnalyzersResources.Inline_variable_declaration));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken);
-#else
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             // Gather all statements to be removed
             // We need this to find the statements we can safely attach trivia to
@@ -120,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
-            OptionSet options, SemanticModel semanticModel,
+            CSharpCodeFixOptionsProvider options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,
             HashSet<StatementSyntax> declarationsToRemove,
@@ -265,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         public static TypeSyntax GenerateTypeSyntaxOrVar(
-           ITypeSymbol symbol, OptionSet options)
+           ITypeSymbol symbol, CSharpCodeFixOptionsProvider options)
         {
             var useVar = IsVarDesired(symbol, options);
 
@@ -278,16 +270,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 : symbol.GenerateTypeSyntax();
         }
 
-        private static bool IsVarDesired(ITypeSymbol type, OptionSet options)
+        private static bool IsVarDesired(ITypeSymbol type, CSharpCodeFixOptionsProvider options)
         {
             // If they want it for intrinsics, and this is an intrinsic, then use var.
             if (type.IsSpecialType() == true)
             {
-                return options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value;
+                return options.VarForBuiltInTypes.Value;
             }
 
             // If they want "var" whenever possible, then use "var".
-            return options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
+            return options.VarElsewhere.Value;
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
@@ -425,16 +417,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             speculativeModel = null;
             return false;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Inline_variable_declaration,
-                       createChangedDocument,
-                       CSharpAnalyzersResources.Inline_variable_declaration)
-            {
-            }
         }
     }
 }

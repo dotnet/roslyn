@@ -11,5 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     {
         public static void ThrowIfNotOnUIThread(this IThreadingContext threadingContext)
             => Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
+
+        public static void ThrowIfNotOnBackgroundThread(this IThreadingContext threadingContext)
+            => Contract.ThrowIfTrue(threadingContext.JoinableTaskContext.IsOnMainThread);
     }
 }

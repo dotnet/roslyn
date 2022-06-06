@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
-            var actions = await GetActionsAsync(document, expression, methodSymbol, containingMethod, cancellationToken).ConfigureAwait(false);
+            var actions = await GetActionsAsync(document, expression, methodSymbol, containingMethod, context.Options, cancellationToken).ConfigureAwait(false);
 
             if (actions is null)
             {
@@ -128,13 +129,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (actions.Value.actions.Length > 0)
             {
-                context.RegisterRefactoring(new CodeActionWithNestedActions(
+                context.RegisterRefactoring(CodeActionWithNestedActions.Create(
                     string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low), textSpan);
             }
 
             if (actions.Value.actionsAllOccurrences.Length > 0)
             {
-                context.RegisterRefactoring(new CodeActionWithNestedActions(
+                context.RegisterRefactoring(CodeActionWithNestedActions.Create(
                     string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false,
                     priority: CodeActionPriority.Low), textSpan);
             }
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// is a constructor.
         /// </summary>
         private async Task<(ImmutableArray<CodeAction> actions, ImmutableArray<CodeAction> actionsAllOccurrences)?> GetActionsAsync(Document document,
-            TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
+            TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod, CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var (shouldDisplay, containsClassExpression) = await ShouldExpressionDisplayCodeActionAsync(
@@ -185,10 +186,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return (actionsBuilder.ToImmutableAndClear(), actionsBuilderAllOccurrences.ToImmutableAndClear());
 
             // Local function to create a code action with more ease
-            MyCodeAction CreateNewCodeAction(string actionName, bool allOccurrences, IntroduceParameterCodeActionKind selectedCodeAction)
+            CodeAction CreateNewCodeAction(string actionName, bool allOccurrences, IntroduceParameterCodeActionKind selectedCodeAction)
             {
-                return new MyCodeAction(actionName, c => IntroduceParameterAsync(
-                    document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, c));
+                return CodeAction.Create(
+                    actionName,
+                    c => IntroduceParameterAsync(document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, fallbackOptions, c),
+                    actionName);
             }
         }
 
@@ -243,13 +246,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// </summary>
         private async Task<Solution> IntroduceParameterAsync(Document originalDocument, TExpressionSyntax expression,
             IMethodSymbol methodSymbol, SyntaxNode containingMethod, bool allOccurrences, IntroduceParameterCodeActionKind selectedCodeAction,
-            CancellationToken cancellationToken)
+            CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var methodCallSites = await FindCallSitesAsync(originalDocument, methodSymbol, cancellationToken).ConfigureAwait(false);
 
             var modifiedSolution = originalDocument.Project.Solution;
             var rewriter = new IntroduceParameterDocumentRewriter(this, originalDocument,
-                expression, methodSymbol, containingMethod, selectedCodeAction, allOccurrences);
+                expression, methodSymbol, containingMethod, selectedCodeAction, fallbackOptions, allOccurrences);
 
             foreach (var (project, projectCallSites) in methodCallSites.GroupBy(kvp => kvp.Key.Project))
             {
@@ -316,14 +319,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             return methodCallSites;
-        }
-
-        private class MyCodeAction : SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
 
         private enum IntroduceParameterCodeActionKind

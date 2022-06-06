@@ -84,6 +84,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 
+            if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
+            {
+                // We will count generator diagnostics as semantic diagnostics; some filtering to either syntax/semantic is necessary or else we'll report diagnostics twice.
+                if (kind == AnalysisKind.Semantic)
+                {
+                    var generatorDiagnostics = await textDocument.Project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                    return ConvertToLocalDiagnostics(generatorDiagnostics, textDocument, span);
+                }
+                else
+                {
+                    return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+                }
+            }
+
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
                 if (document == null)

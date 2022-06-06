@@ -91,9 +91,19 @@ namespace Microsoft.CodeAnalysis
         public const string ExplicitConversionName = "op_Explicit";
 
         /// <summary>
+        /// The name assigned to a chacked explicit (narrowing) conversion.
+        /// </summary>
+        public const string CheckedExplicitConversionName = "op_CheckedExplicit";
+
+        /// <summary>
         /// The name assigned to the Addition operator.
         /// </summary>
         public const string AdditionOperatorName = "op_Addition";
+
+        /// <summary>
+        /// The name assigned to the checked Addition operator.
+        /// </summary>
+        public const string CheckedAdditionOperatorName = "op_CheckedAddition";
 
         /// <summary>
         /// The name assigned to the BitwiseAnd operator.
@@ -111,9 +121,19 @@ namespace Microsoft.CodeAnalysis
         public const string DecrementOperatorName = "op_Decrement";
 
         /// <summary>
+        /// The name assigned to the checked Decrement operator.
+        /// </summary>
+        public const string CheckedDecrementOperatorName = "op_CheckedDecrement";
+
+        /// <summary>
         /// The name assigned to the Division operator.
         /// </summary>
         public const string DivisionOperatorName = "op_Division";
+
+        /// <summary>
+        /// The name assigned to the checked Division operator.
+        /// </summary>
+        public const string CheckedDivisionOperatorName = "op_CheckedDivision";
 
         /// <summary>
         /// The name assigned to the Equality operator.
@@ -144,6 +164,11 @@ namespace Microsoft.CodeAnalysis
         /// The name assigned to the Increment operator.
         /// </summary>
         public const string IncrementOperatorName = "op_Increment";
+
+        /// <summary>
+        /// The name assigned to the checked Increment operator.
+        /// </summary>
+        public const string CheckedIncrementOperatorName = "op_CheckedIncrement";
 
         /// <summary>
         /// The name assigned to the Inequality operator.
@@ -196,6 +221,11 @@ namespace Microsoft.CodeAnalysis
         public const string MultiplyOperatorName = "op_Multiply";
 
         /// <summary>
+        /// The name assigned to the checked Multiply operator.
+        /// </summary>
+        public const string CheckedMultiplyOperatorName = "op_CheckedMultiply";
+
+        /// <summary>
         /// The name assigned to the OnesComplement operator.
         /// </summary>
         public const string OnesComplementOperatorName = "op_OnesComplement";
@@ -216,6 +246,11 @@ namespace Microsoft.CodeAnalysis
         public const string SubtractionOperatorName = "op_Subtraction";
 
         /// <summary>
+        /// The name assigned to the checked Subtraction operator.
+        /// </summary>
+        public const string CheckedSubtractionOperatorName = "op_CheckedSubtraction";
+
+        /// <summary>
         /// The name assigned to the True operator.
         /// </summary>
         public const string TrueOperatorName = "op_True";
@@ -224,6 +259,11 @@ namespace Microsoft.CodeAnalysis
         /// The name assigned to the UnaryNegation operator.
         /// </summary>
         public const string UnaryNegationOperatorName = "op_UnaryNegation";
+
+        /// <summary>
+        /// The name assigned to the checked UnaryNegation operator.
+        /// </summary>
+        public const string CheckedUnaryNegationOperatorName = "op_CheckedUnaryNegation";
 
         /// <summary>
         /// The name assigned to the UnaryPlus operator.

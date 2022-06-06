@@ -133,6 +133,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.UTF8StringLiteralToken) ||
+                token.IsKind(SyntaxKind.UTF8SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken))
+            {
+                text = Keyword("UTF8StringLiteral");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken) ||
+                token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+            {
+                text = Keyword("RawStringLiteral");
+                return true;
+            }
+
             text = null;
             return false;
         }
@@ -370,6 +385,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             ? "whereconstraint_CSharpKeyword"
                             : "whereclause_CSharpKeyword";
 
+                        return true;
+
+                    case SyntaxKind.RequiredKeyword:
+                        text = Keyword("required");
                         return true;
                 }
             }

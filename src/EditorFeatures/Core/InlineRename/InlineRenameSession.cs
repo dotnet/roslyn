@@ -12,7 +12,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,7 +32,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class InlineRenameSession : ForegroundThreadAffinitizedObject, IInlineRenameSession, IFeatureController
+    internal partial class InlineRenameSession : IInlineRenameSession, IFeatureController
     {
         private readonly Workspace _workspace;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly Document _triggerDocument;
         private readonly ITextView _triggerView;
         private readonly IDisposable _inlineRenameSessionDurationLogBlock;
-
+        private readonly IThreadingContext _threadingContext;
         public readonly InlineRenameService RenameService;
 
         private bool _dismissed;
@@ -125,9 +123,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IFeatureServiceFactory featureServiceFactory,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListener asyncListener)
-            : base(threadingContext, assertIsForeground: true)
         {
             // This should always be touching a symbol since we verified that upon invocation
+            _threadingContext = threadingContext;
             _renameInfo = renameInfo;
 
             _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -148,7 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // Disable completion when an inline rename session starts
             _featureService = featureServiceFactory.GlobalFeatureService;
             _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
-
             RenameService = renameService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _refactorNotifyServices = refactorNotifyServices;
@@ -243,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
             _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(SpecializedCollections.SingletonEnumerable(startingSpan.ToTextSpan()));
 
-            UpdateReferenceLocationsTask(ThreadingContext.JoinableTaskFactory.RunAsync(
+            UpdateReferenceLocationsTask(_threadingContext.JoinableTaskFactory.RunAsync(
                 () => _renameInfo.FindRenameLocationsAsync(_options, _cancellationTokenSource.Token)));
 
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
@@ -251,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private bool TryPopulateOpenTextBufferManagerForBuffer(ITextBuffer buffer)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
 
             if (_workspace.Kind == WorkspaceKind.Interactive)
@@ -275,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnSubjectBuffersConnected(object sender, SubjectBuffersConnectedEventArgs e)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             foreach (var buffer in e.SubjectBuffers)
             {
                 if (buffer.GetWorkspace() == _workspace)
@@ -290,10 +287,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void UpdateReferenceLocationsTask(JoinableTask<IInlineRenameLocationSet> findRenameLocationsTask)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
-            _allRenameLocationsTask = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+            _allRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 var inlineRenameLocations = await findRenameLocationsTask.JoinAsync().ConfigureAwaitRunInline();
 
@@ -301,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // from running prior to the completion of the UI operation), but the implementation does not currently
                 // follow the originally-intended design.
                 // https://github.com/dotnet/roslyn/issues/40890
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
 
                 RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
 
@@ -339,14 +336,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
 
             _options = newOptions;
 
             var cancellationToken = _cancellationTokenSource.Token;
 
-            UpdateReferenceLocationsTask(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+            UpdateReferenceLocationsTask(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
@@ -362,38 +359,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public void SetPreviewChanges(bool value)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
 
             _previewChanges = value;
-        }
-
-        private void Dismiss(bool rollbackTemporaryEdits)
-        {
-            _dismissed = true;
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
-
-            // Reenable completion now that the inline rename session is done
-            _completionDisabledToken.Dispose();
-
-            foreach (var textBuffer in _openTextBuffers.Keys)
-            {
-                var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var isClosed = document == null;
-
-                var openBuffer = _openTextBuffers[textBuffer];
-                openBuffer.Disconnect(isClosed, rollbackTemporaryEdits);
-            }
-
-            this.UndoManager.Disconnect();
-
-            if (_triggerView != null && !_triggerView.IsClosed)
-            {
-                _triggerView.Selection.Clear();
-            }
-
-            RenameService.ActiveSession = null;
         }
 
         private void VerifyNotDismissed()
@@ -417,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void RaiseSessionSpansUpdated(ImmutableArray<InlineRenameLocation> locations)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             SetReferenceLocations(locations);
 
             // It's OK to call SetReferenceLocations with all documents, including unchangeable ones,
@@ -435,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void SetReferenceLocations(ImmutableArray<InlineRenameLocation> locations)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var locationsByDocument = locations.ToLookup(l => l.Document.Id);
 
@@ -463,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         internal void ApplyReplacementText(string replacementText, bool propagateEditImmediately)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
             this.ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
 
@@ -471,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             Action propagateEditAction = delegate
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 if (_dismissed)
                 {
@@ -519,9 +488,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             else
             {
                 // When responding to a text edit, we delay propagating the edit until the first transaction completes.
-                ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
                     propagateEditAction();
                 });
             }
@@ -529,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void UpdateConflictResolutionTask()
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             _conflictResolutionTaskCancellationSource.Cancel();
             _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
@@ -547,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
 
-            _conflictResolutionTask = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+            _conflictResolutionTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
@@ -576,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var cancellationToken = _conflictResolutionTaskCancellationSource.Token;
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
-            var replacementOperation = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+            var replacementOperation = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 var replacementInfo = await _conflictResolutionTask.JoinAsync(CancellationToken.None).ConfigureAwait(false);
                 if (replacementInfo == null || cancellationToken.IsCancellationRequested)
@@ -587,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Switch to a background thread for expensive work
                 await TaskScheduler.Default;
                 var computedMergeResult = await ComputeMergeResultAsync(replacementInfo, cancellationToken);
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                 ApplyReplacements(computedMergeResult.replacementInfo, computedMergeResult.mergeResult, cancellationToken);
             });
             replacementOperation.Task.CompletesAsyncOperation(asyncToken);
@@ -602,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void ApplyReplacements(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             cancellationToken.ThrowIfCancellationRequested();
 
             RaiseReplacementsComputed(replacementInfo);
@@ -623,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void RaiseReplacementsComputed(IInlineRenameReplacementInfo resolution)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             ReplacementsComputed?.Invoke(this, resolution);
         }
 
@@ -661,16 +630,84 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public void Cancel()
-            => Cancel(rollbackTemporaryEdits: true);
-
-        private void Cancel(bool rollbackTemporaryEdits)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
 
-            LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
-            Dismiss(rollbackTemporaryEdits);
-            EndRenameSession();
+            DismissUIAndRollbackEditsAndEndRenameSession(RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
+        }
+
+        private void DismissUIAndRollbackEditsAndEndRenameSession(
+            RenameLogMessage.UserActionOutcome outcome,
+            bool previewChanges,
+            Action finalCommitAction = null)
+        {
+            // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
+            // state for all the editors the user is interacting with.
+
+            // Remove all our adornments and restore all buffer texts to their initial state.
+            DismissUIAndRollbackEdits();
+
+            _triggerView.Caret.PositionChanged += LogPositionChanged;
+
+            // We're about to perform the final commit action.  No need to do any of our BG work to find-refs or compute conflicts.
+            _cancellationTokenSource.Cancel();
+            _conflictResolutionTaskCancellationSource.Cancel();
+
+            // Perform the actual commit step if we've been asked to.
+            finalCommitAction?.Invoke();
+
+            // Log the result so we know how well rename is going in practice.
+            LogRenameSession(outcome, previewChanges);
+
+            // Remove all our rename trackers from the text buffer properties.
+            RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
+
+            // Log how long the full rename took.
+            _inlineRenameSessionDurationLogBlock.Dispose();
+
+            _triggerView.Caret.PositionChanged -= LogPositionChanged;
+
+            return;
+
+            void DismissUIAndRollbackEdits()
+            {
+                _dismissed = true;
+                _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
+
+                // Reenable completion now that the inline rename session is done
+                _completionDisabledToken.Dispose();
+
+                foreach (var textBuffer in _openTextBuffers.Keys)
+                {
+                    var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var isClosed = document == null;
+
+                    var openBuffer = _openTextBuffers[textBuffer];
+                    openBuffer.DisconnectAndRollbackEdits(isClosed);
+                }
+
+                this.UndoManager.Disconnect();
+
+                if (_triggerView != null && !_triggerView.IsClosed)
+                {
+                    _triggerView.Selection.Clear();
+                }
+
+                RenameService.ActiveSession = null;
+            }
+
+            void LogPositionChanged(object sender, CaretPositionChangedEventArgs e)
+            {
+                try
+                {
+                    throw new InvalidOperationException("Caret position changed during application of rename");
+                }
+                catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+            }
         }
 
         public void Commit(bool previewChanges = false)
@@ -680,7 +717,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// langword="false"/> otherwise</returns>
         private bool CommitWorker(bool previewChanges)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
 
             // If the identifier was deleted (or didn't change at all) then cancel the operation.
@@ -710,27 +747,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (result == UIThreadOperationStatus.Canceled)
             {
-                LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
-                Dismiss(rollbackTemporaryEdits: true);
-                EndRenameSession();
-
+                DismissUIAndRollbackEditsAndEndRenameSession(
+                    RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
                 return false;
             }
 
             return true;
-        }
-
-        private void EndRenameSession()
-        {
-            CancelAllOpenDocumentTrackingTasks();
-            RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
-            _inlineRenameSessionDurationLogBlock.Dispose();
-        }
-
-        private void CancelAllOpenDocumentTrackingTasks()
-        {
-            _cancellationTokenSource.Cancel();
-            _conflictResolutionTaskCancellationSource.Cancel();
         }
 
         private void CommitCore(IUIThreadOperationContext operationContext, bool previewChanges)
@@ -761,52 +783,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
 
-                // The user hasn't cancelled by now, so we're done waiting for them. Off to
-                // rename!
+                // The user hasn't canceled by now, so we're done waiting for them. Off to rename!
                 using var _ = operationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
 
-                Dismiss(rollbackTemporaryEdits: true);
-                CancelAllOpenDocumentTrackingTasks();
-
-                _triggerView.Caret.PositionChanged += LogPositionChanged;
-
-                ApplyRename(newSolution, operationContext);
-
-                LogRenameSession(RenameLogMessage.UserActionOutcome.Committed, previewChanges);
-
-                EndRenameSession();
-
-                _triggerView.Caret.PositionChanged -= LogPositionChanged;
-
-                void LogPositionChanged(object sender, CaretPositionChangedEventArgs e)
-                {
-                    try
+                DismissUIAndRollbackEditsAndEndRenameSession(
+                    RenameLogMessage.UserActionOutcome.Committed, previewChanges,
+                    () =>
                     {
-                        throw new InvalidOperationException("Caret position changed during application of rename");
-                    }
-                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
-                    {
-                        // Unreachable code due to ReportAndCatch
-                        Contract.ThrowIfTrue(true);
-                    }
-                }
+                        var error = TryApplyRename(newSolution);
+
+                        if (error is not null)
+                        {
+                            operationContext.TakeOwnership();
+                            var notificationService = _workspace.Services.GetService<INotificationService>();
+                            notificationService.SendNotification(
+                                error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
+                        }
+                    });
             }
         }
 
-        private void ApplyRename(Solution newSolution, IUIThreadOperationContext operationContext)
+        /// <summary>
+        /// Returns non-null error message if renaming fails.
+        /// </summary>
+        private (NotificationSeverity severity, string message)? TryApplyRename(Solution newSolution)
         {
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
             if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
-            {
-                var notificationService = _workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(
-                    EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
-                    EditorFeaturesResources.Rename_Symbol,
-                    NotificationSeverity.Error);
-                return;
-            }
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
             using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
             var finalSolution = newSolution.Workspace.CurrentSolution;
@@ -838,7 +844,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
             }
 
-            if (_workspace.TryApplyChanges(finalSolution))
+            if (!_workspace.TryApplyChanges(finalSolution))
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+
+            try
             {
                 // Since rename can apply file changes as well, and those file
                 // changes can generate new document ids, include added documents
@@ -847,20 +856,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
 
                 var finalChangedIds = finalChanges
-                        .GetProjectChanges()
-                        .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
-                        .ToList();
+                    .GetProjectChanges()
+                    .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
+                    .ToList();
 
                 if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
-                {
-                    var notificationService = _workspace.Services.GetService<INotificationService>();
-                    operationContext.TakeOwnership();
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                        EditorFeaturesResources.Rename_Symbol,
-                        NotificationSeverity.Information);
-                }
+                    return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
+                return null;
+            }
+            finally
+            {
+                // If we successfully updated the workspace then make sure the undo transaction is committed and is
+                // always able to undo anything any other external listener did.
                 undoTransaction.Commit();
             }
         }

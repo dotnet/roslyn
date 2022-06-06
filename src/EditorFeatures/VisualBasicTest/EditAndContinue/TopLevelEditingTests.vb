@@ -1801,6 +1801,90 @@ End Class
                     DocumentResults()
                 })
         End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Module")>
+        <InlineData("Structure")>
+        <InlineData("Interface")>
+        <InlineData("Enum")>
+        Public Sub Type_Move_NamespaceChange(keyword As String)
+            Dim declaration = keyword & " C : End " & keyword
+            Dim src1 = $"Namespace N : {declaration,-20} : End Namespace : Namespace M :                 End Namespace"
+            Dim src2 = $"Namespace N :                     End Namespace : Namespace M : {declaration} : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Move [" + declaration + "]@14 -> @64")
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, keyword + " C", GetResource(keyword), "N", "M"))
+        End Sub
+
+        <Fact>
+        Public Sub Type_Move_NamespaceChange_Delegate()
+            Dim src1 = "Namespace N : Delegate Sub F() : End Namespace : Namespace M :                    End Namespace"
+            Dim src2 = "Namespace N :                    End Namespace : Namespace M : Delegate Sub F() : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Move [Delegate Sub F()]@14 -> @63")
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "Delegate Sub F()", GetResource("Delegate"), "N", "M"))
+        End Sub
+
+        <Fact>
+        Public Sub Type_Move_NamespaceChange_Subnamespace()
+            Dim src1 = "Namespace N : Class C : End Class : End Namespace : Namespace M : Namespace O :                       End Namespace : End Namespace"
+            Dim src2 = "Namespace N :                       End Namespace : Namespace M : Namespace O : Class C : End Class : End Namespace : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Move [Class C : End Class]@14 -> @80")
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N", "M.O"))
+        End Sub
+
+        <Fact>
+        Public Sub Type_Move_SameEffectiveNamespace()
+            Dim src1 = "Namespace N.M : Class C : End Class : End Namespace : Namespace N : Namespace M :                       End Namespace : End Namespace"
+            Dim src2 = "Namespace N.M :                       End Namespace : Namespace N : Namespace M : Class C : End Class : End Namespace : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Move [Class C : End Class]@16 -> @82")
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Type_Move_MultiFile()
+            Dim srcA1 = "Namespace N : Class C : End Class : End Namespace : Namespace M :                       End Namespace"
+            Dim srcB1 = "Namespace N :                       End Namespace : Namespace M : Class C : End Class : End Namespace"
+            Dim srcA2 = "Namespace N :                       End Namespace : Namespace M : Class C : End Class : End Namespace"
+            Dim srcB2 = "Namespace N : Class C : End Class : End Namespace : Namespace M :                       End Namespace"
+
+            Dim editsA = GetTopEdits(srcA1, srcA2)
+            editsA.VerifyEdits(
+                "Move [Class C : End Class]@14 -> @66")
+
+            Dim editsB = GetTopEdits(srcB1, srcB2)
+            editsB.VerifyEdits(
+                "Move [Class C : End Class]@66 -> @14")
+
+            EditAndContinueValidation.VerifySemantics(
+                {editsA, editsB},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
+        End Sub
 #End Region
 
 #Region "Enums"
@@ -2095,7 +2179,7 @@ End Class
 
 #Region "Delegates"
         <Fact>
-        Public Sub Delegates_NoModifiers_Insert()
+        Public Sub Delegate_NoModifiers_Insert()
             Dim src1 = ""
             Dim src2 = "Delegate Sub C()"
             Dim edits = GetTopEdits(src1, src2)
@@ -2105,7 +2189,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_NoModifiers_IntoNamespace_Insert()
+        Public Sub Delegate_NoModifiers_IntoNamespace_Insert()
             Dim src1 = "Namespace N : End Namespace"
             Dim src2 = "Namespace N : Delegate Sub C() : End Namespace"
             Dim edits = GetTopEdits(src1, src2)
@@ -2115,7 +2199,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_NoModifiers_IntoType_Insert()
+        Public Sub Delegate_NoModifiers_IntoType_Insert()
             Dim src1 = "Class N : End Class"
             Dim src2 = "Class N : Delegate Sub C() : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2124,7 +2208,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Rename()
+        Public Sub Delegate_Rename()
             Dim src1 = "Public Delegate Sub D()"
             Dim src2 = "Public Delegate Sub Z()"
             Dim edits = GetTopEdits(src1, src2)
@@ -2137,7 +2221,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Accessibility_Update()
+        Public Sub Delegate_Accessibility_Update()
             Dim src1 = "Public Delegate Sub D()"
             Dim src2 = "Private Delegate Sub D()"
             Dim edits = GetTopEdits(src1, src2)
@@ -2150,7 +2234,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_ReturnType_Update()
+        Public Sub Delegate_ReturnType_Update()
             Dim src1 = "Public Delegate Function D()"
             Dim src2 = "Public Delegate Sub D()"
             Dim edits = GetTopEdits(src1, src2)
@@ -2163,7 +2247,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_ReturnType_Update2()
+        Public Sub Delegate_ReturnType_Update2()
             Dim src1 = "Public Delegate Function D() As Integer"
             Dim src2 = "Public Delegate Sub D()"
             Dim edits = GetTopEdits(src1, src2)
@@ -2176,7 +2260,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_ReturnType_Update3()
+        Public Sub Delegate_ReturnType_Update3()
             Dim src1 = "Public Delegate Function D()"
             Dim src2 = "Public Delegate Function D() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2189,7 +2273,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_ReturnType_Update4()
+        Public Sub Delegate_ReturnType_Update4()
             Dim src1 = "Public Delegate Function D() As Integer"
             Dim src2 = "Public Delegate Function D()"
             Dim edits = GetTopEdits(src1, src2)
@@ -2202,7 +2286,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Parameter_Insert()
+        Public Sub Delegate_Parameter_Insert()
             Dim src1 = "Public Delegate Function D() As Integer"
             Dim src2 = "Public Delegate Function D(a As Integer) As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2216,7 +2300,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Parameter_Insert_Reloadable()
+        Public Sub Delegate_Parameter_Insert_Reloadable()
             Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Public Delegate Function D() As Integer"
             Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Friend Delegate Function D(a As Integer) As Boolean"
 
@@ -2227,7 +2311,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Parameter_Delete()
+        Public Sub Delegate_Parameter_Delete()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
             Dim src2 = "Public Delegate Function D() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2241,7 +2325,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Parameter_Rename()
+        Public Sub Delegate_Parameter_Rename()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
             Dim src2 = "Public Delegate Function D(b As Integer) As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2264,7 +2348,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Parameter_Update()
+        Public Sub Delegate_Parameter_Update()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
             Dim src2 = "Public Delegate Function D(a As Byte) As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2277,7 +2361,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Parameter_AddAttribute()
+        Public Sub Delegate_Parameter_AddAttribute()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
             Dim src2 = "Public Delegate Function D(<System.Obsolete> a As Integer) As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2295,7 +2379,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_TypeParameter_Insert()
+        Public Sub Delegate_TypeParameter_Insert()
             Dim src1 = "Public Delegate Function D() As Integer"
             Dim src2 = "Public Delegate Function D(Of T)() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2310,7 +2394,7 @@ End Class
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/54881")>
         <WorkItem(54881, "https://github.com/dotnet/roslyn/issues/54881")>
-        Public Sub Delegates_TypeParameter_Insert_Reloadable()
+        Public Sub Delegate_TypeParameter_Insert_Reloadable()
             Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Public Delegate Function D(Of T)() As Integer"
             Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Friend Delegate Function D(Of In T, Out S)(a As Integer) As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2320,7 +2404,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_TypeParameter_Delete()
+        Public Sub Delegate_TypeParameter_Delete()
             Dim src1 = "Public Delegate Function D(Of T)() As Integer"
             Dim src2 = "Public Delegate Function D() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2334,7 +2418,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_TypeParameter_Rename()
+        Public Sub Delegate_TypeParameter_Rename()
             Dim src1 = "Public Delegate Function D(Of T)() As Integer"
             Dim src2 = "Public Delegate Function D(Of S)() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2348,7 +2432,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_TypeParameter_Variance1()
+        Public Sub Delegate_TypeParameter_Variance1()
             Dim src1 = "Public Delegate Function D(Of T)() As Integer"
             Dim src2 = "Public Delegate Function D(Of In T)() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2362,7 +2446,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_TypeParameter_Variance2()
+        Public Sub Delegate_TypeParameter_Variance2()
             Dim src1 = "Public Delegate Function D(Of Out T)() As Integer"
             Dim src2 = "Public Delegate Function D(Of T)() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2376,7 +2460,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_TypeParameter_Variance3()
+        Public Sub Delegate_TypeParameter_Variance3()
             Dim src1 = "Public Delegate Function D(Of Out T)() As Integer"
             Dim src2 = "Public Delegate Function D(Of In T)() As Integer"
             Dim edits = GetTopEdits(src1, src2)
@@ -2390,7 +2474,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_AddAttribute()
+        Public Sub Delegate_AddAttribute()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
             Dim src2 = "<System.Obsolete>Public Delegate Function D(a As Integer) As Integer"
 
@@ -2402,13 +2486,25 @@ End Class
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Delegate Function D(a As Integer)", FeaturesResources.delegate_)},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
-
 #End Region
 
 #Region "Nested Types"
 
         <Fact>
-        Public Sub NestedClass_ClassMove1()
+        Public Sub NestedType_Move_Sideways()
+            Dim src1 = "Class N : Class C : End Class : End Class : Class M :                       End Class"
+            Dim src2 = "Class N :                       End Class : Class M : Class C : End Class : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(
+                "Move [Class C : End Class]@10 -> @54")
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Move, "Class C", GetResource("Class")))
+        End Sub
+
+        <Fact>
+        Public Sub NestedType_Move_Outside()
             Dim src1 = "Class C : Class D : End Class : End Class"
             Dim src2 = "Class C : End Class : Class D : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2417,24 +2513,11 @@ End Class
                 "Move [Class D : End Class]@10 -> @22")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Class D", FeaturesResources.class_))
+                Diagnostic(RudeEditKind.Move, "Class D", GetResource("Class")))
         End Sub
 
         <Fact>
-        Public Sub NestedClass_ClassMove2()
-            Dim src1 = "Class C : Class D : End Class : Class E : End Class : Class F : End Class : End Class"
-            Dim src2 = "Class C : Class D : End Class : Class F : End Class : End CLass : Class E : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Move [Class E : End Class]@32 -> @66")
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Class E", FeaturesResources.class_))
-        End Sub
-
-        <Fact>
-        Public Sub NestedClass_ClassInsertMove1()
+        Public Sub NestedType_Move_Insert()
             Dim src1 = "Class C : Class D : End Class : End Class"
             Dim src2 = "Class C : Class E : Class D : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2445,11 +2528,71 @@ End Class
                 "Move [Class D : End Class]@10 -> @20")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Class D", FeaturesResources.class_))
+                Diagnostic(RudeEditKind.Move, "Class D", GetResource("Class")))
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert1()
+        Public Sub NestedType_MoveAndNamespaceChange()
+            Dim src1 = "Namespace N : Class C : Class D : End Class : End Class : End Namespace : Namespace M :                       End Namespace"
+            Dim src2 = "Namespace N : Class C :                       End Class : End Namespace : Namespace M : Class D : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Move [Class D : End Class]@24 -> @88")
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Move, "Class D", GetResource("Class")))
+        End Sub
+
+        <Fact>
+        Public Sub NestedType_Move_MultiFile()
+            Dim srcA1 = "Partial Class N : Class C : End Class : End Class : Partial Class M :                       End Class"
+            Dim srcB1 = "Partial Class N :                       End Class : Partial Class M : Class C : End Class : End Class"
+            Dim srcA2 = "Partial Class N :                       End Class : Partial Class M : Class C : End Class : End Class"
+            Dim srcB2 = "Partial Class N : Class C : End Class : End Class : Partial Class M :                       End Class"
+
+            Dim editsA = GetTopEdits(srcA1, srcA2)
+            editsA.VerifyEdits(
+                "Move [Class C : End Class]@18 -> @70")
+
+            Dim editsB = GetTopEdits(srcB1, srcB2)
+            editsB.VerifyEdits(
+                "Move [Class C : End Class]@70 -> @18")
+
+            EditAndContinueValidation.VerifySemantics(
+                {editsA, editsB},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedType_Move_PartialTypesInSameFile()
+            Dim src1 = "Partial Class N : Class C : End Class : Class D : End Class : End Class : Partial Class N :                       End Class"
+            Dim src2 = "Partial Class N : Class C : End Class :                       End Class : Partial Class N : Class D : End Class : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(
+                "Move [Class D : End Class]@40 -> @92")
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub NestedType_Move_Reloadable()
+            Dim src1 = ReloadableAttributeSrc + "Class N : <CreateNewOnMetadataUpdate>Class C : End Class : End Class : Class M : End Class"
+            Dim src2 = ReloadableAttributeSrc + "Class N : End Class : Class M : <CreateNewOnMetadataUpdate>Class C : End Class : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Move, "Class C", GetResource("Class")))
+        End Sub
+
+        <Fact>
+        Public Sub NestedType_Insert1()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : Class D : Class E : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2464,7 +2607,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert2()
+        Public Sub NestedType_Insert2()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : Protected Class D : Public Class E : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2479,7 +2622,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert3()
+        Public Sub NestedType_Insert3()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : Private Class D : Public Class E : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2494,7 +2637,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert4()
+        Public Sub NestedType_Insert4()
             Dim src1 = "Class C : End Class"
             Dim src2 = <text>
 Class C
@@ -2525,7 +2668,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert_ReloadableIntoReloadable1()
+        Public Sub NestedType_Insert_ReloadableIntoReloadable1()
             Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
             Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : <CreateNewOnMetadataUpdate>Class D : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2536,7 +2679,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert_ReloadableIntoReloadable2()
+        Public Sub NestedType_Insert_ReloadableIntoReloadable2()
             Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
             Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : <CreateNewOnMetadataUpdate>Class D : <CreateNewOnMetadataUpdate>Class E : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2547,7 +2690,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert_ReloadableIntoReloadable3()
+        Public Sub NestedType_Insert_ReloadableIntoReloadable3()
             Dim src1 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : End Class"
             Dim src2 = ReloadableAttributeSrc & "<CreateNewOnMetadataUpdate>Class C : Class D : <CreateNewOnMetadataUpdate>Class E : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2558,7 +2701,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert_ReloadableIntoReloadable4()
+        Public Sub NestedType_Insert_ReloadableIntoReloadable4()
             Dim src1 = ReloadableAttributeSrc & "Class C : End Class"
             Dim src2 = ReloadableAttributeSrc & "Class C : <CreateNewOnMetadataUpdate>Class D : <CreateNewOnMetadataUpdate>Class E : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2568,7 +2711,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_Insert_Member_Reloadable()
+        Public Sub NestedType_Insert_Member_Reloadable()
             Dim src1 = ReloadableAttributeSrc & "Class C : <CreateNewOnMetadataUpdate>Class D : End Class : End Class"
             Dim src2 = ReloadableAttributeSrc & "Class C : <CreateNewOnMetadataUpdate>Class D : Dim X As Integer = 1 : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2579,7 +2722,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_InsertMemberWithInitializer1()
+        Public Sub NestedType_InsertMemberWithInitializer1()
             Dim src1 = "Public Class C : End Class"
             Dim src2 = "Public Class C : Private Class D : Public Property P As New Object : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2589,7 +2732,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_InsertMemberWithInitializer2()
+        Public Sub NestedType_InsertMemberWithInitializer2()
             Dim src1 = "Public Module C : End Module"
             Dim src2 = "Public Module C : Private Class D : Property P As New Object : End Class : End Module"
             Dim edits = GetTopEdits(src1, src2)
@@ -2600,7 +2743,7 @@ End Class
 
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
-        Public Sub NestedClass_Insert_PInvoke_Syntactic()
+        Public Sub NestedType_Insert_PInvoke_Syntactic()
             Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
@@ -2629,7 +2772,7 @@ End Class
 
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
-        Public Sub NestedClass_Insert_PInvoke_Semantic1()
+        Public Sub NestedType_Insert_PInvoke_Semantic1()
             Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
@@ -2670,7 +2813,7 @@ End Class"
 
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
-        Public Sub NestedClass_Insert_PInvoke_Semantic2()
+        Public Sub NestedType_Insert_PInvoke_Semantic2()
             Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
@@ -2699,7 +2842,7 @@ End Class"
 
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
-        Public Sub NestedClass_Insert_VirtualAbstract()
+        Public Sub NestedType_Insert_VirtualAbstract()
             Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
@@ -2735,7 +2878,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_TypeReorder1()
+        Public Sub NestedType_TypeReorder1()
             Dim src1 = "Class C : Structure E : End Structure : Class F : End Class : Delegate Sub D() : Interface I : End Interface : End Class"
             Dim src2 = "Class C : Class F : End Class : Interface I : End Interface : Delegate Sub D() : Structure E : End Structure : End Class"
 
@@ -2748,7 +2891,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_MethodDeleteInsert()
+        Public Sub NestedType_MethodDeleteInsert()
             Dim src1 = "Public Class C" & vbLf & "Public Sub goo() : End Sub : End Class"
             Dim src2 = "Public Class C : Private Class D" & vbLf & "Public Sub goo() : End Sub : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -2768,7 +2911,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NestedClass_ClassDeleteInsert()
+        Public Sub NestedType_ClassDeleteInsert()
             Dim src1 = "Public Class C : Public Class X : End Class : End Class"
             Dim src2 = "Public Class C : Public Class D : Public Class X : End Class : End Class : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -3140,27 +3283,25 @@ Class B : Inherits Attribute : End Class
 
 #Region "Namespaces"
         <Fact>
-        Public Sub NamespaceInsert()
+        Public Sub Namespace_Empty_Insert()
             Dim src1 = ""
             Dim src2 = "Namespace C : End Namespace"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Namespace C", FeaturesResources.namespace_))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
         <Fact>
-        Public Sub NamespaceDelete()
+        Public Sub Namespace_Empty_Delete()
             Dim src1 = "Namespace C : End Namespace"
             Dim src2 = ""
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, FeaturesResources.namespace_))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
         <Fact>
-        Public Sub NamespaceMove1()
+        Public Sub Namespace_Empty_Move1()
             Dim src1 = "Namespace C : Namespace D : End Namespace : End Namespace"
             Dim src2 = "Namespace C : End Namespace : Namespace D : End Namespace"
             Dim edits = GetTopEdits(src1, src2)
@@ -3168,12 +3309,11 @@ Class B : Inherits Attribute : End Class
             edits.VerifyEdits(
                 "Move [Namespace D : End Namespace]@14 -> @30")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Namespace D", FeaturesResources.namespace_))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
         <Fact>
-        Public Sub NamespaceReorder1()
+        Public Sub Namespace_Empty_Reorder1()
             Dim src1 = "Namespace C : Namespace D : End Namespace : Class T : End Class : Namespace E : End Namespace : End Namespace"
             Dim src2 = "Namespace C : Namespace E : End Namespace : Class T : End Class : Namespace D : End Namespace : End Namespace"
             Dim edits = GetTopEdits(src1, src2)
@@ -3186,7 +3326,7 @@ Class B : Inherits Attribute : End Class
         End Sub
 
         <Fact>
-        Public Sub NamespaceReorder2()
+        Public Sub Namespace_Empty_Reorder2()
             Dim src1 = "Namespace C : " &
                           "Namespace D1 : End Namespace : " &
                           "Namespace D2 : End Namespace : " &
@@ -3212,6 +3352,373 @@ Class B : Inherits Attribute : End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
+        <Fact>
+        Public Sub Namespace_Insert_NewType()
+            Dim src1 = ""
+            Dim src2 = "Namespace N : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Class C", GetResource("Class"))},
+                capabilities:=EditAndContinueCapabilities.Baseline)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("N.C"))},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Insert_NewType_Qualified()
+            Dim src1 = ""
+            Dim src2 = "Namespace N.M : Class C : End Class : End Namespace"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Class C", GetResource("Class"))},
+                capabilities:=EditAndContinueCapabilities.Baseline)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("N.M.C"))},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Interface")>
+        <InlineData("Enum")>
+        <InlineData("Structure")>
+        <InlineData("Module")>
+        Public Sub Namespace_Insert(keyword As String)
+            Dim declaration = keyword & " X : End " & keyword
+            Dim src1 = declaration
+            Dim src2 = "Namespace N : " & declaration & " : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, keyword & " X", GetResource(keyword), "Global", "N")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Insert_Delegate()
+            Dim src1 = "Delegate Sub X()"
+            Dim src2 = "Namespace N : Delegate Sub X() : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Delegate Sub X()", GetResource("Delegate"), "Global", "N")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Insert_MultipleDeclarations()
+            Dim src1 = "Class C : End Class : Class D : End Class"
+            Dim src2 = "Namespace N : Class C : End Class : Class D : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {
+                    Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "Global", "N"),
+                    Diagnostic(RudeEditKind.ChangingNamespace, "Class D", GetResource("Class"), "Global", "N")
+                },
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Insert_FileScoped()
+            Dim src1 = "Class C : End Class"
+            Dim src2 = "Namespace N : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "Global", "N")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Insert_Nested()
+            Dim src1 = "Namespace N : Class C : End Class : End Namespace"
+            Dim src2 = "Namespace N : Namespace M : Class C : End Class : End Namespace : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N", "N.M")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Insert_Qualified()
+            Dim src1 = "Class C : End Class"
+            Dim src2 = "Namespace N.M : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "Global", "N.M")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Insert_Qualified_FileScoped()
+            Dim src1 = "Class C : End Class"
+            Dim src2 = "Namespace N.M : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "Global", "N.M")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Interface")>
+        <InlineData("Enum")>
+        <InlineData("Structure")>
+        <InlineData("Module")>
+        Public Sub Namespace_Delete(keyword As String)
+            Dim declaration = keyword & " X : End " & keyword
+            Dim src1 = "Namespace N : " & declaration & " : End Namespace"
+            Dim src2 = declaration
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, keyword + " X", GetResource(keyword), "N", "Global")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Delete_Delegate()
+            Dim declaration = "Delegate Sub X()"
+            Dim src1 = "Namespace N : " & declaration & " : End Namespace"
+            Dim src2 = declaration
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Delegate Sub X()", GetResource("Delegate"), "N", "Global")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Delete_MultipleDeclarations()
+            Dim src1 = "Namespace N : Class C : End Class : Class D : End Class : End Namespace"
+            Dim src2 = "Class C : End Class : Class D : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {
+                    Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N", "Global"),
+                    Diagnostic(RudeEditKind.ChangingNamespace, "Class D", GetResource("Class"), "N", "Global")
+                },
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Delete_Qualified()
+            Dim src1 = "Namespace N.M : Class C : End Class : End Namespace"
+            Dim src2 = "Class C : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N.M", "Global")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Interface")>
+        <InlineData("Enum")>
+        <InlineData("Structure")>
+        <InlineData("Module")>
+        Public Sub Namespace_Update(keyword As String)
+            Dim declaration = keyword & " X : End " & keyword
+            Dim src1 = "Namespace N : " & declaration & " : End Namespace"
+            Dim src2 = "Namespace M : " & declaration & " : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, keyword + " X", GetResource(keyword), "N", "M")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_Delegate()
+            Dim Declaration = "Delegate Sub X()"
+            Dim src1 = "Namespace N : " & Declaration & " : End Namespace"
+            Dim src2 = "Namespace M : " & Declaration & " : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Delegate Sub X()", GetResource("Delegate"), "N", "M")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_Multiple()
+            Dim src1 = "Namespace N : Class C : End Class : Class D : End Class : End Namespace"
+            Dim src2 = "Namespace M : Class C : End Class : Class D : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {
+                    Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N", "M"),
+                    Diagnostic(RudeEditKind.ChangingNamespace, "Class D", GetResource("Class"), "N", "M")
+                },
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_Qualified1()
+            Dim src1 = "Namespace N.M : Class C : End Class : End Namespace"
+            Dim src2 = "Namespace N.M.O : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N.M", "N.M.O")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_Qualified2()
+            Dim src1 = "Namespace N.M : Class C : End Class : End Namespace"
+            Dim src2 = "Namespace N : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N.M", "N")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_Qualified3()
+            Dim src1 = "Namespace N.M1.O : Class C : End Class : End Namespace"
+            Dim src2 = "Namespace N.M2.O : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N.M1.O", "N.M2.O")},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_MultiplePartials1()
+            Dim srcA1 = "Namespace N : Partial Class C : End Class : End Namespace : Namespace N : Partial Class C : End Class : End Namespace"
+            Dim srcB1 = "Namespace N : Partial Class C : End Class : End Namespace : Namespace N : Partial Class C : End Class : End Namespace"
+            Dim srcA2 = "Namespace N : Partial Class C : End Class : End Namespace : Namespace M : Partial Class C : End Class : End Namespace"
+            Dim srcB2 = "Namespace M : Partial Class C : End Class : End Namespace : Namespace N : Partial Class C : End Class : End Namespace"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("M.C"), partialType:="M.C")
+                        }),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("M.C"), partialType:="M.C")
+                        })
+                },
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_MultiplePartials2()
+            Dim srcA1 = "Namespace N : Partial Class C : End Class : End Namespace : Namespace N : Partial Class C : End Class : End Namespace"
+            Dim srcB1 = "Namespace N : Partial Class C : End Class : End Namespace : Namespace N : Partial Class C : End Class : End Namespace"
+            Dim srcA2 = "Namespace M : Partial Class C : End Class : End Namespace : Namespace M : Partial Class C : End Class : End Namespace"
+            Dim srcB2 = "Namespace M : Partial Class C : End Class : End Namespace : Namespace M : Partial Class C : End Class : End Namespace"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(diagnostics:=
+                    {
+                        Diagnostic(RudeEditKind.ChangingNamespace, "Partial Class C", GetResource("Class"), "N", "M")
+                    }),
+                    DocumentResults(diagnostics:=
+                    {
+                        Diagnostic(RudeEditKind.ChangingNamespace, "Partial Class C", GetResource("Class"), "N", "M")
+                    })
+                },
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_MultiplePartials_MergeInNewNamspace()
+            Dim src1 = "Namespace N : Partial Class C : End Class : End Namespace : Namespace M : Partial Class C : End Class : End Namespace"
+            Dim src2 = "Namespace X : Partial Class C : End Class : End Namespace : Namespace X : Partial Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "Partial Class C", GetResource("Class"), "M", "X"),
+                Diagnostic(RudeEditKind.Delete, "Partial Class C", DeletedSymbolDisplay(GetResource("Class"), "C")))
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Update_MultipleTypesWithSameNameAndArity()
+            Dim src1 = "Namespace N1 : Class C : End Class : End Namespace : Namespace N2 : Class C : End Class : End Namespace : Namespace O : Class C : End Class : End Namespace"
+            Dim src2 = "Namespace M1 : Class C : End Class : End Namespace : Namespace M2 : Class C : End Class : End Namespace : Namespace O : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N2", "M2"),
+                Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N1", "M1"))
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_UpdateAndInsert()
+            Dim src1 = "Namespace N.M : Class C : End Class : End Namespace"
+            Dim src2 = "Namespace N : Namespace M : Class C : End Class : End Namespace : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_UpdateAndDelete()
+            Dim src1 = "Namespace N : Namespace M : Class C : End Class : End Namespace : End Namespace"
+            Dim src2 = "Namespace N.M : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Move1()
+            Dim src1 = "Namespace N : Namespace M : Class C : End Class : Class C(Of T) : End Class : End Namespace : Class D : End Class : End Namespace"
+            Dim src2 = "Namespace N : Class D : End Class : End Namespace : Namespace M : Class C(Of T) : End Class : Class C : End Class : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Move [Namespace M : Class C : End Class : Class C(Of T) : End Class : End Namespace]@14 -> @52",
+                "Reorder [Class C(Of T) : End Class]@50 -> @66")
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N.M", "M"),
+                Diagnostic(RudeEditKind.ChangingNamespace, "Class C(Of T)", GetResource("Class"), "N.M", "M"))
+        End Sub
+
+        <Fact>
+        Public Sub Namespace_Move2()
+            Dim src1 = "Namespace N1 : Namespace M : Class C : End Class : End Namespace : Namespace N2 : End Namespace : End Namespace"
+            Dim src2 = "Namespace N1 : End Namespace : Namespace N2 : Namespace M : Class C : End Class : End Namespace : End Namespace"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Move [Namespace N2 : End Namespace]@67 -> @31",
+                "Move [Namespace M : Class C : End Class : End Namespace]@15 -> @46")
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "Class C", GetResource("Class"), "N1.M", "N2.M"))
+        End Sub
 #End Region
 
 #Region "Members"
@@ -3434,7 +3941,7 @@ End Class
             '            {
             '                SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F1")),
             '            })
-            '    });
+            '    })
         End Sub
 
         <Fact>
@@ -4846,8 +5353,8 @@ End Interface
             Dim srcC1 = "Partial Class C : End Class"
 
             Dim srcA2 = "Partial Class C : End Class"
-            Dim srcB2 = "partial class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
-            Dim srcC2 = "partial class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+            Dim srcB2 = "partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcC2 = "partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
 
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},

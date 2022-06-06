@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnreferencedVar = 168,
         WRN_UnreferencedField = 169,
         ERR_UseDefViolationField = 170,
-        ERR_UnassignedThis = 171,
+        ERR_UnassignedThisUnsupportedVersion = 171,
         ERR_AmbigQM = 172,
         ERR_InvalidQM = 173, // Requires SymbolDistinguisher.
         ERR_NoBaseClass = 174,
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_IsAlwaysFalse = 184,
         ERR_LockNeedsReference = 185,
         ERR_NullNotValid = 186,
-        ERR_UseDefViolationThis = 188,
+        ERR_UseDefViolationThisUnsupportedVersion = 188,
         ERR_ArgsInvalid = 190,
         ERR_AssgReadonly = 191,
         ERR_RefReadonly = 192,
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
         //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
-        ERR_UnassignedThisAutoProperty = 843,
+        ERR_UnassignedThisAutoPropertyUnsupportedVersion = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,
         ERR_ArrayInitializerExpected = 846,
@@ -1885,12 +1885,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // The following warnings correspond to errors of the same name, but are reported
         // when a definite assignment issue is reported due to private fields imported from metadata.
-        WRN_UnassignedThisAutoProperty = 8880,
-        WRN_UnassignedThis = 8881,
+        WRN_UnassignedThisAutoPropertyUnsupportedVersion = 8880,
+        WRN_UnassignedThisUnsupportedVersion = 8881,
         WRN_ParamUnassigned = 8882,
         WRN_UseDefViolationProperty = 8883,
         WRN_UseDefViolationField = 8884,
-        WRN_UseDefViolationThis = 8885,
+        WRN_UseDefViolationThisUnsupportedVersion = 8885,
         WRN_UseDefViolationOut = 8886,
         WRN_UseDefViolation = 8887,
 
@@ -2021,12 +2021,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
-        ERR_DiscardCannotBeNullChecked = 8990,
-        ERR_MustNullCheckInImplementation = 8991,
-        ERR_NonNullableValueTypeIsNullChecked = 8992,
-        WRN_NullCheckedHasDefaultNull = 8993,
-        ERR_NullCheckingOnOutParameter = 8994,
-        WRN_NullCheckingOnNullableType = 8995,
+
+        // param-nullchecking feature removed from C# 11
+        ERR_ParameterNullCheckingNotSupported = 8989,
+        // ERR_DiscardCannotBeNullChecked = 8990,
+        // ERR_MustNullCheckInImplementation = 8991,
+        // ERR_NonNullableValueTypeIsNullChecked = 8992,
+        // WRN_NullCheckedHasDefaultNull = 8993,
+        // ERR_NullCheckingOnOutParameter = 8994,
+        // WRN_NullCheckingOnNullableType = 8995,
 
         ERR_RawStringNotInDirectives = 8996,
         ERR_UnterminatedRawString = 8997,
@@ -2049,6 +2052,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoEnumConstraint = 9010,
         ERR_NoDelegateConstraint = 9011,
         ERR_MisplacedRecord = 9012,
+        ERR_PatternSpanCharCannotBeStringNull = 9013,
+
+        ERR_UseDefViolationPropertyUnsupportedVersion = 9014,
+        ERR_UseDefViolationFieldUnsupportedVersion = 9015,
+        WRN_UseDefViolationPropertyUnsupportedVersion = 9016,
+        WRN_UseDefViolationFieldUnsupportedVersion = 9017,
+
+        WRN_UseDefViolationPropertySupportedVersion = 9018,
+        WRN_UseDefViolationFieldSupportedVersion = 9019,
+        WRN_UseDefViolationThisSupportedVersion = 9020,
+        WRN_UnassignedThisAutoPropertySupportedVersion = 9021,
+        WRN_UnassignedThisSupportedVersion = 9022,
+
+        ERR_OperatorCantBeChecked = 9023,
+        ERR_ImplicitConversionOperatorCantBeChecked = 9024,
+        ERR_CheckedOperatorNeedsMatch = 9025,
+
+        ERR_CannotBeConvertedToUTF8 = 9026,
+        ERR_MisplacedUnchecked = 9027,
+
+        ERR_RequiredNameDisallowed = 9029,
+        ERR_OverrideMustHaveRequired = 9030,
+        ERR_RequiredMemberCannotBeHidden = 9031,
+        ERR_RequiredMemberCannotBeLessVisibleThanContainingType = 9032,
+        ERR_ExplicitRequiredMember = 9033,
+        ERR_RequiredMemberMustBeSettable = 9034,
+        ERR_RequiredMemberMustBeSet = 9035,
+        ERR_RequiredMembersMustBeAssignedValue = 9036,
+        ERR_RequiredMembersInvalid = 9037,
+        ERR_RequiredMembersBaseTypeInvalid = 9038,
+        ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers = 9039,
+        ERR_NewConstraintCannotHaveRequiredMembers = 9040,
+        ERR_UnsupportedCompilerFeature = 9041,
+        WRN_ObsoleteMembersShouldNotBeRequired = 9042,
+        ERR_RefReturningPropertiesCannotBeRequired = 9043,
 
         #endregion
 

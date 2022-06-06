@@ -33,18 +33,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
-            => GetDocuments(solution, documentUri, clientName: null, logger: null);
-
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
-            => GetDocuments(solution, documentUri, clientName, logger: null);
-
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName, ILspLogger? logger)
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
             var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
 
-            return FilterDocumentsByClientName(documents, clientName, logger);
+            return documents;
         }
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
@@ -62,40 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentIds;
         }
 
-        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName, ILspLogger? logger)
-        {
-            // If we don't have a client name, then we're done filtering
-            if (clientName == null)
-            {
-                return documents;
-            }
-
-            // We have a client name, so we need to filter to only documents that match that name
-            return documents.WhereAsArray(document =>
-            {
-                var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
-
-                // When a client name is specified, only return documents that have a matching client name.
-                // Allows the razor lsp server to return results only for razor documents.
-                // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
-                // is fixed (so that the razor language server is only asked about razor buffers).
-                var documentClientName = documentPropertiesService?.DiagnosticsLspClientName;
-                var clientNameMatch = Equals(documentClientName, clientName);
-                if (!clientNameMatch && logger is not null)
-                {
-                    logger.TraceInformation($"Found matching document but it's client name '{documentClientName}' is not a match.");
-                }
-
-                return clientNameMatch;
-            });
-        }
-
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
-            => solution.GetDocument(documentIdentifier, clientName: null);
-
-        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
-            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName, logger: null);
+            var documents = solution.GetDocuments(documentIdentifier.Uri);
             if (documents.Length == 0)
             {
                 return null;
@@ -192,14 +155,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
-
-        public static bool IsRazorDocument(this Document document)
-        {
-            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
-            // belongs to them.
-            var spanMapper = document.Services.GetService<ISpanMappingService>();
-            return spanMapper != null;
-        }
 
         private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSInternalCompletionListSetting? completionListSetting)
         {

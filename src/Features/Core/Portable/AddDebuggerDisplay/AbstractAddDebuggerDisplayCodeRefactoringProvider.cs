@@ -56,9 +56,11 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (HasDebuggerDisplayAttribute(typeSymbol, compilation))
                 return;
 
-            context.RegisterRefactoring(new MyCodeAction(
+            context.RegisterRefactoring(CodeAction.CreateWithPriority(
                 priority,
-                c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c)));
+                FeaturesResources.Add_DebuggerDisplay_attribute,
+                c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c),
+                nameof(FeaturesResources.Add_DebuggerDisplay_attribute)));
         }
 
         private static async Task<(TTypeDeclarationSyntax type, CodeActionPriority priority)?> GetRelevantTypeFromHeaderAsync(CodeRefactoringContext context)
@@ -95,10 +97,10 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         }
 
         private static bool IsToStringMethod(IMethodSymbol methodSymbol)
-            => methodSymbol is { Name: nameof(ToString), Arity: 0, Parameters: { IsEmpty: true } };
+            => methodSymbol is { Name: nameof(ToString), Arity: 0, Parameters.IsEmpty: true };
 
         private static bool IsDebuggerDisplayMethod(IMethodSymbol methodSymbol)
-            => methodSymbol is { Name: DebuggerDisplayMethodName, Arity: 0, Parameters: { IsEmpty: true } };
+            => methodSymbol is { Name: DebuggerDisplayMethodName, Arity: 0, Parameters.IsEmpty: true };
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
             => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
@@ -173,17 +175,6 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority { get; }
-
-            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_DebuggerDisplay_attribute, createChangedDocument, nameof(FeaturesResources.Add_DebuggerDisplay_attribute))
-            {
-                Priority = priority;
-            }
         }
     }
 }

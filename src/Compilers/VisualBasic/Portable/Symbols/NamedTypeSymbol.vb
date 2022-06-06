@@ -995,14 +995,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check definition.
             Dim definitionUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.OriginalDefinition)
 
-            If definitionUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedType1 Then
+            If definitionUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(definitionUseSiteInfo.DiagnosticInfo.Code) Then
                 Return definitionUseSiteInfo
             End If
 
             ' Check type arguments.
             Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromTypeArguments()
 
-            Return MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
+            MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
+            Return definitionUseSiteInfo
         End Function
 
         Private Function DeriveUseSiteInfoFromTypeArguments() As UseSiteInfo(Of AssemblySymbol)
@@ -1011,14 +1012,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Do
                 For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
-                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg), ERRID.ERR_UnsupportedType1) Then
+                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg)) Then
                         Return argsUseSiteInfo
                     End If
                 Next
 
                 If currentType.HasTypeArgumentsCustomModifiers Then
                     For i As Integer = 0 To Me.Arity - 1
-                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)), ERRID.ERR_UnsupportedType1) Then
+                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i))) Then
                             Return argsUseSiteInfo
                         End If
                     Next
@@ -1255,6 +1256,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitNamedType(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNamedType(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

@@ -12,10 +12,9 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class RemoteHostOptions : IOptionProvider
+    internal sealed class RemoteHostOptions
     {
-        private const string LocalRegistryPath = StorageOptions.LocalRegistryPath;
+        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
         private const string FeatureName = "InternalFeatureOnOffOptions";
 
         // Update primary workspace on OOP every second if VS is not running any global operation (such as build,
@@ -41,17 +40,5 @@ namespace Microsoft.CodeAnalysis.Remote
         public static readonly Option2<bool> OOPCoreClrFeatureFlag = new(
             FeatureName, nameof(OOPCoreClrFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.ServiceHubCore"));
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            SolutionChecksumMonitorBackOffTimeSpanInMS,
-            OOP64Bit,
-            OOPServerGCFeatureFlag,
-            OOPCoreClrFeatureFlag);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteHostOptions()
-        {
-        }
     }
 }

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
                 var progressTracker = fixAllContext.GetProgressTracker();
-                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+                progressTracker.Description = fixAllContext.GetDefaultFixAllTitle();
 
                 var fixAllState = fixAllContext.State;
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
-                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+                    return fixAllState.Provider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
                 }, cancellationToken));
             }
 
@@ -242,14 +243,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             if (newSolution != null && newSolution != solution)
             {
                 var title = GetFixAllTitle(fixAllState);
-                return new CodeAction.SolutionChangeAction(title, _ => Task.FromResult(newSolution), title);
+                return CodeAction.SolutionChangeAction.Create(title, _ => Task.FromResult(newSolution), title);
             }
 
             return null;
         }
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
-            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
+            => FixAllHelper.GetDefaultFixAllTitle(fixAllState.Scope, title: fixAllState.DiagnosticIds.First(), fixAllState.Document!, fixAllState.Project);
 
         public virtual async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,

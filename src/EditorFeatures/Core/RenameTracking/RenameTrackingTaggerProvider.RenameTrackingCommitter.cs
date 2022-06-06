@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal sealed partial class RenameTrackingTaggerProvider
     {
-        private class RenameTrackingCommitter : ForegroundThreadAffinitizedObject
+        private class RenameTrackingCommitter
         {
             private readonly StateMachine _stateMachine;
             private readonly SnapshotSpan _snapshotSpan;
@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 string displayText)
-                : base(stateMachine.ThreadingContext)
             {
                 _stateMachine = stateMachine;
                 _snapshotSpan = snapshotSpan;
@@ -50,17 +49,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _renameSymbolResultGetter = new AsyncLazy<RenameTrackingSolutionSet>(c => RenameSymbolWorkerAsync(c), cacheResult: true);
             }
 
-            public void Commit(CancellationToken cancellationToken)
+            /// <summary>
+            /// Returns non-null error message if renaming fails.
+            /// </summary>
+            public (NotificationSeverity severity, string message)? TryCommit(CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
-                var clearTrackingSession = ApplyChangesToWorkspace(cancellationToken);
-
-                // Clear the state machine so that future updates to the same token work,
-                // and any text changes caused by this update are not interpreted as 
-                // potential renames
-                if (clearTrackingSession)
+                try
                 {
+                    return TryApplyChangesToWorkspace(cancellationToken);
+                }
+                finally
+                {
+                    // Clear the state machine so that future updates to the same token work,
+                    // and any text changes caused by this update are not interpreted as 
+                    // potential renames
                     _stateMachine.ClearTrackingSession();
                 }
             }
@@ -86,9 +90,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
             }
 
-            private bool ApplyChangesToWorkspace(CancellationToken cancellationToken)
+            /// <summary>
+            /// Returns non-null error message if renaming fails.
+            /// </summary>
+            private (NotificationSeverity, string)? TryApplyChangesToWorkspace(CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Now that the necessary work has been done to create the intermediate and final
                 // solutions during PreparePreview, check one more time for cancellation before making all of the
@@ -124,49 +131,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // update the state machine after undo/redo actions. 
 
                 var changedDocuments = renameTrackingSolutionSet.RenamedSolution.GetChangedDocuments(renameTrackingSolutionSet.OriginalSolution);
-
-                // When this action is undone (the user has undone twice), restore the state
-                // machine to so that they can continue their original rename tracking session.
-
-                var trackingSessionId = _stateMachine.StoreCurrentTrackingSessionAndGenerateId();
-                UpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution, trackingSessionId);
-
-                // Now that the solution is back in its original state, notify third parties about
-                // the coming rename operation.
-                if (!_refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, renameTrackingSolutionSet.Symbol, newName, throwOnFailure: false))
+                try
                 {
-                    var notificationService = workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
-                        EditorFeaturesResources.Rename_Symbol,
-                        NotificationSeverity.Error);
+                    // When this action is undone (the user has undone twice), restore the state
+                    // machine to so that they can continue their original rename tracking session.
 
-                    return true;
+                    var trackingSessionId = _stateMachine.StoreCurrentTrackingSessionAndGenerateId();
+                    var result = TryUpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution, trackingSessionId);
+                    if (result is not null)
+                        return result;
+
+                    // Now that the solution is back in its original state, notify third parties about
+                    // the coming rename operation.
+                    if (!_refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, renameTrackingSolutionSet.Symbol, newName, throwOnFailure: false))
+                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
+
+                    // move all changes to final solution based on the workspace's current solution, since the current solution
+                    // got updated when we reset it above.
+                    var finalSolution = workspace.CurrentSolution;
+                    foreach (var docId in changedDocuments)
+                    {
+                        // because changes have already been made to the workspace (UpdateWorkspaceForResetOfTypedIdentifier() above),
+                        // these calls can't be cancelled and must be allowed to complete.
+                        var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootSynchronously(CancellationToken.None);
+                        finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root);
+                    }
+
+                    // Undo/redo on this action must always clear the state machine
+                    return TryUpdateWorkspaceForGlobalIdentifierRename(
+                        workspace,
+                        finalSolution,
+                        _displayText,
+                        changedDocuments,
+                        renameTrackingSolutionSet.Symbol,
+                        newName,
+                        trackingSessionId);
                 }
-
-                // move all changes to final solution based on the workspace's current solution, since the current solution
-                // got updated when we reset it above.
-                var finalSolution = workspace.CurrentSolution;
-                foreach (var docId in changedDocuments)
+                finally
                 {
-                    // because changes have already been made to the workspace (UpdateWorkspaceForResetOfTypedIdentifier() above),
-                    // these calls can't be cancelled and must be allowed to complete.
-                    var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootSynchronously(CancellationToken.None);
-                    finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root);
+                    RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
                 }
-
-                // Undo/redo on this action must always clear the state machine
-                UpdateWorkspaceForGlobalIdentifierRename(
-                    workspace,
-                    finalSolution,
-                    _displayText,
-                    changedDocuments,
-                    renameTrackingSolutionSet.Symbol,
-                    newName,
-                    trackingSessionId);
-
-                RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
-                return true;
             }
 
             private Solution CreateSolutionWithOriginalName(Document document, CancellationToken cancellationToken)
@@ -208,9 +212,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             }
 
-            private void UpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)
+            /// <summary>
+            /// Returns non-null error message if renaming fails.
+            /// </summary>
+            private (NotificationSeverity, string)? TryUpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Update document in an ITextUndoTransaction with custom behaviors on undo/redo to
                 // deal with the state machine.
@@ -222,18 +229,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 localUndoTransaction.AddUndo(undoPrimitiveBefore);
 
                 if (!workspace.TryApplyChanges(newSolution))
-                {
-                    Contract.Fail("Rename Tracking could not update solution.");
-                }
+                    return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+
+                // If we successfully updated the workspace then make sure the undo transaction is committed and is
+                // always able to undo anything any other external listener did.
 
                 // Never resume tracking session on redo
                 var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
                 localUndoTransaction.AddUndo(undoPrimitiveAfter);
 
                 localUndoTransaction.Complete();
+
+                return null;
             }
 
-            private void UpdateWorkspaceForGlobalIdentifierRename(
+            /// <summary>
+            /// Returns non-null error message if renaming fails.
+            /// </summary>
+            private (NotificationSeverity, string)? TryUpdateWorkspaceForGlobalIdentifierRename(
                 Workspace workspace,
                 Solution newSolution,
                 string undoName,
@@ -242,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 string newName,
                 int trackingSessionId)
             {
-                AssertIsForeground();
+                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Perform rename in a workspace undo action so that undo will revert all 
                 // references. It should also be performed in an ITextUndoTransaction to handle 
@@ -256,25 +269,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 localUndoTransaction.AddUndo(undoPrimitiveBefore);
 
                 if (!workspace.TryApplyChanges(newSolution))
+                    return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+
+                try
                 {
-                    Contract.Fail("Rename Tracking could not update solution.");
-                }
+                    if (!_refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
+                        return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
-                if (!_refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
+                    return null;
+                }
+                finally
                 {
-                    var notificationService = workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                        EditorFeaturesResources.Rename_Symbol,
-                        NotificationSeverity.Information);
+                    // If we successfully updated the workspace then make sure the undo transaction is committed and is
+                    // always able to undo anything any other external listener did.
+
+                    // Never resume tracking session on redo
+                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
+                    localUndoTransaction.AddUndo(undoPrimitiveAfter);
+
+                    localUndoTransaction.Complete();
+                    workspaceUndoTransaction.Commit();
                 }
-
-                // Never resume tracking session on redo
-                var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
-                localUndoTransaction.AddUndo(undoPrimitiveAfter);
-
-                localUndoTransaction.Complete();
-                workspaceUndoTransaction.Commit();
             }
         }
     }
