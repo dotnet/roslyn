@@ -197,6 +197,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public unsafe void CreateFromMetadata_Assembly_Stream_LeaveOpenFalse()
+        {
+            var assembly = TestResources.Basic.Members;
+            PEHeaders h = new PEHeaders(new MemoryStream(assembly));
+
+            fixed (byte* ptr = &assembly[h.MetadataStartOffset])
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(ptr, h.MetadataSize)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromMetadata(stream, leaveOpen: false);
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should dispose the stream.
+                metadata.Dispose();
+                Assert.True(disposed);
+
+                // We should have never seeked.  The pointer should have been used directly.
+                Assert.False(seeked);
+            }
+        }
+
+        [Fact]
         public unsafe void CreateFromUnmanagedMemoryStream_LeaveOpenTrue()
         {
             var assembly = TestResources.Basic.Members;
@@ -212,6 +240,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: true);
 
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should not dispose the stream.
+                metadata.Dispose();
+                Assert.False(disposed);
+
+                stream.Dispose();
+                Assert.True(disposed);
+
+                // We should have never seeked.  The pointer should have been used directly.
+                Assert.False(seeked);
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromMetadata_Assembly_Stream_LeaveOpenTrue()
+        {
+            var assembly = TestResources.Basic.Members;
+            PEHeaders h = new PEHeaders(new MemoryStream(assembly));
+
+            fixed (byte* ptr = &assembly[h.MetadataStartOffset])
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(ptr, h.MetadataSize)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromMetadata(stream, leaveOpen: true);
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
 
                 // Disposing the metadata should not dispose the stream.
@@ -319,6 +378,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.False(seeked);
             }
         }
+
 
         private class MockUnmanagedMemoryStream : UnmanagedMemoryStream
         {
