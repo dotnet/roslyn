@@ -493,9 +493,13 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (stream is UnmanagedMemoryStream unmanagedStream)
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                metadata = ModuleMetadata.CreateFromMetadata(unmanagedStream, leaveOpen: false);
-                lifeTimeObject = null;
-                return;
+                unsafe
+                {
+                    metadata = ModuleMetadata.CreateFromMetadata(
+                        (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream, disposeOwner: true);
+                    lifeTimeObject = null;
+                    return;
+                }
             }
 
             PinnedObject pinnedObject;

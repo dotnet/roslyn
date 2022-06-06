@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             fixed (byte* ptr = &assembly[h.MetadataStartOffset])
             {
-                var metadata = ModuleMetadata.CreateFromMetadata(new UnmanagedMemoryStream(ptr, h.MetadataSize));
+                var stream = new UnmanagedMemoryStream(ptr, h.MetadataSize);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
             }
         }
@@ -76,7 +77,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             fixed (byte* ptr = &netModule[h.MetadataStartOffset])
             {
-                ModuleMetadata.CreateFromMetadata(new UnmanagedMemoryStream(ptr, h.MetadataSize));
+                var stream = new UnmanagedMemoryStream(ptr, h.MetadataSize);
+                ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
             }
         }
 
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public unsafe void CreateFromMetadata_Assembly_Stream_LeaveOpenFalse()
+        public unsafe void CreateFromMetadata_Assembly_Stream_DisposeOwnerTrue()
         {
             var assembly = TestResources.Basic.Members;
             PEHeaders h = new PEHeaders(new MemoryStream(assembly));
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     OnSeek = (_, _) => seeked = true,
                 };
 
-                var metadata = ModuleMetadata.CreateFromMetadata(stream, leaveOpen: false);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
 
                 // Disposing the metadata should dispose the stream.
@@ -255,7 +257,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public unsafe void CreateFromMetadata_Assembly_Stream_LeaveOpenTrue()
+        public unsafe void CreateFromMetadata_Assembly_Stream_DisposeOwnerFalse()
         {
             var assembly = TestResources.Basic.Members;
             PEHeaders h = new PEHeaders(new MemoryStream(assembly));
@@ -270,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     OnSeek = (_, _) => seeked = true,
                 };
 
-                var metadata = ModuleMetadata.CreateFromMetadata(stream, leaveOpen: true);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: false);
                 Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
 
                 // Disposing the metadata should not dispose the stream.

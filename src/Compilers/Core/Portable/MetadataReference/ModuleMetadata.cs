@@ -85,6 +85,33 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size)
+            => CreateFromMetadataWorker(metadata, size, owner: null, disposeOwner: false);
+
+        /// <summary>
+        /// Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
+        /// Only manifest modules are currently supported.
+        /// </summary>
+        /// <param name="metadata">Pointer to the start of metadata block.</param>
+        /// <param name="size">The size of the metadata block.</param>
+        /// <param name="owner">Data that should be kept alive as long as this <see cref="ModuleMetadata"/> is alive.  This can be
+        /// useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
+        /// doesn't get garbage collected.</param>
+        /// <param name="disposeOwner">Whether or not <paramref name="owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
+        /// Disposed.</param>
+        public static unsafe ModuleMetadata CreateFromMetadata(
+            IntPtr metadata,
+            int size,
+            IDisposable owner,
+            bool disposeOwner)
+        {
+            return CreateFromMetadataWorker(metadata, size, owner, disposeOwner);
+        }
+
+        private static ModuleMetadata CreateFromMetadataWorker(
+            IntPtr metadata,
+            int size,
+            IDisposable? owner,
+            bool disposeOwner)
         {
             if (metadata == IntPtr.Zero)
             {
@@ -96,32 +123,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false, owner: null, disposeOwner: false);
-        }
-
-        /// <summary>
-        /// Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
-        /// Only manifest modules are currently supported.
-        /// </summary>
-        /// <param name="stream">Stream containing raw memory.</param>
-        /// <param name="leaveOpen">
-        /// False to close the stream upon disposal of the metadata (the responsibility for disposal of the stream is
-        /// transferred upon entry of the constructor unless the arguments given are invalid).
-        /// </param>
-#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
-        public static unsafe ModuleMetadata CreateFromMetadata(UnmanagedMemoryStream stream, bool leaveOpen = false)
-#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
-        {
-            if (stream is null)
-                throw new ArgumentNullException(nameof(stream));
-
-            return new ModuleMetadata(
-                (IntPtr)stream.PositionPointer,
-                (int)Math.Min(stream.Length, int.MaxValue),
-                includeEmbeddedInteropTypes: false,
-                ignoreAssemblyRefs: false,
-                owner: stream,
-                disposeOwner: !leaveOpen);
+            return new ModuleMetadata(metadata, size, owner, disposeOwner, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
         }
 
         internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs = false)
