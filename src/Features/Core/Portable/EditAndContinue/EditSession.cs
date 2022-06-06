@@ -290,6 +290,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
+            if (oldSolution.ProjectIds.Count != newSolution.ProjectIds.Count)
+            {
+                return true;
+            }
+
             foreach (var newProject in newSolution.Projects)
             {
                 var oldProject = oldSolution.GetProject(newProject.Id);
@@ -299,7 +304,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return oldSolution.ProjectIds.Count != newSolution.ProjectIds.Count;
+            // The number of projects in both solution is the same and there are no new projects and no changes in existing projects.
+            // Therefore there are no changes.
+            return false;
         }
 
         private static async ValueTask<bool> ContentEqualsAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
