@@ -896,39 +896,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(formattingOptions));
 
         /// <summary>
-        /// Convert <param name="fieldDeclarationNode"/> to a property declarations.
-        /// </summary>
-        private static PropertyDeclarationSyntax ConvertFieldDeclarationToPropertyDeclaration(
-            FieldDeclarationSyntax fieldDeclarationNode,
-            SyntaxFormattingOptions formattingOptions)
-            => SyntaxFactory.PropertyDeclaration(
-                fieldDeclarationNode.AttributeLists,
-                fieldDeclarationNode.Modifiers,
-                fieldDeclarationNode.Declaration.Type,
-                explicitInterfaceSpecifier: null,
-                identifier: fieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(formattingOptions),
-                expressionBody: null,
-                initializer: null,
-                semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(fieldDeclarationNode);
-
-        /// <summary>
-        /// Convert <param name="eventFieldDeclarationNode"/> to an eventDeclaration node.
-        /// </summary>
-        private static EventDeclarationSyntax ConvertEventFieldDeclarationToEventDeclaration(
-            EventFieldDeclarationSyntax eventFieldDeclarationNode,
-            SyntaxFormattingOptions formattingOptions)
-            => SyntaxFactory.EventDeclaration(
-                eventFieldDeclarationNode.AttributeLists,
-                eventFieldDeclarationNode.Modifiers,
-                eventFieldDeclarationNode.EventKeyword,
-                eventFieldDeclarationNode.Declaration.Type,
-                explicitInterfaceSpecifier: null,
-                identifier: eventFieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(formattingOptions),
-                semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(eventFieldDeclarationNode);
-
-        /// <summary>
         /// Add an empty block to <param name="baseMethodDeclarationNode"/>.
         /// </summary>
         private static BaseMethodDeclarationSyntax AddBlockToBaseMethodDeclaration(
