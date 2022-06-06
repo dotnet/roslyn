@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class FindReferencesSearchEngine
     {
+        private static readonly ObjectPool<MetadataUnifyingSymbolHashSet> s_metadataUnifyingSymbolHashSetPool = new(() => new());
+
         private readonly Solution _solution;
         private readonly IImmutableSet<Document>? _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
@@ -149,7 +151,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (!_symbolToGroup.ContainsKey(symbol))
                 {
                     var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(linkedSymbols.Contains(symbol), "Linked symbols did not contain the very symbol we started with.");
+
                     var group = new SymbolGroup(linkedSymbols);
+                    Contract.ThrowIfFalse(group.Symbols.Contains(symbol), "Symbol group did not contain the very symbol we started with.");
 
                     foreach (var groupSymbol in group.Symbols)
                         _symbolToGroup.TryAdd(groupSymbol, group);
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessProjectAsync(Project project, ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
         {
             using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
-            using var _2 = PooledDictionary<Document, PooledHashSet<ISymbol>>.GetInstance(out var documentToSymbols);
+            using var _2 = PooledDictionary<Document, MetadataUnifyingSymbolHashSet>.GetInstance(out var documentToSymbols);
             try
             {
                 foreach (var symbol in allSymbols)
@@ -183,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             symbol, project, cancellationToken).ConfigureAwait(false);
                         if (aliases.Length > 0)
                         {
-                            var globalAliases = Get(symbolToGlobalAliases, symbol);
+                            var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
                             globalAliases.AddRange(aliases);
                         }
                     }
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         foreach (var document in documents)
                         {
-                            var docSymbols = Get(documentToSymbols, document);
+                            var docSymbols = GetSymbolSet(documentToSymbols, document);
                             docSymbols.Add(symbol);
                         }
                     }
@@ -218,7 +223,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             finally
             {
                 foreach (var (_, symbols) in documentToSymbols)
-                    symbols.Free();
+                {
+                    symbols.Clear();
+                    s_metadataUnifyingSymbolHashSetPool.Free(symbols);
+                }
 
                 foreach (var (_, globalAliases) in symbolToGlobalAliases)
                     globalAliases.Free();
@@ -226,11 +234,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            static PooledHashSet<U> Get<T, U>(PooledDictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
+            static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
             {
                 if (!dictionary.TryGetValue(key, out var set))
                 {
-                    set = PooledHashSet<U>.GetInstance();
+                    set = PooledHashSet<string>.GetInstance();
+                    dictionary.Add(key, set);
+                }
+
+                return set;
+            }
+
+            static MetadataUnifyingSymbolHashSet GetSymbolSet<T>(PooledDictionary<T, MetadataUnifyingSymbolHashSet> dictionary, T key) where T : notnull
+            {
+                if (!dictionary.TryGetValue(key, out var set))
+                {
+                    set = s_metadataUnifyingSymbolHashSetPool.Allocate();
                     dictionary.Add(key, set);
                 }
 
@@ -242,7 +261,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => dictionary.TryGetValue(key, out var set) ? set : null;
 
         private async Task ProcessDocumentAsync(
-            Document document, HashSet<ISymbol> symbols,
+            Document document,
+            MetadataUnifyingSymbolHashSet symbols,
             Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
             CancellationToken cancellationToken)
         {
