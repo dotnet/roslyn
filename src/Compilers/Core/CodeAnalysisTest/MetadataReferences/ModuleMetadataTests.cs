@@ -56,6 +56,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public unsafe void CreateFromMetadata_Assembly_Stream()
+        {
+            var assembly = TestResources.Basic.Members;
+            PEHeaders h = new PEHeaders(new MemoryStream(assembly));
+
+            fixed (byte* ptr = &assembly[h.MetadataStartOffset])
+            {
+                var metadata = ModuleMetadata.CreateFromMetadata(new UnmanagedMemoryStream(ptr, h.MetadataSize));
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromMetadata_Module_Stream()
+        {
+            var netModule = TestResources.MetadataTests.NetModule01.ModuleCS00;
+            PEHeaders h = new PEHeaders(new MemoryStream(netModule));
+
+            fixed (byte* ptr = &netModule[h.MetadataStartOffset])
+            {
+                ModuleMetadata.CreateFromMetadata(new UnmanagedMemoryStream(ptr, h.MetadataSize));
+            }
+        }
+
+        [Fact]
         public unsafe void CreateFromImage()
         {
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(IntPtr.Zero, 0));
