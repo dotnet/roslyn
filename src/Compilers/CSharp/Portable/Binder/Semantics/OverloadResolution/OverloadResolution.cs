@@ -2123,7 +2123,7 @@ outerDefault:
                 return false;
             }
 
-            return conversionsOpt.Any(c => c.Kind == ConversionKind.FunctionType);
+            return conversionsOpt.Any(static c => c.Kind == ConversionKind.FunctionType);
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
