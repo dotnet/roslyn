@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var displayOptions = SymbolDescriptionOptions.Default;
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger, options);
-            var items = completionList.ItemsInternal;
+            var items = completionList.ItemsList;
 
             if (hasSuggestionModeItem != null)
             {
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
-            var items = completionList.ItemsInternal;
+            var items = completionList.ItemsList;
 
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
-            var items = completionList.ItemsInternal;
+            var items = completionList.ItemsList;
             Assert.Contains(items, i => i.DisplayText + i.DisplayTextSuffix == itemToCommit);
             var firstItem = items.First(i => CompareItems(i.DisplayText + i.DisplayTextSuffix, itemToCommit));
 
@@ -820,9 +820,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 if (expectedSymbols >= 1)
                 {
                     Assert.NotNull(completionList);
-                    AssertEx.Any(completionList.ItemsInternal, c => CompareItems(c.DisplayText, expectedItem));
+                    AssertEx.Any(completionList.ItemsList, c => CompareItems(c.DisplayText, expectedItem));
 
-                    var item = completionList.ItemsInternal.First(c => CompareItems(c.DisplayText, expectedItem));
+                    var item = completionList.ItemsList.First(c => CompareItems(c.DisplayText, expectedItem));
                     var description = await completionService.GetDescriptionAsync(document, item, options, displayOptions);
 
                     if (expectedSymbols == 1)
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 {
                     if (completionList != null)
                     {
-                        AssertEx.None(completionList.ItemsInternal, c => CompareItems(c.DisplayText, expectedItem));
+                        AssertEx.None(completionList.ItemsList, c => CompareItems(c.DisplayText, expectedItem));
                     }
                 }
             }
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var completionService = GetCompletionService(document.Project);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
-                var item = completionList.ItemsInternal.FirstOrDefault(i => i.DisplayText == expectedItem);
+                var item = completionList.ItemsList.FirstOrDefault(i => i.DisplayText == expectedItem);
                 Assert.Equal(expectedDescription, (await completionService.GetDescriptionAsync(document, item, CompletionOptions.Default, displayOptions)).Text);
             }
         }
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var completionService = GetCompletionService(document.Project);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
-                var item = completionList.ItemsInternal.Single(c => c.DisplayText == expectedItem);
+                var item = completionList.ItemsList.Single(c => c.DisplayText == expectedItem);
                 Assert.NotNull(item);
                 if (expectedDescription != null)
                 {
@@ -1102,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 var service = GetCompletionService(document.Project);
                 var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
-                var item = completionList.ItemsInternal.First(i => i.DisplayText.StartsWith(textTypedSoFar));
+                var item = completionList.ItemsList.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 foreach (var ch in validChars)
                 {
@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
 
-            return completionList.ItemsInternal;
+            return completionList.ItemsList;
         }
     }
 }

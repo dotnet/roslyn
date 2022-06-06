@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
-        internal IReadOnlyList<CompletionItem> ItemsInternal { get; }
+        internal IReadOnlyList<CompletionItem> ItemsList { get; }
 
         /// <summary>
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.Completion
             bool isExclusive)
         {
             Span = defaultSpan;
-            ItemsInternal = items;
-            _lazyItems = new(() => ItemsInternal.ToImmutableArrayOrEmpty(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
+            ItemsList = items;
+            _lazyItems = new(() => ItemsList.ToImmutableArrayOrEmpty(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
 
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
             _isExclusive = isExclusive;
 
-            foreach (var item in ItemsInternal)
+            foreach (var item in ItemsList)
             {
                 item.Span = defaultSpan;
             }
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionItem> suggestionModeItem = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
-            var newItems = items.HasValue ? items.Value : ItemsInternal;
+            var newItems = items.HasValue ? items.Value : ItemsList;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
 
             if (newSpan == Span &&
-                newItems == ItemsInternal &&
+                newItems == ItemsList &&
                 newRules == Rules &&
                 newSuggestionModeItem == SuggestionModeItem)
             {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Completion
             default, ImmutableArray<CompletionItem>.Empty, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
 
-        internal bool IsEmpty => ItemsInternal.Count == 0 && SuggestionModeItem is null;
+        internal bool IsEmpty => ItemsList.Count == 0 && SuggestionModeItem is null;
 
         internal TestAccessor GetTestAccessor()
             => new(this);

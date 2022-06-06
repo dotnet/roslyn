@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim list = Await completionService.GetCompletionsAsync(
                     document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
-                Assert.NotEmpty(list.ItemsInternal)
-                Assert.True(list.ItemsInternal.Count = 2, "Completion List does not contain exactly two items.")
-                Assert.Equal(String.Format(CompletionItemExclusive, 2), list.ItemsInternal.First.DisplayText)
-                Assert.Equal(String.Format(CompletionItemExclusive, 3), list.ItemsInternal.Last.DisplayText)
+                Assert.NotEmpty(list.ItemsList)
+                Assert.True(list.ItemsList.Count = 2, "Completion List does not contain exactly two items.")
+                Assert.Equal(String.Format(CompletionItemExclusive, 2), list.ItemsList.First.DisplayText)
+                Assert.Equal(String.Format(CompletionItemExclusive, 3), list.ItemsList.Last.DisplayText)
             End Using
         End Function
 
