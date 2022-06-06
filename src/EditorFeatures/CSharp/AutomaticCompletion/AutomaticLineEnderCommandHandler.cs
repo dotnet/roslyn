@@ -367,7 +367,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     // }
                     // In this case, the last close brace of 'void Main()' would be thought as a part of the try statement,
                     // and the last close brace of 'Bar' would be thought as a part of Main()
-                    // So for these case, just find the missing open brace position and directly insert '()' to the document
+                    // For field and event declarations node because
+                    // class A
+                    // {
+                    //     int Hel$$lo
+                    //
+                    //     [SomeAttribute]
+                    //     void Bar() { }
+                    // }
+                    // Parser would think '[SomeAttribute]' (BrackedArgumentList) is a part of the 'Hello' (VariableDeclarator).
+                    // So for these cases, just find the missing open brace position and directly insert '()' to the document
 
                     // 1. Find the position to insert braces.
                     var insertionPosition = GetBraceInsertionPosition(selectedNode);
