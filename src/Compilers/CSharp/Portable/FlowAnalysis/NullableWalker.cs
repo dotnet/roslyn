@@ -970,7 +970,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
-                            => requiredMember is SourcePropertySymbol { IsAutoPropertyWithGetAccessor: true } prop ? prop.BackingField : requiredMember;
+                            // PROTOTYPE(semi-auto-props): Semi auto properties required members support.
+                            => requiredMember is SourcePropertySymbol { IsAutoPropertyWithGetAccessor: true } prop ? prop.BackingField! : requiredMember;
                     }
                 }
             }
