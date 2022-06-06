@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private static bool IsAccessible(ISymbol symbol)
         {
-            if (symbol.Locations.Any(l => l.IsInMetadata))
+            if (symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 var accessibility = symbol.DeclaredAccessibility;
                 return accessibility is Accessibility.Public or

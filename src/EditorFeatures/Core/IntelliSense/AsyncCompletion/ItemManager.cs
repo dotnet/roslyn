@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (sessionData.TargetTypeFilterExperimentEnabled)
             {
                 AsyncCompletionLogger.LogSessionHasTargetTypeFilterEnabled();
-                if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
+                if (data.InitialList.Any(static i => i.Filters.Any(static f => f.DisplayText == FeaturesResources.Target_type_matches)))
                     AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
             }
 
