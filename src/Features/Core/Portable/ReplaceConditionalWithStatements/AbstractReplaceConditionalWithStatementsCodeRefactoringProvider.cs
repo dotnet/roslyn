@@ -169,18 +169,21 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         //          v = c;
 
         if (topExpression.Parent is TEqualsValueClauseSyntax equalsValue &&
-            equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator &&
-            conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>() is { } localDeclarationStatement &&
-            HasSingleVariable(localDeclarationStatement, out var variable) &&
-            syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(variableDeclarator, localDeclarationStatement) &&
-            CanRewriteLocalDeclarationStatement(localDeclarationStatement))
+            equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator)
         {
-            context.RegisterRefactoring(CodeAction.Create(
-                FeaturesResources.Replace_conditional_expression_with_statements,
-                c => ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
-                    document, conditionalExpression, variable, localDeclarationStatement, c)),
-                conditionalExpression.Span);
-            return;
+            var localDeclarationStatement = conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>();
+            if (localDeclarationStatement != null &&
+                HasSingleVariable(localDeclarationStatement, out var variable) &&
+                syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(variableDeclarator, localDeclarationStatement) &&
+                CanRewriteLocalDeclarationStatement(localDeclarationStatement))
+            {
+                context.RegisterRefactoring(CodeAction.Create(
+                    FeaturesResources.Replace_conditional_expression_with_statements,
+                    c => ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
+                        document, conditionalExpression, variable, localDeclarationStatement, c)),
+                    conditionalExpression.Span);
+                return;
+            }
         }
     }
 
