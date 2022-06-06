@@ -2510,6 +2510,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'{0}'을(를) '{1}'(으)로 바꾸기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">충돌 표식 확인</target>
