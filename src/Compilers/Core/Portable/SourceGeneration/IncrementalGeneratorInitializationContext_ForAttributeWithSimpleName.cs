@@ -51,7 +51,7 @@ public partial struct IncrementalGeneratorInitializationContext
             static (context, _) => getGlobalAliasesInCompilationUnit(context.SyntaxHelper, context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
-        // file changes its global aliases.
+        // file changes its global aliases or a file is added / removed from the compilation
         var collectedGlobalAliasesProvider = individualFileGlobalAliasesProvider
             .Collect()
             .WithComparer(ImmutableArrayValueComparer<GlobalAliases>.Instance)
