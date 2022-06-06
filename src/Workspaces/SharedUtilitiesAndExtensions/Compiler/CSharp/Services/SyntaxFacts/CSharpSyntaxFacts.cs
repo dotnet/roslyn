@@ -229,6 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node)
            => node is GlobalStatementSyntax;
 
+        public SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node)
+            => ((GlobalStatementSyntax)node).Statement;
+
         public bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement)
         {
             Debug.Assert(IsStatement(firstStatement));
@@ -1379,6 +1382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node)
             => ((EqualsValueClauseSyntax?)node)?.Value;
+
+        public bool IsEqualsValueOfPropertyDeclaration(SyntaxNode? node)
+            => node?.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Initializer == node;
 
         public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;

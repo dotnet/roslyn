@@ -339,6 +339,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node);
         bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement);
 
         bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
@@ -552,6 +553,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
         SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
+
+        bool IsEqualsValueOfPropertyDeclaration([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node);
 
         SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node);
