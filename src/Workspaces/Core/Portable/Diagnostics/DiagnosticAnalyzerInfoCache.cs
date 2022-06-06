@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private DiagnosticDescriptorsInfo GetOrCreateDescriptorsInfo(DiagnosticAnalyzer analyzer)
             => _descriptorsInfo.GetValue(analyzer, CalculateDescriptorsInfo);
 
-        private DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
+        private static DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
         {
             ImmutableArray<DiagnosticDescriptor> descriptors;
             try
