@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var semanticModel = await invocationDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
             Contract.ThrowIfNull(argumentExpression);
-            var argumentType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type ?? semanticModel.Compilation.ObjectType;
+            var argumentType = semanticModel.GetType(argumentExpression, cancellationToken) ?? semanticModel.Compilation.ObjectType;
             var refKind = syntaxFacts.GetRefKindOfArgument(argument);
             return (argumentType, refKind);
         }
