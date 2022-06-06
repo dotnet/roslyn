@@ -267,5 +267,177 @@ namespace {|Definition:System|}
                 Assert.Equal(2, documents.Count)
             End Using
         End Function
+
+        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_OverrideMethods_DirectCall_MultiTargetting1() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true" AssemblyName="CSProj1">
+        <Document FilePath="C.cs"><![CDATA[
+class C
+{
+    public override int $$GetHashCode() => 0;
+}
+
+class D
+{
+    void M()
+    {
+        new C().[|GetHashCode|]();
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferencesNetStandard20="true" AssemblyName="CSProj2">
+        <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
+    </Project>
+</Workspace>
+            Using workspace = TestWorkspace.Create(definition)
+                Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
+                Dim invocationPosition = invocationDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
+                Assert.NotNull(document)
+
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
+                Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
+                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
+                AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
+            End Using
+        End Function
+
+        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_OverrideMethods_DirectCall_MultiTargetting2() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetStandard20="true" AssemblyName="CSProj1">
+        <Document FilePath="C.cs"><![CDATA[
+class C
+{
+    public override int $$GetHashCode() => 0;
+}
+
+class D
+{
+    void M()
+    {
+        new C().[|GetHashCode|]();
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferencesNetCoreApp="true" AssemblyName="CSProj2">
+        <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
+    </Project>
+</Workspace>
+            Using workspace = TestWorkspace.Create(definition)
+                Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
+                Dim invocationPosition = invocationDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
+                Assert.NotNull(document)
+
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
+                Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
+                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
+                AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
+            End Using
+        End Function
+
+        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_OverrideMethods_IndirectCall_MultiTargetting1() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true" AssemblyName="CSProj1">
+        <Document FilePath="C.cs"><![CDATA[
+class C
+{
+    public override int $$GetHashCode() => 0;
+}
+
+class D
+{
+    void M(object o)
+    {
+        o.[|GetHashCode|]();
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferencesNetStandard20="true" AssemblyName="CSProj2">
+        <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
+    </Project>
+</Workspace>
+            Using workspace = TestWorkspace.Create(definition)
+                Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
+                Dim invocationPosition = invocationDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
+                Assert.NotNull(document)
+
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
+                Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
+                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
+                AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
+            End Using
+        End Function
+
+        <WorkItem(57235, "https://github.com/dotnet/roslyn/issues/57235")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLinkedFiles_OverrideMethods_IndirectCall_MultiTargetting2() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetStandard20="true" AssemblyName="CSProj1">
+        <Document FilePath="C.cs"><![CDATA[
+class C
+{
+    public override int $$GetHashCode() => 0;
+}
+
+class D
+{
+    void M(object o)
+    {
+        o.[|GetHashCode|]();
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferencesNetCoreApp="true" AssemblyName="CSProj2">
+        <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
+    </Project>
+</Workspace>
+            Using workspace = TestWorkspace.Create(definition)
+                Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
+                Dim invocationPosition = invocationDocument.CursorPosition.Value
+
+                Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
+                Assert.NotNull(document)
+
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
+                Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
+                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
+                Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
+                AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
+            End Using
+        End Function
     End Class
 End Namespace
