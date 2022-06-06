@@ -1609,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not (int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember)
+                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not ((int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember or (int)ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember))
                 {
                     return default;
                 }
