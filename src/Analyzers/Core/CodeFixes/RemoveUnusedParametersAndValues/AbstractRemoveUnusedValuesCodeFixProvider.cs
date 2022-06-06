@@ -105,6 +105,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             ISyntaxFactsService syntaxFacts);
 
         /// <summary>
+        /// Gets the replacement node for a var pattern.
+        /// We need just to change the identifier of the pattern, not the whole node
+        /// </summary>
+        protected abstract SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode);
+
+        /// <summary>
         /// Rewrite the parent of a node which was rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.
         /// </summary>
         /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
@@ -541,6 +547,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // For example, "x += MethodCall();", where assignment to 'x' is redundant
                         // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
                         nodeReplacementMap.Add(node.GetRequiredParent(), GetReplacementNodeForCompoundAssignment(node.GetRequiredParent(), newNameNode, editor, syntaxFacts));
+                    }
+                    else if (syntaxFacts.IsVarPattern(node))
+                    {
+                        nodeReplacementMap.Add(node, GetReplacementNodeForVarPattern(node, newNameNode));
                     }
                     else
                     {
