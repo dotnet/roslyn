@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">新增 'await'</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
