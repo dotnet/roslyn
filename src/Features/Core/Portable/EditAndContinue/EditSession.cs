@@ -299,16 +299,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            foreach (var oldProject in oldSolution.Projects)
-            {
-                var newProject = newSolution.GetProject(oldProject.Id);
-                if (newProject == null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return oldSolution.ProjectIds.Count != newSolution.ProjectIds.Count;
         }
 
         private static async ValueTask<bool> ContentEqualsAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)

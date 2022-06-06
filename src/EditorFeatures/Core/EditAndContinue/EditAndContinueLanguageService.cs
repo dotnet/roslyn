@@ -261,14 +261,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// If the result is a false positive the debugger attempts to apply the changes, which will result in a delay but will correctly end up
         /// with no actual deltas to be applied.
         /// </summary>
-        public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
+        public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
                 var debuggingSession = _debuggingSession;
                 if (debuggingSession == null)
                 {
-                    return ValueTaskFactory.FromResult(false);
+                    return false;
                 }
 
                 Contract.ThrowIfNull(_committedDesignTimeSolution);
@@ -276,12 +276,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
 
                 return (sourceFilePath != null) ?
-                    EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken) :
-                    EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken);
+                    await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false) :
+                    await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return ValueTaskFactory.FromResult(true);
+                return true;
             }
         }
 
