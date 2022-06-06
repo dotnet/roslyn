@@ -708,6 +708,105 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
+    public async Task TestExpressionStatement_NestedInvocationArgument_Outer()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b, bool c)
+                {
+                    Console.WriteLine($$b ? c ? 0 : 1 : c ? 2 : 3);
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b, bool c)
+                {
+                    if (b)
+                    {
+                        Console.WriteLine(c ? 0 : 1);
+                    }
+                    else
+                    {
+                        Console.WriteLine(c ? 2 : 3);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExpressionStatement_NestedInvocationArgument_Inner1()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b, bool c)
+                {
+                    Console.WriteLine(b ? $$c ? 0 : 1 : c ? 2 : 3);
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b, bool c)
+                {
+                    if (c)
+                    {
+                        Console.WriteLine(b ? 0 : c ? 2 : 3);
+                    }
+                    else
+                    {
+                        Console.WriteLine(b ? 1 : c ? 2 : 3);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExpressionStatement_NestedInvocationArgument_Inner22()
+    {
+        await VerifyCS.VerifyRefactoringAsync(
+            """
+            using System;
+            class C
+            {
+                void M(bool b, bool c)
+                {
+                    Console.WriteLine(b ? c ? 0 : 1 : $$c ? 2 : 3);
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                void M(bool b, bool c)
+                {
+                    if (c)
+                    {
+                        Console.WriteLine(b ? c ? 0 : 1 : 2);
+                    }
+                    else
+                    {
+                        Console.WriteLine(b ? c ? 0 : 1 : 3);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestExpressionStatement_InvocationWithInference1()
     {
         await VerifyCS.VerifyRefactoringAsync(
