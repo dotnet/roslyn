@@ -206,20 +206,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         }
     }
 
-    private static SyntaxNode TryConvert(
-        SyntaxGenerator generator,
-        SyntaxNode expression,
-        ITypeSymbol? conditionalType)
-    {
-        var syntaxFacts = generator.SyntaxFacts;
-        if (syntaxFacts.IsRefExpression(expression))
-            return syntaxFacts.GetExpressionOfRefExpression(expression);
-
-        return conditionalType is null or IErrorTypeSymbol
-            ? expression
-            : generator.ConvertExpression(conditionalType, expression);
-    }
-
     private static async Task<Document> ReplaceConditionalExpressionInSingleStatementAsync(
         Document document,
         TConditionalExpressionSyntax conditionalExpression,
@@ -326,9 +312,20 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
             if (syntaxFacts.IsThrowExpression(expression))
                 return generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
 
-            var containerWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+            var containerWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(expression, conditionalType).WithTriviaFrom(conditionalExpression));
             Contract.ThrowIfNull(containerWithConditionalReplaced);
             return wrapConvertedSyntax(containerWithConditionalReplaced);
+        }
+
+        SyntaxNode TryConvert(SyntaxNode expression, ITypeSymbol? conditionalType)
+        {
+            var syntaxFacts = generator.SyntaxFacts;
+            if (syntaxFacts.IsRefExpression(expression))
+                return syntaxFacts.GetExpressionOfRefExpression(expression);
+
+            return conditionalType is null or IErrorTypeSymbol
+                ? expression
+                : generator.ConvertExpression(conditionalType, expression);
         }
     }
 }
