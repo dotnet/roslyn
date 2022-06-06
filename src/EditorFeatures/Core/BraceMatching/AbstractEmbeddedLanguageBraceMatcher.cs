@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             var orderedServices = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
 
             // Grab out the classifiers that handle unannotated literals and APIs.
-            _legacyClassifiers = orderedServices.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
+            _legacyServices = orderedServices.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
 
             foreach (var service in orderedServices)
             {
@@ -105,34 +102,12 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                 return await FindBracesInCurrentProcessAsync(
                     document, position, options, cancellationToken).ConfigureAwait(false);
             }
-
-            /*
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
-            if (languagesProvider != null)
-            {
-                foreach (var language in languagesProvider.Languages)
-                {
-                    var braceMatcher = (language as IEmbeddedLanguageEditorFeatures)?.BraceMatcher;
-                    if (braceMatcher != null)
-                    {
-                        var result = await braceMatcher.FindBracesAsync(
-                            document, position, options, cancellationToken).ConfigureAwait(false);
-                        if (result != null)
-                        {
-                            return result;
-                        }
-                    }
-                }
-            }
-
-            return null;
-            */
         }
 
         private async Task<BraceMatchingResult?> FindBracesInCurrentProcessAsync(
             Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return FindBracesInCurrentProcess(semanticModel, position, options, cancellationToken);
         }
 
