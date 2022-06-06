@@ -16,10 +16,12 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -105,9 +107,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     // we have is from the reference assembly. To do this we create an empty compilation,
                     // add our DLL as a reference, and use SymbolKey to map the type across.
                     var compilationFactory = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+                    var dllReference = IOUtilities.PerformIO(() => MetadataReference.CreateFromFile(dllPath));
+                    if (dllReference is null)
+                    {
+                        _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
+                        return null;
+                    }
+
                     var tmpCompilation = compilationFactory
                         .CreateCompilation("tmp", compilationFactory.GetDefaultCompilationOptions())
-                        .AddReferences(MetadataReference.CreateFromFile(dllPath));
+                        .AddReferences(dllReference);
 
                     var key = SymbolKey.Create(symbolToFind, cancellationToken);
                     var newSymbol = key.Resolve(tmpCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
@@ -191,7 +200,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var encoding = defaultEncoding ?? Encoding.UTF8;
             var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useExtendedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
-            if (sourceFileInfos is not [not null, ..])
+
+            // No point continuing if no source files were found
+            if (!sourceFileInfos.WhereNotNull().Any())
                 return null;
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);

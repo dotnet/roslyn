@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -183,7 +184,7 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, logger: null));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
         }
 
@@ -236,7 +237,7 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, logger: null));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
         }
 
@@ -286,14 +287,78 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, logger: null));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
                 File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
                 File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
 
-                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, logger: null));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
+            });
+        }
+
+        [Fact]
+        public async Task FollowTypeForwards_MultipleTypes_Cache()
+        {
+            var source = @"
+public class C
+{
+    // A change
+    public event System.EventHandler [|E|] { add { } remove { } }
+}
+
+public class D { }
+public class E { }
+public class F { }";
+            var typeForwardSource = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(D))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(E))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(F))]
+";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                // Compile reference assembly
+                var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+
+                // Compile implementation assembly to a different DLL
+                var dllFilePath = Path.Combine(path, "implementation.dll");
+                var sourceCodePath = Path.Combine(path, "implementation.cs");
+                var pdbFilePath = Path.Combine(path, "implementation.pdb");
+                var assemblyName = "implementation";
+
+                var workspace = TestWorkspace.Create(@$"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    </Project>
+</Workspace>", composition: GetTestComposition());
+
+                var implProject = workspace.CurrentSolution.Projects.First();
+                CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Compile type forwarding implementation DLL
+                var typeForwardDllFilePath = Path.Combine(path, "typeforward.dll");
+                assemblyName = "typeforward";
+
+                implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
+                sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+                CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                var service = workspace.GetService<IImplementationAssemblyLookupService>();
+
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
+
+                // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
+                // that the file isn't read, we just zero it out.
+                File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
+                File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
+
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
         }
 
@@ -350,7 +415,7 @@ public class C
 
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
-                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForward2DllFilePath, logger: null));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForward2DllFilePath, new NoDuplicatesLogger()));
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
@@ -358,8 +423,25 @@ public class C
                 File.WriteAllBytes(typeForward2DllFilePath, Array.Empty<byte>());
                 File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
 
-                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForward2DllFilePath, logger: null));
+                Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForward2DllFilePath, new NoDuplicatesLogger()));
             });
+        }
+
+        /// <summary>
+        /// Test logger that ensures we don't log the same message twice.
+        /// </summary>
+        private class NoDuplicatesLogger : IPdbSourceDocumentLogger
+        {
+            private readonly HashSet<string> _logs = new();
+            public void Clear()
+            {
+                _logs.Clear();
+            }
+
+            public void Log(string message)
+            {
+                Assert.True(_logs.Add(message));
+            }
         }
     }
 }

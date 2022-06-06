@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection.Metadata;
@@ -19,7 +20,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     [Export(typeof(IImplementationAssemblyLookupService)), Shared]
     internal class ImplementationAssemblyLookupService : IImplementationAssemblyLookupService
     {
-        private readonly Dictionary<string, Dictionary<string, string>?> _typeForwardCache = new();
+        private static readonly string PathSeparatorString = Path.DirectorySeparatorChar.ToString();
+
+        // Cache for any type forwards. Key is the dll being inspected. Value is a dictionary
+        // of namespace and type name, to the assembly name that the type is forwarded to
+        private readonly Dictionary<string, Dictionary<(string @namespace, string typeName), string>?> _typeForwardCache = new(StringComparer.OrdinalIgnoreCase);
+        private readonly object _cacheLock = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,10 +35,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryFindImplementationAssemblyPath(string referencedDllPath, [NotNullWhen(true)] out string? implementationDllPath)
         {
-            if (TryNugetLibToRef(referencedDllPath, out implementationDllPath))
+            var pathParts = referencedDllPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (TryNugetLibToRef(pathParts, out implementationDllPath))
                 return true;
 
-            if (TryTargetingPackToSharedSdk(referencedDllPath, out implementationDllPath))
+            if (TryTargetingPackToSharedSdk(pathParts, out implementationDllPath))
                 return true;
 
             implementationDllPath = null;
@@ -52,35 +59,34 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             try
             {
-                var typeFullMetadataName = $"{typeSymbol.ContainingNamespace.MetadataName}.{typeSymbol.MetadataName}";
                 while (File.Exists(dllPath))
                 {
                     // We try to use the cache to avoid loading the file
-                    if (_typeForwardCache.TryGetValue(dllPath, out var typeForwards))
+                    if (TryGetCachedTypeForwards(dllPath, out var typeForwards))
                     {
-                        if (typeForwards is not null && typeForwards.TryGetValue(typeFullMetadataName, out var cachedAssemblyName))
+                        // If there are no type forwards in this DLL, or not one for this type, then it means
+                        // we've found the right DLL
+                        if (typeForwards?.TryGetValue((typeSymbol.ContainingNamespace.MetadataName, typeSymbol.MetadataName), out var assemblyName) is null or false)
                         {
-                            dllPath = Path.Combine(basePath, $"{cachedAssemblyName}.dll");
-                            logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
-                            continue;
+                            return dllPath;
                         }
 
-                        return dllPath;
+                        dllPath = Path.Combine(basePath, $"{assemblyName}.dll");
+                        logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
+
+                        continue;
                     }
 
+                    // If this dll wasn't in the cache, then populate the cache and try again
                     using var fileStream = File.OpenRead(dllPath);
                     using var reader = new PEReader(fileStream);
                     var md = reader.GetMetadataReader();
+                    var cachedTypeForwards = GetAllTypeForwards(md);
 
-                    var assemblyName = GetExportedTypeAssemblyName(md, typeFullMetadataName, dllPath);
-                    if (assemblyName is null)
+                    lock (_cacheLock)
                     {
-                        // Didn't find a type forward, so the current DLL is the right one to use
-                        return dllPath;
+                        _typeForwardCache.Add(dllPath, cachedTypeForwards);
                     }
-
-                    dllPath = Path.Combine(basePath, $"{assemblyName}.dll");
-                    logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
                 }
             }
             catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
@@ -88,26 +94,38 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return null;
+
+            bool TryGetCachedTypeForwards(string dllPath, [NotNullWhen(true)] out Dictionary<(string @namespace, string typeName), string>? typeForwards)
+            {
+                lock (_cacheLock)
+                {
+                    return _typeForwardCache.TryGetValue(dllPath, out typeForwards);
+                }
+            }
         }
 
         public void Clear()
         {
-            _typeForwardCache.Clear();
+            lock (_cacheLock)
+            {
+                _typeForwardCache.Clear();
+            }
         }
 
-        private static bool TryNugetLibToRef(string referenceDllPath, [NotNullWhen(true)] out string? implementationDllPath)
+        private static bool TryNugetLibToRef(string[] pathParts, [NotNullWhen(true)] out string? implementationDllPath)
         {
             implementationDllPath = null;
 
             // For some nuget packages if the reference path has a "ref" folder in it, then the implementation assembly
             // will be in the corresponding "lib" folder.
-            var start = referenceDllPath.IndexOf(@"\ref\");
-            if (start == -1)
+            var refIndex = Array.LastIndexOf(pathParts, "ref");
+            if (refIndex == -1)
                 return false;
 
-            var pathToTry = referenceDllPath.Substring(0, start) +
-                            @"\lib\" +
-                            referenceDllPath.Substring(start + 5);
+            var pathToTry = Path.Combine(
+                                string.Join(PathSeparatorString, pathParts, 0, refIndex),
+                                "lib",
+                                string.Join(PathSeparatorString, pathParts, refIndex + 1, pathParts.Length - refIndex - 1));
 
             if (IOUtilities.PerformIO(() => File.Exists(pathToTry)))
             {
@@ -118,14 +136,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return false;
         }
 
-        private static bool TryTargetingPackToSharedSdk(string referencedDllPath, [NotNullWhen(true)] out string? implementationDllPath)
+        private static bool TryTargetingPackToSharedSdk(string[] pathParts, [NotNullWhen(true)] out string? implementationDllPath)
         {
             implementationDllPath = null;
-
-            // eg. C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.5\ref\net6.0\Foo.dll
-            var parts = referencedDllPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            if (parts is not [.., "packs", var packName, var packVersion, "ref", _, var dllFileName])
+            if (pathParts is not [.., "packs", var packName, var packVersion, "ref", _, var dllFileName])
                 return false;
+
+            var referencedDllPath = string.Join(PathSeparatorString, pathParts);
 
             // We try to get the shared sdk name from the FrameworkList.xml file, in the data dir
             // eg. C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.5\data\FrameworkList.xml
@@ -162,33 +179,33 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return false;
         }
 
-        private string? GetExportedTypeAssemblyName(MetadataReader md, string typeFullMetadataName, string dllPath)
+        private static Dictionary<(string, string), string>? GetAllTypeForwards(MetadataReader md)
         {
-            Dictionary<string, string>? lazyTypeCache = null;
-            string? result = null;
+            EntityHandle lastAssemblyReferenceHandle = default;
+            string? assemblyName = null;
+
+            Dictionary<(string, string), string>? result = null;
             foreach (var eth in md.ExportedTypes)
             {
                 var et = md.GetExportedType(eth);
                 if (et.IsForwarder && et.Implementation.Kind == HandleKind.AssemblyReference)
                 {
-                    var fullMetadataName = $"{md.GetString(et.Namespace)}.{md.GetString(et.Name)}";
-
-                    var ar = md.GetAssemblyReference((AssemblyReferenceHandle)et.Implementation);
-                    var assemblyName = md.GetString(ar.Name);
-
-                    lazyTypeCache ??= new();
-                    lazyTypeCache[fullMetadataName] = assemblyName;
-
-                    if (fullMetadataName.Equals(typeFullMetadataName, StringComparison.Ordinal))
+                    if (!et.Implementation.Equals(lastAssemblyReferenceHandle))
                     {
-                        // Save the result for returning later, but while we have the file open
-                        // we will continue to go through and cache all of the type forwards
-                        result = assemblyName;
+                        lastAssemblyReferenceHandle = et.Implementation;
+                        var assemblyReference = md.GetAssemblyReference((AssemblyReferenceHandle)lastAssemblyReferenceHandle);
+                        assemblyName = md.GetString(assemblyReference.Name);
                     }
+
+                    Debug.Assert(assemblyName is not null);
+
+                    var foundNamespace = md.GetString(et.Namespace);
+                    var foundTypeName = md.GetString(et.Name);
+
+                    result ??= new();
+                    result.Add((foundNamespace, foundTypeName), assemblyName);
                 }
             }
-
-            _typeForwardCache.Add(dllPath, lazyTypeCache);
 
             return result;
         }
