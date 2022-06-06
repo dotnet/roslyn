@@ -336,8 +336,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 if (selectedNode is BaseTypeDeclarationSyntax
                     or BaseMethodDeclarationSyntax
                     or LocalFunctionStatementSyntax
-                    or FieldDeclarationSyntax
-                    or EventFieldDeclarationSyntax
                     or AccessorDeclarationSyntax
                     or ObjectCreationExpressionSyntax
                     or WhileStatementSyntax
@@ -406,8 +404,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             if (selectedNode is BaseTypeDeclarationSyntax
                 or BaseMethodDeclarationSyntax
                 or LocalFunctionStatementSyntax
-                or FieldDeclarationSyntax
-                or EventFieldDeclarationSyntax
                 or AccessorDeclarationSyntax)
             {
                 var newRoot = ReplaceNodeAndFormat(
@@ -624,6 +620,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 CatchClauseSyntax catchClauseNode => catchClauseNode.Block.SpanStart,
                 FinallyClauseSyntax finallyClauseNode => finallyClauseNode.Block.SpanStart,
                 CheckedStatementSyntax checkedStatementNode => checkedStatementNode.Keyword.Span.End,
+                FieldDeclarationSyntax fieldDeclarationNode => fieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
+                EventFieldDeclarationSyntax eventFieldDeclarationNode => eventFieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
                 _ => throw ExceptionUtilities.Unreachable,
             };
         }
