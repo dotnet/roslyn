@@ -165,13 +165,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storage, out var stream);
 
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-            var metadata = ModuleMetadata.CreateFromMetadata(stream, leaveOpen: false);
+            unsafe
+            {
+                // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
 
-            // hold onto storage if requested
-            storages?.Add(storage);
+                // hold onto storage if requested
+                storages?.Add(storage);
 
-            return metadata;
+                return metadata;
+            }
         }
 
         private void GetStorageInfoFromTemporaryStorage(

@@ -77,7 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 TemporaryStorageService.TemporaryStreamStorage storage)
             {
                 // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-                return ModuleMetadata.CreateFromMetadata(storage.ReadStream(CancellationToken.None), leaveOpen: false);
+                var stream = storage.ReadStream(CancellationToken.None);
+                unsafe
+                {
+                    return ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream, disposeOwner: true);
+                }
             }
         }
     }
