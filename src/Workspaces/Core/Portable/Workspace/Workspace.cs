@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
         }
 
-        internal void LogTestMessage(string message)
-            => _testMessageLogger?.Invoke(message);
+        internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
+            => _testMessageLogger?.Invoke(messageFactory(state));
 
         /// <summary>
         /// Sets an internal logger that will receive some messages.
@@ -369,7 +369,6 @@ namespace Microsoft.CodeAnalysis
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
-            (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
             _optionService.UnregisterWorkspace(this);
 
             // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace

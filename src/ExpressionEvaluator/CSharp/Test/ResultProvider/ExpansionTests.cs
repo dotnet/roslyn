@@ -2413,13 +2413,13 @@ class D : C
             var getChildrenResult = default(DkmGetChildrenAsyncResult);
             resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
             Assert.Equal(0, workList.Length);
-            Assert.Equal(getChildrenResult.InitialChildren.Length, n);
+            Assert.Equal(n, getChildrenResult.InitialChildren.Length);
 
             // GetItems
             var getItemsResult = default(DkmEvaluationEnumAsyncResult);
             resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
             Assert.Equal(0, workList.Length);
-            Assert.Equal(getItemsResult.Items.Length, n);
+            Assert.Equal(n, getItemsResult.Items.Length);
         }
 
         /// <summary>

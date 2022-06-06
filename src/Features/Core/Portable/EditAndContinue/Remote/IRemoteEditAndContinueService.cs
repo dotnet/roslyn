@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
-        ValueTask<bool> HasChangesAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, string? sourceFilePath, CancellationToken cancellationToken);
         ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
         /// <summary>

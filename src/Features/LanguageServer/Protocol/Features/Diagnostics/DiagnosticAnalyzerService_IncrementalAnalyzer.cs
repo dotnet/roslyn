@@ -140,5 +140,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return Task.CompletedTask;
         }
+
+        public void Shutdown()
+        {
+        }
     }
 }

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var typeInfo in typeInfos)
                 {
-                    if (typeInfo.IsSubclassOf(typeof(TExtension)))
+                    if (typeof(TExtension).IsAssignableFrom(typeInfo))
                     {
                         try
                         {

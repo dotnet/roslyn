@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(keywordKind)));
         }
 
-        private void AddAccessibilityIfRequired(ISymbol symbol)
+        private void AddAccessibilityIfNeeded(ISymbol symbol)
         {
             INamedTypeSymbol containingType = symbol.ContainingType;
 

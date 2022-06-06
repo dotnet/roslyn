@@ -25,13 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        public AbstractLanguageService(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
-
         public int Format(IVsTextLayer textLayer, TextSpan[] selections)
         {
             var result = VSConstants.S_OK;
@@ -62,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var text = root.SyntaxTree.GetText(cancellationToken);
-            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
             var ts = selections.Single();
             var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return;
                 }
 
-                var isFSAOn = globalOptions.GetBackgroundAnalysisScope(project.Language) == BackgroundAnalysisScope.FullSolution;
+                var isFSAOn = globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
                 var documents = ImmutableArray<Document>.Empty;
                 // If FSA is on, then add all the documents in the project.  Other analysis scopes are handled by the document pull handler.
                 if (isFSAOn)

@@ -575,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = member.GetUseSiteInfo()
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
-                Symbol.MergeUseSiteInfo(useSiteInfo, member.ContainingType.GetUseSiteInfo(), highestPriorityUseSiteError:=0)
+                member.MergeUseSiteInfo(useSiteInfo, member.ContainingType.GetUseSiteInfo())
             End If
 
             Return useSiteInfo
