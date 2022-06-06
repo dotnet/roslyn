@@ -4852,7 +4852,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">Добавьте модификаторы доступности</target>
+        <target state="translated">Добавить модификаторы доступа</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
