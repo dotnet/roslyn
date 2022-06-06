@@ -1485,7 +1485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsEqualsValueOfPropertyDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsEqualsValueOfPropertyDeclaration
-            Return node IsNot Nothing AndAlso TryCast(node.Parent, PropertyStatementSyntax).Initializer Is node
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, PropertyStatementSyntax)?.Initializer Is node
         End Function
 
         Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression
