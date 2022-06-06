@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             private readonly ImmutableHashSet<ISymbol> _upSymbols;
 
-            public UnidirectionalSymbolSet(FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet initialSymbols, HashSet<ISymbol> upSymbols)
+            public UnidirectionalSymbolSet(
+                FindReferencesSearchEngine engine,
+                MetadataUnifyingSymbolHashSet initialSymbols,
+                MetadataUnifyingSymbolHashSet upSymbols)
                 : base(engine)
             {
                 _initialAndDownSymbols = initialSymbols;
