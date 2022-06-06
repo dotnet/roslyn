@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis
         private ModuleMetadata(
             IntPtr metadata,
             int size,
-            bool includeEmbeddedInteropTypes,
-            bool ignoreAssemblyRefs,
             IDisposable? owner,
-            bool disposeOwner)
+            bool disposeOwner,
+            bool includeEmbeddedInteropTypes,
+            bool ignoreAssemblyRefs)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             // If we've been asked to dispose the owner, then we better have an owner to dispose.
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(metadata != IntPtr.Zero);
             Debug.Assert(size > 0);
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes, ignoreAssemblyRefs, owner: null, disposeOwner: false);
+            return new ModuleMetadata(metadata, size, owner: null, disposeOwner: false, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
         }
 
         /// <summary>
