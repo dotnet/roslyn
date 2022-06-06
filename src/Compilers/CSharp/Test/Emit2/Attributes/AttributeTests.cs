@@ -62,27 +62,27 @@ class Program
             Assert.False(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.None));
 
             var alias1 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias1"));
-            var checker1 = WithAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
+            var checker1 = withAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
             Assert.True(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.False(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
 
-            var checker1a = WithAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
+            var checker1a = withAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
             Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
 
-            var checker1b = WithAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
+            var checker1b = withAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
             var alias2 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias2"));
             Assert.True(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.False(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
             Assert.False(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeForwardedTo));
             Assert.True(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeIdentifier));
 
-            var checker3 = WithAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
+            var checker3 = withAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
             var alias3 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias3"));
             Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeForwardedTo));
             Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeIdentifier));
 
-            QuickAttributeChecker WithAliases(QuickAttributeChecker checker, string aliases)
+            QuickAttributeChecker withAliases(QuickAttributeChecker checker, string aliases)
             {
                 var nodes = Parse(aliases).GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>();
                 var list = new SyntaxList<UsingDirectiveSyntax>().AddRange(nodes);

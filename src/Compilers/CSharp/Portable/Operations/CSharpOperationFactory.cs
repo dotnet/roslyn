@@ -1734,8 +1734,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
                                                     BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
-                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
-                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
+                                                    getEnumeratorArguments: createArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
+                                                    moveNextArguments: createArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
                                                         ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
                                                         : default);
@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return info;
 
-            ImmutableArray<IArgumentOperation> CreateArgumentOperations(MethodArgumentInfo? info,
+            ImmutableArray<IArgumentOperation> createArgumentOperations(MethodArgumentInfo? info,
                  SyntaxNode invocationSyntax)
             {
                 if (info == null)

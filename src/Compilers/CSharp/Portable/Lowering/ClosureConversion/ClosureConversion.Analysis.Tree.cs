@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <param name="node"></param>
                 private void CreateAndPushScope(BoundNode node)
                 {
-                    var scope = CreateNestedScope(_currentScope, _currentFunction);
+                    var scope = createNestedScope(_currentScope, _currentFunction);
 
                     foreach (var label in _labelsInScope.Peek())
                     {
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     _currentScope = scope;
 
-                    Scope CreateNestedScope(Scope parentScope, NestedFunction currentFunction)
+                    Scope createNestedScope(Scope parentScope, NestedFunction currentFunction)
                     {
                         Debug.Assert(parentScope.BoundNode != node);
 

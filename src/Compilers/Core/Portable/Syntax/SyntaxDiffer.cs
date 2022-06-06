@@ -602,18 +602,18 @@ namespace Microsoft.CodeAnalysis
                     last.NewNodes?.Enqueue(insertedNode);
                     _changes[_changes.Count - 1] = new ChangeRecord(
                         new TextChangeRange(new TextSpan(last.Range.Span.Start, last.Range.Span.Length + textChangeRange.Span.Length), last.Range.NewLength + textChangeRange.NewLength),
-                        last.OldNodes ?? CreateQueue(removedNode),
-                        last.NewNodes ?? CreateQueue(insertedNode));
+                        last.OldNodes ?? createQueue(removedNode),
+                        last.NewNodes ?? createQueue(insertedNode));
                     return;
                 }
 
                 Debug.Assert(textChangeRange.Span.Start >= last.Range.Span.End);
             }
 
-            _changes.Add(new ChangeRecord(textChangeRange, CreateQueue(removedNode), CreateQueue(insertedNode)));
+            _changes.Add(new ChangeRecord(textChangeRange, createQueue(removedNode), createQueue(insertedNode)));
 
             // Local Functions
-            Queue<SyntaxNodeOrToken> CreateQueue(SyntaxNodeOrToken nodeOrToken)
+            Queue<SyntaxNodeOrToken> createQueue(SyntaxNodeOrToken nodeOrToken)
             {
                 var queue = new Queue<SyntaxNodeOrToken>();
                 queue.Enqueue(nodeOrToken);

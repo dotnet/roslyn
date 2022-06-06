@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 SyntaxTrivia? startComment = null;
                 SyntaxTrivia? endComment = null;
 
-                void completeSingleLineCommentGroup(ref TemporaryArray<BlockSpan> spans)
+                void CompleteSingleLineCommentGroup(ref TemporaryArray<BlockSpan> spans)
                 {
                     if (startComment != null)
                     {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     }
                     else if (trivia.IsMultiLineComment())
                     {
-                        completeSingleLineCommentGroup(ref spans);
+                        CompleteSingleLineCommentGroup(ref spans);
 
                         var multilineCommentRegion = CreateCommentBlockSpan(trivia, trivia);
                         spans.Add(multilineCommentRegion);
@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                                                  SyntaxKind.EndOfLineTrivia,
                                                  SyntaxKind.EndOfFileToken))
                     {
-                        completeSingleLineCommentGroup(ref spans);
+                        CompleteSingleLineCommentGroup(ref spans);
                     }
                 }
 
-                completeSingleLineCommentGroup(ref spans);
+                CompleteSingleLineCommentGroup(ref spans);
             }
         }
 

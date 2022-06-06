@@ -9226,7 +9226,7 @@ class C
 
         private Task AssertFormatBodyAsync(string expected, string input)
         {
-            static string transform(string s)
+            static string Transform(string s)
             {
                 var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 for (var i = 0; i < lines.Length; i++)
@@ -9249,8 +9249,8 @@ class C
     }}
 }}";
 
-            expected = string.Format(pattern, transform(expected));
-            input = string.Format(pattern, transform(input));
+            expected = string.Format(pattern, Transform(expected));
+            input = string.Format(pattern, Transform(input));
             return AssertFormatAsync(expected, input);
         }
 

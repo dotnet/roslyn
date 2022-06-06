@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                int Int32Value(ConstantValue value)
+                int int32Value(ConstantValue value)
                 {
                     // ConstantValue does not correctly convert byte and ushort values to int.
                     // It sign extends them rather than padding them. We compensate for that here.
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     }
                 }
 
-                _builder.EmitIntConstant(Int32Value(endConstant) - Int32Value(startConstant));
+                _builder.EmitIntConstant(int32Value(endConstant) - int32Value(startConstant));
             }
 
             _builder.EmitBranch(ILOpCode.Ble_un, targetLabel, ILOpCode.Bgt_un);

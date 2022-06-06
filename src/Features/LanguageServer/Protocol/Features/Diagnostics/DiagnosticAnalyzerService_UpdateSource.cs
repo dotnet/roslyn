@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // we do this bulk update to reduce number of tasks (with captured data) enqueued.
                 // we saw some "out of memory" due to us having long list of pending tasks in memory. 
                 // this is to reduce for such case to happen.
-                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
+                void RaiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
-                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventAction(raiseEvents), CancellationToken.None);
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventAction(RaiseEvents), CancellationToken.None);
             }
         }
 
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // we do this bulk update to reduce number of tasks (with captured data) enqueued.
                 // we saw some "out of memory" due to us having long list of pending tasks in memory. 
                 // this is to reduce for such case to happen.
-                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
+                void RaiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
 
-                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventActionAsync(raiseEvents), CancellationToken.None);
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventActionAsync(RaiseEvents), CancellationToken.None);
             }
         }
 

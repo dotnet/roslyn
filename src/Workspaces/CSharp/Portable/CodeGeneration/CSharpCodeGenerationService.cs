@@ -665,14 +665,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
         {
-            SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => newModifiers.ToSyntaxTokenList();
-            return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
+            SyntaxTokenList ComputeNewModifiersList(SyntaxTokenList modifiersList) => newModifiers.ToSyntaxTokenList();
+            return UpdateDeclarationModifiers(declaration, ComputeNewModifiersList);
         }
 
         public override TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
         {
-            SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => UpdateDeclarationAccessibility(modifiersList, newAccessibility, info);
-            return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
+            SyntaxTokenList ComputeNewModifiersList(SyntaxTokenList modifiersList) => UpdateDeclarationAccessibility(modifiersList, newAccessibility, info);
+            return UpdateDeclarationModifiers(declaration, ComputeNewModifiersList);
         }
 
         private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info)

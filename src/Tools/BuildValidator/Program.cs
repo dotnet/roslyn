@@ -118,14 +118,14 @@ namespace BuildValidator
                     options.Excludes,
                     logger);
 
-                logAssemblyInfos();
+                LogAssemblyInfos();
 
                 var success = ValidateFiles(assemblyInfos, options, loggerFactory);
 
                 Console.Out.Flush();
                 return success ? ExitSuccess : ExitFailure;
 
-                void logAssemblyInfos()
+                void LogAssemblyInfos()
                 {
                     logger.LogInformation("Assemblies to be validated");
                     foreach (var assemblyInfo in assemblyInfos)
@@ -149,7 +149,7 @@ namespace BuildValidator
             var map = new Dictionary<Guid, AssemblyInfo>();
             foreach (var directory in assemblySearchPaths)
             {
-                foreach (var filePath in getAssemblyPaths(directory))
+                foreach (var filePath in GetAssemblyPaths(directory))
                 {
                     if (excludes.Any(x => filePath.IndexOf(x, FileNameEqualityComparer.StringComparison) >= 0))
                     {
@@ -184,7 +184,7 @@ namespace BuildValidator
 
             return map.Values.OrderBy(x => x.FileName, FileNameEqualityComparer.StringComparer).ToArray();
 
-            static IEnumerable<string> getAssemblyPaths(string directory)
+            static IEnumerable<string> GetAssemblyPaths(string directory)
             {
                 var exePaths = Directory.EnumerateFiles(directory, "*.exe", SearchOption.AllDirectories);
                 var dllPaths = Directory.EnumerateFiles(directory, "*.dll", SearchOption.AllDirectories);
@@ -333,7 +333,7 @@ namespace BuildValidator
             var documents = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null })?.documents
                 ?? throw new InvalidOperationException("Failed to deserialize source links.");
 
-            var sourceLinks = documents.Select(makeSourceLink).ToImmutableArray();
+            var sourceLinks = documents.Select(MakeSourceLink).ToImmutableArray();
 
             if (sourceLinks.IsDefault)
             {
@@ -349,7 +349,7 @@ namespace BuildValidator
             }
             return sourceLinks;
 
-            static SourceLinkEntry makeSourceLink(KeyValuePair<string, string> entry)
+            static SourceLinkEntry MakeSourceLink(KeyValuePair<string, string> entry)
             {
                 // TODO: determine if this subsitution is correct
                 var (key, value) = (entry.Key, entry.Value); // TODO: use Deconstruct in .NET Core

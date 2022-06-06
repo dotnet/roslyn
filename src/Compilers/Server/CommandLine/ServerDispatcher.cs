@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var all = new List<Task>();
             all.AddRange(_connectionList);
-            AddNonNull(_timeoutTask);
-            AddNonNull(_listenTask);
-            AddNonNull(_gcTask);
+            addNonNull(_timeoutTask);
+            addNonNull(_listenTask);
+            addNonNull(_gcTask);
 
             try
             {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // here it just serves to break out of the WaitAny call.
             }
 
-            void AddNonNull(Task? task)
+            void addNonNull(Task? task)
             {
                 if (task is object)
                 {

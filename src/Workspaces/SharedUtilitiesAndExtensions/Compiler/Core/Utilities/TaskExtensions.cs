@@ -88,13 +88,13 @@ namespace Roslyn.Utilities
         {
             Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
 
-            bool continuationFunction(Task antecedent)
+            bool ContinuationFunction(Task antecedent)
             {
                 continuationAction(antecedent);
                 return true;
             }
 
-            return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
+            return task.SafeContinueWith(ContinuationFunction, cancellationToken, continuationOptions, scheduler);
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
@@ -153,7 +153,7 @@ namespace Roslyn.Utilities
 
             Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
 
-            TResult outerFunction(Task t)
+            TResult OuterFunction(Task t)
             {
                 try
                 {
@@ -166,7 +166,7 @@ namespace Roslyn.Utilities
             }
 
             // This is the only place in the code where we're allowed to call ContinueWith.
-            return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
+            return task.ContinueWith(OuterFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]

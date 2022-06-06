@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(" (");
 
             // Kind
-            LogString($"{nameof(OperationKind)}.{GetKindText(operation.Kind)}");
+            LogString($"{nameof(OperationKind)}.{getKindText(operation.Kind)}");
 
             // Type
             LogString(", ");
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Some of these kinds were inconsistent in the first release, and in standardizing them the
             // string output isn't guaranteed to be one or the other. So standardize manually.
-            string GetKindText(OperationKind kind)
+            string getKindText(OperationKind kind)
             {
                 switch (kind)
                 {

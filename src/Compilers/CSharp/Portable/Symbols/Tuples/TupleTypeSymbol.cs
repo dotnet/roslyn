@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static Symbol? GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, BindingDiagnosticBag diagnostics, SyntaxNode? syntax)
         {
-            Symbol? member = GetWellKnownMemberInType(type, relativeMember);
+            Symbol? member = getWellKnownMemberInType(type, relativeMember);
 
             if (member is null)
             {
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //
             // <param name="type">Type that we'll try to find member in.</param>
             // <param name="relativeMember">A reference to a well-known member type descriptor. Note however that the type in that descriptor is ignored here.</param>
-            static Symbol? GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember)
+            static Symbol? getWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember)
             {
                 Debug.Assert(relativeMember >= WellKnownMember.System_ValueTuple_T1__Item1 && relativeMember <= WellKnownMember.System_ValueTuple_TRest__ctor);
                 Debug.Assert(type.IsDefinition);

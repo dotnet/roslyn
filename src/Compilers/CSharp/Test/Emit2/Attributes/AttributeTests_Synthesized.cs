@@ -177,12 +177,12 @@ class Test
                 var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
 
                 var property = type.GetMember<PEFieldSymbol>(GeneratedNames.MakeBackingFieldName("MyProp"));
-                Verify(property.Handle);
+                verify(property.Handle);
 
                 var eventField = (PEFieldSymbol)type.GetMember<PEEventSymbol>("MyEvent").AssociatedField;
-                Verify(eventField.Handle);
+                verify(eventField.Handle);
 
-                void Verify(EntityHandle token)
+                void verify(EntityHandle token)
                 {
                     var attributes = peModule.GetCustomAttributesForToken(token);
 
@@ -373,24 +373,24 @@ public class C
             CompileAndVerify(comp, symbolValidator: m =>
             {
                 var assembly = m.ContainingAssembly;
-                Assert.Equal(@"\{ }", GetDebuggerDisplayString(assembly, 0, 0));
-                Assert.Equal(@"\{ X0 = {X0} }", GetDebuggerDisplayString(assembly, 1, 1));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1} }", GetDebuggerDisplayString(assembly, 2, 2));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2} }", GetDebuggerDisplayString(assembly, 3, 3));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3} }", GetDebuggerDisplayString(assembly, 4, 4));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4} }", GetDebuggerDisplayString(assembly, 5, 5));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5} }", GetDebuggerDisplayString(assembly, 6, 6));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6} }", GetDebuggerDisplayString(assembly, 7, 7));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7} }", GetDebuggerDisplayString(assembly, 8, 8));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8} }", GetDebuggerDisplayString(assembly, 9, 9));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} }", GetDebuggerDisplayString(assembly, 10, 10));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} ... }", GetDebuggerDisplayString(assembly, 11, 11));
+                Assert.Equal(@"\{ }", getDebuggerDisplayString(assembly, 0, 0));
+                Assert.Equal(@"\{ X0 = {X0} }", getDebuggerDisplayString(assembly, 1, 1));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1} }", getDebuggerDisplayString(assembly, 2, 2));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2} }", getDebuggerDisplayString(assembly, 3, 3));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3} }", getDebuggerDisplayString(assembly, 4, 4));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4} }", getDebuggerDisplayString(assembly, 5, 5));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5} }", getDebuggerDisplayString(assembly, 6, 6));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6} }", getDebuggerDisplayString(assembly, 7, 7));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7} }", getDebuggerDisplayString(assembly, 8, 8));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8} }", getDebuggerDisplayString(assembly, 9, 9));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} }", getDebuggerDisplayString(assembly, 10, 10));
+                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} ... }", getDebuggerDisplayString(assembly, 11, 11));
 
                 Assert.Equal(@"\{ X10 = {X10}, X11 = {X11}, X12 = {X12}, X13 = {X13}, X14 = {X14}, X15 = {X15}, X16 = {X16}, X17 = {X17}, X20 = {X20}, X21 = {X21} ... }",
-                    GetDebuggerDisplayString(assembly, 12, 48));
+                    getDebuggerDisplayString(assembly, 12, 48));
             });
 
-            string GetDebuggerDisplayString(AssemblySymbol assembly, int ordinal, int fieldCount)
+            string getDebuggerDisplayString(AssemblySymbol assembly, int ordinal, int fieldCount)
             {
                 NamedTypeSymbol anon;
                 if (fieldCount == 0)

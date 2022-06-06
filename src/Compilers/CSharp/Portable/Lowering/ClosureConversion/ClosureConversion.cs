@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!_frames.ContainsKey(scope.BoundNode));
 
-                    var frame = MakeFrame(scope, env);
+                    var frame = makeFrame(scope, env);
                     env.SynthesizedEnvironment = frame;
 
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame.GetCciAdapter());
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             });
 
-            SynthesizedClosureEnvironment MakeFrame(Analysis.Scope scope, Analysis.ClosureEnvironment env)
+            SynthesizedClosureEnvironment makeFrame(Analysis.Scope scope, Analysis.ClosureEnvironment env)
             {
                 var scopeBoundNode = scope.BoundNode;
 

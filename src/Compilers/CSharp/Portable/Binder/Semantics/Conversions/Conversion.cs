@@ -1111,9 +1111,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         internal string Dump()
         {
-            return TreeDumper.DumpCompact(Dump(this));
+            return TreeDumper.DumpCompact(dump(this));
 
-            TreeDumperNode Dump(Conversion self)
+            TreeDumperNode dump(Conversion self)
             {
                 var sub = new System.Collections.Generic.List<TreeDumperNode>();
 
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!underlyingConversions.IsDefaultOrEmpty)
                 {
                     sub.Add(new TreeDumperNode($"underlyingConversions[{underlyingConversions.Length}]", null,
-                        underlyingConversions.SelectAsArray(c => Dump(c))));
+                        underlyingConversions.SelectAsArray(c => dump(c))));
                 }
 
                 return new TreeDumperNode("conversion", self.Kind, sub);

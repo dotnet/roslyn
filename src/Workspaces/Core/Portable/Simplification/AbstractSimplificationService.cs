@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
 
-            bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
+            bool IsNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
                 !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // prep namespace imports marked for simplification 
             var removeIfUnusedAnnotation = new SyntaxAnnotation();
             var originalRoot = root;
-            root = PrepareNamespaceImportsForRemovalIfUnused(document, root, removeIfUnusedAnnotation, isNodeOrTokenOutsideSimplifySpans);
+            root = PrepareNamespaceImportsForRemovalIfUnused(document, root, removeIfUnusedAnnotation, IsNodeOrTokenOutsideSimplifySpans);
             var hasImportsToSimplify = root != originalRoot;
 
             if (hasImportsToSimplify)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             // Get the list of syntax nodes and tokens that need to be reduced.
-            var nodesAndTokensToReduce = this.GetNodesAndTokensToReduce(root, isNodeOrTokenOutsideSimplifySpans);
+            var nodesAndTokensToReduce = this.GetNodesAndTokensToReduce(root, IsNodeOrTokenOutsideSimplifySpans);
 
             if (nodesAndTokensToReduce.Any())
             {

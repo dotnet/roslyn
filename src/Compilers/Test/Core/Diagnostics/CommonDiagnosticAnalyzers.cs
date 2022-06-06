@@ -1797,7 +1797,7 @@ namespace Microsoft.CodeAnalysis
 
                 void performOperationActionVerification(OperationAnalysisContext operationContext, SymbolStartAnalysisContext symbolStartContext)
                 {
-                    var containingSymbols = GetContainingSymbolsAndThis(operationContext.ContainingSymbol).ToSet();
+                    var containingSymbols = getContainingSymbolsAndThis(operationContext.ContainingSymbol).ToSet();
                     seenOperationContainers.Add(operationContext, containingSymbols);
                     Assert.Contains(symbolStartContext.Symbol, containingSymbols);
                     Assert.All(containingSymbols, s => Assert.DoesNotContain(s, symbolsEnded));
@@ -1805,7 +1805,7 @@ namespace Microsoft.CodeAnalysis
                     operationContext.ReportDiagnostic(Diagnostic.Create(OperationRule, Location.None, symbolStartContext.Symbol.Name, operationContext.ContainingSymbol.Name, operationContext.Operation.Syntax.ToString(), _analyzerId));
                 }
 
-                IEnumerable<ISymbol> GetContainingSymbolsAndThis(ISymbol symbol)
+                IEnumerable<ISymbol> getContainingSymbolsAndThis(ISymbol symbol)
                 {
                     do
                     {

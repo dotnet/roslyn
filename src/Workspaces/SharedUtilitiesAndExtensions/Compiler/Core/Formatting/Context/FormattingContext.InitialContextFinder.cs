@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // operation has found
                 var list = new List<SuppressOperation>();
 
-                bool predicate(SuppressOperation o)
+                bool Predicate(SuppressOperation o)
                 {
                     if (o == null)
                     {
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     _formattingRules.AddSuppressOperations(list, currentIndentationNode);
 
-                    list.RemoveAll(predicate);
+                    list.RemoveAll(Predicate);
                     if (list.Count > 0)
                     {
                         return list;

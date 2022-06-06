@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var finallyExecuted = false;
 
-            void a()
+            void A()
             {
                 try
                 {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 try
                 {
-                    a();
+                    A();
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {

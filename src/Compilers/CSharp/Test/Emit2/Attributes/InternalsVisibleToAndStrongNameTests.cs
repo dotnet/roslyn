@@ -1900,9 +1900,9 @@ public class C
         [MemberData(nameof(AllProviderParseOptions))]
         public void DelaySignWithAssemblySignatureKey(CSharpParseOptions parseOptions)
         {
-            DelaySignWithAssemblySignatureKeyHelper();
+            delaySignWithAssemblySignatureKeyHelper();
 
-            void DelaySignWithAssemblySignatureKeyHelper()
+            void delaySignWithAssemblySignatureKeyHelper()
             {
                 //Note that this SignatureKey is some random one that I found in the devdiv build.
                 //It is not related to the other keys we use in these tests.

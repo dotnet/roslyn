@@ -594,7 +594,7 @@ namespace Test
 
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)
         {
-            void verifier(Location location)
+            void Verifier(Location location)
             {
                 var line = location.GetLineSpan().StartLinePosition.Line;
                 Assert.True(expectedMatchedLines.Remove(line), $"An unexpected reference was found on line number {line}.");
@@ -602,12 +602,12 @@ namespace Test
 
             foreach (var location in reference.Locations)
             {
-                verifier(location.Location);
+                Verifier(location.Location);
             }
 
             foreach (var location in reference.Definition.Locations)
             {
-                verifier(location);
+                Verifier(location);
             }
         }
     }

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
             var someParameterHasAttribute = property.Parameters
-                .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
+                .Any(p => p.GetAttributes().Any(ShouldRemoveAttribute));
             if (!someParameterHasAttribute)
             {
                 return property;
@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.Name,
                 property.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                        p.GetAttributes().WhereAsArray(a => !ShouldRemoveAttribute(a)),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 property.GetMethod,
                 property.SetMethod,
                 property.IsIndexer);
 
-            bool shouldRemoveAttribute(AttributeData a) =>
+            bool ShouldRemoveAttribute(AttributeData a) =>
                 attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
                 a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
         }

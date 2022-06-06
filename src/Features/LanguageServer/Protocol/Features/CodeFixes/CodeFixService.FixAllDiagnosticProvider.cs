@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
             {
-                bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
-                var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, fixAllSpan, shouldIncludeDiagnostic, _includeSuppressedDiagnostics, cancellationToken: cancellationToken).ConfigureAwait(false);
+                bool ShouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
+                var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, fixAllSpan, ShouldIncludeDiagnostic, _includeSuppressedDiagnostics, cancellationToken: cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
                 return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }

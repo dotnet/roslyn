@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var builder = ImmutableArray.CreateBuilder<DiagnosticDescriptor>();
 
-            void add(int index, int id, string resourceName, LocalizableResourceString title, DiagnosticSeverity severity)
+            void Add(int index, int id, string resourceName, LocalizableResourceString title, DiagnosticSeverity severity)
             {
                 if (index >= builder.Count)
                 {
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             void AddRudeEdit(RudeEditKind kind, string resourceName)
-                => add(GetDescriptorIndex(kind), (int)kind, resourceName, s_rudeEditLocString, DiagnosticSeverity.Error);
+                => Add(GetDescriptorIndex(kind), (int)kind, resourceName, s_rudeEditLocString, DiagnosticSeverity.Error);
 
             void AddGeneralDiagnostic(EditAndContinueErrorCode code, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error)
-                => add(GetDescriptorIndex(code), GeneralDiagnosticBaseId + (int)code, resourceName, s_encLocString, severity);
+                => Add(GetDescriptorIndex(code), GeneralDiagnosticBaseId + (int)code, resourceName, s_encLocString, severity);
 
             //
             // rude edits

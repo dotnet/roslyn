@@ -478,18 +478,18 @@ class F
             var actual = from handle in pdbReader.CustomDebugInformation
                          let entry = pdbReader.GetCustomDebugInformation(handle)
                          where pdbReader.GetGuid(entry.Kind).Equals(PortableCustomDebugInfoKinds.TypeDefinitionDocuments)
-                         select (typeName: GetTypeName(entry.Parent), documentName: GetDocumentNames(entry.Value));
+                         select (typeName: getTypeName(entry.Parent), documentName: getDocumentNames(entry.Value));
 
             AssertEx.Equal(expected, actual, itemSeparator: ",\n", itemInspector: i => $"(\"{i.typeName}\", \"{i.documentName}\")");
 
-            string GetTypeName(EntityHandle handle)
+            string getTypeName(EntityHandle handle)
             {
                 var typeHandle = (TypeDefinitionHandle)handle;
                 var type = metadataReader.GetTypeDefinition(typeHandle);
                 return metadataReader.GetString(type.Name);
             }
 
-            string GetDocumentNames(BlobHandle value)
+            string getDocumentNames(BlobHandle value)
             {
                 var result = new List<string>();
 

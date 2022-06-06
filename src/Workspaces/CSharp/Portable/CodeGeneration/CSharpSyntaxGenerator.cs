@@ -3550,7 +3550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList)
         {
-            static IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
+            static IEnumerable<IEnumerable<SyntaxTrivia>> SplitIntoLines(SyntaxTriviaList triviaList)
             {
                 var index = 0;
                 for (var i = 0; i < triviaList.Count; i++)
@@ -3568,7 +3568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            var syntaxWithoutComments = splitIntoLines(syntaxTriviaList)
+            var syntaxWithoutComments = SplitIntoLines(syntaxTriviaList)
                 .Where(trivia => !trivia.Any(t => t.IsRegularOrDocComment()))
                 .SelectMany(t => t);
 

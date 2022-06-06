@@ -251,9 +251,9 @@ namespace Microsoft.CodeAnalysis
                 return selector(source[0], arg, cancellationToken);
             }
 
-            return CreateTask();
+            return createTask();
 
-            async ValueTask<ImmutableArray<TResult>> CreateTask()
+            async ValueTask<ImmutableArray<TResult>> createTask()
             {
                 var builder = ArrayBuilder<TResult>.GetInstance();
 
