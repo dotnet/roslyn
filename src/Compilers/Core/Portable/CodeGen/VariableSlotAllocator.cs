@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         /// <summary>
         /// State number to be used for next state of the state machine,
-        /// or <see langword="null"/> if none of the previous versions of the method was a state machine with a increasing state
+        /// or <see langword="null"/> if none of the previous versions of the method was a state machine with an increasing state
         /// </summary>
-        /// <param name="increasing">True if the state number increases with progress, false if it decreases.</param>
+        /// <param name="increasing">True if the state number increases with progress, false if it decreases (e.g. states for iterator try-finally blocks, or iterator states of async iterators).</param>
         public abstract int? GetFirstUnusedStateMachineState(bool increasing);
 
         /// <summary>

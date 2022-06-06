@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CodeGen;
 
@@ -20,13 +21,33 @@ internal readonly struct StateMachineStateDebugInfo
     }
 }
 
+/// <summary>
+/// Debug information maintained for each state machine.
+/// Facilitates mapping of state machine states from a compilation to the previous one (or to a metadata baseline) during EnC.
+/// </summary>
 internal readonly struct StateMachineStatesDebugInfo
 {
     public readonly ImmutableArray<StateMachineStateDebugInfo> States;
+
+    /// <summary>
+    /// The number of the first state that has not been used in any of the previous versions of the state machine,
+    /// or null if we are not generating EnC delta.
+    /// 
+    /// For 1st generation EnC delta, this is calculated by examining the <see cref="EditAndContinueMethodDebugInformation.StateMachineStates"/> stored in the baseline metadata.
+    /// For subsequent generations, the number is updated to account for newly generated states in that generation.
+    /// </summary>
     public readonly int? FirstUnusedIncreasingStateMachineState;
+
+    /// <summary>
+    /// The number of the first state that has not been used in any of the previous versions of the state machine,
+    /// or null if we are not generating EnC delta, or the state machine has no decreasing states.
+    /// 
+    /// For 1st generation EnC delta, this is calculated by examining the <see cref="EditAndContinueMethodDebugInformation.StateMachineStates"/> stored in the baseline metadata.
+    /// For subsequent generations, the number is updated to account for newly generated states in that generation.
+    /// </summary>
     public readonly int? FirstUnusedDecreasingStateMachineState;
 
-    public StateMachineStatesDebugInfo(ImmutableArray<StateMachineStateDebugInfo> states, int? firstUnusedIncreasingStateMachineState, int? firstUnusedDecreasingStateMachineState)
+    private StateMachineStatesDebugInfo(ImmutableArray<StateMachineStateDebugInfo> states, int? firstUnusedIncreasingStateMachineState, int? firstUnusedDecreasingStateMachineState)
     {
         States = states;
         FirstUnusedIncreasingStateMachineState = firstUnusedIncreasingStateMachineState;
