@@ -82,36 +82,11 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
-            {
-                var result = await client.TryInvokeAsync<IRemoteEmbeddedLanguageBraceMatcherService, BraceMatchingResult?>(
-                   document.Project,
-                   (service, solutionInfo, cancellationToken) => service.FindBracesAsync(
-                       solutionInfo, document.Id, position, options, cancellationToken),
-                   cancellationToken).ConfigureAwait(false);
-
-                // if the remote call fails do nothing (error has already been reported)
-                if (result.HasValue)
-                    return result.Value;
-
-                return null;
-            }
-            else
-            {
-                return await FindBracesInCurrentProcessAsync(
-                    document, position, options, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async Task<BraceMatchingResult?> FindBracesInCurrentProcessAsync(
-            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
-        {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return FindBracesInCurrentProcess(semanticModel, position, options, cancellationToken);
+            return FindBraces(semanticModel, position, options, cancellationToken);
         }
 
-        private BraceMatchingResult? FindBracesInCurrentProcess(
+        private BraceMatchingResult? FindBraces(
             SemanticModel semanticModel,
             int position,
             BraceMatchingOptions options,
