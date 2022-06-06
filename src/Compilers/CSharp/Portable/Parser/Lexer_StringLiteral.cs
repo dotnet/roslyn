@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 'u':
                 case 'U':
                     TextWindow.Reset(start);
-                    SyntaxDiagnosticInfo error;
+                    SyntaxDiagnosticInfo? error;
                     ch = TextWindow.NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
                     AddError(error);
                     break;
