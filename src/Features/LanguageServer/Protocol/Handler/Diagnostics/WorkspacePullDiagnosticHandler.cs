@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,9 +18,12 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -55,19 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ConvertTags(diagnosticData, potentialDuplicate: true);
         }
 
-        protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
+        protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
             return GetWorkspacePullDocumentsAsync(context, GlobalOptions, cancellationToken);
-        }
-
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-        {
-            // Directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
-            // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
-            // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
-            // and do not need to be adjusted.
-            return DiagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
         }
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport> progress)
@@ -75,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetValues();
         }
 
-        internal static async ValueTask<ImmutableArray<Document>> GetWorkspacePullDocumentsAsync(RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        internal static async ValueTask<ImmutableArray<IDiagnosticSource>> GetWorkspacePullDocumentsAsync(RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -83,9 +77,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
             if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
-                return ImmutableArray<Document>.Empty;
+                return ImmutableArray<IDiagnosticSource>.Empty;
 
-            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 
             var solution = context.Solution;
 
@@ -99,19 +93,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            await AddDocumentsFromProjectAsync(activeDocument?.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
+            await AddDocumentsAndProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
             foreach (var doc in visibleDocuments)
-                await AddDocumentsFromProjectAsync(doc.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
+                await AddDocumentsAndProject(doc.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                await AddDocumentsFromProjectAsync(project, context.SupportedLanguages, isOpen: false, cancellationToken).ConfigureAwait(false);
+                await AddDocumentsAndProject(project, context.SupportedLanguages, isOpen: false, cancellationToken).ConfigureAwait(false);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
 
-            async Task AddDocumentsFromProjectAsync(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen, CancellationToken cancellationToken)
+            async Task AddDocumentsAndProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen, CancellationToken cancellationToken)
             {
                 if (project == null)
                     return;
@@ -156,9 +150,73 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                         continue;
                     }
 
-                    result.Add(document);
+                    result.Add(new WorkspaceDocumentDiagnosticSource(document));
+                }
+
+                // Finally, if FSA is on we also want to check for diagnostics associated with the project itself.
+                if (isFSAOn)
+                {
+                    result.Add(new ProjectDiagnosticSource(project));
                 }
             }
+        }
+
+        private record struct ProjectDiagnosticSource(Project Project) : IDiagnosticSource
+        {
+            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+                IDiagnosticAnalyzerService diagnosticAnalyzerService,
+                RequestContext context,
+                DiagnosticMode diagnosticMode,
+                CancellationToken cancellationToken)
+            {
+                // Directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
+                // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
+                // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
+                // and do not need to be adjusted.
+                var projectDiagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return projectDiagnostics;
+            }
+
+            public ProjectOrDocumentId GetId() => new(Project.Id);
+
+            public Project GetProject() => Project;
+
+            public Uri GetUri()
+            {
+                Contract.ThrowIfNull(Project.FilePath);
+                return ProtocolConversions.GetUriFromFilePath(Project.FilePath);
+            }
+        }
+
+        private record struct WorkspaceDocumentDiagnosticSource(Document Document) : IDiagnosticSource
+        {
+            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+                IDiagnosticAnalyzerService diagnosticAnalyzerService,
+                RequestContext context,
+                DiagnosticMode diagnosticMode,
+                CancellationToken cancellationToken)
+            {
+                if (Document is not SourceGeneratedDocument)
+                {
+                    // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of diagnostics for this document
+                    // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
+                    // However we can include them as a part of workspace pull when FSA is on.
+                    var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    return documentDiagnostics;
+                }
+                else
+                {
+                    // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
+                    var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(Document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    return documentDiagnostics;
+                }
+            }
+
+            public ProjectOrDocumentId GetId() => new(Document.Id);
+
+            public Project GetProject() => Document.Project;
+
+            public Uri GetUri() => Document.GetURI();
         }
     }
 }
