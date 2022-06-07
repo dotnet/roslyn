@@ -45,15 +45,15 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
             // so, delegate to the first matcher we have registered for whatever language ID we find.
             if (this.Detector.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var identifier, out _) &&
-                this.IdentifierToServices.TryGetValue(identifier, out var matchers))
+                this.IdentifierToServices.TryGetValue(identifier, out var braceMatchers))
             {
-                foreach (var matcher in matchers)
+                foreach (var braceMatcher in braceMatchers)
                 {
                     // keep track of what matchers we've run so we don't call into them multiple times.
-                    buffer.Add(matcher.Value);
+                    buffer.Add(braceMatcher.Value);
 
                     // If this service added values then need to check the other ones.
-                    var result = matcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
+                    var result = braceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
                     if (result.HasValue)
                         return result;
                 }
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.BraceMatching
 
             // It wasn't an annotated API.  See if it's some legacy API our legacy matchers have direct
             // support for (for example, .net APIs prior to Net6).
-            foreach (var legacyMatcher in this.LegacyServices)
+            foreach (var legacyBraceMatcher in this.LegacyServices)
             {
                 // don't bother trying to classify again if we already tried above.
-                if (buffer.Contains(legacyMatcher.Value))
+                if (buffer.Contains(legacyBraceMatcher.Value))
                     continue;
 
                 // If this service added values then need to check the other ones.
-                var result = legacyMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
+                var result = legacyBraceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
                 if (result.HasValue)
                     return result;
             }

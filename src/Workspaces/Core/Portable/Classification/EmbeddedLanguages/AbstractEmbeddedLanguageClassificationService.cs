@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private ref struct Worker
         {
-            private readonly AbstractEmbeddedLanguageClassificationService _service;
+            private readonly AbstractEmbeddedLanguageClassificationService _owner;
             private readonly Project? _project;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 ArrayBuilder<IEmbeddedLanguageClassifier> classifierBuffer,
                 CancellationToken cancellationToken)
             {
-                _service = service;
+                _owner = service;
                 _project = project;
                 _semanticModel = semanticModel;
                 _textSpan = textSpan;
@@ -113,17 +113,17 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ClassifyToken(SyntaxToken token)
             {
-                if (token.Span.IntersectsWith(_textSpan) && _service.SyntaxTokenKinds.Contains(token.RawKind))
+                if (token.Span.IntersectsWith(_textSpan) && _owner.SyntaxTokenKinds.Contains(token.RawKind))
                 {
                     _classifierBuffer.Clear();
 
                     var context = new EmbeddedLanguageClassificationContext(
-                        _project, _semanticModel, token, _options, _service.Info.VirtualCharService, _result, _cancellationToken);
+                        _project, _semanticModel, token, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
 
                     // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
                     // so, delegate to the first classifier we have registered for whatever language ID we find.
-                    if (_service.Detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
-                        _service.IdentifierToServices.TryGetValue(identifier, out var classifiers))
+                    if (_owner.Detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
+                        _owner.IdentifierToServices.TryGetValue(identifier, out var classifiers))
                     {
                         foreach (var classifier in classifiers)
                         {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                     // It wasn't an annotated API.  See if it's some legacy API our historical classifiers have direct
                     // support for (for example, .net APIs prior to Net6).
-                    foreach (var legacyClassifier in _service.LegacyServices)
+                    foreach (var legacyClassifier in _owner.LegacyServices)
                     {
                         // don't bother trying to classify again if we already tried above.
                         if (_classifierBuffer.Contains(legacyClassifier.Value))
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     }
 
                     // Finally, give the fallback classifier a chance to classify basic language escapes.
-                    TryClassify(_service._fallbackClassifier, context);
+                    TryClassify(_owner._fallbackClassifier, context);
                 }
             }
 
