@@ -11,7 +11,7 @@ The goal is that folks can create and discuss feature suggestions without needin
 For a feature proposal to be reviewed a design proposal needs be appended to the github issue. It should have the following information:
 
 - **Summary**: Brief summary of what this proposal is about.
-- **Background and Motivation**: What the problem is we are solving and in what context did you encounter it?
+- **Background and Motivation**: What is the problem we are solving and in what context did you encounter it?
 - **Proposed Feature**: How the proposed solution solves the problem?
 - **Alternative Designs**: Were there other options you considered? How does this compare to features in other editors?
 
