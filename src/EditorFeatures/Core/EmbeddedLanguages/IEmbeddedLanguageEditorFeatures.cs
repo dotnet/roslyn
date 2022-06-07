@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
         /// <summary>
         /// A optional brace matcher that can match braces in an embedded language string.
         /// </summary>
-        IBraceMatcher BraceMatcher { get; }
+        // IBraceMatcher BraceMatcher { get; }
     }
 }

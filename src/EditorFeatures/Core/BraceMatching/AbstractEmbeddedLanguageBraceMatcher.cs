@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         /// </summary>
         private readonly HashSet<int> _syntaxTokenKinds = new();
 
-        private readonly EmbeddedLanguageInfo _info;
         private readonly EmbeddedLanguageDetector _detector;
 
         /// <summary>
@@ -65,7 +64,6 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             foreach (var (_, services) in _identifierToServices)
                 services.RemoveDuplicates();
 
-            _info = info;
             _detector = new EmbeddedLanguageDetector(info, _identifierToServices.Keys.ToImmutableArray());
 
             _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                             _serviceBuffer.Add(service.Value);
 
                             // If this service added values then need to check the other ones.
-                            var result = service.Value.FindBraces(_semanticModel, token, _options, _cancellationToken);
+                            var result = service.Value.FindBraces(_semanticModel, token, _position, _options, _cancellationToken);
                             if (result.HasValue)
                                 return result;
                         }
@@ -186,7 +184,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                             continue;
 
                         // If this service added values then need to check the other ones.
-                        var result = legacyService.Value.FindBraces(_semanticModel, token, _options, _cancellationToken);
+                        var result = legacyService.Value.FindBraces(_semanticModel, token, _position, _options, _cancellationToken);
                         if (result.HasValue)
                             return result;
                     }

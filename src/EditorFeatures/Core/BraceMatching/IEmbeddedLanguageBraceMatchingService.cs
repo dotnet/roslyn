@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     {
         BraceMatchingResult? FindBraces(
             SemanticModel semanticModel,
-            SyntaxToken syntaxToken,
+            SyntaxToken token,
+            int position,
             BraceMatchingOptions options,
             CancellationToken cancellationToken);
     }

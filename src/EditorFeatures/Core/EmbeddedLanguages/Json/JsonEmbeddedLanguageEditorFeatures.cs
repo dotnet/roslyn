@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
 {
     internal class JsonEmbeddedLanguageEditorFeatures : JsonEmbeddedLanguage, IEmbeddedLanguageEditorFeatures
     {
-        public IBraceMatcher BraceMatcher { get; }
+        // public IBraceMatcher BraceMatcher { get; }
 
         public JsonEmbeddedLanguageEditorFeatures(EmbeddedLanguageInfo info)
         {
-            BraceMatcher = new JsonEmbeddedBraceMatcher(info);
+            // BraceMatcher = new JsonEmbeddedBraceMatcher(info);
         }
     }
 }
