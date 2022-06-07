@@ -383,7 +383,7 @@ class C { }
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -408,7 +408,7 @@ class C { }
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -866,7 +866,7 @@ class C { }
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -893,7 +893,7 @@ class C { }
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1021,7 +1021,7 @@ namespace N
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1049,7 +1049,7 @@ class C { }
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1077,7 +1077,7 @@ class C { }
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1105,7 +1105,7 @@ class C { }
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1132,7 +1132,7 @@ using A = XAttribute;
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1159,7 +1159,7 @@ using AAttribute = XAttribute;
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1357,7 +1357,7 @@ using B = AAttribute;
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]
@@ -1385,7 +1385,7 @@ global using BAttribute = AAttribute;
         driver = driver.RunGenerators(compilation);
         var runResult = driver.GetRunResult().Results[0];
 
-        Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
     [Fact]

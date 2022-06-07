@@ -387,7 +387,7 @@ end class
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -412,7 +412,7 @@ end class
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -867,7 +867,7 @@ end class
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -894,7 +894,7 @@ end class
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1015,7 +1015,7 @@ end namespace
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1043,7 +1043,7 @@ end class
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1071,7 +1071,7 @@ end class
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1099,7 +1099,7 @@ end class
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1126,7 +1126,7 @@ imports A = XAttribute
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1153,7 +1153,7 @@ imports AAttribute = XAttribute
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1347,7 +1347,7 @@ imports B = AAttribute
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1375,7 +1375,7 @@ global imports BAttribute = AAttribute
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
-            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
