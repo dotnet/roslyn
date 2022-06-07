@@ -56,88 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
     }
 
-    internal class NoOpIncrementalAnalyzer : IIncrementalAnalyzer
+    internal class NoOpIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         public static NoOpIncrementalAnalyzer Instance = new();
-
-        public int Priority => 5;
-
-        public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public void LogAnalyzerCountSummary()
-        {
-        }
-
-        public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public void Shutdown()
-        {
-        }
     }
 }
