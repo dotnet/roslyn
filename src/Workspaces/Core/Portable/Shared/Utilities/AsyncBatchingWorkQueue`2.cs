@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
@@ -140,7 +141,15 @@ namespace Roslyn.Utilities
             async Task<TResult?> ContinueAfterDelay(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
-                await lastTask.ConfigureAwait(false);
+                try
+                {
+                    await lastTask.ConfigureAwait(false);
+                }
+                // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
+                // associated with the token we pass into it.
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, _cancellationToken))
+                {
+                }
 
                 // Ensure that we always yield the current thread this is necessary for correctness as we are called
                 // inside a lock that _taskInFlight to true.  We must ensure that the work to process the next batch
