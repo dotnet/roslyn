@@ -151,6 +151,9 @@ namespace Roslyn.Utilities
                 {
                 }
 
+                // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 // Ensure that we always yield the current thread this is necessary for correctness as we are called
                 // inside a lock that _taskInFlight to true.  We must ensure that the work to process the next batch
                 // must be on another thread that runs afterwards, can only grab the thread once we release it and will
