@@ -9935,6 +9935,195 @@ struct S<T>
         }
 
         [Fact]
+        public void SynthesizedDelegateTypes_38()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        F1();
+        F2();
+    }
+    static void F1()
+    {
+        int i;
+        var d1 = (ref int i) => { Console.WriteLine(i); };
+        i = 1;
+        d1(ref i);
+        Report(d1);
+        var d2 = (scoped ref int i) => { Console.WriteLine(i); };
+        i = 2;
+        d2(ref i);
+        Report(d2);
+        var d3 = (in int i) => { Console.WriteLine(i); };
+        i = 3;
+        d3(i);
+        Report(d3);
+        var d4 = (scoped in int i) => { Console.WriteLine(i); };
+        i = 4;
+        d4(i);
+        Report(d4);
+        var d5 = (out int i) => { i = 5; Console.WriteLine(i); };
+        d5(out i);
+        Report(d5);
+        var d6 = (scoped out int i) => { i = 6; Console.WriteLine(i); };
+        d6(out i);
+        Report(d6);
+    }
+    static void F2()
+    {
+        byte b;
+        var d7 = (ref byte b) => { Console.WriteLine(b); };
+        b = 7;
+        d7(ref b);
+        Report(d7);
+        var d8 = (scoped ref byte b) => { Console.WriteLine(b); };
+        b = 8;
+        d8(ref b);
+        Report(d8);
+        var d9 = (in byte b) => { Console.WriteLine(b); };
+        b = 9;
+        d9(b);
+        Report(d9);
+        var d10 = (scoped in byte b) => { Console.WriteLine(b); };
+        b = 10;
+        d10(b);
+        Report(d10);
+        var d11 = (out byte b) => { b = 11; Console.WriteLine(b); };
+        d11(out b);
+        Report(d11);
+        var d12 = (scoped out byte b) => { b = 12; Console.WriteLine(b); };
+        d12(out b);
+        Report(d12);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+            CompileAndVerify(source, verify: Verification.Skipped, expectedOutput:
+@"1
+<>A{00000001}`1[System.Int32]
+2
+<>f__AnonymousDelegate0
+3
+<>A{00000003}`1[System.Int32]
+4
+<>f__AnonymousDelegate1
+5
+<>A{00000002}`1[System.Int32]
+6
+<>f__AnonymousDelegate2
+7
+<>A{00000001}`1[System.Byte]
+8
+<>f__AnonymousDelegate3
+9
+<>A{00000003}`1[System.Byte]
+10
+<>f__AnonymousDelegate4
+11
+<>A{00000002}`1[System.Byte]
+12
+<>f__AnonymousDelegate5
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_39()
+        {
+            var source =
+@"using System;
+ref struct R1
+{
+    public int _i;
+    public R1(int i) { _i = i; }
+}
+ref struct R2
+{
+    public byte _b;
+    public R2(byte b) { _b = b; }
+}
+class Program
+{
+    static void Main()
+    {
+        var d1 = (R1 r) => { Console.WriteLine(r._i); return new R1(); };
+        d1(new R1(1));
+        Report(d1);
+        var d2 = (scoped R1 r) => { Console.WriteLine(r._i); return new R1(); };
+        d2(new R1(2));
+        Report(d2);
+        var d3 = (R2 r) => { Console.WriteLine(r._b); return new R2(); };
+        d3(new R2(3));
+        Report(d3);
+        var d4 = (scoped R1 r) => { Console.WriteLine(r._i); return new R1(); };
+        d4(new R1(4));
+        Report(d4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+            CompileAndVerify(source, verify: Verification.Skipped, expectedOutput:
+@"1
+<>f__AnonymousDelegate0
+2
+<>f__AnonymousDelegate1
+3
+<>f__AnonymousDelegate2
+4
+<>f__AnonymousDelegate1
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_40()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    public int _i;
+    public R(int i) { _i = i; }
+}
+class Program
+{
+    static R F1(ref R r) { Console.WriteLine(r._i); return new R(); }
+    static R F2(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
+    static R F3(ref scoped R r) { Console.WriteLine(r._i); return new R(); }
+    static R F4(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
+    static void Main()
+    {
+        var d1 = F1;
+        var r1 = new R(1);
+        d1(ref r1);
+        Report(d1);
+        var d2 = F2;
+        var r2 = new R(2);
+        d2(ref r2);
+        Report(d2);
+        var d3 = F3;
+        var r3 = new R(3);
+        d3(ref r3);
+        Report(d3);
+        var d4 = F4;
+        var r4 = new R(4);
+        d4(ref r4);
+        Report(d4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+            CompileAndVerify(source, verify: Verification.Skipped, expectedOutput:
+@"1
+<>f__AnonymousDelegate0
+2
+<>f__AnonymousDelegate1
+3
+<>f__AnonymousDelegate2
+4
+<>f__AnonymousDelegate1
+");
+        }
+
+        [Fact]
         public void SynthesizedDelegateTypes_Constraints_01()
         {
             var source =

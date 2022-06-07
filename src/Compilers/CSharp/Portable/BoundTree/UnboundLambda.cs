@@ -614,13 +614,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
+            var parameterScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
             for (int i = 0; i < ParameterCount; i++)
             {
                 parameterRefKindsBuilder.Add(RefKind(i));
+                parameterScopesBuilder.Add(Scope(i));
                 parameterTypesBuilder.Add(ParameterTypeWithAnnotations(i));
             }
             var parameterRefKinds = parameterRefKindsBuilder.ToImmutableAndFree();
+            var parameterScopes = parameterScopesBuilder.ToImmutableAndFree();
             var parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
 
             if (!HasExplicitReturnType(out var returnRefKind, out var returnType))
@@ -666,6 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind,
                 returnType,
                 parameterRefKinds,
+                parameterScopes,
                 parameterTypes);
         }
 

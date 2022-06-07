@@ -2022,6 +2022,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ListPatternRequiresLength = 8985,
         ERR_ScopedRefAndRefStructOnly = 8986,
+        ERR_ScopedMismatchInParameterOfOverrideOrImplementation = 8987,
+        ERR_ScopedMismatchInParameterOfPartial = 8988,
+        ERR_ScopedMismatchInParameterOfTargetDelegate = 8989,
 
         ERR_DiscardCannotBeNullChecked = 8990,
         ERR_MustNullCheckInImplementation = 8991,

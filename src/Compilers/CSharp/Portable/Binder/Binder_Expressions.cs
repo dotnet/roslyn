@@ -8691,12 +8691,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node)
         {
             var method = GetUniqueSignatureFromMethodGroup(node);
-            if (method is { } &&
-                GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations) is { } delegateType)
+            if (method is null)
             {
-                return delegateType;
+                return null;
             }
-            return null;
+
+            var parameters = method.Parameters;
+            var parameterScopes = parameters.Any(p => p.Scope != DeclarationScope.Unscoped) ?
+                parameters.SelectAsArray(p => p.Scope) :
+                default;
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations);
         }
 
         /// <summary>
@@ -8781,6 +8785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind,
             TypeWithAnnotations returnType,
             ImmutableArray<RefKind> parameterRefKinds,
+            ImmutableArray<DeclarationScope> parameterScopes,
             ImmutableArray<TypeWithAnnotations> parameterTypes)
         {
             Debug.Assert(ContainingMemberOrLambda is { });
@@ -8802,10 +8807,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(refKind => refKind != RefKind.None);
-
             // Use System.Action<...> or System.Func<...> if possible.
-            if (returnRefKind == RefKind.None && !hasByRefParameters)
+            if (returnRefKind == RefKind.None &&
+                (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)) &&
+                (parameterScopes.IsDefault || parameterScopes.All(scope => scope == DeclarationScope.Unscoped)))
             {
                 var wkDelegateType = returnsVoid ?
                     WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length) :
@@ -8832,9 +8837,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var location = syntax.Location;
             for (int i = 0; i < parameterTypes.Length; i++)
             {
-                fieldsBuilder.Add(new AnonymousTypeField(name: "", location, parameterTypes[i], parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i]));
+                fieldsBuilder.Add(
+                    new AnonymousTypeField(
+                        name: "",
+                        location,
+                        parameterTypes[i],
+                        parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i],
+                        parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i]));
             }
-            fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind));
+            fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, DeclarationScope.Unscoped));
 
             var typeDescr = new AnonymousTypeDescriptor(fieldsBuilder.ToImmutableAndFree(), location);
             return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr);

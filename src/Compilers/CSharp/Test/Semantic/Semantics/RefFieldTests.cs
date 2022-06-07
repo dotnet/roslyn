@@ -4350,14 +4350,28 @@ class Program
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
-                var decls = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
-                var lambdas = decls.Select(d => model.GetSymbolInfo(d).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+                var delegateTypesAndLambdas = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => getDelegateTypeAndLambda(model, d)).ToArray();
 
-                VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(lambdas[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(lambdas[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+                verifyParameter(delegateTypesAndLambdas[0], 0, "scoped R", "x1", RefKind.None, DeclarationScope.ValueScoped);
+                verifyParameter(delegateTypesAndLambdas[1], 0, "scoped ref System.Int32", "x2", RefKind.Ref, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[2], 0, "scoped in System.Int32", "x3", RefKind.In, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[3], 0, "scoped out System.Int32", "x4", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[4], 1, "ref scoped R", "x5", RefKind.Ref, DeclarationScope.ValueScoped);
+            }
+
+            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
+            {
+                var (delegateType, lambda) = delegateTypeAndLambda;
+                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], expectedDisplayType, expectedRefKind, expectedScope);
+                VerifyParameterSymbol(lambda.Parameters[parameterIndex], $"{expectedDisplayType} {expectedDisplayName}", expectedRefKind, expectedScope);
+            }
+
+            static (NamedTypeSymbol, LambdaSymbol) getDelegateTypeAndLambda(SemanticModel model, VariableDeclaratorSyntax decl)
+            {
+                var delegateType = (NamedTypeSymbol)model.GetDeclaredSymbol(decl).GetSymbol<LocalSymbol>().Type;
+                var value = decl.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+                var lambda = model.GetSymbolInfo(value).Symbol.GetSymbol<LambdaSymbol>();
+                return (delegateType, lambda);
             }
         }
 
@@ -4610,11 +4624,6 @@ readonly ref struct R2
 
         // PROTOTYPE: Test 'scoped' with extension method 'this'.
         // PROTOTYPE: Test 'scoped' with 'params'.
-
-        // PROTOTYPE: Report error for implicit conversion between delegate types that differ by 'scoped',
-        // and between function pointer types and methods that differ by 'scoped'.
-
-        // PROTOTYPE: Test distinct 'scoped' annotations in partial method parts.
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
@@ -5060,6 +5069,577 @@ class Program
                     // Attribute is not included for the parameter from the embedded method.
                     VerifyParameterSymbol(method.Parameters[0], "ref System.Int32 i", RefKind.Ref, DeclarationScope.Unscoped);
                 });
+        }
+
+        [Fact]
+        public void DelegateConversions_01()
+        {
+            var source =
+@"ref struct R { }
+delegate R D1(R x, R y);
+delegate R D2(R x, scoped R y);
+delegate ref R D3(ref R x, ref R y);
+delegate ref R D4(ref R x, ref scoped R y);
+delegate ref R D5(ref R x, scoped ref R y);
+class Program
+{
+    static void Implicit()
+    {
+        D1 d1 = (R x, scoped R y) => x;
+        D2 d2 = (R x, R y) => x;
+        D3 d3 = (ref R x, ref scoped R y) => ref x;
+        D4 d4 = (ref R x, scoped ref R y) => ref x;
+        D5 d5 = (ref R x, ref R y) => ref x;
+    }
+    static void Explicit()
+    {
+        var d1 = (D1)((R x, scoped R y) => x);
+        var d2 = (D2)((R x, R y) => x);
+        var d3 = (D3)((ref R x, ref scoped R y) => ref x);
+        var d4 = (D4)((ref R x, scoped ref R y) => ref x);
+        var d5 = (D5)((ref R x, ref R y) => ref x);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D1 d1 = (R x, scoped R y) => x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(R x, scoped R y) => x").WithArguments("y").WithLocation(11, 17),
+                // (12,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D2 d2 = (R x, R y) => x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(R x, R y) => x").WithArguments("y").WithLocation(12, 17),
+                // (13,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D3 d3 = (ref R x, ref scoped R y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref R x, ref scoped R y) => ref x").WithArguments("y").WithLocation(13, 17),
+                // (14,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D4 d4 = (ref R x, scoped ref R y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref R x, scoped ref R y) => ref x").WithArguments("y").WithLocation(14, 17),
+                // (15,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D5 d5 = (ref R x, ref R y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref R x, ref R y) => ref x").WithArguments("y").WithLocation(15, 17),
+                // (19,23): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d1 = (D1)((R x, scoped R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(R x, scoped R y) => x").WithArguments("y").WithLocation(19, 23),
+                // (20,23): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d2 = (D2)((R x, R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(R x, R y) => x").WithArguments("y").WithLocation(20, 23),
+                // (21,23): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d3 = (D3)((ref R x, ref scoped R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref R x, ref scoped R y) => ref x").WithArguments("y").WithLocation(21, 23),
+                // (22,23): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d4 = (D4)((ref R x, scoped ref R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref R x, scoped ref R y) => ref x").WithArguments("y").WithLocation(22, 23),
+                // (23,23): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d5 = (D5)((ref R x, ref R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref R x, ref R y) => ref x").WithArguments("y").WithLocation(23, 23));
+        }
+
+        [Fact]
+        public void DelegateConversions_02()
+        {
+            var source =
+@"ref struct R { }
+delegate R D1(R x, R y);
+delegate R D2(R x, scoped R y);
+delegate ref R D3(ref R x, ref R y);
+delegate ref R D4(ref R x, ref scoped R y);
+delegate ref R D5(ref R x, scoped ref R y);
+class Program
+{
+    static R M1(R x, R y) => x;
+    static R M2(R x, scoped R y) => x;
+    static ref R M3(ref R x, ref R y) => ref x;
+    static ref R M4(ref R x, ref scoped R y) => ref x;
+    static ref R M5(ref R x, scoped ref R y) => ref x;
+    static void Implicit()
+    {
+        D1 dA = M2;
+        D2 d2 = M1;
+        D3 d3 = M4;
+        D4 d4 = M5;
+        D5 d5 = M3;
+    }
+    static void Explicit()
+    {
+        var d1 = (D1)M2;
+        var d2 = (D2)M1;
+        var d3 = (D3)M4;
+        var d4 = (D4)M5;
+        var d5 = (D5)M3;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D1 dA = M2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M2").WithArguments("y").WithLocation(16, 17),
+                // (17,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D2 d2 = M1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M1").WithArguments("y").WithLocation(17, 17),
+                // (18,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D3 d3 = M4;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M4").WithArguments("y").WithLocation(18, 17),
+                // (19,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D4 d4 = M5;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M5").WithArguments("y").WithLocation(19, 17),
+                // (20,17): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         D5 d5 = M3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M3").WithArguments("y").WithLocation(20, 17),
+                // (24,22): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d1 = (D1)M2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M2").WithArguments("y").WithLocation(24, 22),
+                // (25,22): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d2 = (D2)M1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M1").WithArguments("y").WithLocation(25, 22),
+                // (26,22): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d3 = (D3)M4;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M4").WithArguments("y").WithLocation(26, 22),
+                // (27,22): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d4 = (D4)M5;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M5").WithArguments("y").WithLocation(27, 22),
+                // (28,22): error CS8989: The 'scoped' declaration of parameter 'y' doesn't match target delegate.
+                //         var d5 = (D5)M3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M3").WithArguments("y").WithLocation(28, 22));
+        }
+
+        [Fact]
+        public void DelegateConversions_03()
+        {
+            var source =
+@"delegate ref int D1(ref int x, ref int y);
+delegate ref int D2(scoped ref int x, ref int y);
+delegate D1 D1R();
+delegate D2 D2R();
+class Program
+{
+    static void Implicit()
+    {
+        D1R d1 = () => (scoped ref int x, ref int y) => ref y;
+        D2R d2 = () => (ref int x, ref int y) => ref x;
+    }
+    static void Explicit()
+    {
+        var d1 = (D1R)(() => (scoped ref int x, ref int y) => ref y);
+        var d2 = (D2R)(() => (ref int x, ref int y) => ref x);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,24): error CS8989: The 'scoped' declaration of parameter 'x' doesn't match target delegate.
+                //         D1R d1 = () => (scoped ref int x, ref int y) => ref y;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(scoped ref int x, ref int y) => ref y").WithArguments("x").WithLocation(9, 24),
+                // (10,24): error CS8989: The 'scoped' declaration of parameter 'x' doesn't match target delegate.
+                //         D2R d2 = () => (ref int x, ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref int x, ref int y) => ref x").WithArguments("x").WithLocation(10, 24),
+                // (14,30): error CS8989: The 'scoped' declaration of parameter 'x' doesn't match target delegate.
+                //         var d1 = (D1R)(() => (scoped ref int x, ref int y) => ref y);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(scoped ref int x, ref int y) => ref y").WithArguments("x").WithLocation(14, 30),
+                // (15,30): error CS8989: The 'scoped' declaration of parameter 'x' doesn't match target delegate.
+                //         var d2 = (D2R)(() => (ref int x, ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "(ref int x, ref int y) => ref x").WithArguments("x").WithLocation(15, 30));
+        }
+
+        [Fact]
+        public void DelegateConversions_04()
+        {
+            var source =
+@"delegate ref int D1(ref int x, ref int y);
+delegate ref int D2(scoped ref int x, ref int y);
+delegate D1 D1R();
+delegate D2 D2R();
+class Program
+{
+    static ref int M1(ref int x, ref int y) => ref x;
+    static ref int M2(scoped ref int x, ref int y) => ref y;
+    static void Implicit()
+    {
+        D1R d1 = () => M2;
+        D2R d2 = () => M1;
+    }
+    static void Explicit()
+    {
+        var d1 = (D1R)M2;
+        var d2 = (D2R)M1;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,24): error CS8989: The 'scoped' declaration of parameter 'x' doesn't match target delegate.
+                //         D1R d1 = () => M2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M2").WithArguments("x").WithLocation(11, 24),
+                // (12,24): error CS8989: The 'scoped' declaration of parameter 'x' doesn't match target delegate.
+                //         D2R d2 = () => M1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, "M1").WithArguments("x").WithLocation(12, 24),
+                // (16,18): error CS0123: No overload for 'M2' matches delegate 'D1R'
+                //         var d1 = (D1R)M2;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(D1R)M2").WithArguments("M2", "D1R").WithLocation(16, 18),
+                // (17,18): error CS0123: No overload for 'M1' matches delegate 'D2R'
+                //         var d2 = (D2R)M1;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(D2R)M1").WithArguments("M1", "D2R").WithLocation(17, 18));
+        }
+
+        [Fact]
+        public void DuplicateMethodSignatures()
+        {
+            var source =
+@"ref struct R<T> { }
+class C<T>
+{
+    static void M1(R<T> r) { }
+    void M2(scoped R<T> r) { }
+    static void M3(ref scoped R<T> r) { }
+    void M4(scoped ref R<T> r) { }
+    object this[R<T> r] => null;
+    static void M1(scoped R<T> r) { } // 1
+    void M2(R<T> r) { } // 2 
+    static void M3(scoped ref R<T> r) { } // 3
+    void M4(ref scoped R<T> r) { } // 4
+    object this[scoped R<T> r] => null; // 5
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0111: Type 'C<T>' already defines a member called 'M1' with the same parameter types
+                //     static void M1(scoped R<T> r) { } // 1
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C<T>").WithLocation(9, 17),
+                // (10,10): error CS0111: Type 'C<T>' already defines a member called 'M2' with the same parameter types
+                //     void M2(R<T> r) { } // 2 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C<T>").WithLocation(10, 10),
+                // (11,17): error CS0111: Type 'C<T>' already defines a member called 'M3' with the same parameter types
+                //     static void M3(scoped ref R<T> r) { } // 3
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "C<T>").WithLocation(11, 17),
+                // (12,10): error CS0111: Type 'C<T>' already defines a member called 'M4' with the same parameter types
+                //     void M4(ref scoped R<T> r) { } // 4
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C<T>").WithLocation(12, 10),
+                // (13,12): error CS0111: Type 'C<T>' already defines a member called 'this' with the same parameter types
+                //     object this[scoped R<T> r] => null; // 5
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C<T>").WithLocation(13, 12));
+        }
+
+        [Fact]
+        public void PartialMethods()
+        {
+            var sourceA =
+@"ref struct R<T> { }
+partial class C
+{
+    static partial void M1(R<int> r);
+    static partial void M2(scoped R<int> r);
+    static partial void M3(ref R<int> r);
+    static partial void M4(ref scoped R<int> r);
+    static partial void M5(scoped ref R<int> r);
+}";
+            var sourceB1 =
+@"partial class C
+{
+    static partial void M1(R<int> r) { }
+    static partial void M2(scoped R<int> r) { }
+    static partial void M3(ref R<int> r) { }
+    static partial void M4(ref scoped R<int> r) { }
+    static partial void M5(scoped ref R<int> r) { }
+}";
+            var sourceB2 =
+@"partial class C
+{
+    static partial void M1(scoped R<int> r) { } // 1
+    static partial void M2(R<int> r) { } // 2
+    static partial void M3(ref scoped R<int> r) { } // 3
+    static partial void M4(scoped ref R<int> r) { } // 4
+    static partial void M5(ref R<int> r) { } // 5
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 });
+            comp.VerifyEmitDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,25): error CS8988: The 'scoped' declaration of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M1(scoped R<int> r) { } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M1").WithArguments("r").WithLocation(3, 25),
+                // (4,25): error CS8988: The 'scoped' declaration of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M2(R<int> r) { } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M2").WithArguments("r").WithLocation(4, 25),
+                // (5,25): error CS8988: The 'scoped' declaration of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M3(ref scoped R<int> r) { } // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M3").WithArguments("r").WithLocation(5, 25),
+                // (6,25): error CS8988: The 'scoped' declaration of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M4(scoped ref R<int> r) { } // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M4").WithArguments("r").WithLocation(6, 25),
+                // (7,25): error CS8988: The 'scoped' declaration of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M5(ref R<int> r) { } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M5").WithArguments("r").WithLocation(7, 25)
+            };
+
+            comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { sourceB2, sourceA });
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void Hiding(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T> { }
+public class A<T>
+{
+    public void M1(R<T> r) { }
+    public void M2(scoped R<T> r) { }
+    public void M3(ref scoped R<T> r) { }
+    public void M4(scoped ref R<T> r) { }
+    public object this[R<T> r] { get { return null; } set { } }
+    public object this[int x, scoped R<T> y] => null;
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B1 : A<int>
+{
+    public new void M1(scoped R<int> r) { }
+    public new void M2(R<int> r) { }
+    public new void M3(scoped ref R<int> r) { }
+    public new void M4(ref scoped R<int> r) { }
+    public new object this[scoped R<int> r] { get { return null; } set { } }
+    public new object this[int x, R<int> y] => null;
+}
+class B2 : A<string>
+{
+    public void M1(scoped R<string> r) { } // 1
+    public void M2(R<string> r) { } // 2
+    public void M3(scoped ref R<string> r) { } // 3
+    public void M4(ref scoped R<string> r) { } // 4
+    public object this[scoped R<string> r] { get { return null; } set { } } // 5
+    public object this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M1(scoped R<string> r) { } // 1
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(12, 17),
+                // (13,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M2(R<string> r) { } // 2
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(13, 17),
+                // (14,17): warning CS0108: 'B2.M3(ref R<string>)' hides inherited member 'A<string>.M3(ref R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M3(scoped ref R<string> r) { } // 3
+                Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(14, 17),
+                // (15,17): warning CS0108: 'B2.M4(ref R<string>)' hides inherited member 'A<string>.M4(ref R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M4(ref scoped R<string> r) { } // 4
+                Diagnostic(ErrorCode.WRN_NewRequired, "M4").WithArguments("B2.M4(ref R<string>)", "A<string>.M4(ref R<string>)").WithLocation(15, 17),
+                // (16,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(16, 19),
+                // (17,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
+                //     public object this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(17, 19));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void Overrides(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T> { }
+public abstract class A<T>
+{
+    public abstract R<T> F1(R<T> r);
+    public abstract R<T> F2(scoped R<T> r);
+    public abstract R<T> F3(ref scoped R<T> r);
+    public abstract R<T> F4(scoped ref R<T> r);
+    public abstract object this[R<T> r] { get; set; }
+    public abstract object this[int x, scoped R<T> y] { get; }
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B1 : A<int>
+{
+    public override R<int> F1(R<int> r) => default;
+    public override R<int> F2(scoped R<int> r) => default;
+    public override R<int> F3(ref scoped R<int> r) => default;
+    public override R<int> F4(scoped ref R<int> r) => default;
+    public override object this[R<int> r] { get { return null; } set { } }
+    public override object this[int x, scoped R<int> y] => null;
+}
+class B2 : A<string>
+{
+    public override R<string> F1(scoped R<string> r) => default; // 1
+    public override R<string> F2(R<string> r) => default; // 2
+    public override R<string> F3(scoped ref R<string> r) => default; // 3
+    public override R<string> F4(ref scoped R<string> r) => default; // 4
+    public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+    public override object this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,31): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 31),
+                // (13,31): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 31),
+                // (14,31): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 31),
+                // (15,31): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 31),
+                // (16,76): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 76),
+                // (17,56): error CS8987: The 'scoped' declaration of parameter 'y' doesn't match overridden or implemented member.
+                //     public override object this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void InterfaceImplementations(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T> { }
+public interface I<T>
+{
+    R<T> F1(R<T> r);
+    R<T> F2(scoped R<T> r);
+    R<T> F3(ref scoped R<T> r);
+    R<T> F4(scoped ref R<T> r);
+    object this[R<T> r] { get; set; }
+    object this[int x, scoped R<T> y] { get; }
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB1 =
+@"class C1 : I<int>
+{
+    public R<int> F1(R<int> r) => default;
+    public R<int> F2(scoped R<int> r) => default;
+    public R<int> F3(ref scoped R<int> r) => default;
+    public R<int> F4(scoped ref R<int> r) => default;
+    public object this[R<int> r] { get { return null; } set { } }
+    public object this[int x, scoped R<int> y] => null;
+}
+class C2 : I<string>
+{
+    public R<string> F1(scoped R<string> r) => default; // 1
+    public R<string> F2(R<string> r) => default; // 2
+    public R<string> F3(scoped ref R<string> r) => default; // 3
+    public R<string> F4(ref scoped R<string> r) => default; // 4
+    public object this[scoped R<string> r] { get { return null; } set { } } // 5
+    public object this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB1, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,22): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 22),
+                // (13,22): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 22),
+                // (14,22): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 22),
+                // (15,22): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 22),
+                // (16,67): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 67),
+                // (17,47): error CS8987: The 'scoped' declaration of parameter 'y' doesn't match overridden or implemented member.
+                //     public object this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 47));
+
+            var sourceB2 =
+@"class C3 : I<int>
+{
+    R<int> I<int>.F1(R<int> r) => default;
+    R<int> I<int>.F2(scoped R<int> r) => default;
+    R<int> I<int>.F3(ref scoped R<int> r) => default;
+    R<int> I<int>.F4(scoped ref R<int> r) => default;
+    object I<int>.this[R<int> r] { get { return null; } set { } }
+    object I<int>.this[int x, scoped R<int> y] => null;
+}
+class C4 : I<string>
+{
+    R<string> I<string>.F1(scoped R<string> r) => default; // 1
+    R<string> I<string>.F2(R<string> r) => default; // 2
+    R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
+    R<string> I<string>.F4(ref scoped R<string> r) => default; // 4
+    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 5
+    object I<string>.this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB2, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,25): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 25),
+                // (13,25): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 25),
+                // (14,25): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 25),
+                // (15,25): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 25),
+                // (16,70): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 70),
+                // (17,50): error CS8987: The 'scoped' declaration of parameter 'y' doesn't match overridden or implemented member.
+                //     object I<string>.this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 50));
+        }
+
+        [Fact]
+        public void Overrides_Example()
+        {
+            var source =
+@"ref struct R
+{
+    public ref int F;
+    public R(ref int i) { F = ref i; }
+}
+abstract class A
+{
+    public abstract R F1(scoped R r);
+    public abstract R F2(R r);
+}
+class B : A
+{
+    public override R F1(R r) => r;
+    public override R F2(scoped R r) => default;
+}
+class Program
+{
+    static R F1(A a)
+    {
+        int i = 0;
+        return a.F1(new R(ref i));
+    }
+    static R F2(B b)
+    {
+        int i = 0;
+        return b.F2(new R(ref i)); // unsafe
+    }
+    static void Main()
+    {
+        R r1 = F1(new B()); // unsafe
+        R r2 = F2(new B());
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,23): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R F1(R r) => r;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(13, 23),
+                // (14,23): error CS8987: The 'scoped' declaration of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R F2(scoped R r) => default;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(14, 23));
         }
 
         [Fact]
