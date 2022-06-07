@@ -156,28 +156,30 @@ namespace Roslyn.Utilities
             }
         }
 
+        /// <summary>
+        /// Waits until the current batch of work completes and returns the last value successfully computed from <see
+        /// cref="_processBatchAsync"/>.  If the last <see cref="_processBatchAsync"/> canceled or failed, then a Task
+        /// with <see cref="Task{TResult}.Result"/> or <see langword="default"/> will be returned.
+        /// </summary>
         public Task<TResult?> WaitUntilCurrentBatchCompletesAsync()
         {
             lock (_gate)
                 return _updateTask;
         }
 
-        private ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
+        private async ValueTask<TResult?> ProcessNextBatchAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                return _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken);
+                return await _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, _cancellationToken, ErrorSeverity.Critical))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, _cancellationToken, ErrorSeverity.Critical))
             {
                 // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
                 // associated with the token we pass into it.  We don't want an errant cancellation token for some
                 // other reason to cancel this queue from performing work.
-
-                // note: this code is unreachable. ReportAndPropagateUnlessCanceled always returns 'false', so this
-                // catch is never actually entered.
-                throw ExceptionUtilities.Unreachable;
+                return default;
             }
         }
 
