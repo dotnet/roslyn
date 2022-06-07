@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private readonly LogAggregator _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
             private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
@@ -47,7 +46,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _registration = registration;
 
                 _listener = listener;
-                _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
                 _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
                 _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
@@ -75,10 +73,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
-
-                // subscribe to option changed event after all required fields are set
-                // otherwise, we can get null exception when running OnOptionChanged handler
-                _optionService.OptionChanged += OnOptionChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -95,7 +89,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public void Shutdown(bool blockingShutdown)
             {
-                _optionService.OptionChanged -= OnOptionChanged;
                 _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
 
                 // detach from the workspace
@@ -131,29 +124,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         SolutionCrawlerLogger.LogWorkCoordinatorShutdownTimeout(CorrelationId);
                     }
                 }
-            }
 
-            private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
-            {
-                ReanalyzeOnOptionChange(sender, e);
-            }
-
-            private void ReanalyzeOnOptionChange(object? sender, OptionChangedEventArgs e)
-            {
-                // get off from option changed event handler since it runs on UI thread
-                // getting analyzer can be slow for the very first time since it is lazily initialized
-                _eventProcessingQueue.ScheduleTask(nameof(ReanalyzeOnOptionChange), () =>
+                foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                 {
-                    // let each analyzer decide what they want on option change
-                    foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
-                    {
-                        if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
-                        {
-                            var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
-                            Reanalyze(analyzer, scope);
-                        }
-                    }
-                }, _shutdownToken);
+                    (analyzer as IDisposable)?.Dispose();
+                }
             }
 
             public void Reanalyze(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)

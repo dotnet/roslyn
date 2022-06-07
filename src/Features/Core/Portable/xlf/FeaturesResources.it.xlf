@@ -605,6 +605,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Crea e assegna rimanenti come proprietà</target>
         <note />
       </trans-unit>
+      <trans-unit id="Decompiled">
+        <source>decompiled</source>
+        <target state="new">decompiled</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Se si elimina {0} all'inizio di un'istruzione attiva, è necessario riavviare l'applicazione.</target>
@@ -2503,6 +2508,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Sostituisci '{0}' con '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">

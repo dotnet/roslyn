@@ -87,8 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
-        bool IsNullChecked(IParameterSymbol parameter, CancellationToken cancellationToken);
-
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
         IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken);

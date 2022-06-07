@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnmanagedKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.RequiredKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1191,6 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordKeyword:
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
+                case SyntaxKind.RequiredKeyword:
                     return true;
                 default:
                     return false;
@@ -1310,6 +1311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ManagedKeyword;
                 case "unmanaged":
                     return SyntaxKind.UnmanagedKeyword;
+                case "required":
+                    return SyntaxKind.RequiredKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1451,8 +1454,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "??=";
                 case SyntaxKind.DotDotToken:
                     return "..";
-                case SyntaxKind.ExclamationExclamationToken:
-                    return "!!";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:
@@ -1751,6 +1752,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "managed";
                 case SyntaxKind.UnmanagedKeyword:
                     return "unmanaged";
+                case SyntaxKind.RequiredKeyword:
+                    return "required";
                 default:
                     return string.Empty;
             }

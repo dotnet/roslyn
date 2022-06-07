@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// <summary>
 /// Supports built in legacy snippets for razor scenarios.
 /// </summary>
-[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(InlineCompletionsHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(InlineCompletionsHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
@@ -46,9 +46,9 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
     private readonly XmlSnippetParser _xmlSnippetParser;
     private readonly IGlobalOptionService _globalOptions;
 
-    public override bool MutatesSolutionState => false;
+    public bool MutatesSolutionState => false;
 
-    public override bool RequiresLSPSolution => true;
+    public bool RequiresLSPSolution => true;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,12 +58,12 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         _globalOptions = globalOptions;
     }
 
-    public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
         return request.TextDocument;
     }
 
-    public override async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
 

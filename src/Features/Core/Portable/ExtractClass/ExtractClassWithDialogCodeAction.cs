@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         public TextSpan Span { get; }
         public override string Title => FeaturesResources.Extract_base_class;
 
+        internal override CodeActionPriority Priority { get; }
+
         public ExtractClassWithDialogCodeAction(
             Document document,
             TextSpan span,
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             INamedTypeSymbol selectedType,
             SyntaxNode selectedTypeDeclarationNode,
             CleanCodeGenerationOptionsProvider fallbackOptions,
-            ISymbol? selectedMember = null)
+            ISymbol? selectedMember)
         {
             _document = document;
             _service = service;
@@ -50,6 +52,11 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             _fallbackOptions = fallbackOptions;
             _selectedMember = selectedMember;
             Span = span;
+
+            // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
+            // class.  on a member however, we deprioritize this as there are likely more member-specific operations
+            // they'd prefer to invoke instead.
+            Priority = selectedMember is null ? CodeActionPriority.Medium : CodeActionPriority.Low;
         }
 
         public override object? GetOptions(CancellationToken cancellationToken)

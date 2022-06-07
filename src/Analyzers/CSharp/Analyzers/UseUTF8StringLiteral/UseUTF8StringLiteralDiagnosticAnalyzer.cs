@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -33,9 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
         public UseUTF8StringLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUTF8StringLiteral,
-                CSharpCodeStyleOptions.PreferUTF8StringLiterals,
+                CSharpCodeStyleOptions.PreferUtf8StringLiterals,
                 LanguageNames.CSharp,
-                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_UTF8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
                 if (!context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                     return;
 
+                if (context.Compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!) is null)
+                    return;
+
                 var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
 
                 context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             var arrayCreationOperation = (IArrayCreationOperation)context.Operation;
 
             // Don't offer if the user doesn't want it
-            var option = context.GetOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals);
+            var option = context.GetCSharpAnalyzerOptions().PreferUtf8StringLiterals;
             if (!option.Value)
                 return;
 

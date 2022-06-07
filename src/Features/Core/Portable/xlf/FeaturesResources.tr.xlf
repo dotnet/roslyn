@@ -605,6 +605,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Kalanları özellik olarak oluştur ve ata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Decompiled">
+        <source>decompiled</source>
+        <target state="new">decompiled</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Etkin bir deyim etrafında {0} öğesini silmek, uygulamanın yeniden başlatılmasını gerektirir.</target>
@@ -2503,6 +2508,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' öğesini '{1}' ile değiştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">

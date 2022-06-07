@@ -83,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property ParenthesizedExpression As Integer = SyntaxKind.ParenthesizedExpression Implements ISyntaxKinds.ParenthesizedExpression
         Public ReadOnly Property QueryExpression As Integer = SyntaxKind.QueryExpression Implements ISyntaxKinds.QueryExpression
         Public ReadOnly Property RangeExpression As Integer? = Nothing Implements ISyntaxKinds.RangeExpression
+        Public ReadOnly Property RefExpression As Integer? = Nothing Implements ISyntaxKinds.RefExpression
         Public ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression Implements ISyntaxKinds.ReferenceEqualsExpression
         Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKinds.ReferenceNotEqualsExpression
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
@@ -108,6 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement Implements ISyntaxKinds.ReturnStatement
         Public ReadOnly Property ThrowStatement As Integer = SyntaxKind.ThrowStatement Implements ISyntaxKinds.ThrowStatement
         Public ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement Implements ISyntaxKinds.UsingStatement
+        Public ReadOnly Property YieldReturnStatement As Integer = SyntaxKind.YieldStatement Implements ISyntaxKinds.YieldReturnStatement
 
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration

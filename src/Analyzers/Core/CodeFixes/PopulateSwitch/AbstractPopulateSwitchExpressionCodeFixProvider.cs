@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation switchOperation)
             => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(switchOperation);
 
+        protected override bool HasNullSwitchArm(ISwitchExpressionOperation switchOperation)
+            => PopulateSwitchExpressionHelpers.HasNullSwitchArm(switchOperation);
+
         protected static TExpressionSyntax Exception(SyntaxGenerator generator, Compilation compilation)
             => (TExpressionSyntax)generator.CreateThrowNotImplementedExpression(compilation);
 

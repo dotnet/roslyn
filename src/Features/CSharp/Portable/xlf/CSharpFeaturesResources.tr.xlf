@@ -117,11 +117,6 @@
         <target state="translated">Using deyimi tercihlerini uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_utf8_string_literal_preferences">
-        <source>Apply UTF-8 string literal preferences</source>
-        <target state="new">Apply UTF-8 string literal preferences</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_var_preferences">
         <source>Apply 'var' preferences</source>
         <target state="translated">'var' tercihlerini uygula</target>

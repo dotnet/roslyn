@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var styleOption = context.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
             if (!styleOption.Value)
             {
                 // User has disabled this feature.

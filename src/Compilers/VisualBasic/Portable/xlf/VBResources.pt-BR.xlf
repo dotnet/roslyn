@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">Não é possível acessar um membro da interface abstrata compartilhada.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="needs-review-translation">Não é possível acessar um membro da interface abstrata compartilhada.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">O tipo '{0}' não pode ser inserido porque tem um membro que não é abstrato. Considere a definição da propriedade 'Inserir Tipos de Interoperabilidade' como false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="new">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} '{1}' não é possível implementar a interface '{3}' porque contém um resumo compartilhado '{2}'.</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="needs-review-translation">{0} '{1}' não é possível implementar a interface '{3}' porque contém um resumo compartilhado '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">Não há suporte para o atributo 'UnmanagedCallersOnly'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">

@@ -73,12 +73,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             Assert.IsType(GetArgumentProviderType(), provider);
 
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
             var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
             var parameter = GetParameterSymbolInfo(workspace, semanticModel, root, position, CancellationToken.None);
             Contract.ThrowIfNull(parameter);
 
-            var context = new ArgumentContext(provider, documentOptions, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
+            var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
             await provider.ProvideArgumentAsync(context);
 
             Assert.Equal(expectedDefaultValue, context.DefaultValue);
