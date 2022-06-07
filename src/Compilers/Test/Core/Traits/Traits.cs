@@ -196,7 +196,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseIsNotExpression = "CodeActions.UseIsNotExpression";
             public const string CodeActionsUseIsNullCheck = "CodeActions.UseIsNullCheck";
-            public const string CodeActionsUseParameterNullChecking = "CodeActions.UseParameterNullChecking";
             public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseNotPattern = "CodeActions.UseNotPattern";
@@ -208,6 +207,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
+            public const string CodeActionsUseUTF8StringLiteral = "CodeActions.CodeActionsUseUTF8StringLiteral";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
             public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);

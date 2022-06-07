@@ -250,6 +250,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        public void UTF8String()
+        {
+            AssertExtent(
+                @"class Test { private string s1 = {|Significant:$$""|} () test  ""u8; }");
+
+            AssertExtent(
+                @"class Test { private string s1 = ""{|Insignificant:$$ |}() test  ""u8; }");
+
+            AssertExtent(
+                @"class Test { private string s1 = "" {|Significant:$$()|} test  ""u8; }");
+
+            AssertExtent(
+                @"class Test { private string s1 = "" () test{|Insignificant:$$  |}""u8; }");
+
+            AssertExtent(
+                @"class Test { private string s1 = "" () test  {|Significant:$$""u8|}; }");
+
+            AssertExtent(
+                @"class Test { private string s1 = "" () test  ""u8{|Significant:$$;|} }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void InterpolatedString1()
         {
             AssertExtent(
@@ -380,6 +402,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         World!
     :)
     {|Significant:""""$$""|};");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        public void TestUTF8RawStringDelimeter()
+        {
+            AssertExtent(
+                @"string s = """"""
+    Hello
+        World!
+    :)
+    {|Significant:$$""""""u8|};");
+
+            AssertExtent(
+                @"string s = """"""
+    Hello
+        World!
+    :)
+    {|Significant:""$$""""u8|};");
+
+            AssertExtent(
+                @"string s = """"""
+    Hello
+        World!
+    :)
+    {|Significant:""""$$""u8|};");
+
+            AssertExtent(
+    @"string s = """"""
+    Hello
+        World!
+    :)
+    {|Significant:""""""$$u8|};");
+
+            AssertExtent(
+    @"string s = """"""
+    Hello
+        World!
+    :)
+    {|Significant:""""""u$$8|};");
         }
 
         private static void TestNavigator(

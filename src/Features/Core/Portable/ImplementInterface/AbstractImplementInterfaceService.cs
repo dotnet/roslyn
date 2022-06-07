@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         protected abstract SyntaxNode AddCommentInsideIfStatement(SyntaxNode ifDisposingStatement, SyntaxTriviaList trivia);
         protected abstract SyntaxNode CreateFinalizer(SyntaxGenerator generator, INamedTypeSymbol classType, string disposeMethodDisplayString);
 
-        public async Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeOptions options, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<Document> ImplementInterfaceAsync(Document document, ImplementTypeGenerationOptions options, SyntaxNode node, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_ImplementInterface, cancellationToken))
             {
@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return document;
                 }
 
+                // TODO: https://github.com/dotnet/roslyn/issues/60990
                 // While implementing just one default action, like in the case of pressing enter after interface name in VB,
                 // choose to implement with the dispose pattern as that's the Dev12 behavior.
                 var action = ShouldImplementDisposePattern(state, explicitly: false)
@@ -57,13 +58,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
         }
 
-        public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+        public ImmutableArray<CodeAction> GetCodeActions(Document document, ImplementTypeGenerationOptions options, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             var state = State.Generate(this, document, model, node, cancellationToken);
             return GetActions(document, options, state).ToImmutableArray();
         }
 
-        private IEnumerable<CodeAction> GetActions(Document document, ImplementTypeOptions options, State state)
+        private IEnumerable<CodeAction> GetActions(Document document, ImplementTypeGenerationOptions options, State state)
         {
             if (state == null)
             {

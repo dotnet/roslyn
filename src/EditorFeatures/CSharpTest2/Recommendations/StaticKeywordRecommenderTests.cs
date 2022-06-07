@@ -358,9 +358,16 @@ global using Bar;";
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestNotAfterNestedVirtual([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
+        public async Task TestNotAfterNestedVirtual([CombinatorialValues("class", "struct", "record", "record struct", "record class")] string declarationKind)
         {
             await VerifyAbsenceAsync(declarationKind + @" C {
+    virtual $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedVirtualInInterface()
+        {
+            await VerifyKeywordAsync(@"interface C {
     virtual $$");
         }
 
@@ -370,6 +377,14 @@ global using Bar;";
         {
             await VerifyAbsenceAsync(declarationKind + @" C {
     override $$");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedStatic([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
+        {
+            await VerifyAbsenceAsync(declarationKind + @" C {
+    static $$");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

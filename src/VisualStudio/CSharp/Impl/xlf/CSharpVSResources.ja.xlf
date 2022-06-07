@@ -57,6 +57,11 @@
         <target state="translated">C# 書式ルール</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="new">Collapse usings on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
         <target state="translated">入力候補</target>
@@ -140,11 +145,6 @@
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">型のチェックよりも 'null 値' チェックを優先する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_parameter_null_checking">
-        <source>Prefer parameter null checking</source>
-        <target state="translated">パラメーターの null チェックを優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

@@ -9,7 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -74,12 +76,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
 
-            var addImportOptions = new AddImportPlacementOptions(
-                PlaceSystemNamespaceFirst: placeSystemNamespaceFirst,
-                PlaceImportsInsideNamespaces: placeImportsInsideNamespaces,
-                AllowInHiddenRegions: false);
+            var addImportOptions = new AddImportPlacementOptions()
+            {
+                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                UsingDirectivePlacement = new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
+            };
 
             var formattingOptions = CSharpSyntaxFormattingOptions.Default;
+
+            var simplifierOptions = CSharpSimplifierOptions.Default;
 
             var imported = useSymbolAnnotations
                 ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)
@@ -94,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
             if (simplifiedText != null)
             {
-                var reduced = await Simplifier.ReduceAsync(imported);
+                var reduced = await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None);
                 var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
 
                 var actualText = (await formatted.GetTextAsync()).ToString();

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _analyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             registrationService.Register(this);
             _globalOptions = globalOptions;
         }
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzers.IsEmpty)
                     return ImmutableArray<DiagnosticData>.Empty;
 
-                var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project.Language);
+                var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project);
 
                 var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
                     project, ideOptions, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);

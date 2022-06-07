@@ -874,6 +874,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         break;
 
                     case ExprContext.Sideeffects:
+                        if (node.LocalSymbol.RefKind != RefKind.None)
+                        {
+                            // Reading from a ref has a side effect since the read
+                            // may result in a NullReferenceException.
+                            RecordVarRead(node.LocalSymbol);
+                        }
                         break;
 
                     case ExprContext.Value:
@@ -1118,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 _counter += 1;
 
-                if (method.IsAbstract && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
                 {
                     receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                         typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));

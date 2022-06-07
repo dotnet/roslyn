@@ -37,6 +37,11 @@
         <target state="translated">挿入された逐語的文字列を修正します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_string_literal_after_paste">
+        <source>Fixing string literal after paste</source>
+        <target state="new">Fixing string literal after paste</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">'{1}' の '{0}' 個のアセンブリが見つかりました:</target>

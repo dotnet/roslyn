@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -3408,6 +3407,78 @@ _Default:
         Protected NotOverridable Overrides Function GetEnclosingSymbolCore(position As Integer, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As ISymbol
             Return GetEnclosingSymbol(position, cancellationToken)
         End Function
+
+        Private Protected NotOverridable Overrides Function GetImportScopesCore(position As Integer, cancellationToken As CancellationToken) As ImmutableArray(Of IImportScope)
+            CheckPosition(position)
+            Dim binder = Me.GetEnclosingBinder(position)
+
+            Dim importScopes = ArrayBuilder(Of IImportScope).GetInstance()
+            AddImportScopes(binder, importScopes)
+            Return importScopes.ToImmutableAndFree()
+        End Function
+
+        Private Shared Sub AddImportScopes(binder As Binder, scopes As ArrayBuilder(Of IImportScope))
+            ' The binder chain has the following in it (walking from the innermost level outwards)
+            '
+            ' 1. Optional binders for the compilation unit of the present source file.
+            ' 2. SourceFileBinder.  Required.
+            ' 3. Optional binders for the imports brought in by the compilation options.
+            '
+            ' Both '1' and '3' are the same binders.  Specifically:
+            '
+            ' a. XmlNamespaceImportsBinder. Optional.  Present if source file has xml imports present.
+            ' b. ImportAliasesBinder. Optional.  Present if source file has import aliases present.
+            ' c. TypesOfImportedNamespacesMembersBinder.  Optional.  Present if source file has type or namespace imports present.
+            '
+            ' As such, we can walk upwards looking for any of these binders if present until we hit the end of the
+            ' binder chain.  We know which set we're in depending on if we've seen the SourceFileBinder or not.
+            '
+            ' This also means that in VB the max length of the import chain is two, while in C# it can be unbounded
+            ' in length.
+
+            Dim typesOfImportedNamespacesMembers As TypesOfImportedNamespacesMembersBinder = Nothing
+            Dim importAliases As ImportAliasesBinder = Nothing
+            Dim xmlNamespaceImports As XmlNamespaceImportsBinder = Nothing
+
+            While binder IsNot Nothing
+                If TypeOf binder Is SourceFileBinder Then
+                    ' We hit the source file binder.  That means anything we found up till now were the imports for this
+                    ' file.  Recurse and try to create the outer optional node, and then create a potential node for
+                    ' this level to chain onto that.
+                    AddImportScopeNode(
+                       typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports, scopes)
+
+                    AddImportScopes(binder.ContainingBinder, scopes)
+                    Return
+                End If
+
+                typesOfImportedNamespacesMembers = If(typesOfImportedNamespacesMembers, TryCast(binder, TypesOfImportedNamespacesMembersBinder))
+                importAliases = If(importAliases, TryCast(binder, ImportAliasesBinder))
+                xmlNamespaceImports = If(xmlNamespaceImports, TryCast(binder, XmlNamespaceImportsBinder))
+
+                binder = binder.ContainingBinder
+            End While
+
+            ' We hit the end of the binder chain.  Anything we found up till now are the compilation option imports
+            AddImportScopeNode(
+                typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports, scopes)
+        End Sub
+
+        Private Shared Sub AddImportScopeNode(
+                typesOfImportedNamespacesMembers As TypesOfImportedNamespacesMembersBinder,
+                importAliases As ImportAliasesBinder,
+                xmlNamespaceImports As XmlNamespaceImportsBinder,
+                scopes As ArrayBuilder(Of IImportScope))
+
+            Dim aliases = If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty)
+            Dim [imports] = If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of ImportedNamespaceOrType).Empty)
+            Dim xmlNamespaces = If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of ImportedXmlNamespace).Empty)
+            If aliases.Length = 0 AndAlso [imports].Length = 0 AndAlso xmlNamespaces.Length = 0 Then
+                Return
+            End If
+
+            scopes.Add(New SimpleImportScope(aliases, ExternAliases:=ImmutableArray(Of IAliasSymbol).Empty, [imports], xmlNamespaces))
+        End Sub
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
             Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol)))

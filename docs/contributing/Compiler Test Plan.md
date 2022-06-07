@@ -39,8 +39,8 @@ This document provides guidance for thinking about language interactions and tes
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
 - type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
 - methods
-- fields
-- properties (including get/set/init accessors)
+- fields (required and not)
+- properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
 - Attributes (including generic attributes and security attributes)
@@ -99,6 +99,7 @@ This document provides guidance for thinking about language interactions and tes
 - Switch expressions
 - With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
+- Definite assignment analysis and auto-default struct fields
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
@@ -109,6 +110,7 @@ This document provides guidance for thinking about language interactions and tes
 - pre-processing directives
 - COM interop
 - modopt and modreq
+- CompilerFeatureRequiredAttribute
 - ref assemblies
 - extern alias
 - UnmanagedCallersOnly

@@ -83,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly HostType _hostType;
@@ -105,6 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
+            IGlobalOptionService globalOptions,
             VisualStudioProject project,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
@@ -112,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             _componentModel = componentModel;
             _workspace = workspace;
+            _globalOptions = globalOptions;
             _project = project;
 
             Id = documentId;
@@ -762,14 +765,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
-            var options = SyntaxFormattingOptions.Create(
-                _workspace.Options
-                    .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
-                    .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
-                    .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
-                    .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize()),
-                _workspace.Services,
-                document.Project.Language);
+
+            var formattingOptions = _globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices).With(new LineFormattingOptions()
+            {
+                UseTabs = !editorOptions.IsConvertTabsToSpacesEnabled(),
+                TabSize = editorOptions.GetTabSize(),
+                IndentationSize = editorOptions.GetIndentSize(),
+                NewLine = editorOptions.GetNewLineCharacter()
+            });
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -783,7 +786,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
 
                 var visibleSpan = spans[spanIndex];
-                AdjustIndentationForSpan(document, edit, visibleSpan, rule, options);
+                AdjustIndentationForSpan(document, edit, visibleSpan, rule, formattingOptions);
             }
 
             edit.Apply();

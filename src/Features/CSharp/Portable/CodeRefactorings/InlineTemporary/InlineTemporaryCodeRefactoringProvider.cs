@@ -91,7 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
 
             context.RegisterRefactoring(
-                new MyCodeAction(c => InlineTemporaryAsync(document, variableDeclarator, c)),
+                CodeAction.Create(
+                    CSharpFeaturesResources.Inline_temporary_variable,
+                    c => InlineTemporaryAsync(document, variableDeclarator, c),
+                    nameof(CSharpFeaturesResources.Inline_temporary_variable)),
                 variableDeclarator.Span);
         }
 
@@ -441,14 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Inline_temporary_variable, createChangedDocument, nameof(CSharpFeaturesResources.Inline_temporary_variable))
-            {
-            }
         }
     }
 }

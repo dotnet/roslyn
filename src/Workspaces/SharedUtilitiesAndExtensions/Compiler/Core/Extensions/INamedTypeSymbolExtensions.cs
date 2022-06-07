@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var q = from m in interfaceMemberGetter(interfaceType, classOrStructType)
                     where m.Kind != SymbolKind.NamedType
-                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind is MethodKind.Ordinary or MethodKind.UserDefinedOperator
+                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind is MethodKind.Ordinary or MethodKind.UserDefinedOperator or MethodKind.Conversion
                     where m.Kind != SymbolKind.Property || ((IPropertySymbol)m).IsIndexer || ((IPropertySymbol)m).CanBeReferencedByName
                     where m.Kind != SymbolKind.Event || ((IEventSymbol)m).CanBeReferencedByName
                     where !isImplemented(classOrStructType, m, isValidImplementation, cancellationToken)
@@ -612,8 +612,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 Name: nameof(Equals),
                 IsStatic: false,
-                ContainingType: { SpecialType: SpecialType.System_Object },
-                Parameters: { Length: 1 },
+                ContainingType.SpecialType: SpecialType.System_Object,
+                Parameters.Length: 1,
             };
         }
 

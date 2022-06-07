@@ -3493,6 +3493,7 @@ public class Goo<T>
         b = true && false || true;
         i << 5;
         i >> 5;
+        i >>> 5;
         b = i == i && i != i && i <= i && i >= i;
         i += 5.0;
         i -= i;
@@ -3504,6 +3505,7 @@ public class Goo<T>
         i ^= i;
         i <<= i;
         i >>= i;
+        i >>>= i;
         i ??= i;
         object s = x => x + 1;
         Point point;
@@ -3681,6 +3683,10 @@ public class Goo<T>
                 Operators.GreaterThanGreaterThan,
                 Number("5"),
                 Punctuation.Semicolon,
+                Identifier("i"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Number("5"),
+                Punctuation.Semicolon,
                 Identifier("b"),
                 Operators.Equals,
                 Identifier("i"),
@@ -3737,6 +3743,10 @@ public class Goo<T>
                 Punctuation.Semicolon,
                 Identifier("i"),
                 Operators.GreaterThanGreaterThanEquals,
+                Identifier("i"),
+                Punctuation.Semicolon,
+                Identifier("i"),
+                Operators.GreaterThanGreaterThanGreaterThanEquals,
                 Identifier("i"),
                 Punctuation.Semicolon,
                 Identifier("i"),
@@ -5023,27 +5033,28 @@ int (foo, bar) = (1, 2);",
 
         [Theory]
         [CombinatorialData]
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestListPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
-_ = new int[0] switch
+switch (new int[0])
 {
     case [1, 2]:
         break;
     case [1, .. var end]:
         break;
 }",
-testHost,
-            Identifier("_"),
-            Operators.Equals,
+            testHost,
+            ControlKeyword("switch"),
+            Punctuation.OpenParen,
             Keyword("new"),
             Keyword("int"),
             Punctuation.OpenBracket,
             Number("0"),
             Punctuation.CloseBracket,
-            ControlKeyword("switch"),
+            Punctuation.CloseParen,
             Punctuation.OpenCurly,
-            Keyword("case"),
+            ControlKeyword("case"),
             Punctuation.OpenBracket,
             Number("1"),
             Punctuation.Comma,
@@ -5052,18 +5063,65 @@ testHost,
             Punctuation.Colon,
             ControlKeyword("break"),
             Punctuation.Semicolon,
-            Keyword("case"),
+            ControlKeyword("case"),
             Punctuation.OpenBracket,
             Number("1"),
             Punctuation.Comma,
             Punctuation.DotDot,
-            Identifier("var"),
+            Keyword("var"),
             Identifier("end"),
             Punctuation.CloseBracket,
             Punctuation.Colon,
             ControlKeyword("break"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        public async Task TestListPattern2(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = x switch
+{
+    [var start, .. var end] => 1
+}",
+            testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Identifier("x"),
+            ControlKeyword("switch"),
+            Punctuation.OpenCurly,
+            Punctuation.OpenBracket,
+            Keyword("var"),
+            Identifier("start"),
+            Punctuation.Comma,
+            Punctuation.DotDot,
+            Keyword("var"),
+            Identifier("end"),
+            Punctuation.CloseBracket,
+            Operators.EqualsGreaterThan,
+            Number("1"),
+            Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        public async Task TestVarPattern(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = 1 is var x;
+",
+            testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Number("1"),
+            Keyword("is"),
+            Keyword("var"),
+            Identifier("x"),
+            Punctuation.Semicolon);
         }
 
         [Theory]
@@ -6346,6 +6404,87 @@ static explicit I1.operator checked T(T a)
                 Parameter("a"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UnsignedRightShift_01(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T operator >>>(T a, int b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Keyword("operator"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task UnsignedRightShift_02(TestHost testHost)
+        {
+            await TestInClassAsync(
+@"
+static T I1.operator checked >>>(T a, T b)
+{
+}",
+                testHost,
+                Keyword("static"),
+                Identifier("T"),
+                Identifier("I1"),
+                Operators.Dot,
+                Keyword("operator"),
+                Keyword("checked"),
+                Operators.GreaterThanGreaterThanGreaterThan,
+                Punctuation.OpenParen,
+                Identifier("T"),
+                Parameter("a"),
+                Punctuation.Comma,
+                Identifier("T"),
+                Parameter("b"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestExclamationExclamation(TestHost testHost)
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string v!!)
+    {
+    }
+}",
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("string"),
+                Parameter("v"),
+                Operators.Exclamation,
+                Operators.Exclamation,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
     }

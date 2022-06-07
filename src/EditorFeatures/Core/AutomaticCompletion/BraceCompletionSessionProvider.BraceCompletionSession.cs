@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 if (contextAfterStart != null)
                 {
                     var document = contextAfterStart.Value.Document;
-                    var indentationOptions = _globalOptions.GetIndentationOptionsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var indentationOptions = document.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, indentationOptions, cancellationToken).WaitAndGetResult(cancellationToken);
                     if (changesAfterStart != null)
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                             return;
                         }
 
-                        var indentationOptions = _globalOptions.GetIndentationOptionsAsync(context.Value.Document, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var indentationOptions = context.Value.Document.GetIndentationOptionsAsync(_globalOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, indentationOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
@@ -397,9 +397,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
-                {
                     return null;
-                }
 
                 var closingSnapshotPoint = ClosingPoint.GetPosition(snapshot);
                 var openingSnapshotPoint = OpeningPoint.GetPosition(snapshot);

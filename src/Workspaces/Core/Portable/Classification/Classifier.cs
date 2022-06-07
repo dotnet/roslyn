@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // public options do not affect classification:
-            return GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
+            return GetClassifiedSpans(document.Project.Solution.Workspace.Services, document.Project, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
         }
 
         /// <summary>
@@ -47,11 +47,12 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken = default)
         {
             // public options do not affect classification:
-            return GetClassifiedSpans(workspace.Services, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
+            return GetClassifiedSpans(workspace.Services, project: null, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
         }
 
         internal static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             HostWorkspaceServices workspaceServices,
+            Project? project,
             SemanticModel semanticModel,
             TextSpan textSpan,
             ClassificationOptions options,
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Classification
             classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
 
             // intentionally adding to the semanticClassifications array here.
-            embeddedLanguageService.AddEmbeddedLanguageClassifications(semanticModel, textSpan, options, semanticClassifications, cancellationToken);
+            embeddedLanguageService.AddEmbeddedLanguageClassifications(project, semanticModel, textSpan, options, semanticClassifications, cancellationToken);
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
             var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Classification
             HostWorkspaceServices workspaceServices, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options,
             CancellationToken cancellationToken = default)
         {
-            var classifiedSpans = GetClassifiedSpans(workspaceServices, semanticModel, textSpan, options, cancellationToken);
+            var classifiedSpans = GetClassifiedSpans(workspaceServices, project: null, semanticModel, textSpan, options, cancellationToken);
             var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return ConvertClassificationsToParts(sourceText, textSpan.Start, classifiedSpans);
