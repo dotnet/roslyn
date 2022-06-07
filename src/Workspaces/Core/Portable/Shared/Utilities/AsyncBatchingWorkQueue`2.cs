@@ -141,16 +141,7 @@ namespace Roslyn.Utilities
             async Task<TResult?> ContinueAfterDelay(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
-                try
-                {
-                    await lastTask.ConfigureAwait(false);
-                }
-                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, _cancellationToken, ErrorSeverity.Critical))
-                {
-                    // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
-                    // associated with the token we pass into it.  We don't want an errant cancellation token for some
-                    // other reason to cancel this queue from performing work.
-                }
+                await lastTask.ConfigureAwait(false);
 
                 // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -174,7 +165,20 @@ namespace Roslyn.Utilities
         private ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken);
+            try
+            {
+                return _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, _cancellationToken, ErrorSeverity.Critical))
+            {
+                // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
+                // associated with the token we pass into it.  We don't want an errant cancellation token for some
+                // other reason to cancel this queue from performing work.
+
+                // note: this code is unreachable. ReportAndPropagateUnlessCanceled always returns 'false', so this
+                // catch is never actually entered.
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private ImmutableSegmentedList<TItem> GetNextBatchAndResetQueue()
