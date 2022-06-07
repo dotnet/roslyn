@@ -172,11 +172,15 @@ end namespace
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"))
         End Sub
 
-        <Fact>
-        Public Sub FindAssemblyAttribute1()
-            Dim source = "
+        <Theory>
+        <InlineData("CLSCompliant(true)")>
+        <InlineData("CLSCompliantAttribute(true)")>
+        <InlineData("System.CLSCompliant(true)")>
+        <InlineData("System.CLSCompliantAttribute(true)")>
+        Public Sub FindAssemblyAttribute1(attribute As String)
+            Dim source = $"
 Imports System
-<Assembly: CLSCompliant(true)>
+<Assembly: {attribute}>
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -197,15 +201,20 @@ Imports System
                 Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First))
         End Sub
 
-        <Fact>
-        Public Sub FindAssemblyAttribute2()
-            Dim source1 = "
+        <Theory>
+        <InlineData("CLSCompliant(true)")>
+        <InlineData("CLSCompliantAttribute(true)")>
+        <InlineData("System.CLSCompliant(true)")>
+        <InlineData("System.CLSCompliantAttribute(true)")>
+        Public Sub FindModuleAttribute1(attribute As String)
+            Dim source = $"
 Imports System
-<Assembly: CLSCompliant(true)>
+<Module: {attribute}>
 "
-            Dim source2 = ""
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
                                                                                               Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
@@ -219,30 +228,6 @@ Imports System
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
                 Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First))
-        End Sub
-
-        <Fact>
-        Public Sub FindAssemblyAttribute3()
-            Dim source2 = "
-Imports System
-<Assembly: CLSCompliant(true)>
-"
-            Dim source1 = ""
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.Last))
         End Sub
 
         <Fact>

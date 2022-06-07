@@ -161,6 +161,12 @@ public partial struct IncrementalGeneratorInitializationContext
             addMatchingAttributes(symbol.GetAttributes());
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
 
+            if (symbol is IAssemblySymbol assemblySymbol)
+            {
+                foreach (var module in assemblySymbol.Modules)
+                    addMatchingAttributes(module.GetAttributes());
+            }
+
             return result.ToImmutableAndFree();
 
             void addMatchingAttributes(ImmutableArray<AttributeData>? attributes)
