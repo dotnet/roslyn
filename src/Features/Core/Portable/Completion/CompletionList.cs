@@ -23,16 +23,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
 
-#pragma warning disable RS0030 // Do not used banned APIs
-#pragma warning disable CS0419 // Ambiguous reference in cref attribute
         /// <summary>
         /// The completion items to present to the user.
-        /// This property is preferred over <see cref="Items"/> because it can be backed by types
-        /// like <see cref="Microsoft.CodeAnalysis.Collections.SegmentedList{T}"/> to avoid LOH allocations.
+        /// This property is preferred over `Items` because of the flexibility it provides. 
+        /// For example, the list can be backed by types like SegmentedList to avoid LOH allocations.
         /// </summary>
         internal IReadOnlyList<CompletionItem> ItemsList { get; }
-#pragma warning restore CS0419 // Ambiguous reference in cref attribute
-#pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.
@@ -67,13 +63,13 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionList(
             TextSpan defaultSpan,
-            IReadOnlyList<CompletionItem> items,
+            IReadOnlyList<CompletionItem> itemsList,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             Span = defaultSpan;
-            ItemsList = items;
+            ItemsList = itemsList;
             _lazyItems = new(() => ItemsList.ToImmutableArrayOrEmpty(), System.Threading.LazyThreadSafetyMode.PublicationOnly);
 
             Rules = rules ?? CompletionRules.Default;
@@ -105,27 +101,27 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal static CompletionList Create(
             TextSpan defaultSpan,
-            IReadOnlyList<CompletionItem> items,
+            IReadOnlyList<CompletionItem> itemsList,
             CompletionRules? rules,
             CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
-            return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);
+            return new CompletionList(defaultSpan, itemsList, rules, suggestionModeItem, isExclusive);
         }
 
         private CompletionList With(
             Optional<TextSpan> span = default,
-            Optional<IReadOnlyList<CompletionItem>> items = default,
+            Optional<IReadOnlyList<CompletionItem>> itemsList = default,
             Optional<CompletionRules> rules = default,
             Optional<CompletionItem> suggestionModeItem = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
-            var newItems = items.HasValue ? items.Value : ItemsList;
+            var newItemsList = itemsList.HasValue ? itemsList.Value : ItemsList;
             var newRules = rules.HasValue ? rules.Value : Rules;
             var newSuggestionModeItem = suggestionModeItem.HasValue ? suggestionModeItem.Value : SuggestionModeItem;
 
             if (newSpan == Span &&
-                newItems == ItemsList &&
+                newItemsList == ItemsList &&
                 newRules == Rules &&
                 newSuggestionModeItem == SuggestionModeItem)
             {
@@ -133,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return Create(newSpan, newItems, newRules, newSuggestionModeItem, isExclusive: false);
+                return Create(newSpan, newItemsList, newRules, newSuggestionModeItem, isExclusive: false);
             }
         }
 
@@ -147,14 +143,19 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionList WithSpan(TextSpan span)
             => With(span: span);
 
+#pragma warning disable RS0030 // Do not used banned APIs
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="Items"/> property changed.
         /// </summary>
         public CompletionList WithItems(ImmutableArray<CompletionItem> items)
-            => With(items: items);
+#pragma warning restore RS0030 // Do not used banned APIs
+            => With(itemsList: items);
 
-        internal CompletionList WithItems(IReadOnlyList<CompletionItem> items)
-            => With(items: new(items));
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="ItemsList"/> property changed.
+        /// </summary>
+        internal CompletionList WithItemsList(IReadOnlyList<CompletionItem> itemsList)
+            => With(itemsList: new(itemsList));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="Rules"/> property changed.
