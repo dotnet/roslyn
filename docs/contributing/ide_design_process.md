@@ -17,4 +17,4 @@ For a feature proposal to be reviewed a design proposal needs be appended to the
 
 ### Getting the issue championed by the IDE team
 
-A member of [Roslyn-IDE](https://github.com/orgs/dotnet/teams/roslyn-ide) will need to decide to "champion" that feature proposal and add it to the "On Deck" tab in the [IDE Design Review](ttps://github.com/dotnet/roslyn/projects/40) project. Behind the scenes the IDE Team tries to meet once a week to discuss these item.
+A member of [Roslyn-IDE](https://github.com/orgs/dotnet/teams/roslyn-ide) will need to decide to "champion" that feature proposal and add it to the "On Deck" tab in the [IDE Design Review](ttps://github.com/dotnet/roslyn/projects/40) project. Behind the scenes the IDE Team tries to meet once a week to discuss these issues.
