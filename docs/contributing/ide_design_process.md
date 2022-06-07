@@ -2,7 +2,7 @@
 
 ## Discussions / Issues
 
-The goal is that folks can create and discuss feature suggestions without needing to have everything fully figured out. Feel free to file a new feature suggestion and members of the Roslyn-IDE team will add the "[Feature Request](https://github.com/dotnet/roslyn/issues?=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22Feature+Request%22)" label. However, these feature suggestions won't be discussed until we have a proposal written for them.
+The goal is that contributors can create and discuss feature suggestions without needing to have everything fully figured out. Feel free to file a new feature suggestion and members of the Roslyn-IDE team will add the "[Feature Request](https://github.com/dotnet/roslyn/issues?=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22Feature+Request%22)" label. However, these feature suggestions won't be discussed until we have a proposal written for them.
 
 ## Proposals
 
