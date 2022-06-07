@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
 {
     internal sealed class RegexEmbeddedLanguageEditorFeatures : RegexEmbeddedLanguage, IEmbeddedLanguageEditorFeatures
     {
-        public IBraceMatcher BraceMatcher { get; }
+        // public IBraceMatcher BraceMatcher { get; }
 
         public RegexEmbeddedLanguageEditorFeatures(
             AbstractEmbeddedLanguageFeaturesProvider provider, EmbeddedLanguageInfo info)
             : base(provider, info)
         {
-            BraceMatcher = new RegexBraceMatcher(this);
+            // BraceMatcher = new RegexBraceMatcher(this);
         }
     }
 }

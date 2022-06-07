@@ -6,7 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
     [ExportEmbeddedLanguageBraceMatchingServiceInternal(
         PredefinedEmbeddedLanguageBraceMatchingServiceNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
     internal sealed class CSharpRegexEmbeddedLanguageBraceMatchingService :
-        AbstractJsonEmbeddedLanguageBraceMatchingService
+        AbstractRegexEmbeddedLanguageBraceMatchingService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
