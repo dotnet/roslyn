@@ -1493,6 +1493,25 @@ namespace NS
         }
 
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void RawString6()
+        {
+            var code = @"var goo = """"""
+
+    """""";
+";
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 1,
+                expectedIndentation: 4);
+            AssertSmartIndent(
+                code,
+                indentationLine: 0,
+                expectedIndentation: 0);
+        }
+
+        [WpfFact]
         [WorkItem(539892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539892")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Bug5994()
