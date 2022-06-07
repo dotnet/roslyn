@@ -21,12 +21,19 @@ public class GeneratorDriverTests_Attributes_SimpleName : CSharpTestBase
     // These tests just validate basic correctness of results in different scenarios, without actually validating
     // that the incremental nature of this provider works properly.
 
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1()
+    [Theory]
+    [InlineData("[X]")]
+    [InlineData("[X, Y]")]
+    [InlineData("[Y, X]")]
+    [InlineData("[X, X]")]
+    [InlineData("[X][Y]")]
+    [InlineData("[Y][X]")]
+    [InlineData("[X][X]")]
+    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1(string attribute)
     {
-        var source = @"
-[X]
-class C { }
+        var source = @$"
+{attribute}
+class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
@@ -45,164 +52,6 @@ class C { }
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList1()
-    {
-        var source = @"
-[X, Y]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList2()
-    {
-        var source = @"
-[Y, X]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList3()
-    {
-        var source = @"
-[X, X]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists1()
-    {
-        var source = @"
-[X][Y]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists2()
-    {
-        var source = @"
-[Y][X]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists3()
-    {
-        var source = @"
-[X][X]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var counter = 0;
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { counter++; });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-        Assert.Equal(1, counter);
     }
 
     [Theory]
