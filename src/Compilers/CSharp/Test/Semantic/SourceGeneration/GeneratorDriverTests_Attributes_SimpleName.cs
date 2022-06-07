@@ -550,42 +550,19 @@ class C { }
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
     }
 
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1()
+    [Theory]
+    [InlineData("A = XAttribute")]
+    [InlineData("AAttribute = XAttribute")]
+    [InlineData("A = M.XAttribute")]
+    [InlineData("A = M.XAttribute<int>")]
+    [InlineData("A = global::M.XAttribute<int>")]
+    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1(string alias)
     {
-        var source = @"
-using A = XAttribute;
+        var source = @$"
+using {alias};
 
 [A]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias2()
-    {
-        var source = @"
-using AAttribute = XAttribute;
-
-[A]
-class C { }
+class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
@@ -613,90 +590,6 @@ class C { }
 using AAttribute = XAttribute;
 
 [AAttribute]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias4()
-    {
-        var source = @"
-using A = M.XAttribute;
-
-[A]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias5()
-    {
-        var source = @"
-using A = M.XAttribute<int>;
-
-[A]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias6()
-    {
-        var source = @"
-using A = global::M.XAttribute<int>;
-
-[A]
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
