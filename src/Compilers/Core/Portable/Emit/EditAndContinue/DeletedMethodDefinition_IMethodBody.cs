@@ -67,5 +67,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => ImmutableArray<LambdaDebugInfo>.Empty;
 
         public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
+
+        public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
     }
 }
