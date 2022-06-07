@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// 
         /// Null when the client does not support sending refresh notifications.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue? _semanticTokenRefreshQueue;
+        private readonly AsyncBatchingWorkQueue<Uri?>? _semanticTokenRefreshQueue;
 
         #endregion
 
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceManager lspWorkspaceManager,
             ILanguageServerNotificationManager notificationManager,
             ClientCapabilities clientCapabilities)
         {
@@ -73,18 +74,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
 
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-
             _disposalTokenSource = new();
 
             if (clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
             {
-                // Only send a refresh notification to the client every 0.5s (if needed) in order to avoid
+                // Only send a refresh notification to the client every 2s (if needed) in order to avoid
                 // sending too many notifications at once.  This ensures we batch up workspace notifications,
                 // but also means we send soon enough after a compilation-computation to not make the user wait
                 // an enormous amount of time.
-                _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue(
-                    delay: TimeSpan.FromMilliseconds(500),
-                    processBatchAsync: c => notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, c),
+                _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<Uri?>(
+                    delay: TimeSpan.FromMilliseconds(2000),
+                    processBatchAsync: (documentUris, cancellationToken) =>
+                    {
+                        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+                        foreach (var documentUri in documentUris)
+                        {
+                            if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
+                            {
+                                return notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
+                            }
+                        }
+
+                        // LSP is already tracking all changed documents so we don't need to send a refresh request.
+                        return ValueTaskFactory.CompletedTask;
+                    },
                     asyncListener: _asyncListener,
                     _disposalTokenSource.Token);
 
@@ -117,13 +130,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
-            => EnqueueSemanticTokenRefreshNotification();
+        {
+            if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
+            {
+                var document = e.NewSolution.GetDocument(e.DocumentId);
+                if (document is not null)
+                {
+                    var documentUri = document.GetURI();
 
-        private void EnqueueSemanticTokenRefreshNotification()
+                    // We enqueue the URI since there's a chance the client is already tracking the
+                    // document, in which case we don't need to send a refresh notification.
+                    // We perform the actual check when processing the batch to ensure we have the
+                    // most up-to-date list of tracked documents.
+                    EnqueueSemanticTokenRefreshNotification(documentUri);
+                }
+            }
+            else
+            {
+                EnqueueSemanticTokenRefreshNotification(documentUri: null);
+            }
+        }
+
+        private void EnqueueSemanticTokenRefreshNotification(Uri? documentUri)
         {
             // We should have only gotten here if semantic tokens refresh is supported.
             Contract.ThrowIfNull(_semanticTokenRefreshQueue);
-            _semanticTokenRefreshQueue.AddWork();
+            _semanticTokenRefreshQueue.AddWork(documentUri);
         }
 
         public async Task<LSP.SemanticTokens> HandleRequestAsync(
@@ -205,7 +237,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 _projectIdToLastComputedChecksum[project.Id] = projectChecksum;
             }
 
-            EnqueueSemanticTokenRefreshNotification();
+            EnqueueSemanticTokenRefreshNotification(documentUri: null);
         }
 
         private bool ChecksumIsUnchanged_NoLock(Project project, Checksum projectChecksum)
