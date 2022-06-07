@@ -175,21 +175,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUTF8StringLiteral
             return argumentList.WithArguments(SyntaxFactory.SeparatedList<ArgumentSyntax>(arguments));
         }
 
-        private static LiteralExpressionSyntax CreateUTF8String(SyntaxNode nodeToTakeTriviaFrom, string stringValue)
+        private static InvocationExpressionSyntax CreateUTF8String(SyntaxNode nodeToTakeTriviaFrom, string stringValue)
         {
             return CreateUTF8String(nodeToTakeTriviaFrom.GetLeadingTrivia(), stringValue, nodeToTakeTriviaFrom.GetTrailingTrivia());
         }
 
-        private static LiteralExpressionSyntax CreateUTF8String(SyntaxTriviaList leadingTrivia, string stringValue, SyntaxTriviaList trailingTrivia)
+        private static InvocationExpressionSyntax CreateUTF8String(SyntaxTriviaList leadingTrivia, string stringValue, SyntaxTriviaList trailingTrivia)
         {
             var literal = SyntaxFactory.Token(
                     leading: leadingTrivia,
                     kind: SyntaxKind.UTF8StringLiteralToken,
                     text: QuoteCharacter + stringValue + QuoteCharacter + Suffix,
                     valueText: "",
-                    trailing: trailingTrivia);
+                    trailing: SyntaxTriviaList.Empty);
 
-            return SyntaxFactory.LiteralExpression(SyntaxKind.UTF8StringLiteralExpression, literal);
+            return SyntaxFactory.InvocationExpression(
+                     SyntaxFactory.MemberAccessExpression(
+                         SyntaxKind.SimpleMemberAccessExpression,
+                         SyntaxFactory.LiteralExpression(SyntaxKind.UTF8StringLiteralExpression, literal),
+                         SyntaxFactory.IdentifierName(nameof(ReadOnlySpan<byte>.ToArray))))
+                   .WithTrailingTrivia(trailingTrivia);
         }
     }
 }

@@ -8335,6 +8335,7 @@ $@"
     'a {FeaturesResources.is_} delegate string (ref int)"));
         }
 
+        [WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestSingleTupleType()
         {
@@ -8345,7 +8346,8 @@ $@"
     $$M(default);
   }",
                 MainDescription(@"void C.M((int x, string y) t)"),
-                NoTypeParameterMap);
+                NoTypeParameterMap,
+                AnonymousTypes(string.Empty));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

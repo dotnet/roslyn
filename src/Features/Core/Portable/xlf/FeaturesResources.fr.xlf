@@ -2510,6 +2510,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Remplacer '{0}' par '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Résoudre les marqueurs de conflit</target>

@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                return modifiers.Any(m => !m.IsEmpty);
+                return modifiers.Any(static m => !m.IsEmpty);
             }
         }
 
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
         {
-            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
+            return tupleSymbol.TupleElements.Any(static e => !e.IsDefaultTupleElement());
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)
