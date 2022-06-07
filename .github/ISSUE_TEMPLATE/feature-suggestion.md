@@ -7,7 +7,7 @@ assignees: ''
 ---
 
 <!--
-We welcome feature suggestions! We have a process to discuss and evaluate new feature suggestions. Here is an overview of our process [here](https://github.com/dotnet/roslyn/blob/main/docs/contributing/ide_design_process.md). This template will help us gather the information we eed to start the review process.
+We welcome feature suggestions! We have a process to discuss and evaluate new feature suggestions. Here is an overview of our process [here](https://github.com/dotnet/roslyn/blob/main/docs/contributing/ide_design_process.md). This template will help us gather the information we need to start the review process.
 -->
 
 ## Summary
