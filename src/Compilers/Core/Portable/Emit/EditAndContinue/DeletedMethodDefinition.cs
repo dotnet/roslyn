@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
@@ -16,11 +17,14 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     {
         private readonly ITypeDefinition _containingTypeDef;
         private readonly IMethodDefinition _oldMethod;
+        private readonly ImmutableArray<DeletedParameterDefinition> _parameters;
 
         public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef)
         {
             _oldMethod = oldMethod;
             _containingTypeDef = containingTypeDef;
+
+            _parameters = _oldMethod.Parameters.SelectAsArray(p => new DeletedParameterDefinition(p));
         }
 
         public IEnumerable<IGenericMethodParameter> GenericParameters => _oldMethod.GenericParameters;
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool IsVirtual => _oldMethod.IsVirtual;
 
-        public ImmutableArray<IParameterDefinition> Parameters => _oldMethod.Parameters;
+        public ImmutableArray<IParameterDefinition> Parameters => StaticCast<IParameterDefinition>.From(_parameters);
 
         public IPlatformInvokeInformation PlatformInvokeData => _oldMethod.PlatformInvokeData;
 
@@ -85,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public CallingConvention CallingConvention => _oldMethod.CallingConvention;
 
-        public ushort ParameterCount => _oldMethod.ParameterCount;
+        public ushort ParameterCount => (ushort)_parameters.Length;
 
         public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => _oldMethod.ReturnValueCustomModifiers;
 
@@ -132,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context)
         {
-            return _oldMethod.GetParameters(context);
+            return StaticCast<IParameterTypeInformation>.From(_parameters);
         }
 
         public IMethodDefinition GetResolvedMethod(EmitContext context)
@@ -147,6 +151,10 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ITypeReference GetType(EmitContext context)
         {
+            if (_oldMethod.GetType(context) is ITypeDefinition typeDef)
+            {
+                return new DeletedTypeDefinition(typeDef);
+            }
             return _oldMethod.GetType(context);
         }
 

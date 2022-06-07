@@ -1377,9 +1377,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (_tryGetExistingIndex(item, out index))
                 {
-#if DEBUG
-                    Debug.Assert(!_map.TryGetValue(index, out var other) || ((object)other == (object)item));
-#endif
                     _map[index] = item;
                     return true;
                 }

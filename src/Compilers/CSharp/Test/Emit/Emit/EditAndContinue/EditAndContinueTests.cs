@@ -13162,18 +13162,26 @@ class C
 }");
         }
 
-        [Fact]
-        public void Delete_Method()
+        [Theory]
+        [InlineData("void M1() { }", 0)]
+        [InlineData("void M1(string s) { }", 1)]
+        [InlineData("void M1(C c) { }", 1)]
+        [InlineData("void M1(N n) { }", 1)]
+        [InlineData("C M1() { return default; }", 0)]
+        [InlineData("N M1() { return default; }", 0)]
+        [InlineData("int M1(C c) { return 0; }", 1)]
+        [InlineData("void M1<T>(T t) { }", 1)]
+        [InlineData("void M1<T>(T t) where T : C { }", 1)]
+        [InlineData("T M1<T>() { return default; }", 0)]
+        [InlineData("T M1<T>() where T : C { return default; }", 0)]
+        public void Delete_Method(string methodDef, int numParams)
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
                 .AddGeneration(
-                    source: """
+                    source: $$"""
                         class C
                         {
-                            void M1() { }
-                            void M2(string s) { }
-                            //void M3(C c) { }
-                            //void M4(N n) { }
+                            {{methodDef}}
                         }
 
                         class N
@@ -13183,7 +13191,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("<Module>", "C", "N");
-                        g.VerifyMethodDefNames("M1", "M2", /*"M3",*/ /*"M4",*/ ".ctor", ".ctor");
+                        g.VerifyMethodDefNames("M1", ".ctor", ".ctor");
                         g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
                     })
 
@@ -13199,34 +13207,19 @@ class C
                         """,
                     edits: new[] {
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c => c.GetMember("C")),
-                        //Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M3"), containingTypeProvider: c => c.GetMember("C")),
-                        //Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M4"), containingTypeProvider: c => c.GetMember("C")),
                     },
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1", "M2" /*, "M3", "M4"*/);
+                        g.VerifyMethodDefNames("M1");
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            //Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            //Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                            //Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                            //Row(3, TableIndex.Param, EditAndContinueOperation.Default)
-                        });
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        }.Concat(Enumerable.Range(1, numParams).Select(i => Row(i, TableIndex.Param, EditAndContinueOperation.Default))));
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
-                            Handle(2, TableIndex.MethodDef),
-                            //Handle(3, TableIndex.MethodDef),
-                            //Handle(4, TableIndex.MethodDef),
-                            Handle(1, TableIndex.Param),
-                            //Handle(2, TableIndex.Param),
-                            //Handle(3, TableIndex.Param),
-                        });
+                        }.Concat(Enumerable.Range(1, numParams).Select(i => Handle(i, TableIndex.Param))));
 
                         // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
