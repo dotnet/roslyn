@@ -59,5 +59,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class NoOpIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         public static NoOpIncrementalAnalyzer Instance = new();
+
+        /// <summary>
+        /// Set to a low priority so everything else runs first.
+        /// </summary>
+        public override int Priority => 5;
     }
 }

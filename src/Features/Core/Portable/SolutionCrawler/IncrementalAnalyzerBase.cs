@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Order all incremental analyzers below DiagnosticIncrementalAnalyzer
         /// </summary>
-        public int Priority => 1;
+        public virtual int Priority => 1;
 
         public virtual void Shutdown()
         {
