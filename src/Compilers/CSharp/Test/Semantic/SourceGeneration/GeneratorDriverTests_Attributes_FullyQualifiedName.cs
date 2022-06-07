@@ -1325,5 +1325,57 @@ class XAttribute : System.Attribute
         Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
     }
 
+    [Fact]
+    public void RerunWithChangedFileThatNowReferencesAttribute2()
+    {
+        var source1 = @"
+class C { }
+";
+        var source2 = @"
+class XAttribute : System.Attribute
+{
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("XAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
+
+        driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
+            compilation.SyntaxTrees.First(),
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
+[X]
+class C { }
+"))));
+        runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+
+        Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
+            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason));
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["groupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
+    }
+
     #endregion
 }
