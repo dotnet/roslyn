@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
             return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-                includeCompilerDiagnostics: true, includeSuppressedDiagnostics: true, priority: priority, addOperationScope: addOperationScope, cancellationToken: cancellationToken);
+                includeCompilerDiagnostics: true, includeSuppressedDiagnostics, priority: priority, addOperationScope: addOperationScope, cancellationToken: cancellationToken);
         }
     }
 }
