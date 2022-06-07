@@ -157,17 +157,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasInAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
+            return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
         }
 
         internal static bool HasIsExternalInitModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());
+            return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());
         }
 
         internal static bool HasOutAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeOutAttribute());
+            return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeOutAttribute());
         }
     }
 }

@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string NameTupleElement = nameof(NameTupleElement);
         public const string PullMemberUp = "Pull Member Up Code Action Provider";
         public const string RenameTracking = nameof(RenameTracking);
+        public const string ReplaceConditionalWithStatements = nameof(ReplaceConditionalWithStatements);
         public const string ReplaceDocCommentTextWithTag = "Replace Documentation Comment Text With Tag Code Action Provider";
         public const string ReplaceMethodWithProperty = nameof(ReplaceMethodWithProperty);
         public const string ReplacePropertyWithMethods = nameof(ReplacePropertyWithMethods);

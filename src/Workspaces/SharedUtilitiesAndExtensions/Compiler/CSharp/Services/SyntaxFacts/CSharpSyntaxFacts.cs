@@ -263,6 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
+        public SyntaxNode GetExpressionOfRefExpression(SyntaxNode node)
+            => ((RefExpressionSyntax)node).Expression;
+
         public SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node)
             => ((ReturnStatementSyntax)node).Expression;
 
@@ -1305,6 +1308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = assignment.Right;
         }
 
+        // C# does not have assignment statements.
+        public bool IsAnyAssignmentStatement([NotNullWhen(true)] SyntaxNode? node)
+            => false;
+
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
             => ((SimpleNameSyntax)node).Identifier;
 
@@ -1380,8 +1387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent!).Type;
 
-        public SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node)
-            => ((EqualsValueClauseSyntax?)node)?.Value;
+        public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
+            => ((EqualsValueClauseSyntax)node).Value;
 
         public bool IsEqualsValueOfPropertyDeclaration(SyntaxNode? node)
             => node?.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Initializer == node;

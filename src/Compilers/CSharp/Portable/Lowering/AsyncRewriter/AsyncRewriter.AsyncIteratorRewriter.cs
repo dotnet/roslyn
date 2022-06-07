@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add a field: bool disposeMode
                 _disposeModeField = F.StateMachineField(boolType, GeneratedNames.MakeDisposeModeFieldName());
 
-                if (_isEnumerable && this.method.Parameters.Any(p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
+                if (_isEnumerable && this.method.Parameters.Any(static p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
                 {
                     // Add a field: CancellationTokenSource combinedTokens
                     _combinedTokensField = F.StateMachineField(
