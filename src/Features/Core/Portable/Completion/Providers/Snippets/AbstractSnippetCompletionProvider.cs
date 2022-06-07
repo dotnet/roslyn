@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var options = context.CompletionOptions;
-            if (!options.ShowNewSnippetExperience)
+            if (!context.CompletionOptions.ShouldShowNewSnippetExperience())
             {
                 return;
             }
