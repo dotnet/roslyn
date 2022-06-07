@@ -29,87 +29,15 @@ namespace Microsoft.CodeAnalysis.Options
             => _globalOptionService = globalOptionService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new OptionService(_globalOptionService, workspaceServices);
+            => new OptionService(_globalOptionService);
 
-        /// <summary>
-        /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
-        /// clients.  Also takes the <see cref="IGlobalOptionService.OptionChanged"/> notifications
-        /// and forwards them along using the same <see cref="TaskQueue"/> used by the
-        /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
-        /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
-        /// </summary>
-        internal sealed class OptionService : IWorkspaceOptionService
+        internal sealed class OptionService : IOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
-            private readonly TaskQueue _taskQueue;
 
-            /// <summary>
-            /// Gate guarding <see cref="_eventHandlers"/>.
-            /// </summary>
-            private readonly object _gate = new();
-
-            private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
-                ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
-
-            public OptionService(
-                IGlobalOptionService globalOptionService,
-                HostWorkspaceServices workspaceServices)
+            public OptionService(IGlobalOptionService globalOptionService)
             {
                 _globalOptionService = globalOptionService;
-
-                var schedulerProvider = workspaceServices.GetRequiredService<ITaskSchedulerProvider>();
-                var listenerProvider = workspaceServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-                _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
-
-                _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
-            }
-
-            public void OnWorkspaceDisposed(Workspace workspace)
-            {
-                // Disconnect us from the underlying global service.  That way it doesn't 
-                // keep us around (and all the event handlers we're holding onto) forever.
-                _globalOptionService.OptionChanged -= OnGlobalOptionServiceOptionChanged;
-            }
-
-            private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
-            {
-                _taskQueue.ScheduleTask(nameof(OptionService) + "." + nameof(OnGlobalOptionServiceOptionChanged), () =>
-                {
-                    // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
-                    // but getting the event later on the UI thread
-                    var eventHandlers = GetEventHandlers();
-                    foreach (var handler in eventHandlers)
-                    {
-                        handler(this, e);
-                    }
-                }, CancellationToken.None);
-            }
-
-            private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
-            {
-                lock (_gate)
-                {
-                    return _eventHandlers;
-                }
-            }
-
-            public event EventHandler<OptionChangedEventArgs> OptionChanged
-            {
-                add
-                {
-                    lock (_gate)
-                    {
-                        _eventHandlers = _eventHandlers.Add(value);
-                    }
-                }
-
-                remove
-                {
-                    lock (_gate)
-                    {
-                        _eventHandlers = _eventHandlers.Remove(value);
-                    }
-                }
             }
 
             // Simple forwarding functions.

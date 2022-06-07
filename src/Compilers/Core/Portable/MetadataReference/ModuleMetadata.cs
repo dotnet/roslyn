@@ -19,16 +19,30 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
     public sealed partial class ModuleMetadata : Metadata
     {
-        private bool _isDisposed;
-
         private readonly PEModule _module;
 
+        /// <summary>
+        /// Optional data that should be kept alive as long as this <see cref="ModuleMetadata"/> is alive.  This can be
+        /// useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
+        /// doesn't get garbage collected.
+        /// </summary>
         private readonly IDisposable? _owner;
+
+        /// <summary>
+        /// Whether or not <see cref="_owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
+        /// Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="CreateFromStream(Stream, bool)"/>, or
+        /// the <see cref="PEStreamOptions.LeaveOpen"/> flag in <see cref="CreateFromStream(Stream, PEStreamOptions)"/>.
+        /// </summary>
         private readonly bool _disposeOwner;
 
-        private ModuleMetadata(PEReader peReader, IDisposable? owner = null, bool disposeOwner = false)
+        private bool _isDisposed;
+
+        private ModuleMetadata(PEReader peReader, IDisposable? owner, bool disposeOwner)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
+            // If we've been asked to dispose the owner, then we better have an owner to dispose.
+            Debug.Assert(!disposeOwner || owner is not null);
+
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
             _owner = owner;
             _disposeOwner = disposeOwner;
@@ -133,7 +147,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peImage));
             }
 
-            return new ModuleMetadata(new PEReader(peImage));
+            return new ModuleMetadata(new PEReader(peImage), owner: null, disposeOwner: false);
         }
 
         /// <summary>
@@ -209,7 +223,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // ownership of the stream is passed on PEReader:
-            return new ModuleMetadata(new PEReader(peStream, options));
+            return new ModuleMetadata(new PEReader(peStream, options), owner: null, disposeOwner: false);
         }
 
         /// <summary>
@@ -262,7 +276,7 @@ namespace Microsoft.CodeAnalysis
                 _module.Dispose();
 
                 if (_disposeOwner)
-                    _owner?.Dispose();
+                    _owner!.Dispose();
             }
         }
 

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
 
             // when solution state is changed, we recalculate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(
-                c => ComputeChecksumsAsync(projectsToInclude: null, Options, c), cacheResult: true);
+                c => ComputeChecksumsAsync(projectsToInclude: null, c), cacheResult: true);
 
             CheckInvariants();
 

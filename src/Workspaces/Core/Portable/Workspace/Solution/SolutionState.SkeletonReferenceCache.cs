@@ -66,9 +66,9 @@ internal partial class SolutionState
         /// want to get the same skeleton set for it.  Second, consider the following scenario:
         /// <list type="number">
         /// <item>Project A is referenced by projects B and C (both have a different language than A).</item>
-        /// <item>Producing the compilation for 'B' produces the compilation for 'A' which produced the skeleton that 'B' references.</item>
+        /// <item>Producing the compilation for 'B' produces the compilation for 'A' which produces the skeleton that 'B' references.</item>
         /// <item>B's compilation is released and then GC'ed.</item> 
-        /// <item>Producing the compilation for 'B' produces the compilation for 'A'</item>
+        /// <item>Producing the compilation for 'C' needs the skeleton from 'A'</item>
         /// </list>
         /// At this point we would not want to re-emit the assembly metadata for A's compilation.  We already did that
         /// for 'B', and it can be enormously expensive to do so again.  So as long as A's compilation lives, we really
@@ -177,6 +177,9 @@ internal partial class SolutionState
             SolutionState solution,
             CancellationToken cancellationToken)
         {
+            // It's acceptable for this computation to be something that multiple calling threads may hit at once.  The
+            // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
+            // only one thread actually does the computation and the rest wait.
             var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
             var workspace = solution.Workspace;
 
@@ -199,10 +202,12 @@ internal partial class SolutionState
             if (storage == null)
                 return null;
 
+            var metadata = AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false);
+
             // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
             // the stream as well.
             return new SkeletonReferenceSet(
-                AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false),
+                metadata,
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
         }

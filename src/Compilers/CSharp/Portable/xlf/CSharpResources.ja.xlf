@@ -812,6 +812,11 @@
         <target state="translated">属性を含むラムダ式は、式ツリーに変換できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
         <target state="translated">行に、生文字列リテラルの終了行とは異なる空白が含まれています: '{0}'と'{1}'</target>
@@ -11680,11 +11685,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">インターフェイス メンバー '{0}' には最も固有な実装がありません。'{1}' と '{2}' のどちらも最も固有なものではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">機能 '{3}' は C# {4} では使用できないため、'{0}' は型 '{2}' のインターフェイス メンバー '{1}' を実装できません。'{5}' 以上の言語バージョンをご使用ください。</target>
         <note />
       </trans-unit>
     </body>

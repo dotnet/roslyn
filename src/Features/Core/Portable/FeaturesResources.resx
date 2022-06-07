@@ -3138,4 +3138,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Decompiled" xml:space="preserve">
     <value>decompiled</value>
   </data>
+  <data name="Replace_conditional_expression_with_statements" xml:space="preserve">
+    <value>Replace conditional expression with statements</value>
+  </data>
 </root>

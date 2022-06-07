@@ -57,6 +57,7 @@ internal partial class SolutionState
                         aliases: properties.Aliases,
                         embedInteropTypes: properties.EmbedInteropTypes,
                         display: _assemblyName);
+
                     _referenceMap.Add(properties, value);
                 }
 
