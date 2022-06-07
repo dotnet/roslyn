@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 var endLine = sourceText.Lines.GetLineFromPosition(token.Span.End);
                 var nonWhitespaceOffset = endLine.GetFirstNonWhitespaceOffset();
                 Contract.ThrowIfNull(nonWhitespaceOffset);
-                return new IndentationResult(indenter.LineToBeIndented.Start, nonWhitespaceOffset.Value);
+                return indenter.GetIndentationOfLine(endLine);
             }
 
             // case 1: $"""$$
