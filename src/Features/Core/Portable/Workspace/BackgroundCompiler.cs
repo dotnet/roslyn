@@ -113,8 +113,16 @@ namespace Microsoft.CodeAnalysis.Host
                 return;
 
             using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Value, disposalToken);
-            await AddCompilationsForVisibleDocumentsAsync(
-                workspace.CurrentSolution, compilations, source.Token).ConfigureAwait(false);
+            try
+            {
+                await AddCompilationsForVisibleDocumentsAsync(
+                    workspace.CurrentSolution, compilations, source.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Don't bubble up cancellation to the queue.  Just because we decided to cancel this batch isn't
+                // something the queue should be aware of.
+            }
         }
 
         private static async ValueTask AddCompilationsForVisibleDocumentsAsync(
