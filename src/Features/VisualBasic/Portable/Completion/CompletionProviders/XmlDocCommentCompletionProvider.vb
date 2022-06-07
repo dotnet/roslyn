@@ -338,6 +338,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return nameSyntax?.LocalName.ValueText
         End Function
 
+        Protected Overrides Function GetParameters(symbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
+            Return symbol.GetParameters()
+        End Function
+
         Private Shared ReadOnly s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(
                 filterCharacterRules:=FilterRules,

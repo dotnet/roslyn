@@ -2673,10 +2673,10 @@ Public Class C
 End Class]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC33038: Type 'C' must define operator '-' to be used in a 'For' statement.
+BC33038: Type 'C' must define operator '+' to be used in a 'For' statement.
         For i = init To limit Step [step]
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'C' must define operator '+' to be used in a 'For' statement.
+BC33038: Type 'C' must define operator '-' to be used in a 'For' statement.
         For i = init To limit Step [step]
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC33038: Type 'C' must define operator '<=' to be used in a 'For' statement.
@@ -2784,10 +2784,10 @@ Public Structure C
 End Structure]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC33038: Type 'C?' must define operator '-' to be used in a 'For' statement.
+BC33038: Type 'C?' must define operator '+' to be used in a 'For' statement.
         For i = init To limit Step [step]
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33038: Type 'C?' must define operator '+' to be used in a 'For' statement.
+BC33038: Type 'C?' must define operator '-' to be used in a 'For' statement.
         For i = init To limit Step [step]
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC33038: Type 'C?' must define operator '<=' to be used in a 'For' statement.

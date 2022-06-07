@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface ICompileTimeSolutionProvider : IWorkspaceService
     {
-        Solution GetCurrentCompileTimeSolution();
+        Solution GetCompileTimeSolution(Solution designTimeSolution);
     }
 }

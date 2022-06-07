@@ -15,20 +15,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
+    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport>
     {
-        public override string Method => MSLSPMethods.WorkspacePullDiagnosticName;
+        public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
         public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
             : base(diagnosticService)
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
             => null;
 
-        protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new WorkspaceDiagnosticReport
+        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+            => new VSInternalWorkspaceDiagnosticReport
             {
                 TextDocument = identifier,
                 Diagnostics = diagnostics,
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override IProgress<WorkspaceDiagnosticReport[]>? GetProgress(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
+        protected override IProgress<VSInternalWorkspaceDiagnosticReport[]>? GetProgress(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;
 
-        protected override DiagnosticParams[]? GetPreviousResults(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
+        protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PreviousResults;
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
@@ -75,28 +75,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project, isOpen: true);
+            AddDocumentsFromProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true);
             foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project, isOpen: true);
+                AddDocumentsFromProject(doc.Project, context.SupportedLanguages, isOpen: true);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project, isOpen: false);
+                AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
 
-            void AddDocumentsFromProject(Project? project, bool isOpen)
+            void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen)
             {
                 if (project == null)
                     return;
+
+                if (!supportedLanguages.Contains(project.Language))
+                {
+                    // This project is for a language not supported by the LSP server making the request.
+                    // Do not report diagnostics for these projects.
+                    return;
+                }
 
                 // if the project doesn't necessarily have an open file in it, then only include it if the user has full
                 // solution analysis on.
                 if (!isOpen)
                 {
-                    var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
+                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Workspace.Options, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
                     {
                         context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");

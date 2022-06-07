@@ -594,7 +594,7 @@ public class C
   }
  -IL_0041:  ret
 }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         /// <summary>
@@ -1296,7 +1296,7 @@ class C
   IL_006c:  ble.s      IL_0027
  -IL_006e:  ret
 }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -1765,7 +1765,7 @@ class C
   IL_002b:  conv.i4
   IL_002c:  blt.s      IL_0017
  -IL_002e:  ret
-}", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -2035,7 +2035,7 @@ class C
   IL_0055:  callvirt   ""int string.Length.get""
   IL_005a:  blt.s      IL_0044
  -IL_005c:  ret
-}", methodToken: diff2.UpdatedMethods.Single());
+}", methodToken: diff2.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -2426,7 +2426,7 @@ class C
   IL_0036:  nop
  -IL_0037:  br.s       IL_0039
  -IL_0039:  ret
-}", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3270,7 +3270,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.<M>b__0", @"
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
 #endif
         }
 
@@ -3529,7 +3529,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("?", @"
-{", methodToken: diff1.UpdatedMethods.Single());
+{", methodToken: diff1.EmitResult.UpdatedMethods.Single());
 #endif
         }
 
@@ -3689,7 +3689,7 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("?", @"
-{", methodToken: diff1.UpdatedMethods.Single());
+{", methodToken: diff1.EmitResult.UpdatedMethods.Single());
 #endif
         }
 
@@ -3738,7 +3738,7 @@ class C
  -IL_0011:  ldloc.3
   IL_0012:  ret
 }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3794,7 +3794,7 @@ class C
   IL_001f:  br.s       IL_0021
  -IL_0021:  ldloc.3
   IL_0022:  ret
-}", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3849,7 +3849,7 @@ class C
  -IL_0031:  ldloc.2
   IL_0032:  ret
 }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3901,7 +3901,7 @@ class C
  -IL_0010:  ldloc.s    V_4
   IL_0012:  ret
 }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3957,7 +3957,7 @@ class C
   IL_001f:  br.s       IL_0021
  -IL_0021:  ldloc.3
   IL_0022:  ret
-}", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -4017,7 +4017,7 @@ class C
   IL_002b:  br.s       IL_002d
  -IL_002d:  ldloc.2
   IL_002e:  ret
-}", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -4095,7 +4095,7 @@ class C
      -IL_003b:  ldloc.s    V_5
       IL_003d:  ret
     }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -4186,7 +4186,7 @@ class C
      -IL_0049:  ldloc.s    V_6
       IL_004b:  ret
     }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -4251,7 +4251,7 @@ class C
       IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
       IL_0037:  ret
     }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -4311,7 +4311,7 @@ class C
       IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
       IL_0037:  ret
     }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -4401,7 +4401,7 @@ class C
      -IL_0046:  ldloc.s    V_8
       IL_0048:  ret
     }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -4485,7 +4485,7 @@ class C
   IL_004b:  blt.s      IL_000e
  -IL_004d:  ret
 }
-", methodToken: diff1.UpdatedMethods.Single());
+", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         [Fact]

@@ -21,7 +21,7 @@ namespace CSharpSyntaxGenerator
     {
         public static int Main(string[] args)
         {
-            if (args.Length < 2 || args.Length > 3)
+            if (args.Length is < 2 or > 3)
             {
                 return WriteUsage();
             }

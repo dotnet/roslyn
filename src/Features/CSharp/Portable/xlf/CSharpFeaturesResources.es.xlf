@@ -182,6 +182,11 @@
         <target state="translated">Quitar el sello de la clase "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">Usar patrones recursivos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">Advertencia: Inserción de una llamada temporal en otra de método condicional.</target>
@@ -297,21 +302,6 @@
         <target state="translated">Selección no válida.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">La selección no contiene un token válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Selección no válida para efectuar extracción.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">No hay nodo raíz común para la extracción.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">Contiene una selección no válida.</target>
@@ -415,6 +405,11 @@
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">registro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">registro de estructuras</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

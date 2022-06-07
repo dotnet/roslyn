@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -80,11 +81,13 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">Zobrazovat vložené nápovědy;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Podtrhnout znovu přiřazené proměnné;
+Zobrazovat vložené nápovědy;
 Zobrazit diagnostiku pro zavřené soubory;
-Vybarvit regulární výraz; 
-Zvýrazňovat související komponenty pod kurzorem; 
+Vybarvit regulární výraz;
+Zvýrazňovat související komponenty pod kurzorem;
 Nahlásit neplatné regulární výrazy;
 Povolit úplnou analýzu řešení;
 Provést analýzu funkcí editoru v externím procesu;
@@ -128,7 +131,8 @@ preferovat automatické vlastnosti;
 reg. výr.;
 regulární výraz;
 Používat rozšířené barvy;
-Barevné schéma editoru;</target>
+Barevné schéma editoru;
+Okraj dědičnosti</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

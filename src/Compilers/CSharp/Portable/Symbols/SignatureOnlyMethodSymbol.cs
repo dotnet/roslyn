@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
         private readonly bool _isInitOnly;
+        private readonly bool _isStatic;
         private readonly TypeWithAnnotations _returnType;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ParameterSymbol> parameters,
             RefKind refKind,
             bool isInitOnly,
+            bool isStatic,
             TypeWithAnnotations returnType,
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeParameters = typeParameters;
             _refKind = refKind;
             _isInitOnly = isInitOnly;
+            _isStatic = isStatic;
             _returnType = returnType;
             _refCustomModifiers = refCustomModifiers;
             _parameters = parameters;
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility { get { throw ExceptionUtilities.Unreachable; } }
 
-        public override bool IsStatic { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsStatic { get { return _isStatic; } }
 
         public override bool IsAsync { get { throw ExceptionUtilities.Unreachable; } }
 

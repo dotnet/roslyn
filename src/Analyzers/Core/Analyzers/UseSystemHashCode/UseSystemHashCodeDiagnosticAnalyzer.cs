@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 owningSymbol.Locations[0],
                 option.Notification.Severity,
                 new[] { operationLocation, declarationLocation },
-                ImmutableDictionary<string, string>.Empty));
+                ImmutableDictionary<string, string?>.Empty));
         }
     }
 }

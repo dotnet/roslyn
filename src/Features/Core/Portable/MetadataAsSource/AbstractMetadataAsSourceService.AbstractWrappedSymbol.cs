@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public string MetadataName => _symbol.MetadataName;
 
+            public int MetadataToken => _symbol.MetadataToken;
+
             public string Name => _symbol.Name;
 
             public ISymbol OriginalDefinition => _symbol.OriginalDefinition;

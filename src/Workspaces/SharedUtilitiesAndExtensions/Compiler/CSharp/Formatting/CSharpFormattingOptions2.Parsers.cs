@@ -92,10 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return option;
             }
+
             if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))
             {
                 return legacyOption;
             }
+
             return null;
         }
 

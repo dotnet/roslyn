@@ -1804,8 +1804,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function GetAttributeDeclarations() As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
-            Dim result = TypeDeclaration.GetAttributeDeclarations()
+        Private Function GetAttributeDeclarations(Optional quickAttributes As QuickAttributes? = Nothing) As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
+            ' if we were asked to only load attributes if particular quick attributes were set
+            ' then first see if any global aliases might have introduced names for those attributes.
+            ' If so, we'll have to load all type attributes as we really won't know if they might
+            ' be referencing that attribute through an alias or not.
+            If quickAttributes IsNot Nothing Then
+                For Each globalImport In Me.DeclaringCompilation.Options.GlobalImports
+                    If globalImport.Clause.Kind = SyntaxKind.SimpleImportsClause Then
+                        Dim simpleImportsClause = DirectCast(globalImport.Clause, SimpleImportsClauseSyntax)
+
+                        If simpleImportsClause.Alias IsNot Nothing Then
+                            Dim name = QuickAttributeChecker.GetFinalName(simpleImportsClause.Name)
+                            Select Case name
+                                Case AttributeDescription.CaseInsensitiveExtensionAttribute.Name,
+                                     AttributeDescription.ObsoleteAttribute.Name,
+                                     AttributeDescription.DeprecatedAttribute.Name,
+                                     AttributeDescription.ExperimentalAttribute.Name,
+                                     AttributeDescription.MyGroupCollectionAttribute.Name,
+                                     AttributeDescription.TypeIdentifierAttribute.Name
+
+                                    ' a global alias exists to one of the special type.  can't trust the
+                                    ' decl table alone.  so grab all the attributes from the typedecl
+                                    Return TypeDeclaration.GetAttributeDeclarations()
+                            End Select
+                        End If
+                    End If
+                Next
+            End If
+
+            Dim result = TypeDeclaration.GetAttributeDeclarations(quickAttributes)
 
             Debug.Assert(result.Length = 0 OrElse (Not Me.IsScriptClass AndAlso Not Me.IsImplicitClass))  ' Should be handled by above test.
 
@@ -2307,7 +2335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' We want this function to be as cheap as possible, it is called for every top level type
             ' and we don't want to bind attributes attached to the declaration unless there is a chance
             ' that one of them is TypeIdentifier attribute.
-            Dim attributeLists As ImmutableArray(Of SyntaxList(Of AttributeListSyntax)) = GetAttributeDeclarations()
+            Dim attributeLists As ImmutableArray(Of SyntaxList(Of AttributeListSyntax)) = GetAttributeDeclarations(QuickAttributes.TypeIdentifier)
 
             For Each list As SyntaxList(Of AttributeListSyntax) In attributeLists
                 Dim sourceFile = ContainingSourceModule.TryGetSourceFile(list.Node.SyntaxTree)

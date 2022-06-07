@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsFixedSizeBuffer => false;
 
+        public int FixedSize => 0;
+
         public ImmutableArray<CustomModifier> CustomModifiers
         {
             get

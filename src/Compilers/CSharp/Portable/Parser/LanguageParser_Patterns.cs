@@ -269,6 +269,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.DotToken:
                     // int.MaxValue is an expression, not a type.
                     return false;
+                case SyntaxKind.MinusGreaterThanToken:
+                case SyntaxKind.ExclamationToken:
+                    // parse as an expression for error recovery
+                    return false;
                 case var kind:
                     // If we find what looks like a continuation of an expression, it is not a type.
                     return !SyntaxFacts.IsBinaryExpressionOperatorToken(kind) ||
@@ -311,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     designation0 == null &&
                     subPatterns.Count == 1 &&
                     subPatterns.SeparatorCount == 0 &&
-                    subPatterns[0].NameColon == null)
+                    subPatterns[0].ExpressionColon == null)
                 {
                     var subpattern = subPatterns[0].Pattern;
                     switch (subpattern)
@@ -455,10 +459,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatementCore()
         {
             var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true);
+            return ConvertPatternToExpressionIfPossible(pattern);
+        }
+
+        private CSharpSyntaxNode ConvertPatternToExpressionIfPossible(PatternSyntax pattern, bool permitTypeArguments = false)
+        {
             return pattern switch
             {
                 ConstantPatternSyntax cp => cp.Expression,
-                TypePatternSyntax tp when ConvertTypeToExpression(tp.Type, out ExpressionSyntax expr) => expr,
+                TypePatternSyntax tp when ConvertTypeToExpression(tp.Type, out ExpressionSyntax expr, permitTypeArguments) => expr,
                 DiscardPatternSyntax dp => _syntaxFactory.IdentifierName(ConvertToIdentifier(dp.UnderscoreToken)),
                 var p => p,
             };
@@ -580,16 +589,21 @@ tryAgain:
 
         private SubpatternSyntax ParseSubpatternElement()
         {
-            NameColonSyntax nameColon = null;
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+            BaseExpressionColonSyntax exprColon = null;
+
+            PatternSyntax pattern = ParsePattern(Precedence.Conditional);
+            // If there is a colon but it's not preceded by a valid expression, leave it out to parse it as a missing comma, preserving C# 9.0 behavior.
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern, permitTypeArguments: true) is ExpressionSyntax expr)
             {
-                var name = this.ParseIdentifierName();
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                nameColon = _syntaxFactory.NameColon(name, colon);
+                var colon = EatToken();
+                exprColon = expr is IdentifierNameSyntax identifierName
+                    ? _syntaxFactory.NameColon(identifierName, colon)
+                    : _syntaxFactory.ExpressionColon(CheckFeatureAvailability(expr, MessageID.IDS_FeatureExtendedPropertyPatterns), colon);
+
+                pattern = ParsePattern(Precedence.Conditional);
             }
 
-            var pattern = ParsePattern(Precedence.Conditional);
-            return this._syntaxFactory.Subpattern(nameColon, pattern);
+            return _syntaxFactory.Subpattern(exprColon, pattern);
         }
 
         /// <summary>

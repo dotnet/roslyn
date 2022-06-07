@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // `Contains<T>(string key)<`
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                ch == '(' || ch == '[' || ch == '<'
+                ch is '(' or '[' or '<'
                     ? selectedItem.DisplayText
                     : SymbolCompletionItem.GetInsertionText(selectedItem)));
         }

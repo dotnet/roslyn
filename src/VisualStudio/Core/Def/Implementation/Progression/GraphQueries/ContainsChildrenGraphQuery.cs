@@ -25,21 +25,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
-
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     if (symbol != null)
                     {
                         var containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
-                        graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, containsChildren);
+                        graphBuilder.AddDeferredPropertySet(
+                            node, DgmlNodeProperties.ContainsChildren, containsChildren, cancellationToken);
                     }
                     else if (node.HasCategory(CodeNodeCategories.File))
                     {
-                        var document = graphBuilder.GetContextDocument(node);
-
+                        var document = graphBuilder.GetContextDocument(node, cancellationToken);
                         if (document != null)
                         {
                             var childNodes = await SymbolContainment.GetContainedSyntaxNodesAsync(document, cancellationToken).ConfigureAwait(false);
-                            graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, childNodes.Any());
+                            graphBuilder.AddDeferredPropertySet(
+                                node, DgmlNodeProperties.ContainsChildren, childNodes.Any(), cancellationToken);
                         }
                         else
                         {
@@ -72,7 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                                 // also perform the check.
                                 if (path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".vb", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, false);
+                                    graphBuilder.AddDeferredPropertySet(
+                                        node, DgmlNodeProperties.ContainsChildren, value: false, cancellationToken);
                                 }
                             }
                         }

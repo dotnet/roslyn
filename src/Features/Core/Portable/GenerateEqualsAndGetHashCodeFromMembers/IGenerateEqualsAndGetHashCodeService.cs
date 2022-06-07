@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// Generates an override of <see cref="object.Equals(object)"/> that works by comparing the
         /// provided <paramref name="members"/>.
         /// </summary>
-        Task<IMethodSymbol> GenerateEqualsMethodAsync(Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members, string localNameOpt, CancellationToken cancellationToken);
+        Task<IMethodSymbol> GenerateEqualsMethodAsync(Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members, string? localNameOpt, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generates an override of <see cref="object.Equals(object)"/> that works by delegating to

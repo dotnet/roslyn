@@ -55,6 +55,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
             _comboBox.SelectionChanged += ComboBox_SelectionChanged;
             _comboBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Severity);
+            if (setting.IsNotConfigurable)
+            {
+                _comboBox.IsEnabled = false;
+                ToolTip = ServicesVSResources.This_rule_is_not_configurable;
+            }
+
             _ = RootGrid.Children.Add(_comboBox);
             _setting = setting;
         }

@@ -30,7 +30,7 @@ IDE:
 - [ ] Extracting local function passed to an Action introduces compiler error
   [ ] (#8718)
 - [ ] Ctrl+. on a delegate invocation crashes VS (via Extract method) (#8717)
-- [ ] Inline temp introductes compiler error (#8716)
+- [ ] Inline temp introduces compiler error (#8716)
 - [ ] Call hierarchy search never terminates on local functions (#8654)
 - [ ] Nav bar doesn't support local functions (#8648)
 - [ ] No outlining for local functions (#8647)

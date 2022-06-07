@@ -155,14 +155,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTypeForConst
         }
 
         [Fact]
-        public async Task TestNotWithLambda()
+        public async Task TestWithLambda()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         const [|var|] v = () => { };
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        const System.Action v = () => { };
     }
 }");
         }

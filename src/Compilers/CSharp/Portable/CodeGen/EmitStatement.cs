@@ -693,7 +693,10 @@ oneMoreTime:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
-                _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                if (field.SlotIndex >= 0)
+                {
+                    _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                }
             }
 
             EmitStatement(scope.Statement);

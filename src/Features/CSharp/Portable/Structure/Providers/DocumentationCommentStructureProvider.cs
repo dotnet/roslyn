@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class DocumentationCommentStructureProvider : AbstractSyntaxNodeStructureProvider<DocumentationCommentTriviaSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             DocumentationCommentTriviaSyntax documentationComment,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var span = TextSpan.FromBounds(startPos, endPos);
 
             var bannerLength = optionProvider.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.CSharp);
-            var bannerText = CSharpSyntaxFacts.Instance.GetBannerText(
+            var bannerText = CSharpFileBannerFacts.Instance.GetBannerText(
                 documentationComment, bannerLength, cancellationToken);
 
             spans.Add(new BlockSpan(

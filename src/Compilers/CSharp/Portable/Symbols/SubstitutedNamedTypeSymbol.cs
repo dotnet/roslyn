@@ -227,13 +227,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            builder = AddOrWrapTupleMembersIfNecessary(builder);
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private ArrayBuilder<Symbol> AddOrWrapTupleMembersIfNecessary(ArrayBuilder<Symbol> builder)
+        {
             if (IsTupleType)
             {
-                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                var existingMembers = builder.ToImmutableAndFree();
+                var replacedFields = new HashSet<Symbol>(ReferenceEqualityComparer.Instance);
+                builder = MakeSynthesizedTupleMembers(existingMembers, replacedFields);
+                foreach (var existingMember in existingMembers)
+                {
+                    // Note: fields for tuple elements have a tuple field symbol instead of a substituted field symbol
+                    if (!replacedFields.Contains(existingMember))
+                    {
+                        builder.Add(existingMember);
+                    }
+                }
                 Debug.Assert(builder is object);
             }
 
-            return builder.ToImmutableAndFree();
+            return builder;
         }
 
         internal sealed override ImmutableArray<Symbol> GetMembersUnordered()
@@ -258,11 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsTupleType)
-            {
-                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
-                Debug.Assert(builder is object);
-            }
+            builder = AddOrWrapTupleMembersIfNecessary(builder);
 
             return builder.ToImmutableAndFree();
         }
@@ -317,6 +330,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 cache.TryAdd(name, result);
             }
         }
+
+#nullable enable
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            if (_unbound)
+            {
+                yield break;
+            }
+
+            foreach ((MethodSymbol body, MethodSymbol implemented) in OriginalDefinition.SynthesizedInterfaceMethodImpls())
+            {
+                var newBody = ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementation(body, this.TypeSubstitution);
+                var newImplemented = ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementation(implemented, this.TypeSubstitution);
+                yield return (newBody, newImplemented);
+            }
+        }
+#nullable disable
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {

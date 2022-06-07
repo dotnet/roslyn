@@ -173,9 +173,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+        Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
             Get
-                Return 0
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+            Get
+                Return Nothing
             End Get
         End Property
     End Class

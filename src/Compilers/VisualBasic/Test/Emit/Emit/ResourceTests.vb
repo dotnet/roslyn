@@ -198,6 +198,7 @@ End Class
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("file", CodeAnalysisResources.ResourceDataProviderShouldReturnNonNullStream))
         End Sub
 
+#If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
         Public Sub AddManagedResource()
             ' Use a unique guid as a compilation name to prevent conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad:
@@ -243,7 +244,7 @@ End Module
             rInfo = assembly.GetManifestResourceInfo(r2Name)
             Assert.Equal(resourceFileName, rInfo.FileName)
         End Sub
-
+#End If
         <Fact>
         Public Sub AddManagedLinkedResourceFail()
 
@@ -395,6 +396,7 @@ End Module
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DuplicateResourceName1).WithArguments("A"))
         End Sub
 
+#If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
         Public Sub AddResourceToModule()
             Dim source =
@@ -654,7 +656,7 @@ BC31502: Resource name 'some.dotted.NAME' cannot be used more than once.
             End If
 
         End Sub
-
+#End If
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_DuplicateManifestResourceIdentifier_EmbeddedResource()
