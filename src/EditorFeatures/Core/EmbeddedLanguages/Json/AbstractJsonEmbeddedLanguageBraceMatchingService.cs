@@ -8,8 +8,10 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 
