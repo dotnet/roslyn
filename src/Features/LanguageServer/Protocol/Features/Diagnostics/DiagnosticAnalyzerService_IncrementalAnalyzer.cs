@@ -106,11 +106,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            return false;
-        }
-
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
