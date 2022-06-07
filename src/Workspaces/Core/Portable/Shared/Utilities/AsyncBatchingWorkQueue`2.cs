@@ -14,10 +14,15 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A queue where items can be added to to be processed in batches after some delay has passed.
-    /// When processing happens, all the items added since the last processing point will be passed
-    /// along to be worked on.  Rounds of processing happen serially, only starting up after a
-    /// previous round has completed.
+    /// A queue where items can be added to to be processed in batches after some delay has passed. When processing
+    /// happens, all the items added since the last processing point will be passed along to be worked on.  Rounds of
+    /// processing happen serially, only starting up after a previous round has completed.
+    /// <para>
+    /// Failure to complete a particular batch (either due to cancellation or some faulting error) will not prevent
+    /// further batches from executing. The only thing that will permenantly stop this queue from processing items is if
+    /// the <see cref="CancellationToken"/> passed to the constructor switches to <see
+    /// cref="CancellationToken.IsCancellationRequested"/>.
+    /// </para>
     /// </summary>
     internal class AsyncBatchingWorkQueue<TItem, TResult>
     {
@@ -161,8 +166,8 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Waits until the current batch of work completes and returns the last value successfully computed from <see
-        /// cref="_processBatchAsync"/>.  If the last <see cref="_processBatchAsync"/> canceled or failed, then a Task
-        /// with <see cref="Task{TResult}.Result"/> or <see langword="default"/> will be returned.
+        /// cref="_processBatchAsync"/>.  If the last <see cref="_processBatchAsync"/> canceled or failed, then a
+        /// corresponding canceled or faulted task will be returned that propagates that outwards.
         /// </summary>
         public Task<TResult?> WaitUntilCurrentBatchCompletesAsync()
         {
