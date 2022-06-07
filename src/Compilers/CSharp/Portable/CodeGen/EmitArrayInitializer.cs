@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var initializers = initializer.Initializers;
-            if (initializers.Any(init => init.ConstantValue == null))
+            if (initializers.Any(static init => init.ConstantValue == null))
             {
                 return -1;
             }

@@ -762,6 +762,44 @@ Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexNotOnUnannotatedParameter(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    Sub M([|optional x as string = ""$(\b\G\z)""|])
+    End Sub()
+end class",
+                testHost)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexOnAnnotatedParameter(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    ' lang=regex
+    Sub M([|optional x as string = ""$(\b\G\z)""|])
+    End Sub()
+end class",
+                testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegexStringSyntaxAttribute_Sub(testHost As TestHost) As Task
             Await TestAsync(
 "

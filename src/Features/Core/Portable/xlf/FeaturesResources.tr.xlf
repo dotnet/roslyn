@@ -2510,6 +2510,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">'{0}' öğesini '{1}' ile değiştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Çakışma işaretçilerini çözümle</target>

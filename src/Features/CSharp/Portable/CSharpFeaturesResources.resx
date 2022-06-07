@@ -624,7 +624,4 @@
   <data name="Global_using_directives" xml:space="preserve">
     <value>Global 'using' directives</value>
   </data>
-  <data name="Apply_utf8_string_literal_preferences" xml:space="preserve">
-    <value>Apply UTF-8 string literal preferences</value>
-  </data>
 </root>
