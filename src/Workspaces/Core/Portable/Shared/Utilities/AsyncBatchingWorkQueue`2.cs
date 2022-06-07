@@ -145,10 +145,11 @@ namespace Roslyn.Utilities
                 {
                     await lastTask.ConfigureAwait(false);
                 }
-                // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
-                // associated with the token we pass into it.
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, _cancellationToken, ErrorSeverity.Critical))
                 {
+                    // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
+                    // associated with the token we pass into it.  We don't want an errant cancellation token for some
+                    // other reason to cancel this queue from performing work.
                 }
 
                 // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
