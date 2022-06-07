@@ -141,7 +141,10 @@ namespace Roslyn.Utilities
             async Task<TResult?> ContinueAfterDelay(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
-                await lastTask.ConfigureAwait(false);
+
+                // Await the previous item in the task chain in a non-throwing fashion.  Regardless of whether that last
+                // task completed successfully or not, we want to move onto the next batch.
+                await lastTask.NoThrowAwaitableInternal(captureContext: false);
 
                 // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -167,23 +170,24 @@ namespace Roslyn.Utilities
                 return _updateTask;
         }
 
-        private async ValueTask<TResult?> ProcessNextBatchAsync(CancellationToken cancellationToken)
+        private async ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 return await _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, _cancellationToken, ErrorSeverity.Critical))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
             {
-                // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
-                // associated with the token we pass into it.  We don't want an errant cancellation token for some
-                // other reason to cancel this queue from performing work.
+                // Report an exception if the batch fails for a non-cancellation reason.
                 //
-                // Note: we report-and-catch, so that further batches of work can still process.  The sentiment being
-                // that generally failures are recoverable here, and we will have reported the error so we can see in
-                // telemetry if we have a problem that needs addressing.
-                return default;
+                // Note: even though we propagate this exception outwards, we will still continue processing further
+                // batches due to the `await NoThrowAwaitableInternal()` above.  The sentiment being that generally
+                // failures are recoverable here, and we will have reported the error so we can see in telemetry if we
+                // have a problem that needs addressing.
+                //
+                // Not this code is unreachable because ReportAndPropagateUnlessCanceled returns false along all codepaths.
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
