@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Roslyn.Test.Utilities
@@ -17,11 +20,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 category:="Test",
                 defaultSeverity:=DiagnosticSeverity.Error,
                 isEnabledByDefault:=True)
-            Dim diagnosticItem = New LegacyDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, Nothing)
+            Dim diagnosticItem = New DiagnosticItem(projectId:=Nothing, analyzerReference:=Nothing, descriptor, ReportDiagnostic.Error, commandHandler:=Nothing)
 
-            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing, Nothing)
-            Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, Nothing)
-            Debug.Assert(Not shown)
+            Dim handler = New AnalyzersCommandHandler(tracker:=Nothing, analyzerReferenceManager:=Nothing, threadingContext:=Nothing, AsynchronousOperationListenerProvider.NullProvider, serviceProvider:=Nothing)
+            Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, location:=Nothing)
+            Assert.False(shown)
         End Sub
     End Class
 End Namespace

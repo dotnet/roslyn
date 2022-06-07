@@ -1,11 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
@@ -16,10 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
-        Private Function OptionOn() As IDictionary(Of OptionKey, Object)
-            Dim values = New Dictionary(Of OptionKey, Object)
-            values.Add(New OptionKey(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
-            Return values
+        Private Function OptionOn() As OptionsCollection
+            Return [Option](IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
@@ -32,10 +31,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""[|)|]"")
             end sub
         end class",
-                        options:=OptionOn(),
+                        globalOptions:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
@@ -48,10 +47,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""""""[|)|]"")
             end sub
         end class",
-                        options:=OptionOn(),
+                        globalOptions:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
     End Class
 End Namespace

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
@@ -11,6 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
         Implements ICompilationOptionsChangingService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -18,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
             Return False
         End Function
 
-        Public Sub Apply(options As CompilationOptions, storage As ProjectPropertyStorage) Implements ICompilationOptionsChangingService.Apply
+        Public Sub Apply(oldOptions As CompilationOptions, newOptions As CompilationOptions, storage As ProjectPropertyStorage) Implements ICompilationOptionsChangingService.Apply
             Throw New InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options)
         End Sub
     End Class

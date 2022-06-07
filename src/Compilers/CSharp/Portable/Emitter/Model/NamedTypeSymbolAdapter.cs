@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +19,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class NamedTypeSymbol :
+    internal partial class
+#if DEBUG
+        NamedTypeSymbolAdapter : SymbolAdapter,
+#else
+        NamedTypeSymbol :
+#endif 
         Cci.ITypeReference,
         Cci.ITypeDefinition,
         Cci.INamedTypeReference,
@@ -29,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         bool Cci.ITypeReference.IsEnum
         {
-            get { return this.TypeKind == TypeKind.Enum; }
+            get { return AdaptedNamedTypeSymbol.TypeKind == TypeKind.Enum; }
         }
 
         bool Cci.ITypeReference.IsValueType
         {
-            get { return this.IsValueType; }
+            get { return AdaptedNamedTypeSymbol.IsValueType; }
         }
 
         Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
@@ -50,9 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (this.IsDefinition)
+                if (AdaptedNamedTypeSymbol.IsDefinition)
                 {
-                    return this.PrimitiveTypeCode;
+                    return AdaptedNamedTypeSymbol.PrimitiveTypeCode;
                 }
 
                 return Cci.PrimitiveTypeCode.NotPrimitive;
@@ -63,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                PENamedTypeSymbol peNamedType = this as PENamedTypeSymbol;
+                PENamedTypeSymbol peNamedType = AdaptedNamedTypeSymbol as PENamedTypeSymbol;
                 if ((object)peNamedType != null)
                 {
                     return peNamedType.Handle;
@@ -84,8 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (!this.IsDefinition &&
-                    this.Arity > 0)
+                if (!AdaptedNamedTypeSymbol.IsDefinition &&
+                    AdaptedNamedTypeSymbol.Arity > 0)
                 {
                     return this;
                 }
@@ -105,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (this.IsDefinition &&
-                    (object)this.ContainingType == null)
+                if (AdaptedNamedTypeSymbol.IsDefinition &&
+                    (object)AdaptedNamedTypeSymbol.ContainingType == null)
                 {
                     return this;
                 }
@@ -121,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if ((object)this.ContainingType == null &&
-                this.IsDefinition &&
-                this.ContainingModule == moduleBeingBuilt.SourceModule)
+            if ((object)AdaptedNamedTypeSymbol.ContainingType == null &&
+                AdaptedNamedTypeSymbol.IsDefinition &&
+                AdaptedNamedTypeSymbol.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }
@@ -136,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)this.ContainingType != null)
+                if ((object)AdaptedNamedTypeSymbol.ContainingType != null)
                 {
                     return this;
                 }
@@ -156,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if ((object)this.ContainingType != null &&
-                this.IsDefinition &&
-                this.ContainingModule == moduleBeingBuilt.SourceModule)
+            if ((object)AdaptedNamedTypeSymbol.ContainingType != null &&
+                AdaptedNamedTypeSymbol.IsDefinition &&
+                AdaptedNamedTypeSymbol.ContainingModule == moduleBeingBuilt.SourceModule)
             {
                 return this;
             }
@@ -172,11 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this.IsDefinitionOrDistinct());
 
-                if (!this.IsDefinition &&
-                    (this.Arity == 0 || PEModuleBuilder.IsGenericType(this.ContainingType)))
+                if (!AdaptedNamedTypeSymbol.IsDefinition &&
+                    (AdaptedNamedTypeSymbol.Arity == 0 || PEModuleBuilder.IsGenericType(AdaptedNamedTypeSymbol.ContainingType)))
                 {
-                    Debug.Assert((object)this.ContainingType != null &&
-                            PEModuleBuilder.IsGenericType(this.ContainingType));
+                    Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType != null &&
+                            PEModuleBuilder.IsGenericType(AdaptedNamedTypeSymbol.ContainingType));
                     return this;
                 }
 
@@ -195,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (this.IsDefinition && // can't be generic instantiation
-                this.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
+            if (AdaptedNamedTypeSymbol.IsDefinition && // can't be generic instantiation
+                AdaptedNamedTypeSymbol.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
             {
                 return this;
             }
@@ -274,42 +283,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
-            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol baseType = AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
 
-            if (this.IsScriptClass)
+            if (AdaptedNamedTypeSymbol.IsScriptClass)
             {
                 // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);
-                baseType = this.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
+                baseType = AdaptedNamedTypeSymbol.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
             }
 
             return ((object)baseType != null) ? moduleBeingBuilt.Translate(baseType,
-                                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                                    diagnostics: context.Diagnostics) : null;
         }
 
         IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
         {
             CheckDefinitionInvariant();
-            foreach (IEventDefinition e in GetEventsToEmit())
+            foreach (EventSymbol e in AdaptedNamedTypeSymbol.GetEventsToEmit())
             {
+                IEventDefinition definition = e.GetCciAdapter();
+
                 // If any accessor should be included, then the event should be included too
-                if (e.ShouldInclude(context) || !e.GetAccessors(context).IsEmpty())
+                if (definition.ShouldInclude(context) || !definition.GetAccessors(context).IsEmpty())
                 {
-                    yield return e;
-                }
-            }
-        }
-
-        internal virtual IEnumerable<EventSymbol> GetEventsToEmit()
-        {
-            CheckDefinitionInvariant();
-
-            foreach (var m in this.GetMembers())
-            {
-                if (m.Kind == SymbolKind.Event)
-                {
-                    yield return (EventSymbol)m;
+                    yield return definition;
                 }
             }
         }
@@ -320,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            foreach (var member in this.GetMembers())
+            foreach (var member in AdaptedNamedTypeSymbol.GetMembers())
             {
                 if (member.Kind == SymbolKind.Method)
                 {
@@ -330,67 +328,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var explicitImplementations = method.ExplicitInterfaceImplementations;
                     if (explicitImplementations.Length != 0)
                     {
+                        var adapter = method.GetCciAdapter();
+
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
-                            yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                            yield return new Microsoft.Cci.MethodImplementation(adapter, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                         }
                     }
 
-                    if (this.IsInterface)
+                    if (AdaptedNamedTypeSymbol.IsInterface)
                     {
                         continue;
                     }
 
-                    if (method.RequiresExplicitOverride())
+                    if (method.RequiresExplicitOverride(out _))
                     {
                         // If C# and the runtime don't agree on the overridden method, then 
                         // we will mark the method as newslot (see MethodSymbolAdapter) and
                         // specify the override explicitly.
-                        // This mostly affects accessors - C# ignores method interactions
+                        // This affects accessors - C# ignores method interactions
                         // between accessors and non-accessors, whereas the runtime does not.
-                        yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(method.OverriddenMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                        // It also affects covariant returns - C# ignores the return type in
+                        // determining if one method overrides another, while the runtime considers
+                        // the return type part of the signature.
+                        yield return new Microsoft.Cci.MethodImplementation(method.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(method.OverriddenMethod, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                     }
-                    else if (method.MethodKind == MethodKind.Destructor && this.SpecialType != SpecialType.System_Object)
+                    else if (method.MethodKind == MethodKind.Destructor && AdaptedNamedTypeSymbol.SpecialType != SpecialType.System_Object)
                     {
                         // New in Roslyn: all destructors explicitly override (or are) System.Object.Finalize so that
                         // they are guaranteed to be runtime finalizers.  As a result, it is no longer possible to create
                         // a destructor that will never be invoked by the runtime.
                         // NOTE: If System.Object doesn't contain a destructor, you're on your own - this destructor may
                         // or not be called by the runtime.
-                        TypeSymbol objectType = this.DeclaringCompilation.GetSpecialType(CodeAnalysis.SpecialType.System_Object);
+                        TypeSymbol objectType = AdaptedNamedTypeSymbol.DeclaringCompilation.GetSpecialType(CodeAnalysis.SpecialType.System_Object);
                         foreach (Symbol objectMember in objectType.GetMembers(WellKnownMemberNames.DestructorName))
                         {
                             MethodSymbol objectMethod = objectMember as MethodSymbol;
                             if ((object)objectMethod != null && objectMethod.MethodKind == MethodKind.Destructor)
                             {
-                                yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(objectMethod, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                                yield return new Microsoft.Cci.MethodImplementation(method.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(objectMethod, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                             }
                         }
                     }
                 }
             }
 
-            if (this.IsInterface)
+            if (AdaptedNamedTypeSymbol.IsInterface)
             {
                 yield break;
             }
 
-            var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(this);
+            if (AdaptedNamedTypeSymbol is SourceMemberContainerTypeSymbol container)
+            {
+                foreach ((MethodSymbol body, MethodSymbol implemented) in container.GetSynthesizedExplicitImplementations(cancellationToken: default).MethodImpls)
+                {
+                    Debug.Assert(body.ContainingType == (object)container);
+                    yield return new Microsoft.Cci.MethodImplementation(body.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
+                }
+            }
+
+            var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(AdaptedNamedTypeSymbol);
             if (syntheticMethods != null)
             {
                 foreach (var m in syntheticMethods)
                 {
-                    var method = m as MethodSymbol;
+                    var method = m.GetInternalSymbol() as MethodSymbol;
                     if ((object)method != null)
                     {
                         Debug.Assert((object)method.PartialDefinitionPart == null); // must be definition
 
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
-                            yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                            yield return new Microsoft.Cci.MethodImplementation(m, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                         }
 
-                        Debug.Assert(!method.RequiresExplicitOverride());
+                        Debug.Assert(!method.RequiresExplicitOverride(out _));
                     }
                 }
             }
@@ -401,17 +413,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckDefinitionInvariant();
 
             // All fields in a struct should be emitted
-            bool isStruct = this.IsStructType();
+            bool isStruct = AdaptedNamedTypeSymbol.IsStructType();
 
-            foreach (var f in GetFieldsToEmit())
+            foreach (var f in AdaptedNamedTypeSymbol.GetFieldsToEmit())
             {
-                if (isStruct || f.ShouldInclude(context))
+                Debug.Assert((object)(f.TupleUnderlyingField ?? f) == f);
+                Debug.Assert(!(f is TupleErrorFieldSymbol));
+                if (isStruct || f.GetCciAdapter().ShouldInclude(context))
                 {
-                    yield return f;
+                    yield return f.GetCciAdapter();
                 }
             }
 
-            IEnumerable<Cci.IFieldDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedFields(this);
+            IEnumerable<Cci.IFieldDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedFields(AdaptedNamedTypeSymbol);
 
             if (generated != null)
             {
@@ -425,17 +439,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract IEnumerable<FieldSymbol> GetFieldsToEmit();
-
         IEnumerable<Cci.IGenericTypeParameter> Cci.ITypeDefinition.GenericParameters
         {
             get
             {
                 CheckDefinitionInvariant();
 
-                foreach (var t in this.TypeParameters)
+                foreach (var t in AdaptedNamedTypeSymbol.TypeParameters)
                 {
-                    yield return t;
+                    yield return t.GetCciAdapter();
                 }
             }
         }
@@ -452,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ushort GenericParameterCountImpl
         {
-            get { return (ushort)this.Arity; }
+            get { return (ushort)AdaptedNamedTypeSymbol.Arity; }
         }
 
         IEnumerable<Cci.TypeReferenceWithAttributes> Cci.ITypeDefinition.Interfaces(EmitContext context)
@@ -461,21 +473,461 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            foreach (NamedTypeSymbol @interface in this.GetInterfacesToEmit())
+            foreach (NamedTypeSymbol @interface in AdaptedNamedTypeSymbol.GetInterfacesToEmit())
             {
                 var typeRef = moduleBeingBuilt.Translate(
                     @interface,
-                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
                 var type = TypeWithAnnotations.Create(@interface);
                 yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
-                    declaringSymbol: this,
+                    declaringSymbol: AdaptedNamedTypeSymbol,
                     typeRef);
             }
         }
+
+        bool Cci.ITypeDefinition.IsAbstract
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.IsMetadataAbstract;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsBeforeFieldInit
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+
+                switch (AdaptedNamedTypeSymbol.TypeKind)
+                {
+                    case TypeKind.Enum:
+                    case TypeKind.Delegate:
+                    //C# interfaces don't have fields so the flag doesn't really matter, but Dev10 omits it
+                    case TypeKind.Interface:
+                        return false;
+                }
+
+                //apply the beforefieldinit attribute unless there is an explicitly specified static constructor
+                foreach (var member in AdaptedNamedTypeSymbol.GetMembers(WellKnownMemberNames.StaticConstructorName))
+                {
+                    if (!member.IsImplicitlyDeclared)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsComObject
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.IsComImport;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsGeneric
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.Arity != 0;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsInterface
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.IsInterface;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsDelegate
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.IsDelegateType();
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsRuntimeSpecial
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return false;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsSerializable
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.IsSerializable;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsSpecialName
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.HasSpecialName;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsWindowsRuntimeImport
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.IsWindowsRuntimeImport;
+            }
+        }
+
+        bool Cci.ITypeDefinition.IsSealed
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.IsMetadataSealed;
+            }
+        }
+
+        IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(EmitContext context)
+        {
+            CheckDefinitionInvariant();
+
+            // All constructors in attributes should be emitted.
+            // Don't compute IsAttributeType if IncludePrivateMembers is true, as we'll include it anyway.
+            bool alwaysIncludeConstructors = context.IncludePrivateMembers || AdaptedNamedTypeSymbol.DeclaringCompilation.IsAttributeType(AdaptedNamedTypeSymbol);
+
+            foreach (var method in AdaptedNamedTypeSymbol.GetMethodsToEmit())
+            {
+                Debug.Assert((object)method != null);
+
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.GetCciAdapter().ShouldInclude(context))
+                {
+                    yield return method.GetCciAdapter();
+                }
+            }
+
+            IEnumerable<Cci.IMethodDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedMethods(AdaptedNamedTypeSymbol);
+
+            if (generated != null)
+            {
+                foreach (var m in generated)
+                {
+                    if ((alwaysIncludeConstructors && m.IsConstructor) || m.ShouldInclude(context))
+                    {
+                        yield return m;
+                    }
+                }
+            }
+        }
+
+        IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
+        {
+            CheckDefinitionInvariant();
+
+            foreach (NamedTypeSymbol type in AdaptedNamedTypeSymbol.GetTypeMembers()) // Ordered.
+            {
+                yield return type.GetCciAdapter();
+            }
+
+            IEnumerable<Cci.INestedTypeDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedTypes(AdaptedNamedTypeSymbol);
+
+            if (generated != null)
+            {
+                foreach (var t in generated)
+                {
+                    yield return t;
+                }
+            }
+        }
+
+        IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(EmitContext context)
+        {
+            CheckDefinitionInvariant();
+
+            foreach (PropertySymbol property in AdaptedNamedTypeSymbol.GetPropertiesToEmit())
+            {
+                Debug.Assert((object)property != null);
+                IPropertyDefinition definition = property.GetCciAdapter();
+                // If any accessor should be included, then the property should be included too
+                if (definition.ShouldInclude(context) || !definition.GetAccessors(context).IsEmpty())
+                {
+                    yield return definition;
+                }
+            }
+
+            IEnumerable<Cci.IPropertyDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedProperties(AdaptedNamedTypeSymbol);
+
+            if (generated != null)
+            {
+                foreach (IPropertyDefinition m in generated)
+                {
+                    if (m.ShouldInclude(context) || !m.GetAccessors(context).IsEmpty())
+                    {
+                        yield return m;
+                    }
+                }
+            }
+        }
+
+        bool Cci.ITypeDefinition.HasDeclarativeSecurity
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.HasDeclarativeSecurity;
+            }
+        }
+
+        IEnumerable<Cci.SecurityAttribute> Cci.ITypeDefinition.SecurityAttributes
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.GetSecurityInformation() ?? SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
+            }
+        }
+
+        ushort Cci.ITypeDefinition.Alignment
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                var layout = AdaptedNamedTypeSymbol.Layout;
+                return (ushort)layout.Alignment;
+            }
+        }
+
+        LayoutKind Cci.ITypeDefinition.Layout
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.Layout.Kind;
+            }
+        }
+
+        uint Cci.ITypeDefinition.SizeOf
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return (uint)AdaptedNamedTypeSymbol.Layout.Size;
+            }
+        }
+
+        CharSet Cci.ITypeDefinition.StringFormat
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedNamedTypeSymbol.MarshallingCharSet;
+            }
+        }
+
+        ushort Cci.INamedTypeReference.GenericParameterCount
+        {
+            get { return GenericParameterCountImpl; }
+        }
+
+        bool Cci.INamedTypeReference.MangleName
+        {
+            get
+            {
+                return AdaptedNamedTypeSymbol.MangleName;
+            }
+        }
+
+        string Cci.INamedEntity.Name
+        {
+            get
+            {
+                string unsuffixedName = AdaptedNamedTypeSymbol.Name;
+
+                // CLR generally allows names with dots, however some APIs like IMetaDataImport
+                // can only return full type names combined with namespaces. 
+                // see: http://msdn.microsoft.com/en-us/library/ms230143.aspx (IMetaDataImport::GetTypeDefProps)
+                // When working with such APIs, names with dots become ambiguous since metadata 
+                // consumer cannot figure where namespace ends and actual type name starts.
+                // Therefore it is a good practice to avoid type names with dots.
+                // Exception: The EE copies type names from metadata, which may contain dots already.
+                Debug.Assert(AdaptedNamedTypeSymbol.IsErrorType() ||
+                    !unsuffixedName.Contains(".") ||
+                    AdaptedNamedTypeSymbol.OriginalDefinition is PENamedTypeSymbol, "type name contains dots: " + unsuffixedName);
+
+                return unsuffixedName;
+            }
+        }
+
+        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
+        {
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+
+            Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
+            return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.ContainingModule, context.Diagnostics);
+        }
+
+        string Cci.INamespaceTypeReference.NamespaceName
+        {
+            get
+            {
+                // INamespaceTypeReference is a type contained in a namespace
+                // if this method is called for a nested type, we are in big trouble.
+                Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
+
+                return AdaptedNamedTypeSymbol.ContainingNamespace.QualifiedName;
+            }
+        }
+
+        bool Cci.INamespaceTypeDefinition.IsPublic
+        {
+            get
+            {
+                Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType == null && AdaptedNamedTypeSymbol.ContainingModule is SourceModuleSymbol);
+
+                return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol) == Cci.TypeMemberVisibility.Public;
+            }
+        }
+
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
+        {
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+
+            Debug.Assert(((Cci.ITypeReference)this).AsNestedTypeReference != null);
+
+            Debug.Assert(this.IsDefinitionOrDistinct());
+
+            return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.ContainingType,
+                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
+                                              diagnostics: context.Diagnostics,
+                                              needDeclaration: AdaptedNamedTypeSymbol.IsDefinition);
+        }
+
+        Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
+        {
+            get
+            {
+                Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType != null);
+                CheckDefinitionInvariant();
+
+                return AdaptedNamedTypeSymbol.ContainingType.GetCciAdapter();
+            }
+        }
+
+        Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
+        {
+            get
+            {
+                Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType != null);
+                CheckDefinitionInvariant();
+
+                return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol);
+            }
+        }
+
+        ImmutableArray<Cci.ITypeReference> Cci.IGenericTypeInstanceReference.GetGenericArguments(EmitContext context)
+        {
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+            var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
+            Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
+
+            var arguments = AdaptedNamedTypeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+                var modifiers = arguments[i].CustomModifiers;
+                if (!modifiers.IsDefaultOrEmpty)
+                {
+                    arg = new Cci.ModifiedTypeReference(arg, ImmutableArray<Cci.ICustomModifier>.CastUp(modifiers));
+                }
+
+                builder.Add(arg);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GetGenericType(EmitContext context)
+        {
+            Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
+            return GenericTypeImpl(context);
+        }
+
+        private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
+        {
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+            return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
+                                              diagnostics: context.Diagnostics, needDeclaration: true);
+        }
+
+        Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)
+        {
+            Debug.Assert(((Cci.ITypeReference)this).AsSpecializedNestedTypeReference != null);
+            var result = GenericTypeImpl(context).AsNestedTypeReference;
+
+            Debug.Assert(result != null);
+            return result;
+        }
+    }
+
+    internal partial class NamedTypeSymbol
+    {
+#if DEBUG
+        private NamedTypeSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new NamedTypeSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new NamedTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal NamedTypeSymbol AdaptedNamedTypeSymbol => this;
+
+        internal new NamedTypeSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+
+        internal virtual IEnumerable<EventSymbol> GetEventsToEmit()
+        {
+            CheckDefinitionInvariant();
+
+            foreach (var m in this.GetMembers())
+            {
+                if (m.Kind == SymbolKind.Event)
+                {
+                    yield return (EventSymbol)m;
+                }
+            }
+        }
+
+        internal abstract IEnumerable<FieldSymbol> GetFieldsToEmit();
 
         /// <summary>
         /// Gets the set of interfaces to emit on this type. This set can be different from the set returned by Interfaces property.
@@ -509,22 +961,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (seen == null)
                 {
                     // Don't allocate until we see at least one interface.
-                    seen = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsCLRSignatureComparer);
+                    seen = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.CLRSignature);
                 }
                 if (seen.Add(@interface))
                 {
                     builder.Add(@interface);
                     InterfacesVisit(@interface, builder, ref seen);
                 }
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsAbstract
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return IsMetadataAbstract;
             }
         }
 
@@ -537,139 +980,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Cci.ITypeDefinition.IsBeforeFieldInit
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-
-                switch (this.TypeKind)
-                {
-                    case TypeKind.Enum:
-                    case TypeKind.Delegate:
-                    //C# interfaces don't have fields so the flag doesn't really matter, but Dev10 omits it
-                    case TypeKind.Interface:
-                        return false;
-                }
-
-                //apply the beforefieldinit attribute unless there is an explicitly specified static constructor
-                foreach (var member in GetMembers(WellKnownMemberNames.StaticConstructorName))
-                {
-                    if (!member.IsImplicitlyDeclared)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsComObject
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.IsComImport;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsGeneric
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.Arity != 0;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsInterface
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.IsInterface;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsRuntimeSpecial
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return false;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsSerializable
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.IsSerializable;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsSpecialName
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.HasSpecialName;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsWindowsRuntimeImport
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.IsWindowsRuntimeImport;
-            }
-        }
-
-        bool Cci.ITypeDefinition.IsSealed
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.IsMetadataSealed;
-            }
-        }
-
         internal virtual bool IsMetadataSealed
         {
             get
             {
                 CheckDefinitionInvariant();
                 return this.IsSealed || this.IsStatic;
-            }
-        }
-
-        IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(EmitContext context)
-        {
-            CheckDefinitionInvariant();
-
-            foreach (var method in this.GetMethodsToEmit())
-            {
-                Debug.Assert((object)method != null);
-                if (method.ShouldInclude(context))
-                {
-                    yield return method;
-                }
-            }
-
-            IEnumerable<Cci.IMethodDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedMethods(this);
-
-            if (generated != null)
-            {
-                foreach (var m in generated)
-                {
-                    if (m.ShouldInclude(context))
-                    {
-                        yield return m;
-                    }
-                }
             }
         }
 
@@ -686,69 +1002,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)m;
-
-                    if (method.IsPartialDefinition())
+                    if (method.ShouldEmit())
                     {
-                        // Don't emit partial methods without an implementation part.
-                        if ((object)method.PartialImplementationPart == null)
-                        {
-                            continue;
-                        }
-                    }
-                    // Don't emit the default value type constructor - the runtime handles that
-                    else if (method.IsDefaultValueTypeConstructor())
-                    {
-                        continue;
-                    }
-
-                    yield return method;
-                }
-            }
-        }
-
-        IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
-        {
-            CheckDefinitionInvariant();
-
-            foreach (NamedTypeSymbol type in this.GetTypeMembers()) // Ordered.
-            {
-                yield return type;
-            }
-
-            IEnumerable<Cci.INestedTypeDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedTypes(this);
-
-            if (generated != null)
-            {
-                foreach (var t in generated)
-                {
-                    yield return t;
-                }
-            }
-        }
-
-        IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(EmitContext context)
-        {
-            CheckDefinitionInvariant();
-
-            foreach (IPropertyDefinition property in this.GetPropertiesToEmit())
-            {
-                Debug.Assert((object)property != null);
-                // If any accessor should be included, then the property should be included too
-                if (property.ShouldInclude(context) || !property.GetAccessors(context).IsEmpty())
-                {
-                    yield return property;
-                }
-            }
-
-            IEnumerable<Cci.IPropertyDefinition> generated = ((PEModuleBuilder)context.Module).GetSynthesizedProperties(this);
-
-            if (generated != null)
-            {
-                foreach (IPropertyDefinition m in generated)
-                {
-                    if (m.ShouldInclude(context) || !m.GetAccessors(context).IsEmpty())
-                    {
-                        yield return m;
+                        yield return method;
                     }
                 }
             }
@@ -766,205 +1022,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-
-        bool Cci.ITypeDefinition.HasDeclarativeSecurity
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.HasDeclarativeSecurity;
-            }
-        }
-
-        IEnumerable<Cci.SecurityAttribute> Cci.ITypeDefinition.SecurityAttributes
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.GetSecurityInformation() ?? SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
-            }
-        }
-
-        ushort Cci.ITypeDefinition.Alignment
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                var layout = this.Layout;
-                return (ushort)layout.Alignment;
-            }
-        }
-
-        LayoutKind Cci.ITypeDefinition.Layout
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.Layout.Kind;
-            }
-        }
-
-        uint Cci.ITypeDefinition.SizeOf
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return (uint)this.Layout.Size;
-            }
-        }
-
-        CharSet Cci.ITypeDefinition.StringFormat
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.MarshallingCharSet;
-            }
-        }
-
-        ushort Cci.INamedTypeReference.GenericParameterCount
-        {
-            get { return GenericParameterCountImpl; }
-        }
-
-        bool Cci.INamedTypeReference.MangleName
-        {
-            get
-            {
-                return MangleName;
-            }
-        }
-
-        string Cci.INamedEntity.Name
-        {
-            get
-            {
-                string unsuffixedName = this.Name;
-
-                // CLR generally allows names with dots, however some APIs like IMetaDataImport
-                // can only return full type names combined with namespaces. 
-                // see: http://msdn.microsoft.com/en-us/library/ms230143.aspx (IMetaDataImport::GetTypeDefProps)
-                // When working with such APIs, names with dots become ambiguous since metadata 
-                // consumer cannot figure where namespace ends and actual type name starts.
-                // Therefore it is a good practice to avoid type names with dots.
-                // Exception: The EE copies type names from metadata, which may contain dots already.
-                Debug.Assert(this.IsErrorType() ||
-                    !unsuffixedName.Contains(".") ||
-                    this.OriginalDefinition is PENamedTypeSymbol, "type name contains dots: " + unsuffixedName);
-
-                return unsuffixedName;
-            }
-        }
-
-        Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
-        {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-
-            Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
-            return moduleBeingBuilt.Translate(this.ContainingModule, context.Diagnostics);
-        }
-
-        string Cci.INamespaceTypeReference.NamespaceName
-        {
-            get
-            {
-                // INamespaceTypeReference is a type contained in a namespace
-                // if this method is called for a nested type, we are in big trouble.
-                Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
-
-                return this.ContainingNamespace.QualifiedName;
-            }
-        }
-
-        bool Cci.INamespaceTypeDefinition.IsPublic
-        {
-            get
-            {
-                Debug.Assert((object)this.ContainingType == null && this.ContainingModule is SourceModuleSymbol);
-
-                return PEModuleBuilder.MemberVisibility(this) == Cci.TypeMemberVisibility.Public;
-            }
-        }
-
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
-        {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-
-            Debug.Assert(((Cci.ITypeReference)this).AsNestedTypeReference != null);
-
-            Debug.Assert(this.IsDefinitionOrDistinct());
-
-            return moduleBeingBuilt.Translate(this.ContainingType,
-                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                              diagnostics: context.Diagnostics,
-                                              needDeclaration: this.IsDefinition);
-        }
-
-        Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
-        {
-            get
-            {
-                Debug.Assert((object)this.ContainingType != null);
-                CheckDefinitionInvariant();
-
-                return this.ContainingType;
-            }
-        }
-
-        Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
-        {
-            get
-            {
-                Debug.Assert((object)this.ContainingType != null);
-                CheckDefinitionInvariant();
-
-                return PEModuleBuilder.MemberVisibility(this);
-            }
-        }
-
-        ImmutableArray<Cci.ITypeReference> Cci.IGenericTypeInstanceReference.GetGenericArguments(EmitContext context)
-        {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
-            Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
-
-            var arguments = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
-                var modifiers = arguments[i].CustomModifiers;
-                if (!modifiers.IsDefaultOrEmpty)
-                {
-                    arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
-                }
-
-                builder.Add(arg);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GetGenericType(EmitContext context)
-        {
-            Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
-            return GenericTypeImpl(context);
-        }
-
-        private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
-        {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                              diagnostics: context.Diagnostics, needDeclaration: true);
-        }
-
-        Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)
-        {
-            Debug.Assert(((Cci.ITypeReference)this).AsSpecializedNestedTypeReference != null);
-            var result = GenericTypeImpl(context).AsNestedTypeReference;
-
-            Debug.Assert(result != null);
-            return result;
-        }
     }
+
+#if DEBUG
+    internal partial class NamedTypeSymbolAdapter
+    {
+        internal NamedTypeSymbolAdapter(NamedTypeSymbol underlyingNamedTypeSymbol)
+        {
+            AdaptedNamedTypeSymbol = underlyingNamedTypeSymbol;
+
+            if (underlyingNamedTypeSymbol is NativeIntegerTypeSymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedNamedTypeSymbol;
+        internal NamedTypeSymbol AdaptedNamedTypeSymbol { get; }
+    }
+#endif
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -15,7 +17,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Private Class TempPEProject
             Implements IVbCompilerProject
 
-            Private ReadOnly _tempPECompiler As TempPECompiler
             Private ReadOnly _compilerHost As IVbCompilerHost
             Private ReadOnly _references As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
             Private ReadOnly _files As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
@@ -25,8 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Private _outputPath As String
             Private _runtimeLibraries As ImmutableArray(Of String)
 
-            Public Sub New(tempPECompiler As TempPECompiler, compilerHost As IVbCompilerHost)
-                _tempPECompiler = tempPECompiler
+            Public Sub New(compilerHost As IVbCompilerHost)
                 _compilerHost = compilerHost
             End Sub
 

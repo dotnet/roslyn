@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 
@@ -12,13 +16,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// via the AddIdentifier and RemoveIdentifier helpers.
         /// </summary>
         private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope;
-        private readonly HashSet<SyntaxToken> _conflictingTokensToReport;
+        private readonly HashSet<SyntaxToken> _conflictingTokensToReport = new();
         private readonly SyntaxToken _tokenBeingRenamed;
 
         public ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed, IEqualityComparer<string> identifierComparer)
         {
             _currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
-            _conflictingTokensToReport = new HashSet<SyntaxToken>();
             _tokenBeingRenamed = tokenBeingRenamed;
         }
 

@@ -1,14 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
@@ -46,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             _supportedDiagnostics = CreateSupportedDiagnostics();
         }
 
-        static public ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics()
+        public static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics()
         {
             // We are constructing our own descriptors at run-time. Compiler service is already doing error formatting and localization.
             var dummyDescriptors = ImmutableArray.CreateBuilder<DiagnosticDescriptor>();
@@ -56,6 +63,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             }
             return dummyDescriptors.ToImmutable();
         }
+
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
         public override int Priority => 10; // Default = 50
 
@@ -88,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
 
-        public bool OpenFileOnly(Workspace workspace)
+        public bool OpenFileOnly(SimplifierOptions options)
         {
             return true;
         }

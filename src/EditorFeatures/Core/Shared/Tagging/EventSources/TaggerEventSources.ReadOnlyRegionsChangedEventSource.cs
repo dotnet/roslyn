@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
@@ -12,28 +14,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             private readonly ITextBuffer _subjectBuffer;
 
-            public ReadOnlyRegionsChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(delay)
+            public ReadOnlyRegionsChangedEventSource(ITextBuffer subjectBuffer)
             {
                 Contract.ThrowIfNull(subjectBuffer);
-
                 _subjectBuffer = subjectBuffer;
             }
 
             public override void Connect()
-            {
-                _subjectBuffer.ReadOnlyRegionsChanged += OnReadOnlyRegionsChanged;
-            }
+                => _subjectBuffer.ReadOnlyRegionsChanged += OnReadOnlyRegionsChanged;
 
             public override void Disconnect()
-            {
-                _subjectBuffer.ReadOnlyRegionsChanged -= OnReadOnlyRegionsChanged;
-            }
+                => _subjectBuffer.ReadOnlyRegionsChanged -= OnReadOnlyRegionsChanged;
 
-            private void OnReadOnlyRegionsChanged(object sender, SnapshotSpanEventArgs e)
-            {
-                this.RaiseChanged();
-            }
+            private void OnReadOnlyRegionsChanged(object? sender, SnapshotSpanEventArgs e)
+                => this.RaiseChanged();
         }
     }
 }

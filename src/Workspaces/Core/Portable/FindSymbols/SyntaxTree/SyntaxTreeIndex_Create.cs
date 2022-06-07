@@ -1,12 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,21 +19,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
-    {
-        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
-    }
 
     internal sealed partial class SyntaxTreeIndex
     {
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
-        public static readonly ObjectPool<HashSet<string>> StringLiteralHashSetPool =
-            new ObjectPool<HashSet<string>>(() => new HashSet<string>(), 20);
-
-        public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool =
-            new ObjectPool<HashSet<long>>(() => new HashSet<long>(), 20);
+        public static readonly ObjectPool<HashSet<string>> StringLiteralHashSetPool = SharedPools.Default<HashSet<string>>();
+        public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool = SharedPools.Default<HashSet<long>>();
 
         /// <summary>
         /// String interning table so that we can share many more strings in our DeclaredSymbolInfo
@@ -41,24 +37,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this string table.  The table will have already served its purpose at that point and 
         /// doesn't need to be kept around further.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
-            new ConditionalWeakTable<Project, StringTable>();
+        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
 
-        private static async Task<SyntaxTreeIndex> CreateIndexAsync(
-            Document document, Checksum checksum, CancellationToken cancellationToken)
+        private static SyntaxTreeIndex CreateIndex(
+            Document document, SyntaxNode root, Checksum checksum, CancellationToken _)
         {
-            var project = document.Project;
-            var stringTable = GetStringTable(project);
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var infoFactory = document.GetLanguageService<IDeclaredSymbolInfoFactoryService>();
-            var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
             GetIdentifierSet(ignoreCase, out var identifiers, out var escapedIdentifiers);
 
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
+
+            HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             try
             {
@@ -73,21 +66,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsDeconstruction = false;
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
+                var containsImplicitObjectCreation = false;
+                var containsGlobalSuppressMessageAttribute = false;
+                var containsConversion = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
 
-                var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
-
                 if (syntaxFacts != null)
                 {
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
                     foreach (var current in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
                     {
                         if (current.IsNode)
                         {
-                            var node = (SyntaxNode)current;
+                            var node = current.AsNode();
+                            Contract.ThrowIfNull(node);
 
                             containsForEachStatement = containsForEachStatement || syntaxFacts.IsForEachStatement(node);
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
@@ -102,33 +95,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
+                            containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
+                            containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
+                            containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
 
-                            // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
-                            // crash because the document's syntax root doesn't contain the span of the node returned
-                            // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
-                            //   1) syntaxFacts.TryGetDeclaredSymbolInfo() is returning a bad span, or
-                            //   2) Document.GetSyntaxRootAsync() (called from DeclaredSymbolInfo.GetSymbolAsync) is
-                            //      returning a bad syntax root that doesn't represent the original parsed document.
-                            // By adding the `root.FullSpan.Contains()` check below, if we get similar crash reports in
-                            // the future then we know the problem lies in (2).  If, however, the problem is really in
-                            // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
-                            // and will prevent the crash from occurring.
-                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, out var declaredSymbolInfo))
-                            {
-                                if (root.FullSpan.Contains(declaredSymbolInfo.Span))
-                                {
-                                    declaredSymbolInfos.Add(declaredSymbolInfo);
-                                }
-                                else
-                                {
-                                    var message =
-$@"Invalid span in {nameof(declaredSymbolInfo)}.
-{nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
-{nameof(root.FullSpan)} = {root.FullSpan}";
-
-                                    FatalError.ReportWithoutCrash(new InvalidOperationException(message));
-                                }
-                            }
+                            TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
                         else
                         {
@@ -166,7 +137,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                             if (syntaxFacts.IsCharacterLiteral(token))
                             {
-                                longLiterals.Add((char)token.Value);
+                                longLiterals.Add((char)token.Value!);
                             }
 
                             if (syntaxFacts.IsNumericLiteral(token))
@@ -212,9 +183,11 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsIndexerMemberCref,
                             containsDeconstruction,
                             containsAwait,
-                            containsTupleExpressionOrTupleType),
-                    new DeclarationInfo(
-                            declaredSymbolInfos.ToImmutableAndFree()));
+                            containsTupleExpressionOrTupleType,
+                            containsImplicitObjectCreation,
+                            containsGlobalSuppressMessageAttribute,
+                            containsConversion),
+                    globalAliasInfo);
             }
             finally
             {
@@ -224,8 +197,59 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             }
         }
 
-        private static StringTable GetStringTable(Project project)
-            => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
+        private static bool IsGlobalSuppressMessageAttribute(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            if (!syntaxFacts.IsGlobalAttribute(node))
+                return false;
+
+            var name = syntaxFacts.GetNameOfAttribute(node);
+            if (syntaxFacts.IsQualifiedName(name))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(name, out _, out _, out var right);
+                name = right;
+            }
+
+            if (!syntaxFacts.IsIdentifierName(name))
+                return false;
+
+            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(name);
+            var identifierName = identifier.ValueText;
+
+            return
+                syntaxFacts.StringComparer.Equals(identifierName, "SuppressMessage") ||
+                syntaxFacts.StringComparer.Equals(identifierName, nameof(SuppressMessageAttribute));
+        }
+
+        private static void TryAddGlobalAliasInfo(
+            ISyntaxFactsService syntaxFacts,
+            ref HashSet<(string alias, string name, int arity)>? globalAliasInfo,
+            SyntaxNode node)
+        {
+            if (!syntaxFacts.IsUsingAliasDirective(node))
+                return;
+
+            syntaxFacts.GetPartsOfUsingAliasDirective(node, out var globalToken, out var alias, out var usingTarget);
+            if (globalToken.IsMissing)
+                return;
+
+            // if we have `global using X = Y.Z` then walk down the rhs to pull out 'Z'.
+            if (syntaxFacts.IsQualifiedName(usingTarget))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(usingTarget, out _, out _, out var right);
+                usingTarget = right;
+            }
+
+            // We'll have either `= ...X` or `= ...X<A, B, C>` now.  Pull out the name and arity to put in the index.
+            if (syntaxFacts.IsSimpleName(usingTarget))
+            {
+                syntaxFacts.GetNameAndArityOfSimpleName(usingTarget, out var name, out var arity);
+                globalAliasInfo ??= new();
+                globalAliasInfo.Add((alias.ValueText, name, arity));
+            }
+        }
+
+        public static StringTable GetStringTable(Project project)
+            => s_projectStringTable.GetValue(project, static _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
         {

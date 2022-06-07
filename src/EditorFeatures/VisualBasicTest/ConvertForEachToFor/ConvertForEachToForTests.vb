@@ -1,5 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -14,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFo
             Return New VisualBasicConvertForEachToForCodeRefactoringProvider()
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function EmptyBlockBody() As Task
             Dim initial = "
@@ -31,6 +33,7 @@ Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -202,6 +205,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Comment7() As Task
             Dim initial = "
@@ -220,6 +224,7 @@ Class Test
         ' test
         Dim {|Rename:array|} = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -227,6 +232,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function TestCommentsLiveBetweenForEachAndArrayDeclaration() As Task
             Dim initial = "
@@ -244,6 +250,7 @@ Class Test
     Sub Method()
         Dim {|Rename:array|} = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -251,7 +258,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, Expected)
         End Function
 
-
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function CommentNotSupportedCommentsAfterLineContinuation() As Task
             Dim initial = "
@@ -270,6 +277,7 @@ Class Test
     Sub Method()
         Dim {|Rename:array|} = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -278,6 +286,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function LineContinuation() As Task
             Dim initial = "
@@ -296,6 +305,7 @@ Class Test
     Sub Method()
         Dim {|Rename:array|} = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -303,6 +313,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function CollectionStatement() As Task
             Dim initial = "
@@ -319,6 +330,7 @@ Class Test
     Sub Method()
         Dim {|Rename:array|} = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -472,6 +484,7 @@ End Class
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function TestBefore() As Task
@@ -490,6 +503,7 @@ Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -497,6 +511,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function TestAfter() As Task
@@ -514,7 +529,8 @@ End Class
 Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
-        For {|Rename:i|} = 0 To array.Length - 1 
+        For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -522,6 +538,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function TestSelection() As Task
@@ -540,6 +557,7 @@ Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next
     End Sub
 End Class
@@ -547,6 +565,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function Field() As Task
             Dim initial = "
@@ -566,6 +585,7 @@ Class Test
 
     Sub Method()
         For {|Rename:i|} = 0 To list.Length - 1
+            Dim a = list(i)
         Next
     End Sub
 End Class
@@ -573,6 +593,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function [Interface]() As Task
             Dim initial = "
@@ -594,6 +615,7 @@ Class Test
     Sub Method()
         Dim list = DirectCast(New Integer() {1, 2, 3}, IList(Of Integer))
         For {|Rename:i|} = 0 To list.Count - 1
+            Dim a = list(i)
         Next
     End Sub
 End Class
@@ -730,6 +752,7 @@ End Class"
             Await TestMissingInRegularAndScriptAsync(initial)
         End Function
 
+        <WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function KeepNext() As Task
             Dim initial = "
@@ -746,6 +769,7 @@ Class Test
     Sub Method()
         Dim {|Rename:array|} = New Integer() {1, 2, 3}
         For {|Rename:i|} = 0 To array.Length - 1
+            Dim a = array(i)
         Next i
     End Sub
 End Class

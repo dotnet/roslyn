@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         where TEmbeddedTypesManager : EmbeddedTypesManager<TPEModuleBuilder, TModuleCompilationState, TEmbeddedTypesManager, TSyntaxNode, TAttributeData, TSymbol, TAssemblySymbol, TNamedTypeSymbol, TFieldSymbol, TMethodSymbol, TEventSymbol, TPropertySymbol, TParameterSymbol, TTypeParameterSymbol, TEmbeddedType, TEmbeddedField, TEmbeddedMethod, TEmbeddedEvent, TEmbeddedProperty, TEmbeddedParameter, TEmbeddedTypeParameter>
         where TSyntaxNode : SyntaxNode
         where TAttributeData : AttributeData, Cci.ICustomAttribute
-        where TAssemblySymbol : class, TSymbol
+        where TAssemblySymbol : class
         where TNamedTypeSymbol : class, TSymbol, Cci.INamespaceTypeReference
         where TFieldSymbol : class, TSymbol, Cci.IFieldReference
         where TMethodSymbol : class, TSymbol, Cci.IMethodReference

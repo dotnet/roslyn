@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -26,7 +27,7 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = SignatureCallingConvention.CDecl,
+        CDecl = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
@@ -54,6 +55,12 @@ namespace Microsoft.Cci
         ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
+        /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
+        /// in IL, or platform default if none are present
+        /// </summary>
+        Unmanaged = SignatureCallingConvention.Unmanaged,
+
+        /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
         Generic = SignatureAttributes.Generic,
@@ -66,7 +73,54 @@ namespace Microsoft.Cci
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = SignatureAttributes.ExplicitThis
+        ExplicitThis = SignatureAttributes.ExplicitThis,
+    }
+
+    internal static class CallingConventionUtils
+    {
+        private const SignatureCallingConvention SignatureCallingConventionMask =
+            SignatureCallingConvention.Default
+            | SignatureCallingConvention.CDecl
+            | SignatureCallingConvention.StdCall
+            | SignatureCallingConvention.ThisCall
+            | SignatureCallingConvention.FastCall
+            | SignatureCallingConvention.VarArgs
+            | SignatureCallingConvention.Unmanaged;
+
+        private const SignatureAttributes SignatureAttributesMask =
+            SignatureAttributes.Generic
+            | SignatureAttributes.Instance
+            | SignatureAttributes.ExplicitThis;
+
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention)
+        {
+            if (!convention.IsValid())
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
+            return (CallingConvention)(convention & SignatureCallingConventionMask);
+        }
+
+        internal static bool IsValid(this SignatureCallingConvention convention)
+            => convention <= SignatureCallingConvention.VarArgs || convention == SignatureCallingConvention.Unmanaged;
+
+        internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
+            => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
+
+        /// <summary>
+        /// Compares calling conventions, ignoring calling convention attributes.
+        /// </summary>
+        internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
+        {
+            Debug.Assert((compare & ~(CallingConvention)SignatureCallingConventionMask) == 0);
+            return ((original & (CallingConvention)SignatureCallingConventionMask)) == compare;
+        }
+
+        internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
+            => (convention & ~((CallingConvention)SignatureCallingConventionMask
+                               | (CallingConvention)SignatureAttributesMask))
+               != 0;
     }
 
     /// <summary>
@@ -329,7 +383,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// True if the locals are initialized by zeroing the stack upon method entry.
         /// </summary>
-        bool LocalsAreZeroed { get; }
+        bool AreLocalsZeroed { get; }
+
+        /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        bool HasStackalloc { get; }
 
         /// <summary>
         /// The local variables of the method.
@@ -412,10 +471,11 @@ namespace Microsoft.Cci
         /// Returns types of awaiter slots allocated on the state machine,
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
-        ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
+        ImmutableArray<ITypeReference?> StateMachineAwaiterSlots { get; }
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+        StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
 
         DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
     }
@@ -441,12 +501,6 @@ namespace Microsoft.Cci
             get;
             // ^ requires this.IsGeneric;
         }
-
-        /// <summary>
-        /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
-        bool IsImplicitlyDeclared { get; }
 
         /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.
@@ -939,15 +993,36 @@ namespace Microsoft.Cci
                 return true;
             }
 
+            bool acceptBasedOnVisibility = true;
+
             switch (member.Visibility)
             {
                 case TypeMemberVisibility.Private:
-                    return context.IncludePrivateMembers;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers;
+                    break;
                 case TypeMemberVisibility.Assembly:
                 case TypeMemberVisibility.FamilyAndAssembly:
-                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    acceptBasedOnVisibility = context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+                    break;
             }
-            return true;
+
+            if (acceptBasedOnVisibility)
+            {
+                return true;
+            }
+
+            if (method?.IsStatic == true)
+            {
+                foreach (var methodImplementation in method.ContainingTypeDefinition.GetExplicitImplementationOverrides(context))
+                {
+                    if (methodImplementation.ImplementingMethod == method)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <param name="text">The text of the tag or attribute.</param>
         /// <param name="leading">The leading trivia of the token.</param>
         /// <returns>The SyntaxToken representing the well-known tag or attribute or null if it's not well-known.</returns>
-        public static SyntaxToken LookupToken(string text, SyntaxListBuilder leading)
+        public static SyntaxToken? LookupToken(string text, SyntaxListBuilder? leading)
         {
             if (leading == null)
             {
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return null;
         }
 
-        private static SyntaxToken LookupXmlElementTag(string text)
+        private static SyntaxToken? LookupXmlElementTag(string text)
         {
             switch (text.Length)
             {
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return null;
         }
 
-        private static SyntaxToken LookupXmlAttribute(string text)
+        private static SyntaxToken? LookupXmlAttribute(string text)
         {
             // It happens that all tokens have text of length 4
             if (text.Length != 4)

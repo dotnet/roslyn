@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -18,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal readonly OptionStore OptionStore;
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
 
-        public AbstractOptionPageControl(OptionStore optionStore)
+        protected AbstractOptionPageControl(OptionStore optionStore)
         {
             InitializeStyles();
 
@@ -52,9 +57,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
             radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(RadioButton), radioButtonStyle);
+
+            var comboBoxStyle = new System.Windows.Style(typeof(ComboBox));
+            comboBoxStyle.Setters.Add(new Setter(ComboBox.MarginProperty, new Thickness() { Bottom = 7 }));
+            comboBoxStyle.Setters.Add(new Setter(ComboBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            Resources.Add(typeof(ComboBox), comboBoxStyle);
         }
 
-        protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
+        private protected void BindToOption(CheckBox checkbox, Option2<bool> optionKey)
         {
             var binding = new Binding()
             {
@@ -67,37 +77,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(CheckBox checkbox, Option<int> optionKey)
+        private protected void BindToOption(CheckBox checkbox, Option2<bool?> nullableOptionKey, Func<bool> onNullValue)
         {
             var binding = new Binding()
             {
-                Source = new OptionBinding<int>(OptionStore, optionKey),
+                Source = new OptionBinding<bool?>(OptionStore, nullableOptionKey),
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new CheckBoxCheckedToIntConverter(),
+                Converter = new NullableBoolOptionConverter(onNullValue)
             };
 
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindTristateToOption(CheckBox checkbox, Option<int> optionKey)
-        {
-            Debug.Assert(checkbox.IsThreeState);
-
-            var binding = new Binding()
-            {
-                Source = new OptionBinding<int>(OptionStore, optionKey),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default,
-                Converter = new CheckBoxTristateCheckedToIntConverter(),
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
-        protected void BindToOption(CheckBox checkbox, PerLanguageOption<bool> optionKey, string languageName)
+        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -110,7 +104,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(TextBox textBox, Option<int> optionKey)
+        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool?> nullableOptionKey, string languageName, Func<bool> onNullValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new PerLanguageOptionBinding<bool?>(OptionStore, nullableOptionKey, languageName),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new NullableBoolOptionConverter(onNullValue)
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption(TextBox textBox, Option2<int> optionKey)
         {
             var binding = new Binding()
             {
@@ -123,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(TextBox textBox, PerLanguageOption<int> optionKey, string languageName)
+        private protected void BindToOption(TextBox textBox, PerLanguageOption2<int> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -136,7 +144,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption<T> optionKey, T optionValue, string languageName)
+        private protected void BindToOption<T>(ComboBox comboBox, Option2<T> optionKey)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<T>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                Converter = new ComboBoxItemTagToIndexConverter(),
+                ConverterParameter = comboBox
+            };
+
+            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName)
+        {
+            var binding = new Binding()
+            {
+                Source = new PerLanguageOptionBinding<T>(OptionStore, optionKey, languageName),
+                Path = new PropertyPath("Value"),
+                Converter = new ComboBoxItemTagToIndexConverter(),
+                ConverterParameter = comboBox
+            };
+
+            var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
             {
@@ -148,21 +184,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             };
 
             var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
-            _bindingExpressions.Add(bindingExpression);
-        }
-
-        protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
-        {
-            checkbox.Visibility = Visibility.Visible;
-
-            var binding = new Binding()
-            {
-                Source = new FullSolutionAnalysisOptionBinding(OptionStore, languageName),
-                Path = new PropertyPath("Value"),
-                UpdateSourceTrigger = UpdateSourceTrigger.Default
-            };
-
-            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
         }
 
@@ -198,41 +219,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class CheckBoxCheckedToIntConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
-        {
-            return !value.Equals(-1);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
-        {
-            return value.Equals(true) ? 1 : -1;
-        }
-    }
-
-    public class CheckBoxTristateCheckedToIntConverter : IValueConverter
+    public class ComboBoxItemTagToIndexConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null || value.Equals(0))
+            var comboBox = (ComboBox)parameter;
+
+            for (var index = 0; index < comboBox.Items.Count; index++)
             {
-                return null;
+                var item = (ComboBoxItem)comboBox.Items[index];
+                if (item.Tag.Equals(value))
+                {
+                    return index;
+                }
             }
 
-            return !value.Equals(-1);
+            return -1;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null)
+            var index = (int)value;
+            if (index == -1)
             {
-                return 0;
+                return null;
             }
 
-            return value.Equals(true) ? 1 : -1;
+            var comboBox = (ComboBox)parameter;
+            var item = (ComboBoxItem)comboBox.Items[index];
+            return item.Tag;
         }
     }
 }

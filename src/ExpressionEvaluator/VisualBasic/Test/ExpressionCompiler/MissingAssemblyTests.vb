@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -279,12 +281,10 @@ End Class
                     actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage.Additional"}, globalNamespace).Single()
                     Assert.Equal(expectedIdentity, actualIdentity)
 
-
                     expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=AssemblyContentType.WindowsRuntime)
 
                     actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
                     Assert.Equal(expectedIdentity, actualIdentity)
-
 
                     Assert.True(GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml(Of T)"}, globalNamespace).IsDefault)
                 End Sub)
@@ -612,8 +612,8 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (x As Integer, Integer) V_1, //y
-                (Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer) V_1, //y
+                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
@@ -637,8 +637,8 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (x As Integer, Integer) V_1, //y
-                (Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer) V_1, //y
+                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }", LanguageVersion.VisualBasic15_3)
@@ -663,8 +663,8 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (x As Integer, Integer) V_1, //y
-                (Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer) V_1, //y
+                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")

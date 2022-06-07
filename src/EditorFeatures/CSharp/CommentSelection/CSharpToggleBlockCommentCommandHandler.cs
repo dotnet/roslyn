@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,8 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -22,16 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
-    internal class CSharpToggleBlockCommentCommandHandler :
+    internal sealed class CSharpToggleBlockCommentCommandHandler :
         ToggleBlockCommentCommandHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal CSharpToggleBlockCommentCommandHandler(
+        public CSharpToggleBlockCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextStructureNavigatorSelectorService navigatorSelectorService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService)
+            ITextStructureNavigatorSelectorService navigatorSelectorService,
+            IGlobalOptionService globalOptions)
+            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, globalOptions)
         {
         }
 
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         protected override async Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             // Only search for block comments intersecting the lines in the selections.
             return root.DescendantTrivia(linesContainingSelections)
                 .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))

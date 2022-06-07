@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -16,9 +21,13 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         WrittenReference,
     }
 
+    [DataContract]
     internal readonly struct HighlightSpan
     {
+        [DataMember(Order = 0)]
         public TextSpan TextSpan { get; }
+
+        [DataMember(Order = 1)]
         public HighlightSpanKind Kind { get; }
 
         public HighlightSpan(TextSpan textSpan, HighlightSpanKind kind) : this()
@@ -47,6 +56,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal interface IDocumentHighlightsService : ILanguageService
     {
         Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken);
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
     }
 }

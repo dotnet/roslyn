@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [MemberData(nameof(ExternalPdbFormats))]
         public void MethodExtents(DebugInformationFormat format)
         {
-            var source0 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
+            var source0 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
 using System;
 
 public class C
@@ -48,9 +52,9 @@ public class C
         }</N:1>;
     }
 }                              
-"), fileName: @"C:\Enc1.cs");
+", fileName: @"C:\Enc1.cs");
 
-            var source1 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
+            var source1 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
 using System;
 
 public class C
@@ -79,9 +83,9 @@ public class C
 
     int E() => 1;
 }
-"), fileName: @"C:\Enc1.cs");
+", fileName: @"C:\Enc1.cs");
 
-            var source2 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
+            var source2 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
 using System;
 
 public class C
@@ -112,7 +116,7 @@ public class C
 
     int B() => 4;
 }
-"), fileName: @"C:\Enc1.cs");
+", fileName: @"C:\Enc1.cs");
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
             var compilation1 = compilation0.WithSource(source1.Tree);
@@ -144,8 +148,8 @@ public class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -264,10 +268,10 @@ public class C
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Insert, null, b2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, b2)));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",

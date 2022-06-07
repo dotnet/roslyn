@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -136,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("if (e is int? x) {}",
                 // (1,16): error CS1003: Syntax error, ':' expected
                 // if (e is int? x) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(1, 16),
                 // (1,16): error CS1525: Invalid expression term ')'
                 // if (e is int? x) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 16)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
-        public BasicExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicExtractInterfaceDialog))
+        public BasicExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicExtractInterfaceDialog))
         {
         }
 
@@ -32,7 +34,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -66,7 +68,7 @@ End Interface");
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -87,7 +89,7 @@ End Class");
     End Sub
 End Class");
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -98,7 +100,7 @@ End Class");
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"Interface IC
     Sub M()
 End Interface
@@ -122,7 +124,7 @@ End Class");
 End Class");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -157,7 +159,7 @@ End Class");
 End Namespace");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudio.Editor.Verify.CodeAction("Extract interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -168,7 +170,7 @@ End Namespace");
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            var project = new ProjectUtils.Project(ProjectName);
+            _ = new ProjectUtils.Project(ProjectName);
             VisualStudio.Editor.Verify.TextContains(@"Namespace A
     Interface IC
         Sub M()

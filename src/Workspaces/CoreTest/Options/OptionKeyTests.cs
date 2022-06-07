@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
@@ -8,9 +11,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Options
     public class OptionKeyTests
     {
         [Fact]
-        public void ToStringForOption()
+        [Obsolete]
+        public void ToStringForObsoleteOption()
         {
             var option = new Option<bool>("FooFeature", "BarName");
+            var optionKey = new OptionKey(option);
+
+            var toStringResult = optionKey.ToString();
+
+            Assert.Equal("FooFeature - BarName", toStringResult);
+        }
+
+        [Fact]
+        public void ToStringForOption()
+        {
+            var option = new Option<bool>("FooFeature", "BarName", false);
             var optionKey = new OptionKey(option);
 
             var toStringResult = optionKey.ToString();
@@ -31,9 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Options
         [Fact]
         public void ToStringForDefaultOption()
         {
+            // Verify ToString works gracefully for default option key.
             var optionKey = default(OptionKey);
             var toStringResult = optionKey.ToString();
             Assert.Equal("", toStringResult);
+
+            // Also verify GetHashCode does not throw.
+            _ = optionKey.GetHashCode();
         }
     }
 }

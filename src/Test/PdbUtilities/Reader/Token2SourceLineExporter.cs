@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +16,6 @@ namespace Roslyn.Test.PdbUtilities
     {
         // NOTE: this type implementation is essentially an extraction from PdbReader 
         //       located under ndp\clr\src\ToolBox\CCI2\PdbReader folder
-
 
         private class PdbSource
         {
@@ -320,7 +323,8 @@ namespace Roslyn.Test.PdbUtilities
             internal bool IsSet(int index)
             {
                 int word = index / 32;
-                if (word >= _size) return false;
+                if (word >= _size)
+                    return false;
                 return ((_words[word] & GetBit(index)) != 0);
             }
 
@@ -368,7 +372,7 @@ namespace Roslyn.Test.PdbUtilities
 
             // The hash table data.
             // This cannot be serialized
-            private struct bucket
+            private struct @bucket
             {
                 internal int key;
                 internal int hash_coll;   // Store hash code; sign bit means there was a collision.
@@ -400,7 +404,7 @@ namespace Roslyn.Test.PdbUtilities
             {
                 if (capacity < 0)
                     throw new ArgumentOutOfRangeException(nameof(capacity), "ArgumentOutOfRange_NeedNonNegNum");
-                if (!(loadFactorPerc >= 10 && loadFactorPerc <= 100))
+                if (loadFactorPerc is not (>= 10 and <= 100))
                     throw new ArgumentOutOfRangeException(nameof(loadFactorPerc), "ArgumentOutOfRange_IntHashTableLoadFactor");
 
                 // Based on perf work, .72 is the optimal load factor for this table.
@@ -1125,7 +1129,7 @@ namespace Roslyn.Test.PdbUtilities
         {
         }
 
-        private static XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
+        private static readonly XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {
             Encoding = Encoding.UTF8,
             Indent = true,
@@ -1146,13 +1150,17 @@ namespace Roslyn.Test.PdbUtilities
                     (x, y) =>
                     {
                         int result = x.line.CompareTo(y.line);
-                        if (result != 0) return result;
+                        if (result != 0)
+                            return result;
                         result = x.column.CompareTo(y.column);
-                        if (result != 0) return result;
+                        if (result != 0)
+                            return result;
                         result = x.endLine.CompareTo(y.endLine);
-                        if (result != 0) return result;
+                        if (result != 0)
+                            return result;
                         result = x.endColumn.CompareTo(y.endColumn);
-                        if (result != 0) return result;
+                        if (result != 0)
+                            return result;
                         return x.token.CompareTo(y.token);
                     });
 
@@ -1179,7 +1187,8 @@ namespace Roslyn.Test.PdbUtilities
         private static string Token2String(uint token, bool maskToken)
         {
             string result = token.ToString("X8");
-            if (maskToken) result = result.Substring(0, 2) + "xxxxxx";
+            if (maskToken)
+                result = result.Substring(0, 2) + "xxxxxx";
             return "0x" + result;
         }
 
@@ -1323,7 +1332,8 @@ namespace Roslyn.Test.PdbUtilities
                                     tokenToSourceMapping.Add(token, new PdbTokenLine(token, file_id, line, column, endLine, endColumn));
                                 else
                                 {
-                                    while (tokenLine.nextLine != null) tokenLine = tokenLine.nextLine;
+                                    while (tokenLine.nextLine != null)
+                                        tokenLine = tokenLine.nextLine;
                                     tokenLine.nextLine = new PdbTokenLine(token, file_id, line, column, endLine, endColumn);
                                 }
                             }

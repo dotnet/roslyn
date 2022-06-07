@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -48,42 +53,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            internal (NullableWalker, VariableState, Symbol) RestoreWalkerToAnalyzeNewNode(
-                int position,
-                BoundNode nodeToAnalyze,
-                Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
-                SnapshotManager.Builder newManagerOpt)
+            internal (VariablesSnapshot, LocalStateSnapshot) GetSnapshot(int position)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
                 var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
-                return (new NullableWalker(binder.Compilation,
-                                           sharedState.Symbol,
-                                           useDelegateInvokeParameterTypes: false,
-                                           delegateInvokeMethodOpt: null,
-                                           nodeToAnalyze,
-                                           binder,
-                                           binder.Conversions,
-                                           variableState,
-                                           returnTypesOpt: null,
-                                           analyzedNullabilityMap,
-                                           snapshotBuilderOpt: newManagerOpt,
-                                           isSpeculative: true),
-                        variableState,
-                        sharedState.Symbol);
+                return (sharedState.Variables, incrementalSnapshot.VariableState);
             }
 
             internal TypeWithAnnotations? GetUpdatedTypeForLocalSymbol(SourceLocalSymbol symbol)
             {
                 var snapshot = GetSnapshotForPosition(symbol.IdentifierToken.SpanStart);
                 var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
-                if (sharedState.VariableTypes.TryGetValue(symbol, out var updatedType))
+                if (sharedState.Variables.TryGetType(symbol, out var updatedType))
                 {
                     return updatedType;
                 }
 
-                return default;
+                return null;
             }
 
             internal NamedTypeSymbol? GetUpdatedDelegateTypeForLambda(LambdaSymbol lambda)
@@ -96,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            internal bool TryGetUpdatedSymbol(BoundNode node, Symbol symbol, out Symbol updatedSymbol)
+            internal bool TryGetUpdatedSymbol(BoundNode node, Symbol symbol, [NotNullWhen(true)] out Symbol? updatedSymbol)
             {
                 return _updatedSymbolsMap.TryGetValue((node, symbol), out updatedSymbol);
             }
@@ -141,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var debugText = expr?.Syntax.ToFullString() ?? originalSymbol.ToDisplayString();
                     Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
-                    Debug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
-                    Debug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
+                    RoslynDebug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
+                    RoslynDebug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
                     Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
 Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
@@ -162,7 +148,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 /// need any more information to serve as a key.
                 /// All other symbol types are stored mapped to exactly the same type as was provided.
                 /// </remarks>
-                private readonly ImmutableDictionary<(BoundNode?, Symbol), Symbol>.Builder _updatedSymbolMap = ImmutableDictionary.CreateBuilder<(BoundNode?, Symbol), Symbol>(ExpressionAndSymbolEqualityComparer.Instance, SymbolEqualityComparer.ConsiderEverything);
+                private readonly ImmutableDictionary<(BoundNode?, Symbol), Symbol>.Builder _updatedSymbolMap = ImmutableDictionary.CreateBuilder<(BoundNode?, Symbol), Symbol>(ExpressionAndSymbolEqualityComparer.Instance, Symbols.SymbolEqualityComparer.ConsiderEverything);
 
                 /// <summary>
                 /// Shared walker states are the parts of the walker state that are not unique at a single position,
@@ -197,7 +183,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
 
                 internal int EnterNewWalker(Symbol symbol)
                 {
-                    Debug.Assert(symbol is object);
+                    RoslynDebug.Assert(symbol is object);
                     var previousSlot = _currentWalkerSlot;
 
                     // Because we potentially run multiple passes, we
@@ -222,7 +208,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                     _currentWalkerSlot = previousSlot;
                 }
 
-                internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)
+                internal void TakeIncrementalSnapshot(BoundNode? node, LocalState currentState)
                 {
                     if (node == null || node.WasCompilerGenerated)
                     {
@@ -231,7 +217,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
 
                     // Note that we can't use Add here, as this is potentially not the stable
                     // state of this node and we could get updated states later.
-                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.Clone(), _currentWalkerSlot);
+                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.CreateSnapshot(), _currentWalkerSlot);
                 }
 
                 internal void SetUpdatedSymbol(BoundNode node, Symbol originalSymbol, Symbol updatedSymbol)
@@ -266,21 +252,11 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// </summary>
         internal struct SharedWalkerState
         {
-            internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
-            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
-            internal readonly Symbol Symbol;
+            internal readonly VariablesSnapshot Variables;
 
-            internal SharedWalkerState(
-                ImmutableDictionary<VariableIdentifier, int> variableSlot,
-                ImmutableArray<VariableIdentifier> variableBySlot,
-                ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                Symbol symbol)
+            internal SharedWalkerState(VariablesSnapshot variables)
             {
-                VariableSlot = variableSlot;
-                VariableBySlot = variableBySlot;
-                VariableTypes = variableTypes;
-                Symbol = symbol;
+                Variables = variables;
             }
         }
 
@@ -290,10 +266,10 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// </summary>
         private readonly struct Snapshot
         {
-            internal readonly LocalState VariableState;
+            internal readonly LocalStateSnapshot VariableState;
             internal readonly int SharedStateIndex;
 
-            internal Snapshot(LocalState variableState, int sharedStateIndex)
+            internal Snapshot(LocalStateSnapshot variableState, int sharedStateIndex)
             {
                 VariableState = variableState;
                 SharedStateIndex = sharedStateIndex;

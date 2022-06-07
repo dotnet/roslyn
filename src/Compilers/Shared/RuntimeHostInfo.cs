@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.IO.Pipes;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,6 +20,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
         internal static string ToolExtension => IsCoreClrRuntime ? "dll" : "exe";
+        private static string NativeToolSuffix => PlatformInformation.IsWindows ? ".exe" : "";
 
         /// <summary>
         /// This gets information about invoking a tool on the current runtime. This will attempt to 
@@ -24,11 +30,16 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!toolFilePathWithoutExtension.EndsWith(".dll") && !toolFilePathWithoutExtension.EndsWith(".exe"));
 
+            var nativeToolFilePath = $"{toolFilePathWithoutExtension}{NativeToolSuffix}";
+            if (IsCoreClrRuntime && File.Exists(nativeToolFilePath))
+            {
+                return (nativeToolFilePath, commandLineArguments, nativeToolFilePath);
+            }
             var toolFilePath = $"{toolFilePathWithoutExtension}.{ToolExtension}";
-            if (IsDotNetHost(out string pathToDotNet))
+            if (IsDotNetHost(out string? pathToDotNet))
             {
                 commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-                return (pathToDotNet, commandLineArguments, toolFilePath);
+                return (pathToDotNet!, commandLineArguments, toolFilePath);
             }
             else
             {
@@ -39,7 +50,7 @@ namespace Microsoft.CodeAnalysis
 #if NET472
         internal static bool IsDesktopRuntime => true;
 
-        internal static bool IsDotNetHost(out string pathToDotNet)
+        internal static bool IsDotNetHost([NotNullWhen(true)] out string? pathToDotNet)
         {
             pathToDotNet = null;
             return false;
@@ -48,12 +59,12 @@ namespace Microsoft.CodeAnalysis
         internal static NamedPipeClientStream CreateNamedPipeClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
             new NamedPipeClientStream(serverName, pipeName, direction, options);
 
-#elif NETCOREAPP2_1
+#elif NETCOREAPP
         internal static bool IsDesktopRuntime => false;
 
-        private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
-        private static bool IsDotNetHost(out string pathToDotNet)
+        private static bool IsDotNetHost(out string? pathToDotNet)
         {
             pathToDotNet = GetDotNetPathOrDefault();
             return true;

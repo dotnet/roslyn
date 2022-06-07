@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Xaml;
@@ -20,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
     internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoveUnnecessaryUsingsCodeFixProvider()
         {
         }
@@ -38,25 +45,19 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
+                CodeAction.Create(
+                    Resources.RemoveUnnecessaryNamespaces,
+                    c => RemoveUnnecessaryImportsAsync(context.Document, c),
+                    nameof(Resources.RemoveUnnecessaryNamespaces)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
-        private Task<Document> RemoveUnnecessaryImportsAsync(
+        private static async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument)
-            {
-            }
+            return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions: null, cancellationToken).ConfigureAwait(false);
         }
     }
 }

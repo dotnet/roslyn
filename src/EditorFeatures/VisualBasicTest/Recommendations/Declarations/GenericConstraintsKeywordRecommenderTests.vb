@@ -1,71 +1,74 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class GenericConstraintsKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterAsInSingleConstraintTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Class Goo(Of T As |</File>, "Class", "Structure", "New")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterInMultipleConstraintTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Class Goo(Of T As {|</File>, "Class", "Structure", "New")
-        End Function
+        Public Sub AllAfterAsInSingleConstraintTest()
+            VerifyRecommendationsContain(<File>Class Goo(Of T As |</File>, "Class", "Structure", "New")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AllAfterExplicitTypeTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Class Goo(Of T As {OtherType, |</File>, "Class", "Structure", "New")
-        End Function
+        Public Sub AllAfterInMultipleConstraintTest()
+            VerifyRecommendationsContain(<File>Class Goo(Of T As {|</File>, "Class", "Structure", "New")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterStructureConstraintTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Class Goo(Of T As {Structure, |</File>, "Class", "Structure", "New")
-        End Function
+        Public Sub AllAfterExplicitTypeTest()
+            VerifyRecommendationsContain(<File>Class Goo(Of T As {OtherType, |</File>, "Class", "Structure", "New")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ClassOnlyAfterNewTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Class Goo(Of T As {New, |</File>, "Class")
-        End Function
+        Public Sub NoneAfterStructureConstraintTest()
+            VerifyRecommendationsMissing(<File>Class Goo(Of T As {Structure, |</File>, "Class", "Structure", "New")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NewOnlyAfterClassTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Class Goo(Of T As {Class, |</File>, "New")
-        End Function
+        Public Sub ClassOnlyAfterNewTest()
+            VerifyRecommendationsContain(<File>Class Goo(Of T As {New, |</File>, "Class")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterClassAndNewTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Class Goo(Of T As {Class, New,|</File>, "Class", "Structure", "New")
-        End Function
+        Public Sub NewOnlyAfterClassTest()
+            VerifyRecommendationsContain(<File>Class Goo(Of T As {Class, |</File>, "New")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NoneAfterClassAndNewTest()
+            VerifyRecommendationsMissing(<File>Class Goo(Of T As {Class, New,|</File>, "Class", "Structure", "New")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <File>Class Goo(Of T As 
 |</File>, "New")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <File>Class Goo(Of T As _
 |</File>, "New")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <File>Class Goo(Of T As _ ' Test
 |</File>, "New")
-        End Function
+        End Sub
     End Class
 End Namespace

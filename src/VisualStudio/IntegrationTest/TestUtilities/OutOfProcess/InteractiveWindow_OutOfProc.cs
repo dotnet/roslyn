@@ -1,8 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -29,12 +28,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _interactiveWindowInProc.Initialize();
 
         /// <summary>
-        /// Gets the last output from the REPL.
-        /// </summary>
-        public string GetLastReplOutput()
-            => _interactiveWindowInProc.GetLastReplOutput();
-
-        /// <summary>
         /// Gets the last input from the REPL.
         /// </summary>
         public string GetLastReplInput()
@@ -51,12 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             // Clear the line
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
         }
-
-        /// <summary>
-        /// Gets the contents of the REPL window without the prompt text.
-        /// </summary>
-        public string GetReplTextWithoutPrompt()
-            => _interactiveWindowInProc.GetReplTextWithoutPrompt();
 
         public void ShowWindow(bool waitForPrompt = true)
             => _interactiveWindowInProc.ShowWindow(waitForPrompt);
@@ -87,11 +74,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InsertCode(string text)
             => _interactiveWindowInProc.InsertCode(text);
-
-        public void SetTimeout(int milliseconds)
-            => _interactiveWindowInProc.SetTimeout(milliseconds);
-
-        public int GetTimeoutInMilliseconds()
-            => _interactiveWindowInProc.GetTimeoutInMilliseconds();
     }
 }

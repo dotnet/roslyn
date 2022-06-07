@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,11 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal readonly struct DeclarationInfo
     {
-        private readonly SyntaxNode _declaredNode;
-        private readonly ImmutableArray<SyntaxNode> _executableCodeBlocks;
-        private readonly ISymbol _declaredSymbol;
-
-        internal DeclarationInfo(SyntaxNode declaredNode, ImmutableArray<SyntaxNode> executableCodeBlocks, ISymbol declaredSymbol)
+        internal DeclarationInfo(SyntaxNode declaredNode, ImmutableArray<SyntaxNode> executableCodeBlocks, ISymbol? declaredSymbol)
         {
             Debug.Assert(declaredNode != null);
             Debug.Assert(!executableCodeBlocks.IsDefault);
@@ -23,24 +21,24 @@ namespace Microsoft.CodeAnalysis
             // Declared node is the identifier, which doesn't contain the initializer. Can we tweak the assert somehow to handle this case?
             // Debug.Assert(executableCodeBlocks.All(n => n.Ancestors().Contains(declaredNode)));
 
-            _declaredNode = declaredNode;
-            _executableCodeBlocks = executableCodeBlocks;
-            _declaredSymbol = declaredSymbol;
+            DeclaredNode = declaredNode;
+            ExecutableCodeBlocks = executableCodeBlocks;
+            DeclaredSymbol = declaredSymbol;
         }
 
         /// <summary>
         /// Topmost syntax node for this declaration.
         /// </summary>
-        public SyntaxNode DeclaredNode => _declaredNode;
+        public SyntaxNode DeclaredNode { get; }
 
         /// <summary>
         /// Syntax nodes for executable code blocks (method body, initializers, etc.) associated with this declaration.
         /// </summary>
-        public ImmutableArray<SyntaxNode> ExecutableCodeBlocks => _executableCodeBlocks;
+        public ImmutableArray<SyntaxNode> ExecutableCodeBlocks { get; }
 
         /// <summary>
         /// Symbol declared by this declaration.
         /// </summary>
-        public ISymbol DeclaredSymbol => _declaredSymbol;
+        public ISymbol? DeclaredSymbol { get; }
     }
 }

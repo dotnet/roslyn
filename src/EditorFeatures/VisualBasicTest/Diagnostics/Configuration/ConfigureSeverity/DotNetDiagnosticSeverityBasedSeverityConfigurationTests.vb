@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -35,11 +37,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
             End Sub
         End Class
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -195,6 +194,98 @@ End Class
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_diagnostic.XYZ1111.severity = none
+
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            Public Async Function ConfigureGlobalconfig_Empty_None() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.vb"">
+[|Class Program1
+End Class|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.vb"">
+Class Program1
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true
+
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            Public Async Function ConfigureGlobalconfig_RuleExists_None() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.vb"">
+[|Class Program1
+End Class|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true   # Comment
+dotnet_diagnostic.XYZ0001.severity = suggestion   # Comment
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.vb"">
+Class Program1
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">is_global = true   # Comment
+dotnet_diagnostic.XYZ0001.severity = none   # Comment
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+            End Function
+
+            <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+            Public Async Function ConfigureGlobalconfig_InvalidHeader_None() As Task
+                Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.vb"">
+[|Class Program1
+End Class|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">[*.cs]
+dotnet_diagnostic.XYZ0001.severity = suggestion
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+                Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.vb"">
+Class Program1
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.globalconfig"">[*.cs]
+dotnet_diagnostic.XYZ0001.severity = suggestion
+
+[*.vb]
 
 # XYZ0001: Title
 dotnet_diagnostic.XYZ0001.severity = none

@@ -1,16 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     /// <summary>
     /// Context for code refactorings provided by a <see cref="CodeRefactoringProvider"/>.
     /// </summary>
-    public struct CodeRefactoringContext : ITypeScriptCodeRefactoringContext
+#pragma warning disable CS0612 // Type or member is obsolete
+    public readonly struct CodeRefactoringContext : ITypeScriptCodeRefactoringContext
+#pragma warning restore
     {
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
@@ -27,8 +32,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        internal readonly CodeActionOptionsProvider Options;
+
+        /// <summary>
+        /// TypeScript specific.
+        /// </summary>
         private readonly bool _isBlocking;
-        bool ITypeScriptCodeRefactoringContext.IsBlocking => _isBlocking;
+
+        [Obsolete]
+        bool ITypeScriptCodeRefactoringContext.IsBlocking
+            => _isBlocking;
 
         private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
@@ -40,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan span,
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
-            : this(document, span, (action, textSpan) => registerRefactoring(action), isBlocking: false, cancellationToken)
+            : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, isBlocking: false, cancellationToken)
         { }
 
         /// <summary>
@@ -50,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
+            CodeActionOptionsProvider options,
             bool isBlocking,
             CancellationToken cancellationToken)
         {
@@ -58,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document = document ?? throw new ArgumentNullException(nameof(document));
             Span = span;
             _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
+            Options = options;
             _isBlocking = isBlocking;
             CancellationToken = cancellationToken;
         }
@@ -97,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
     }
 
+    [Obsolete]
     internal interface ITypeScriptCodeRefactoringContext
     {
         bool IsBlocking { get; }

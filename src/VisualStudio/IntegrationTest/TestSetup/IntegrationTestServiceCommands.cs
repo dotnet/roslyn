@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Design;
@@ -9,10 +11,11 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -40,36 +43,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         private readonly MenuCommand _startMenuCmd;
         private readonly MenuCommand _stopMenuCmd;
 
-        private IntegrationService _service;
-        private IpcServerChannel _serviceChannel;
-        private ObjRef _marshalledService;
+        private IntegrationService? _service;
+        private IpcServerChannel? _serviceChannel;
+
+#pragma warning disable IDE0052 // Remove unread private members - used to hold the marshalled integration test service
+        private ObjRef? _marshalledService;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private IntegrationTestServiceCommands(Package package)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
 
+            var startMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStartIntegrationTestService);
+            _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId)
+            {
+                Enabled = true,
+                Visible = true
+            };
+
+            var stopMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStopIntegrationTestService);
+            _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId)
+            {
+                Enabled = false,
+                Visible = false
+            };
 
             if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService menuCommandService)
             {
-                var startMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStartIntegrationTestService);
-                _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId)
-                {
-                    Enabled = true,
-                    Visible = true
-                };
                 menuCommandService.AddCommand(_startMenuCmd);
-
-                var stopMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStopIntegrationTestService);
-                _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId)
-                {
-                    Enabled = false,
-                    Visible = false
-                };
                 menuCommandService.AddCommand(_stopMenuCmd);
             }
         }
 
-        public static IntegrationTestServiceCommands Instance { get; private set; }
+        public static IntegrationTestServiceCommands? Instance { get; private set; }
 
         private IServiceProvider ServiceProvider => _package;
 
@@ -97,7 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             {
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
 
-                IntegrationTestTraceListener.Install();
+                TestTraceListener.Install();
 
                 _service = new IntegrationService();
 
@@ -112,9 +118,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
                 _serviceChannel.StartListening(null);
 
-                var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
-                var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
-                asyncCompletionTracker.StartListening();
+                // Async initialization is a workaround for deadlock loading ExtensionManagerPackage prior to
+                // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
+                _ = Task.Run(async () =>
+                {
+                    var componentModel = (IComponentModel?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
+                    Assumes.Present(componentModel);
+
+                    var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
+                    asyncCompletionTracker.StartListening();
+                });
 
                 SwapAvailableCommands(_startMenuCmd, _stopMenuCmd);
             }
@@ -136,7 +149,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 _marshalledService = null;
                 _service = null;
 
-                var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
+                var componentModel = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
                 var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
                 asyncCompletionTracker.StopListening();
 
@@ -144,7 +157,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             }
         }
 
-        private void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
+        private static void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
         {
             commandToDisable.Enabled = false;
             commandToDisable.Visible = false;

@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -33,11 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
             ArrayBuilder<SyntaxToken> tokens,
-            CodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             Accessibility defaultAccessibility)
         {
-            options ??= CodeGenerationOptions.Default;
-            if (!options.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
+            if (!info.Context.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
             }
@@ -68,13 +67,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static TypeDeclarationSyntax AddMembersTo(
-            TypeDeclarationSyntax destination, SyntaxList<MemberDeclarationSyntax> members)
+            TypeDeclarationSyntax destination, SyntaxList<MemberDeclarationSyntax> members, CancellationToken cancellationToken)
         {
+            var syntaxTree = destination.SyntaxTree;
             destination = ReplaceUnterminatedConstructs(destination);
 
-            return ConditionallyAddFormattingAnnotationTo(
+            var node = ConditionallyAddFormattingAnnotationTo(
                 destination.EnsureOpenAndCloseBraceTokens().WithMembers(members),
                 members);
+
+            // Make sure the generated syntax node has same parse option.
+            // e.g. If add syntax member to a C# 5 destination, we should return a C# 5 syntax node.
+            var tree = node.SyntaxTree.WithRootAndOptions(node, syntaxTree.Options);
+            return (TypeDeclarationSyntax)tree.GetRoot(cancellationToken);
         }
 
         private static TypeDeclarationSyntax ReplaceUnterminatedConstructs(TypeDeclarationSyntax destination)
@@ -105,7 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTrivia ReplaceUnterminatedConstructs(SyntaxTrivia skippedTokensTrivia)
         {
-            var syntax = (SkippedTokensTriviaSyntax)skippedTokensTrivia.GetStructure();
+            var syntax = (SkippedTokensTriviaSyntax?)skippedTokensTrivia.GetStructure();
+            Contract.ThrowIfNull(syntax);
+
             var tokens = syntax.Tokens;
 
             var updatedTokens = SyntaxFactory.TokenList(tokens.Select(ReplaceUnterminatedConstruct));
@@ -138,47 +145,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return token;
         }
 
-        public static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault();
-        }
+        public static MemberDeclarationSyntax? FirstMember(SyntaxList<MemberDeclarationSyntax> members)
+            => members.FirstOrDefault();
 
-        public static MemberDeclarationSyntax FirstMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault(m => m is MethodDeclarationSyntax);
-        }
+        public static MemberDeclarationSyntax? FirstMethod(SyntaxList<MemberDeclarationSyntax> members)
+            => members.FirstOrDefault(m => m is MethodDeclarationSyntax);
 
-        public static MemberDeclarationSyntax LastField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is FieldDeclarationSyntax);
-        }
+        public static MemberDeclarationSyntax? LastField(SyntaxList<MemberDeclarationSyntax> members)
+            => members.LastOrDefault(m => m is FieldDeclarationSyntax);
 
-        public static MemberDeclarationSyntax LastConstructor(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
-        }
+        public static MemberDeclarationSyntax? LastConstructor(SyntaxList<MemberDeclarationSyntax> members)
+            => members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
 
-        public static MemberDeclarationSyntax LastMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is MethodDeclarationSyntax);
-        }
+        public static MemberDeclarationSyntax? LastMethod(SyntaxList<MemberDeclarationSyntax> members)
+            => members.LastOrDefault(m => m is MethodDeclarationSyntax);
 
-        public static MemberDeclarationSyntax LastOperator(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
-        }
+        public static MemberDeclarationSyntax? LastOperator(SyntaxList<MemberDeclarationSyntax> members)
+            => members.LastOrDefault(m => m is OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax);
 
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices,
-            Func<SyntaxList<TDeclaration>, TDeclaration> after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
+            CSharpCodeGenerationContextInfo info,
+            IList<bool>? availableIndices,
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
+            Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
             where TDeclaration : SyntaxNode
         {
             var index = GetInsertionIndex(
-                declarationList, declaration, options, availableIndices,
+                declarationList, declaration, info, availableIndices,
                 CSharpDeclarationComparer.WithoutNamesInstance,
                 CSharpDeclarationComparer.WithNamesInstance,
                 after, before);
@@ -197,23 +192,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
-        {
-            return declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
-        }
+            => declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
 
-        public static SyntaxNode GetContextNode(
+        public static SyntaxNode? GetContextNode(
             Location location, CancellationToken cancellationToken)
         {
-            var contextLocation = location as Location;
+            var contextLocation = location;
 
             var contextTree = contextLocation != null && contextLocation.IsInSource
                 ? contextLocation.SourceTree
                 : null;
 
-            return contextTree?.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
+            return contextTree?.GetRoot(cancellationToken).FindToken(contextLocation!.SourceSpan.Start).Parent;
         }
 
-        public static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier(
+        public static ExplicitInterfaceSpecifierSyntax? GenerateExplicitInterfaceSpecifier(
             IEnumerable<ISymbol> implementations)
         {
             var implementation = implementations.FirstOrDefault();
@@ -222,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return null;
             }
 
-            if (!(implementation.ContainingType.GenerateTypeSyntax() is NameSyntax name))
+            if (implementation.ContainingType.GenerateTypeSyntax() is not NameSyntax name)
             {
                 return null;
             }
@@ -240,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
                     SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
                     SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
+                    SyntaxKind.FileScopedNamespaceDeclaration => CodeGenerationDestination.Namespace,
                     SyntaxKind.NamespaceDeclaration => CodeGenerationDestination.Namespace,
                     SyntaxKind.StructDeclaration => CodeGenerationDestination.StructType,
                     _ => CodeGenerationDestination.Unspecified,
@@ -252,11 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static TSyntaxNode ConditionallyAddDocumentationCommentTo<TSyntaxNode>(
             TSyntaxNode node,
             ISymbol symbol,
-            CodeGenerationOptions options,
-            CancellationToken cancellationToken = default)
+            CSharpCodeGenerationContextInfo info,
+            CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
-            if (!options.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
+            if (!info.Context.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
             {
                 return node;
             }
@@ -266,6 +260,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                       .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
                 : node;
             return result;
+        }
+
+        /// <summary>
+        /// Try use the existing syntax node and generate a new syntax node for the given <param name="symbol"/>.
+        /// Note: the returned syntax node might be modified, which means its parent information might be missing.
+        /// </summary>
+        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CSharpCodeGenerationContextInfo info) where T : SyntaxNode
+        {
+            Contract.ThrowIfNull(symbol);
+
+            if (info.Context.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
+            {
+                var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
+
+                if (symbol is IFieldSymbol
+                    && typeof(T) == typeof(FieldDeclarationSyntax)
+                    && reusableSyntaxNode is VariableDeclaratorSyntax variableDeclaratorNode
+                    && reusableSyntaxNode.Parent is VariableDeclarationSyntax variableDeclarationNode
+                    && reusableSyntaxNode.Parent.Parent is FieldDeclarationSyntax fieldDeclarationNode)
+                {
+                    return RemoveLeadingDirectiveTrivia(
+                        fieldDeclarationNode.WithDeclaration(
+                            variableDeclarationNode.WithVariables(SyntaxFactory.SingletonSeparatedList(variableDeclaratorNode)))) as T;
+                }
+
+                return RemoveLeadingDirectiveTrivia(reusableSyntaxNode) as T;
+            }
+
+            return null;
         }
     }
 }

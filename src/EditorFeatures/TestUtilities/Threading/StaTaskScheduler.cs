@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
@@ -16,10 +22,16 @@ namespace Roslyn.Test.Utilities
         /// <summary>The STA threads used by the scheduler.</summary>
         public Thread StaThread { get; }
 
-        public bool IsRunningInScheduler => StaThread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId;
+        public bool IsRunningInScheduler => StaThread.ManagedThreadId == Environment.CurrentManagedThreadId;
 
         static StaTaskScheduler()
         {
+            // Overwrite xunit's app domain handling to not call AppDomain.Unload
+            var getDefaultDomain = typeof(AppDomain).GetMethod("GetDefaultDomain", BindingFlags.NonPublic | BindingFlags.Static);
+            var defaultDomain = (AppDomain)getDefaultDomain.Invoke(null, null);
+            var hook = (XunitDisposeHook)defaultDomain.CreateInstanceFromAndUnwrap(typeof(XunitDisposeHook).Assembly.CodeBase, typeof(XunitDisposeHook).FullName, ignoreCase: false, BindingFlags.CreateInstance, binder: null, args: null, culture: null, activationAttributes: null);
+            hook.Execute();
+
             // We've created an STA thread, which has some extra requirements for COM Runtime
             // Callable Wrappers (RCWs). If any COM object is created on the STA thread, calls to that
             // object must be made from that thread; when the RCW is no longer being used by any

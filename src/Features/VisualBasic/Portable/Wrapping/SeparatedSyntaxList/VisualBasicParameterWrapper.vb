@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Utilities
@@ -18,17 +20,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         Protected Overrides ReadOnly Property Wrap_every_item As String = FeaturesResources.Wrap_every_parameter
         Protected Overrides ReadOnly Property Wrap_long_list As String = FeaturesResources.Wrap_long_parameter_list
 
+        Public Overrides ReadOnly Property Supports_UnwrapGroup_WrapFirst_IndentRest As Boolean = True
+        Public Overrides ReadOnly Property Supports_WrapEveryGroup_UnwrapFirst As Boolean = True
+        Public Overrides ReadOnly Property Supports_WrapLongGroup_UnwrapFirst As Boolean = True
+
+        Protected Overrides ReadOnly Property ShouldMoveCloseBraceToNewLine As Boolean = False
+
         Protected Overrides Function GetListItems(listSyntax As ParameterListSyntax) As SeparatedSyntaxList(Of ParameterSyntax)
             Return listSyntax.Parameters
         End Function
 
         Protected Overrides Function TryGetApplicableList(node As SyntaxNode) As ParameterListSyntax
-            Return VisualBasicSyntaxGenerator.GetParameterList(node)
+            Return node.GetParameterList()
         End Function
 
         Protected Overrides Function PositionIsApplicable(
-                root As SyntaxNode, position As Integer,
-                declaration As SyntaxNode, listSyntax As ParameterListSyntax) As Boolean
+                root As SyntaxNode, position As Integer, declaration As SyntaxNode,
+                containsSyntaxError As Boolean, listSyntax As ParameterListSyntax) As Boolean
 
             Dim generator = VisualBasicSyntaxGenerator.Instance
             Dim attributes = generator.GetAttributes(declaration)
@@ -42,7 +50,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
             Dim lastToken = listSyntax.GetLastToken()
 
             Dim headerSpan = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End)
-            Return headerSpan.IntersectsWith(position)
+            If Not headerSpan.IntersectsWith(position) Then
+                Return False
+            End If
+
+            If containsSyntaxError AndAlso ContainsOverlappingSyntaxErrror(declaration, headerSpan) Then
+                Return False
+            End If
+
+            Return True
         End Function
     End Class
 End Namespace

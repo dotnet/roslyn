@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -23,9 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         where T : struct
     {
         static EnumCodeStyleOptionViewModel()
-        {
-            Contract.ThrowIfFalse(typeof(T).IsEnum);
-        }
+            => Contract.ThrowIfFalse(typeof(T).IsEnum);
 
         private readonly ImmutableArray<T> _enumValues;
         private readonly ImmutableArray<string> _previews;
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private NotificationOptionViewModel _selectedNotificationPreference;
 
         public EnumCodeStyleOptionViewModel(
-            PerLanguageOption<CodeStyleOption<T>> option,
+            PerLanguageOption2<CodeStyleOption2<T>> option,
             string language,
             string description,
             T[] enumValues,
@@ -49,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public EnumCodeStyleOptionViewModel(
-            Option<CodeStyleOption<T>> option,
+            Option2<CodeStyleOption2<T>> option,
             string description,
             T[] enumValues,
             string[] previews,

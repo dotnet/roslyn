@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -502,9 +504,7 @@ End Class
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("goo", DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(
-            errorText.Contains("HRESULT") AndAlso
-            errorText.Contains("0x80090016"))
+        Assert.True(errorText.Contains("0x80090016"))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -655,14 +655,12 @@ End Class
         'BC36981: Error extracting public key from container 'bogus': Keyset does not exist (Exception from HRESULT: 0x80090016)
         'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
 
-        Dim err = c2.GetDiagnostics(CompilationStage.Emit).Single()
+        Dim err = c2.GetEmitDiagnostics().Single()
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(
-            errorText.Contains("HRESULT") AndAlso
-            errorText.Contains("0x80090016"))
+        Assert.True(errorText.Contains("0x80090016"))
     End Sub
 
     <Theory>
@@ -1796,9 +1794,7 @@ End Class
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal(s_keyPairFile, DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(
-            errorText.Contains("HRESULT") AndAlso
-            errorText.Contains("0x80131423"))
+        Assert.True(errorText.Contains("0x80131423"))
     End Sub
 
     <Theory>
@@ -2311,6 +2307,378 @@ BC37254: Public sign was specified and requires a public key, but no public key 
 <errors>
 BC37254: Public sign was specified and requires a public key, but no public key was specified
 </errors>)
+    End Sub
+
+    <Theory>
+    <MemberData(NameOf(AllProviderParseOptions))>
+    <WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
+    Public Sub IVT_Circularity(parseOptions As VisualBasicParseOptions)
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="HasIVTToCompilation">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
+Public MustInherit Class TestBaseClass
+    Friend Overridable ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        other.VerifyDiagnostics()
+
+        Dim c2 As VisualBasicCompilation = CreateCompilation(
+<compilation name="WantsIVTAccess">
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Inherits TestBaseClass
+
+    Friend Overrides ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+    <file name="b.vb"><![CDATA[
+<assembly: Class1>
+]]>
+    </file>
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        c2.AssertTheseDiagnostics(<error><![CDATA[
+BC31504: 'Class1' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
+<assembly: Class1>
+           ~~~~~~
+]]></error>)
+    End Sub
+
+    <Theory>
+    <MemberData(NameOf(AllProviderParseOptions))>
+    <WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
+    Public Sub IVT_Circularity_AttributeReferencesProperty(parseOptions As VisualBasicParseOptions)
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="HasIVTToCompilation">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
+Public MustInherit Class TestBaseClass
+    Friend Overridable ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(s As String)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        other.VerifyDiagnostics()
+
+        Dim c2 As VisualBasicCompilation = CreateCompilation(
+<compilation name="WantsIVTAccess">
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Inherits TestBaseClass
+
+    Friend Const Constant As String = "text"
+
+    Friend Overrides ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+    <file name="b.vb"><![CDATA[
+<assembly: MyAttribute(Class1.Constant)>
+]]>
+    </file>
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        c2.AssertNoDiagnostics()
+    End Sub
+
+    <Fact>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
+    Public Sub Issue57742_01()
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="Issue57742_01_Lib">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+<Assembly: InternalsVisibleTo("Issue57742_01, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb") >
+Friend class PublicKeyConstants
+	public const PublicKey As String = "Something"
+End Class
+]]>
+    </file>
+</compilation>)
+
+        Dim source =
+<compilation name="Issue57742_01">
+    <file name="a.vb"><![CDATA[
+<Assembly: TestAttribute("something" + PublicKeyConstants.PublicKey)>
+
+class TestAttribute
+    Inherits System.Attribute
+
+	public Sub New(x As String)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+        Dim comp As VisualBasicCompilation = CreateCompilation(source, {other.ToMetadataReference()})
+
+        Dim expected =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_01_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+</expected>
+
+        comp.AssertTheseDiagnostics(expected)
+
+        comp = CreateCompilation(source, {other.EmitToImageReference()})
+        comp.AssertTheseDiagnostics(expected)
+    End Sub
+
+    <Fact>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
+    Public Sub Issue57742_02()
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="Issue57742_02_Lib">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+<Assembly: InternalsVisibleTo("Issue57742_02, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb") >
+Friend class PublicKeyConstants
+	public const PublicKey As String = "Something"
+End Class
+]]>
+    </file>
+</compilation>)
+
+        Dim source =
+<compilation name="Issue57742_02">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+<Assembly: InternalsVisibleTo("something" + PublicKeyConstants.PublicKey)>
+]]>
+    </file>
+</compilation>
+        Dim comp As VisualBasicCompilation = CreateCompilation(source, {other.ToMetadataReference()})
+
+        Dim expected =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_02_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+</expected>
+
+        comp.AssertTheseDiagnostics(expected)
+
+        comp = CreateCompilation(source, {other.EmitToImageReference()})
+        comp.AssertTheseDiagnostics(expected)
+    End Sub
+
+    <Fact>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
+    Public Sub Issue57742_03()
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="Issue57742_03_Lib">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+<Assembly: InternalsVisibleTo("Issue57742_03, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb") >
+Friend class PublicKeyConstants
+	public const PublicKey As String = "Something"
+End Class
+]]>
+    </file>
+</compilation>)
+
+        Dim source1 =
+<compilation name="Issue57742_03">
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+
+<Assembly: TestAttribute("something" + PublicKeyConstants.PublicKey)>
+<Assembly: AssemblyKeyFile("something" + PublicKeyConstants.PublicKey)>
+
+class TestAttribute
+    Inherits System.Attribute
+
+	public Sub New(x As String)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+        Dim compilationReference As CompilationReference = other.ToMetadataReference()
+        Dim comp1 As VisualBasicCompilation = CreateCompilation(source1, {compilationReference})
+
+        Dim expected1 =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+BC36980: Error extracting public key from file 'somethingSomething': Assembly signing not supported.
+</expected>
+
+        comp1.AssertTheseDiagnostics(expected1)
+        Dim imageReference As MetadataReference = other.EmitToImageReference()
+
+        comp1 = CreateCompilation(source1, {imageReference})
+        comp1.AssertTheseDiagnostics(expected1)
+
+        Dim source2 =
+<compilation name="Issue57742_03">
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+
+<Assembly: TestAttribute("something" + PublicKeyConstants.PublicKey)>
+<Assembly: AssemblyKeyName("something" + PublicKeyConstants.PublicKey)>
+
+class TestAttribute
+    Inherits System.Attribute
+
+	public Sub New(x As String)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+        Dim comp2 As VisualBasicCompilation = CreateCompilation(source2, {compilationReference})
+
+        Dim expected2 =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+BC36981: Error extracting public key from container 'somethingSomething': Assembly signing not supported.
+</expected>
+
+        comp2.AssertTheseDiagnostics(expected2)
+
+        comp2 = CreateCompilation(source2, {imageReference})
+        comp2.AssertTheseDiagnostics(expected2)
+
+        Dim source3 =
+<compilation name="Issue57742_03">
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+
+<Assembly: AssemblyKeyFile("something" + PublicKeyConstants.PublicKey)>
+]]>
+    </file>
+</compilation>
+        Dim comp3 As VisualBasicCompilation = CreateCompilation(source3, {compilationReference})
+
+        Dim expected3 =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+BC36980: Error extracting public key from file 'somethingSomething': Assembly signing not supported.
+</expected>
+
+        comp3.AssertTheseDiagnostics(expected3)
+
+        comp3 = CreateCompilation(source3, {imageReference})
+        comp3.AssertTheseDiagnostics(expected3)
+
+        Dim source4 =
+<compilation name="Issue57742_03">
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+
+<Assembly: AssemblyKeyName("something" + PublicKeyConstants.PublicKey)>
+]]>
+    </file>
+</compilation>
+        Dim comp4 As VisualBasicCompilation = CreateCompilation(source4, {compilationReference})
+
+        Dim expected4 =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_03_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+BC36981: Error extracting public key from container 'somethingSomething': Assembly signing not supported.
+</expected>
+
+        comp4.AssertTheseDiagnostics(expected4)
+
+        comp4 = CreateCompilation(source4, {imageReference})
+        comp4.AssertTheseDiagnostics(expected4)
+    End Sub
+
+    <Fact>
+    <WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")>
+    Public Sub Issue57742_04()
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="Issue57742_04_Lib">
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+
+<Assembly: InternalsVisibleTo("Issue57742_04, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb") >
+Friend class PublicKeyConstants
+	public const PublicKey As String = "Something"
+End Class
+]]>
+    </file>
+</compilation>)
+
+        Dim source1 =
+<compilation name="Issue57742_04">
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+Imports System.Runtime.CompilerServices
+
+<Assembly: InternalsVisibleTo("something" + PublicKeyConstants.PublicKey)>
+<Assembly: AssemblyKeyFile("something" + PublicKeyConstants.PublicKey)>
+]]>
+    </file>
+</compilation>
+        Dim compilationReference As CompilationReference = other.ToMetadataReference()
+        Dim comp1 As VisualBasicCompilation = CreateCompilation(source1, {compilationReference})
+
+        Dim expected1 =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+BC36980: Error extracting public key from file 'somethingSomething': Assembly signing not supported.
+</expected>
+
+        comp1.AssertTheseDiagnostics(expected1)
+        Dim imageReference As MetadataReference = other.EmitToImageReference()
+
+        comp1 = CreateCompilation(source1, {imageReference})
+        comp1.AssertTheseDiagnostics(expected1)
+
+        Dim source2 =
+<compilation name="Issue57742_04">
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+Imports System.Runtime.CompilerServices
+
+<Assembly: InternalsVisibleTo("something" + PublicKeyConstants.PublicKey)>
+<Assembly: AssemblyKeyName("something" + PublicKeyConstants.PublicKey)>
+]]>
+    </file>
+</compilation>
+        Dim comp2 As VisualBasicCompilation = CreateCompilation(source2, {compilationReference})
+
+        Dim expected2 =
+<expected>
+BC36957: Friend access was granted by 'Issue57742_04_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.
+BC36981: Error extracting public key from container 'somethingSomething': Assembly signing not supported.
+</expected>
+
+        comp2.AssertTheseDiagnostics(expected2)
+
+        comp2 = CreateCompilation(source2, {imageReference})
+        comp2.AssertTheseDiagnostics(expected2)
     End Sub
 
 End Class

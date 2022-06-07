@@ -1,12 +1,17 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
@@ -22,10 +27,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         Inherits AbstractAutomaticLineEnderCommandHandler
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(undoRegistry As ITextUndoHistoryRegistry,
-                       editorOperations As IEditorOperationsFactoryService)
+                       editorOperations As IEditorOperationsFactoryService,
+                       globalOptions As IGlobalOptionService)
 
-            MyBase.New(undoRegistry, editorOperations)
+            MyBase.New(undoRegistry, editorOperations, globalOptions)
         End Sub
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)
@@ -33,15 +40,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             nextAction()
         End Sub
 
-        Protected Overrides Function TreatAsReturn(document As Document, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function TreatAsReturn(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As Boolean
             ' No special handling in VB.
             Return False
         End Function
 
-        Protected Overrides Sub FormatAndApply(document As Document, position As Integer, cancellationToken As CancellationToken)
+        Protected Overrides Sub ModifySelectedNode(args As AutomaticLineEnderCommandArgs, document As Document, selectedNode As SyntaxNode, addBrace As Boolean, caretPosition As Integer, cancellationToken As CancellationToken)
+        End Sub
+
+        Protected Overrides Function GetValidNodeToModifyBraces(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As (SyntaxNode, Boolean)?
+            Return Nothing
+        End Function
+
+        Protected Overrides Function FormatAndApplyBasedOnEndToken(document As Document, position As Integer, formattingOptions As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Document
             ' vb does automatic line commit
             ' no need to do explicit formatting
-        End Sub
+            Return document
+        End Function
 
         Protected Overrides Function GetEndingString(document As Document, position As Integer, cancellationToken As CancellationToken) As String
             ' prepare expansive information from document

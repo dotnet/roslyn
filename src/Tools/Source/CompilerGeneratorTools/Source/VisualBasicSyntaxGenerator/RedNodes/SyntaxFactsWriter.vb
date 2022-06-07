@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------------------------------------
 ' This is the code that actually outputs the VB code that defines the tree. It is passed a read and validated
@@ -84,20 +86,24 @@ Public Class SyntaxFactsWriter
                     tokenText = tokenText.Replace("""", """""")
                 End If
 
+                If tokenText IsNot Nothing AndAlso tokenText.Contains(vbCrLf) Then
+                    tokenText = tokenText.Replace(vbCrLf, Environment.NewLine)
+                End If
+
                 If tokenText <> Nothing Then
-                    _writer.WriteLine("        Case SyntaxKind.{0}", kind.Name)
+                    _writer.WriteLine("                Case SyntaxKind.{0}", kind.Name)
 
                     If tokenText.Contains("vbCrLf") Then
-                        _writer.WriteLine("            Return {0}", tokenText)
+                        _writer.WriteLine("                    Return {0}", tokenText)
                     Else
-                        _writer.WriteLine("            Return ""{0}""", tokenText)
+                        _writer.WriteLine("                    Return ""{0}""", tokenText)
                     End If
                 End If
             Next
         Next
 
-        _writer.WriteLine("            Case Else")
-        _writer.WriteLine("                 Return String.Empty")
+        _writer.WriteLine("                Case Else")
+        _writer.WriteLine("                    Return String.Empty")
         _writer.WriteLine("            End Select")
         _writer.WriteLine("        End Function")
 

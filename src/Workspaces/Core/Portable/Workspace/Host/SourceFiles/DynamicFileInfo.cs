@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -11,16 +12,17 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal sealed class DynamicFileInfo
     {
-        public DynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, IDocumentServiceProvider documentServiceProvider)
+        public DynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, bool designTimeOnly, IDocumentServiceProvider documentServiceProvider)
         {
             FilePath = filePath;
             SourceCodeKind = sourceCodeKind;
             TextLoader = textLoader;
             DocumentServiceProvider = documentServiceProvider;
+            DesignTimeOnly = designTimeOnly;
         }
 
         /// <summary>
-        /// for now, return null. in future, we will use this to get right options from editorconfig
+        /// The path to the generated file. in future, we will use this to get right options from editorconfig
         /// </summary>
         public string FilePath { get; }
 
@@ -33,6 +35,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// return <see cref="TextLoader"/> to load content for the dynamic file
         /// </summary>
         public TextLoader TextLoader { get; }
+
+        /// <summary>
+        /// True if the source code contained in the document is only used in design-time (e.g. for completion),
+        /// but is not passed to the compiler when the containing project is built, e.g. a Razor view.
+        /// </summary>
+        public bool DesignTimeOnly { get; }
 
         /// <summary>
         /// return <see cref="IDocumentServiceProvider"/> for the content it provided

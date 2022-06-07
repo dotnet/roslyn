@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,6 +8,7 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -23,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         public override LocalSymbol GetLocalVariable(
-            string name,
+            string? name,
             int slotIndex,
             LocalInfo<TypeSymbol> info,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt)
+            ImmutableArray<string?> tupleElementNamesOpt)
         {
             var isPinned = info.IsPinned;
 
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             TypeSymbol type,
             ConstantValue value,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt)
+            ImmutableArray<string?> tupleElementNamesOpt)
         {
             type = IncludeDynamicAndTupleElementNamesIfAny(type, RefKind.None, dynamicFlagsOpt, tupleElementNamesOpt);
             return new EELocalConstantSymbol(_method, name, type, value);
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         /// <exception cref="BadImageFormatException"></exception>
-        public override IAssemblySymbol GetReferencedAssembly(AssemblyReferenceHandle handle)
+        public override IAssemblySymbolInternal GetReferencedAssembly(AssemblyReferenceHandle handle)
         {
             int index = _metadataDecoder.Module.GetAssemblyReferenceIndexOrThrow(handle);
             var assembly = _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbol(index);
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             TypeSymbol type,
             RefKind refKind,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt)
+            ImmutableArray<string?> tupleElementNamesOpt)
         {
             if (!dynamicFlagsOpt.IsDefault)
             {

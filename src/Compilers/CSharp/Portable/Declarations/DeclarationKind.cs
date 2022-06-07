@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         Delegate,
         Script,
         Submission,
-        ImplicitClass
+        ImplicitClass,
+        Record,
+        RecordStruct
     }
 
     internal static partial class EnumConversions
@@ -29,9 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration: return DeclarationKind.Class;
                 case SyntaxKind.InterfaceDeclaration: return DeclarationKind.Interface;
                 case SyntaxKind.StructDeclaration: return DeclarationKind.Struct;
-                case SyntaxKind.NamespaceDeclaration: return DeclarationKind.Namespace;
+                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return DeclarationKind.Namespace;
                 case SyntaxKind.EnumDeclaration: return DeclarationKind.Enum;
                 case SyntaxKind.DelegateDeclaration: return DeclarationKind.Delegate;
+                case SyntaxKind.RecordDeclaration: return DeclarationKind.Record;
+                case SyntaxKind.RecordStructDeclaration: return DeclarationKind.RecordStruct;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

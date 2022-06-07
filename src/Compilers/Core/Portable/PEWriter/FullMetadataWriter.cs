@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -32,7 +33,7 @@ namespace Microsoft.Cci
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
-        private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
+        private readonly TypeReferenceIndex _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
         private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
 
@@ -97,15 +98,15 @@ namespace Microsoft.Cci
             _parameterDefs = new DefinitionIndex<IParameterDefinition>(numMethods);
             _genericParameters = new DefinitionIndex<IGenericParameter>(0);
 
-            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
-            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
-            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods);
+            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
+            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
+            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods, ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
             _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this));
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
-            _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
+            _typeRefIndex = new TypeReferenceIndex(this);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
             _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this);
         }
@@ -329,14 +330,6 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
-        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
-        {
-        }
-
         protected override void PopulateEventMapTableRows()
         {
             ITypeDefinition? lastParent = null;
@@ -433,7 +426,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct DefinitionIndex<T> where T : IReference
+        private struct DefinitionIndex<T> where T : class, IReference
         {
             // IReference to RowId
             private readonly Dictionary<T, int> _index;
@@ -441,7 +434,7 @@ namespace Microsoft.Cci
 
             public DefinitionIndex(int capacity)
             {
-                _index = new Dictionary<T, int>(capacity);
+                _index = new Dictionary<T, int>(capacity, ReferenceEqualityComparer.Instance);
                 _rows = new List<T>(capacity);
             }
 

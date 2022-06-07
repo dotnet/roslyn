@@ -1,8 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
+Imports Microsoft.CodeAnalysis.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -31,7 +33,6 @@ End Module</code>
 
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
         End Sub
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
         Public Sub UncommentAndFormat1()
@@ -82,13 +83,14 @@ End Module</code>
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry),
-                    workspace.ExportProvider.GetExportedValue(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of ITextUndoHistoryRegistry),
+                    workspace.GetService(Of IEditorOperationsFactoryService),
+                    workspace.GlobalOptions)
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())
 
-                Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 

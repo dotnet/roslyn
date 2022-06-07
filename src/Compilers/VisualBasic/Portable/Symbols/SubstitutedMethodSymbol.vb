@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -20,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _propertyOrEventSymbolOpt As Symbol
 
         ' The overridden or hidden methods.
-        Private _lazyOverriddenMethods As OverriddenMembersResult(Of MethodSymbol)
+        Private ReadOnly _lazyOverriddenMethods As OverriddenMembersResult(Of MethodSymbol)
 
         Protected Sub New()
         End Sub
@@ -250,6 +252,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property IsIterator As Boolean
             Get
                 Return OriginalDefinition.IsIterator
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return OriginalDefinition.IsInitOnly
             End Get
         End Property
 
@@ -573,8 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' alpha-renamed type parameters.
                 Debug.Assert(container.TypeSubstitution IsNot Nothing AndAlso
                              container.TypeSubstitution.TargetGenericDefinition Is originalDefinition.ContainingSymbol)
-                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution,
-                                                                         StaticCast(Of TypeParameterSymbol).From(newTypeParameters))
+                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution, newTypeParameters)
                 Debug.Assert(substitution.TargetGenericDefinition Is originalDefinition)
 
                 ' Now create the symbol.

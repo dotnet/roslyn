@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias PDB;
 
 using System;
@@ -198,10 +203,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas).SerializeLocalSlots(cmw);
+            new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas, states).SerializeLocalSlots(cmw);
 
             var bytes = cmw.ToImmutableArray();
             AssertEx.Equal(new byte[] { 0xFF, 0xC0, 0x00, 0x4E, 0x20, 0x81, 0xC0, 0x00, 0x4E, 0x1F, 0x0A, 0x9A, 0x00, 0x0A }, bytes);
@@ -226,9 +232,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas).SerializeLambdaMap(cmw);
+            new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas, states).SerializeLambdaMap(cmw);
 
             var bytes = cmw.ToImmutableArray();
 
@@ -247,10 +254,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, new DebugId(0, 0), LambdaDebugInfo.StaticClosureOrdinal));
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas).SerializeLambdaMap(cmw);
+            new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas, states).SerializeLambdaMap(cmw);
 
             var bytes = cmw.ToImmutableArray();
 
@@ -270,10 +278,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas).SerializeLambdaMap(cmw);
+            new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas, states).SerializeLambdaMap(cmw);
 
             var bytes = cmw.ToImmutableArray();
 
@@ -302,7 +311,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
+
+            var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas, states);
 
             var builder = new BlobBuilder();
             var cdiEncoder = new CustomDebugInfoEncoder(builder);

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -806,7 +810,7 @@ class A
             compilation.VerifyDiagnostics(
                 // (6,23): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static void Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -831,7 +835,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
                 // (6,22): error CS4009: A void or int returning entry point cannot be async
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
             var entry = compilation.GetEntryPoint(CancellationToken.None);
@@ -858,7 +862,7 @@ class A
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
                 // (6,22): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1157,7 +1161,11 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (10,23): warning CS8892: Method 'A.Main(string[])' will not be used as an entry point because a synchronous entry point 'A.Main()' was found.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("A.Main(string[])", "A.Main()").WithLocation(10, 23)
+                );
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
@@ -1187,10 +1195,10 @@ class A
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(11, 22),
                 // (11,22): error CS4009: A void or int returning entry point cannot be async
                 //     async static int Main()
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(11, 22),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(11, 22),
                 // (6,23): error CS4009: A void or int returning entry point cannot be async
                 //     async static void Main(string[] args)
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1212,7 +1220,7 @@ class A
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
                 // (6,23): error CS4009: A void or int returning entry point cannot be async
                 //     static async void Main(string[] args)
-                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main(string[])").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
@@ -1235,7 +1243,10 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics(
+                // (10,23): warning CS8892: Method 'A.Main(string[])' will not be used as an entry point because a synchronous entry point 'A.Main()' was found.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("A.Main(string[])", "A.Main()").WithLocation(10, 23));
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 

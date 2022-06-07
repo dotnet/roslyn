@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return CSharpParseOptions.Default; }
             }
 
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
                 => throw ExceptionUtilities.Unreachable;
 
@@ -94,11 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override SyntaxTree WithFilePath(string path)
             {
                 return SyntaxFactory.SyntaxTree(_node, options: this.Options, path: path, encoding: null);
-            }
-
-            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
-            {
-                throw ExceptionUtilities.Unreachable;
             }
         }
     }

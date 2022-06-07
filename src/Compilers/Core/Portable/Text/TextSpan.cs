@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -9,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// Immutable abstract representation of a span of text.  For example, in an error diagnostic that reports a
     /// location, it could come from a parsed string, text from a tool editor buffer, etc.
     /// </summary>
+    [DataContract]
     public readonly struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     {
         /// <summary>
@@ -34,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Start point of the span.
         /// </summary>
+        [DataMember(Order = 0)]
         public int Start { get; }
 
         /// <summary>
@@ -44,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Length of the span.
         /// </summary>
+        [DataMember(Order = 1)]
         public int Length { get; }
 
         /// <summary>
@@ -218,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Determines if current instance of <see cref="TextSpan"/> is equal to another.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TextSpan && Equals((TextSpan)obj);
         }
@@ -233,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Provides a string representation for <see cref="TextSpan"/>.
+        /// This representation uses "half-open interval" notation, indicating the endpoint character is not included.
+        /// Example: <c>[10..20)</c>, indicating the text starts at position 10 and ends at position 20 not included.
         /// </summary>
         public override string ToString()
         {

@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal sealed class StatisticLogAggregator : AbstractLogAggregator<StatisticLogAggregator.StatisticCounter>
     {
         protected override StatisticCounter CreateCounter()
-        {
-            return new StatisticCounter();
-        }
+            => new();
 
         public void AddDataPoint(object key, int value)
         {
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         internal sealed class StatisticCounter
         {
-            private readonly object _lock = new object();
+            private readonly object _lock = new();
             private int _count;
             private int _maximum;
             private int _mininum;

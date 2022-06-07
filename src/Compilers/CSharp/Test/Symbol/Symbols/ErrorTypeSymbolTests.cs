@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -103,6 +107,19 @@ class C7 : A<string>.B<object> { }";
                     Assert.Equal(TypeSymbol.Equals(typeA, typeB, TypeCompareKind.ConsiderEverything2), expectedEqual);
                 }
             }
+        }
+
+        [WorkItem(52516, "https://github.com/dotnet/roslyn/issues/52516")]
+        [Fact]
+        public void ErrorInfo_01()
+        {
+            var error = new MissingMetadataTypeSymbol.Nested(new UnsupportedMetadataTypeSymbol(), "Test", 0, false);
+            var info = error.ErrorInfo;
+
+            Assert.Equal(ErrorCode.ERR_BogusType, (ErrorCode)info.Code);
+            Assert.Null(error.ContainingModule);
+            Assert.Null(error.ContainingAssembly);
+            Assert.NotNull(error.ContainingSymbol);
         }
     }
 }

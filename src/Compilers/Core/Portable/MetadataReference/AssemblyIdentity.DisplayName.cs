@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -150,15 +152,14 @@ namespace Microsoft.CodeAnalysis
             return GetDisplayName(fullKey: true);
         }
 
-        public static bool TryParseDisplayName(string displayName, out AssemblyIdentity identity)
+        public static bool TryParseDisplayName(string displayName, [NotNullWhen(true)] out AssemblyIdentity? identity)
         {
             if (displayName == null)
             {
                 throw new ArgumentNullException(nameof(displayName));
             }
 
-            AssemblyIdentityParts parts;
-            return TryParseDisplayName(displayName, out identity, out parts);
+            return TryParseDisplayName(displayName, out identity, parts: out _);
         }
 
         /// <summary>
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis
         /// If neither public key nor token is specified the identity is considered weak.
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="displayName"/> is null.</exception>
-        public static bool TryParseDisplayName(string displayName, out AssemblyIdentity identity, out AssemblyIdentityParts parts)
+        public static bool TryParseDisplayName(string displayName, [NotNullWhen(true)] out AssemblyIdentity? identity, out AssemblyIdentityParts parts)
         {
             // see ndp\clr\src\Binder\TextualIdentityParser.cpp, ndp\clr\src\Binder\StringLexer.cpp
 
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             int position = 0;
-            string simpleName;
+            string? simpleName;
             if (!TryParseNameToken(displayName, ref position, out simpleName))
             {
                 return false;
@@ -205,8 +206,8 @@ namespace Microsoft.CodeAnalysis
             var parsedParts = AssemblyIdentityParts.Name;
             var seen = AssemblyIdentityParts.Name;
 
-            Version version = null;
-            string culture = null;
+            Version? version = null;
+            string? culture = null;
             bool isRetargetable = false;
             var contentType = AssemblyContentType.Default;
             var publicKey = default(ImmutableArray<byte>);
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis
 
                 position++;
 
-                string propertyName;
+                string? propertyName;
                 if (!TryParseNameToken(displayName, ref position, out propertyName))
                 {
                     return false;
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis
 
                 position++;
 
-                string propertyValue;
+                string? propertyValue;
                 if (!TryParseNameToken(displayName, ref position, out propertyValue))
                 {
                     return false;
@@ -415,7 +416,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private static bool TryParseNameToken(string displayName, ref int position, out string value)
+        private static bool TryParseNameToken(string displayName, ref int position, [NotNullWhen(true)] out string? value)
         {
             Debug.Assert(displayName.IndexOf('\0') == -1);
 
@@ -638,7 +639,7 @@ namespace Microsoft.CodeAnalysis
             if (!TryParseHexBytes(value, out key) ||
                 !MetadataHelpers.IsValidPublicKey(key))
             {
-                key = default(ImmutableArray<byte>);
+                key = default;
                 return false;
             }
 
@@ -659,7 +660,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<byte> result;
             if (value.Length != (PublicKeyTokenBytes * 2) || !TryParseHexBytes(value, out result))
             {
-                token = default(ImmutableArray<byte>);
+                token = default;
                 return false;
             }
 
@@ -671,7 +672,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (value.Length == 0 || (value.Length % 2) != 0)
             {
-                result = default(ImmutableArray<byte>);
+                result = default;
                 return false;
             }
 
@@ -684,7 +685,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (hi < 0 || lo < 0)
                 {
-                    result = default(ImmutableArray<byte>);
+                    result = default;
                     bytes.Free();
                     return false;
                 }
@@ -721,8 +722,13 @@ namespace Microsoft.CodeAnalysis
             return c == ' ' || c == '\t' || c == '\r' || c == '\n';
         }
 
-        private static void EscapeName(StringBuilder result, string name)
+        private static void EscapeName(StringBuilder result, string? name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                return;
+            }
+
             bool quoted = false;
             if (IsWhiteSpace(name[0]) || IsWhiteSpace(name[name.Length - 1]))
             {
@@ -768,7 +774,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static bool TryUnescape(string str, int start, int end, out string value)
+        private static bool TryUnescape(string str, int start, int end, [NotNullWhen(true)] out string? value)
         {
             var sb = PooledStringBuilder.GetInstance();
 

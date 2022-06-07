@@ -1,208 +1,211 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class EndBlockKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSubInBrokenMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Goo()
-|</ClassDeclaration>, "End Sub")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterCompletedMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub EndSubInBrokenMethodBodyTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Sub Goo()
+|</ClassDeclaration>, "End Sub")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotAfterCompletedMethodBodyTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Sub Goo()
 End Sub
 |</ClassDeclaration>, "End")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterMustOverrideMethodDeclaration1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub NotAfterMustOverrideMethodDeclaration1Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 MustOverride Sub Goo()
 |</ClassDeclaration>, "End")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterMustOverrideMethodDeclaration2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub NotAfterMustOverrideMethodDeclaration2Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 MustOverride Sub Goo()
 |</ClassDeclaration>, "End Sub")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndPropertyAfterIncompleteProperty1Test() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Property goo As Integer
+        Public Sub EndPropertyAfterIncompleteProperty1Test()
+            VerifyRecommendationsContain(<ClassDeclaration>Property goo As Integer
 Get
 End Get
 Set(value As Integer)
 End Set
 |</ClassDeclaration>, "End Property")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndPropertyAfterIncompleteProperty2Test() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Property goo As Integer
+        Public Sub EndPropertyAfterIncompleteProperty2Test()
+            VerifyRecommendationsContain(<ClassDeclaration>Property goo As Integer
 Get
 End Get
 Set(value As Integer)
 End Set
 End |</ClassDeclaration>, "Property")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSubInLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim goo = Sub()
+        Public Sub EndSubInLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim goo = Sub()
 |</MethodBody>, "End Sub")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndIfInMethodBody1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub EndIfInMethodBody1Test()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 |</MethodBody>, "End", "End If")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndIfInMethodBody2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub EndIfInMethodBody2Test()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 End |</MethodBody>, "If")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndWithInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>With goo
+        Public Sub EndWithInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>With goo
 |</MethodBody>, "End With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndWhileInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>While goo
+        Public Sub EndWhileInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>While goo
 |</MethodBody>, "End While")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSelectInMethodBody1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Select goo
+        Public Sub EndSelectInMethodBody1Test()
+            VerifyRecommendationsContain(<MethodBody>Select goo
 |</MethodBody>, "End Select")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSelectInMethodBody2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Select goo
+        Public Sub EndSelectInMethodBody2Test()
+            VerifyRecommendationsContain(<MethodBody>Select goo
 Case 1
 |</MethodBody>, "End Select")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSelectInMethodBody3Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Select goo
+        Public Sub EndSelectInMethodBody3Test()
+            VerifyRecommendationsContain(<MethodBody>Select goo
 Case 1
 Case Else
 |</MethodBody>, "End Select")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSyncLockInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>SyncLock goo
+        Public Sub EndSyncLockInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>SyncLock goo
 |</MethodBody>, "End SyncLock")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndModuleInFile1Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>Module Goo
+        Public Sub EndModuleInFile1Test()
+            VerifyRecommendationsContain(<File>Module Goo
 |</File>, {"End Module"})
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndModuleInFile2Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub EndModuleInFile2Test()
+            VerifyRecommendationsContain(<File>
 Module Goo
 End |</File>, "Module")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndInterfaceInFile1Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>Interface IGoo
+        Public Sub EndInterfaceInFile1Test()
+            VerifyRecommendationsContain(<File>Interface IGoo
 |</File>, {"End Interface"})
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndInterfaceInFile2Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub EndInterfaceInFile2Test()
+            VerifyRecommendationsContain(<File>
 Interface IGoo
 End |</File>, "Interface")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndClassInFile1Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>Class Goo
+        Public Sub EndClassInFile1Test()
+            VerifyRecommendationsContain(<File>Class Goo
 |</File>, {"End Class"})
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndClassInFile2Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub EndClassInFile2Test()
+            VerifyRecommendationsContain(<File>
 Class Goo
 End |</File>, "Class")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndStructureInFile1Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>Structure Goo
+        Public Sub EndStructureInFile1Test()
+            VerifyRecommendationsContain(<File>Structure Goo
 |</File>, {"End Structure"})
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndStructureInFile2Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub EndStructureInFile2Test()
+            VerifyRecommendationsContain(<File>
 Structure Goo
 End |</File>, "Structure")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndEnumInFile1Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>Enum Goo
+        Public Sub EndEnumInFile1Test()
+            VerifyRecommendationsContain(<File>Enum Goo
 |</File>, {"End Enum"})
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndEnumInFile2Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub EndEnumInFile2Test()
+            VerifyRecommendationsContain(<File>
 Enum Goo
 End |</File>, "Enum")
-        End Function
+        End Sub
 
         <WorkItem(539311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539311")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndBlockMissingInPreprocessorTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub EndBlockMissingInPreprocessorTest()
+            VerifyRecommendationsMissing(
 <ClassDeclaration>
 Module M
     Sub Goo()
@@ -210,63 +213,64 @@ Module M
     End Sub
 End Module
 </ClassDeclaration>, {"End Module", "End Sub"})
-        End Function
+        End Sub
 
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSubSuggestFunctionTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Goo()
+        Public Sub EndSubSuggestFunctionTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Sub Goo()
 End |</ClassDeclaration>, "Function", "Sub")
-        End Function
+        End Sub
 
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndFunctionDoesNotSuggestEndSubTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Function Goo()
+        <Fact>
+        Public Sub EndFunctionDoesNotSuggestEndSubTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Function Goo()
 |</ClassDeclaration>, "End Sub")
-        End Function
+        End Sub
 
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndFunctionSuggestSubTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Goo()
+        Public Sub EndFunctionSuggestSubTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Function Goo()
 End |</ClassDeclaration>, "Function", "Sub")
-        End Function
+        End Sub
 
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndSubNotClassSuggestedTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Goo()
+        Public Sub EndSubNotClassSuggestedTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Sub Goo()
 |</ClassDeclaration>, "End Class", "End Module", "End Structure", "End Interface")
-        End Function
+        End Sub
 
         <WorkItem(969097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndClassPairingsTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Class Goo()
+        Public Sub EndClassPairingsTest()
+            VerifyRecommendationsMissing(<File>Class Goo()
 End |</File>, "Module", "Interface", "Structure")
-        End Function
+        End Sub
 
         <WorkItem(969097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969097")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndModulePairingsTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Module Goo()
+        Public Sub EndModulePairingsTest()
+            VerifyRecommendationsMissing(<File>Module Goo()
 End |</File>, "Class", "Interface", "Structure")
-        End Function
+        End Sub
 
         <WorkItem(540069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540069")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function EndModuleNotSubSuggestedTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Module Goo()
+        Public Sub EndModuleNotSubSuggestedTest()
+            VerifyRecommendationsMissing(<File>Module Goo()
 |</File>, "End Sub", "End Function")
-        End Function
+        End Sub
     End Class
 End Namespace
 

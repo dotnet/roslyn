@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
@@ -14,12 +17,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _includeOverridesAndImplementations;
+            private readonly int _parameterIndex;
 
-            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations)
+            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex)
             {
                 _document = document;
                 _state = state;
                 _includeOverridesAndImplementations = includeOverridesAndImplementations;
+                _parameterIndex = parameterIndex;
             }
 
             public override string Title
@@ -36,17 +41,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                return AddParameterService.Instance.AddParameterAsync(
+                return AddParameterService.AddParameterAsync(
                     _document,
                     _state.ContainingMethod,
                     _state.LocalType,
                     RefKind.None,
                     _state.IdentifierToken.ValueText,
-                    newParameterIndex: null,
+                    _parameterIndex,
                     _includeOverridesAndImplementations,
-                    cancellationToken);
+                    cancellationToken).AsNullable();
             }
         }
     }

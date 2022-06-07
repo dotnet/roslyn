@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -230,17 +232,23 @@ Async Function rtrt() As Task(Of Integer)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
         Public Async Function TestBadAwaitInNonAsyncFunction3() As Task
             Dim initial =
-<ModuleDeclaration>
+<File>
+Module M1
     Function rtrt() As Integer
         [|Await Nothing|]
     End Function
-</ModuleDeclaration>
+End Module
+</File>
             Dim expected =
-<ModuleDeclaration>
-Async Function rtrtAsync() As Threading.Tasks.Task(Of Integer)
-    Await Nothing
+<File>
+Imports System.Threading.Tasks
+
+Module M1
+    Async Function rtrtAsync() As Task(Of Integer)
+        Await Nothing
     End Function
-</ModuleDeclaration>
+End Module
+</File>
             Await TestAsync(initial, expected)
         End Function
 
@@ -300,8 +308,10 @@ End Class
 </File>
             Dim expected =
 <File>
+Imports System.Threading.Tasks
+
 Class Program
-    Async Function rtrtAsync() As System.Threading.Tasks.Task(Of Integer)
+    Async Function rtrtAsync() As Task(Of Integer)
         Await Nothing
     End Function
 End Class
@@ -321,8 +331,10 @@ End Class
 </File>
             Dim expected =
 <File>
+Imports System.Threading.Tasks
+
 Class Program
-    Async Function rtrtAsync() As System.Threading.Tasks.Task(Of Program)
+    Async Function rtrtAsync() As Task(Of Program)
         Await Nothing
     End Function
 End Class

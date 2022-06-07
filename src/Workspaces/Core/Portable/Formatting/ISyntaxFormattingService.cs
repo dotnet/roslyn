@@ -1,23 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Text;
-
-#if !CODE_STYLE
+using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal interface ISyntaxFormattingService
-#if !CODE_STYLE
-        : ILanguageService
-#endif
+    internal interface ISyntaxFormattingService : ISyntaxFormatting, ILanguageService
     {
-        IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
-        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken);
+        Task<bool> ShouldFormatOnTypedCharacterAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesOnTypedCharacterAsync(Document document, int caretPosition, IndentationOptions indentationOptions, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
     }
 }

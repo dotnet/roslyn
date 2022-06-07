@@ -1,26 +1,30 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentTypeDefinitionName)]
-    internal class GoToTypeDefinitionHandler : GoToDefinitionHandlerBase, IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(GoToTypeDefinitionHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentTypeDefinitionName)]
+    internal class GoToTypeDefinitionHandler : AbstractGoToDefinitionHandler
     {
         [ImportingConstructor]
-        public GoToTypeDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService) : base(metadataAsSourceFileService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public GoToTypeDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions)
+            : base(metadataAsSourceFileService, globalOptions)
         {
         }
 
-        public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext)
-        {
-            return await GetDefinitionAsync(solution, request, typeOnly: true, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext);
-        }
+        public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+            => GetDefinitionAsync(request, typeOnly: true, context, cancellationToken);
     }
 }

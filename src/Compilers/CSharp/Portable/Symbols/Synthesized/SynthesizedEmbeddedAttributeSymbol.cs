@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.Cci;
 using Roslyn.Utilities;
@@ -45,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _baseType = baseType;
         }
 
-        public abstract new ImmutableArray<MethodSymbol> Constructors { get; }
+        public new abstract ImmutableArray<MethodSymbol> Constructors { get; }
 
         public override int Arity => 0;
 
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
-        internal override ManagedKind ManagedKind => ManagedKind.Managed;
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
@@ -62,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name => _name;
 
         public override IEnumerable<string> MemberNames => Constructors.Select(m => m.Name);
+
+        internal override bool HasDeclaredRequiredMembers => false;
 
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
@@ -95,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 
+        internal override bool IsInterpolatedStringHandlerType => false;
+
         internal override bool HasSpecialName => false;
 
         internal override bool IsComImport => false;
@@ -104,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool ShouldAddWinRTMembers => false;
 
         public override bool IsSerializable => false;
+
+        public sealed override bool AreLocalsZeroed => ContainingModule.AreLocalsZeroed;
 
         internal override TypeLayout Layout => default;
 
@@ -116,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _baseType;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
 
         public override ImmutableArray<Symbol> GetMembers() => Constructors.CastArray<Symbol>();
 
@@ -167,6 +179,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     moduleBuilder.Compilation.SynthesizeAttributeUsageAttribute(usageInfo.ValidTargets, usageInfo.AllowMultiple, usageInfo.Inherited));
             }
         }
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 
     /// <summary>
@@ -187,6 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor
@@ -203,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             GenerateMethodBodyCore(compilationState, diagnostics);
         }

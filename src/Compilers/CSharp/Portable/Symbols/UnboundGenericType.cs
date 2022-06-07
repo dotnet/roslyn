@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class TypeSymbolExtensions
     {
-        static public NamedTypeSymbol AsUnboundGenericType(this NamedTypeSymbol type)
+        public static NamedTypeSymbol AsUnboundGenericType(this NamedTypeSymbol type)
         {
             if (!type.IsGenericType)
             {
@@ -60,10 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly DiagnosticInfo _errorInfo;
 
-        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo errorInfo)
+        private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo errorInfo, TupleExtraData? tupleData = null)
+            : base(tupleData)
         {
             _name = name;
             _errorInfo = errorInfo;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new UnboundArgumentErrorTypeSymbol(_name, _errorInfo, newData);
         }
 
         public override string Name
@@ -91,17 +99,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            Debug.Assert(isValueTypeOverrideOpt == null);
-
             if ((object)t2 == (object)this)
             {
                 return true;
             }
 
-            UnboundArgumentErrorTypeSymbol other = t2 as UnboundArgumentErrorTypeSymbol;
-            return (object)other != null && string.Equals(other._name, _name, StringComparison.Ordinal) && object.Equals(other._errorInfo, _errorInfo);
+            UnboundArgumentErrorTypeSymbol? other = t2 as UnboundArgumentErrorTypeSymbol;
+            return (object?)other != null && string.Equals(other._name, _name, StringComparison.Ordinal) && object.Equals(other._errorInfo, _errorInfo);
         }
 
         public override int GetHashCode()

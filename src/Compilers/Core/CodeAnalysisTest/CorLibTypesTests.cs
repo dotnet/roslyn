@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections.Generic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -60,14 +65,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var comp = CSharp.CSharpCompilation.Create(
                 "c",
-                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                references: new[] { TestReferences.NetCoreApp30.SystemRuntimeRef });
+                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
+                references: new[] { NetCoreApp.SystemRuntime });
+
+            var knownMissingTypes = new HashSet<SpecialType>()
+            {
+            };
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
             {
                 var symbol = comp.GetSpecialType(specialType);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
-                Assert.Equal(symbol.IsValueType, specialType.IsValueType());
+                if (knownMissingTypes.Contains(specialType))
+                {
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind);
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                    Assert.Equal(symbol.IsValueType, specialType.IsValueType());
+                }
             }
         }
 
@@ -175,11 +191,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ConstantValueToStringTest01()
         {
+            var value = "Null";
+#if NETCOREAPP
+            value = "Nothing";
+#endif
+
             var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
 
             cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.String);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
+
             // Never hit "ConstantValueString(null: Null)"
 
             var strVal = "QC";

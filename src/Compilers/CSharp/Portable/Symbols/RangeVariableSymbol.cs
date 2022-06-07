@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A RangeVariableSymbol represents an identifier introduced in a query expression as the
     /// identifier of a "from" clause, an "into" query continuation, a "let" clause, or a "join" clause.
     /// </summary>
-    internal class RangeVariableSymbol : Symbol, IRangeVariableSymbol
+    internal class RangeVariableSymbol : Symbol
     {
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
@@ -60,9 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                SyntaxToken token = (SyntaxToken)_locations[0].SourceTree.GetRoot().FindToken(_locations[0].SourceSpan.Start);
+                var location = _locations[0];
+                Debug.Assert(location.SourceTree is not null);
+                SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
                 Debug.Assert(token.Kind() == SyntaxKind.IdentifierToken);
-                CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
+                CSharpSyntaxNode? node = (CSharpSyntaxNode?)token.Parent;
                 Debug.Assert(node is QueryClauseSyntax || node is QueryContinuationSyntax || node is JoinIntoClauseSyntax);
                 return ImmutableArray.Create<SyntaxReference>(node.GetReference());
             }
@@ -141,19 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitRangeVariable(this);
-        }
-
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-            return visitor.VisitRangeVariable(this);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-        }
-
         internal override TResult Accept<TArg, TResult>(CSharpSymbolVisitor<TArg, TResult> visitor, TArg a)
         {
             return visitor.VisitRangeVariable(this, a);
@@ -164,7 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.VisitRangeVariable(this);
         }
 
-        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
+        public override TResult? Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
+            where TResult : default
         {
             return visitor.VisitRangeVariable(this);
         }
@@ -185,6 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return Hash.Combine(_locations[0].GetHashCode(), _containingSymbol.GetHashCode());
+        }
+
+        protected override ISymbol CreateISymbol()
+        {
+            return new PublicModel.RangeVariableSymbol(this);
         }
     }
 }

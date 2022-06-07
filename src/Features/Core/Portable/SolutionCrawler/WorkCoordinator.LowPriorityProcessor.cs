@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
-        private sealed partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
@@ -28,9 +30,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
@@ -40,9 +42,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public int WorkItemCount => _workItemQueue.WorkItemCount;
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -52,14 +52,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
                             // process any available project work, preferring the active project.
+                            var preferableProjectId = Processor._documentTracker.SupportsDocumentTracking
+                                ? Processor._documentTracker.TryGetActiveDocument()?.ProjectId
+                                : null;
+
                             if (_workItemQueue.TryTakeAnyWork(
-                                Processor.GetActiveProject(), Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                preferableProjectId, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
                                 out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -81,9 +85,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override void PauseOnGlobalOperation()
+                    protected override void OnPaused()
                     {
-                        base.PauseOnGlobalOperation();
+                        base.OnPaused();
 
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         UpdateLastAccessTime();
 
                         // Project work
-                        item = item.With(documentId: null, projectId: item.ProjectId, asyncToken: Processor._listener.BeginAsyncOperation("WorkItem"));
+                        item = item.ToProjectWorkItem(Processor._listener.BeginAsyncOperation("WorkItem"));
 
                         var added = _workItemQueue.AddOrReplace(item);
 
@@ -126,7 +130,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // we do have work item for this project
                         var projectId = workItem.ProjectId;
                         var processedEverything = false;
-                        var processingSolution = Processor.CurrentSolution;
+                        var processingSolution = Processor._registration.GetSolutionToAnalyze();
 
                         try
                         {
@@ -141,14 +145,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                     using (Processor.EnableCaching(project.Id))
                                     {
-                                        await Processor.RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
+                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                                 else
                                 {
                                     SolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
-                                    RemoveProject(projectId);
+                                    await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -157,7 +161,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -179,11 +183,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void RemoveProject(ProjectId projectId)
+                    private async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in Analyzers)
                         {
-                            analyzer.RemoveProject(projectId);
+                            await analyzer.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -193,24 +197,39 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _workItemQueue.Dispose();
                     }
 
-                    internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    internal TestAccessor GetTestAccessor()
                     {
-                        var uniqueIds = new HashSet<ProjectId>();
-                        foreach (var item in items)
-                        {
-                            if (uniqueIds.Add(item.ProjectId))
-                            {
-                                ProcessProjectAsync(analyzers, item, CancellationToken.None).Wait();
-                            }
-                        }
+                        return new TestAccessor(this);
                     }
 
-                    internal void WaitUntilCompletion_ForTestingPurposesOnly()
+                    internal readonly struct TestAccessor
                     {
-                        // this shouldn't happen. would like to get some diagnostic
-                        while (_workItemQueue.HasAnyWork)
+                        private readonly LowPriorityProcessor _lowPriorityProcessor;
+
+                        internal TestAccessor(LowPriorityProcessor lowPriorityProcessor)
                         {
-                            Environment.FailFast("How?");
+                            _lowPriorityProcessor = lowPriorityProcessor;
+                        }
+
+                        internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                        {
+                            var uniqueIds = new HashSet<ProjectId>();
+                            foreach (var item in items)
+                            {
+                                if (uniqueIds.Add(item.ProjectId))
+                                {
+                                    _lowPriorityProcessor.ProcessProjectAsync(analyzers, item, CancellationToken.None).Wait();
+                                }
+                            }
+                        }
+
+                        internal void WaitUntilCompletion()
+                        {
+                            // this shouldn't happen. would like to get some diagnostic
+                            while (_lowPriorityProcessor._workItemQueue.HasAnyWork)
+                            {
+                                FailFast.Fail("How?");
+                            }
                         }
                     }
                 }

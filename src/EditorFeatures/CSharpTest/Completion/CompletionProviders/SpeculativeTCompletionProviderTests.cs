@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -12,14 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SpeculativeTCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SpeculativeTCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new SpeculativeTCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(SpeculativeTCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsCommitCharacterTest()
@@ -35,9 +34,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsTextualTriggerCharacterTest()
-        {
-            TestCommonIsTextualTriggerCharacter();
-        }
+            => TestCommonIsTextualTriggerCharacter();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
@@ -868,7 +865,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OkAfterAsync()
+        public async Task NotOkAfterAsync()
         {
             var markup = @"
 using System.Threading.Tasks;
@@ -877,7 +874,7 @@ class Program
     async $$
 }";
 
-            await VerifyItemExistsAsync(markup, "T");
+            await VerifyItemIsAbsentAsync(markup, "T");
         }
 
         [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
@@ -925,7 +922,7 @@ class Program
 
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         [Fact]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionReturnType()
         {
             var markup = @"
@@ -940,7 +937,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionAfterAyncTask()
         {
             var markup = @"
@@ -955,7 +952,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionAfterAsync()
         {
             var markup = @"
