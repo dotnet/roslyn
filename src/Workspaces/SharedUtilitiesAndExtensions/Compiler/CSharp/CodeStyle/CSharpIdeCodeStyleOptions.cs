@@ -72,6 +72,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
 
     // the following are also used in code generation features, consider sharing:
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferStaticAnonymousFunction { get; init; } = s_falseWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
 
     public override bool Equals(object? obj)

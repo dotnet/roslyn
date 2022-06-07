@@ -18,6 +18,9 @@ internal abstract class IdeCodeStyleOptions
     protected static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement =
         new(value: true, notification: NotificationOption2.Silent);
 
+    protected static readonly CodeStyleOption2<bool> s_falseWithSilentEnforcement =
+        new(value: false, notification: NotificationOption2.Silent);
+
     private static readonly CodeStyleOption2<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
         new(UnusedParametersPreference.AllMethods, NotificationOption2.Suggestion);
 

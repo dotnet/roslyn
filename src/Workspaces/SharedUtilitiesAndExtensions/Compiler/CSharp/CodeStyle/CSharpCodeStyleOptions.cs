@@ -225,6 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_preferred_modifier_order",
             "TextEditor.CSharp.Specific.PreferredModifierOrder");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferStaticAnonymousFunction = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticAnonymousFunction),
+            CSharpIdeCodeStyleOptions.Default.PreferStaticAnonymousFunction,
+                "csharp_prefer_static_anonymous_function",
+                "TextEditor.CSharp.Specific.PreferStaticAnonymousFunction");
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferStaticLocalFunction = CreateOption(
             CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticLocalFunction),
             CSharpIdeCodeStyleOptions.Default.PreferStaticLocalFunction,

@@ -95,6 +95,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
         => _options.GetCSharpCodeGenerationOptions(FallbackCodeGenerationOptions);
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
+
+    public CodeStyleOption2<bool> PreferStaticAnonymousFunction => GetOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, FallbackCodeStyleOptions.PreferStaticAnonymousFunction);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
