@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal abstract class AbstractLogAggregator<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
-        private static int s_globalId;
-
         private readonly ConcurrentDictionary<TKey, TValue> _map = new(concurrencyLevel: 2, capacity: 2);
         private readonly Func<TKey, TValue> _createCounter;
 
@@ -30,9 +28,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         protected abstract TValue CreateCounter();
-
-        public static int GetNextId()
-            => Interlocked.Increment(ref s_globalId);
 
         public static StatisticResult GetStatistics(List<int> values)
         {
