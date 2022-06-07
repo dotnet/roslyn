@@ -306,11 +306,13 @@ namespace Microsoft.CodeAnalysis.Completion
                     else if (comparison < 0)
                     {
                         // This item is strictly better than the best items we've found so far.
-                        // However, if it's only better in terms of case-sensitivity, we'd like 
-                        // to save the prior best items and consider their MatchPriority later.
 
+                        // Switch the references to the two lists to avoid potential of copying multiple elements around.
+                        // Now itemsWithCasingMismatchButHigherMatchPriority contains prior best items.
                         (bestItems, itemsWithCasingMismatchButHigherMatchPriority) = (itemsWithCasingMismatchButHigherMatchPriority, bestItems);
 
+                        // However, if this item only better in terms of case-sensitivity, and its MatchPriority is lower than prior best items,
+                        // we'd like to save prior best items and consider their MatchPriority later. Otherwise, no need to keep track the prior best items.
                         if (!filterTextContainsNoUpperLetters ||
                             !onlyDifferInCaseSensitivity ||
                             highestMatchPriorityInBest <= pair.item.Rules.MatchPriority)
@@ -324,12 +326,12 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
                     else
                     {
-                        // otherwise, this item is strictly worse than the ones we've been collecting.
-                        // However, if it's only worse in terms of case-sensitivity, we'd like 
-                        // to save it and consider its MatchPriority later.
+                        // This item is strictly worse than the ones we've been collecting.
+                        // However, if it's only worse in terms of case-sensitivity, and has higher MatchPriority
+                        // than all current best items, we'd like to save it and consider its MatchPriority later.
                         if (filterTextContainsNoUpperLetters &&
                             onlyDifferInCaseSensitivity &&
-                            pair.item.Rules.MatchPriority > highestMatchPriorityInBest)  // don't add if this item doesn't have higher MatchPriority
+                            pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
                         {
                             itemsWithCasingMismatchButHigherMatchPriority.Add(pair);
                         }
