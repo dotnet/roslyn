@@ -22,59 +22,16 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     // Note: this type could be concrete, but we cannot export IBraceMatcher's for multiple
     // languages at once.  So all logic is contained here.  The derived types only exist for
     // exporting purposes.
-    internal abstract class AbstractEmbeddedLanguageBraceMatcher : IBraceMatcher
+    internal abstract class AbstractEmbeddedLanguageBraceMatcher :
+        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageBraceMatcher>, IBraceMatcher
     {
-        /// <summary>
-        /// The kinds of literal tokens that we want to do embedded language classification for.
-        /// </summary>
-        private readonly HashSet<int> _syntaxTokenKinds = new();
-
-        private readonly EmbeddedLanguageDetector _detector;
-
-        /// <summary>
-        /// Brace matchers that can annotated older APIs not updated to use the [StringSyntax] attribute.
-        /// </summary>
-        private readonly ImmutableArray<Lazy<IEmbeddedLanguageBraceMatchingService, EmbeddedLanguageMetadata>> _legacyServices;
-
-        /// <summary>
-        /// Ordered mapping of a lang ID (like 'Json') to all the brace matchers that can actually highlight that
-        /// language. This allows for multiple services to be available.  The first service though that returns results
-        /// for a string will 'win' and no other services will contribute.
-        /// </summary>
-        private readonly Dictionary<string, ArrayBuilder<Lazy<IEmbeddedLanguageBraceMatchingService, EmbeddedLanguageMetadata>>> _identifierToServices = new(StringComparer.OrdinalIgnoreCase);
-
         protected AbstractEmbeddedLanguageBraceMatcher(
             string languageName,
             EmbeddedLanguageInfo info,
             ISyntaxKinds syntaxKinds,
-            IEnumerable<Lazy<IEmbeddedLanguageBraceMatchingService, EmbeddedLanguageMetadata>> allServices)
+            IEnumerable<Lazy<IEmbeddedLanguageBraceMatcher, EmbeddedLanguageMetadata>> allServices)
+            : base(languageName, info, syntaxKinds, allServices)
         {
-            // Order the classifiers to respect the [Order] annotations.
-            var orderedServices = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
-
-            // Grab out the classifiers that handle unannotated literals and APIs.
-            _legacyServices = orderedServices.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
-
-            foreach (var service in orderedServices)
-            {
-                foreach (var identifier in service.Metadata.Identifiers)
-                    _identifierToServices.MultiAdd(identifier, service);
-            }
-
-            foreach (var (_, services) in _identifierToServices)
-                services.RemoveDuplicates();
-
-            _detector = new EmbeddedLanguageDetector(info, _identifierToServices.Keys.ToImmutableArray());
-
-            _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
-            _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
-            _syntaxTokenKinds.Add(syntaxKinds.InterpolatedStringTextToken);
-
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.SingleLineRawStringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.MultiLineRawStringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8StringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8SingleLineRawStringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8MultiLineRawStringLiteralToken);
         }
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
@@ -90,7 +47,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             BraceMatchingOptions options,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<IEmbeddedLanguageBraceMatchingService>.GetInstance(out var serviceBuffer);
+            using var _ = ArrayBuilder<IEmbeddedLanguageBraceMatcher>.GetInstance(out var serviceBuffer);
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var worker = new Worker(this, semanticModel, position, options, serviceBuffer, cancellationToken);
             return worker.Recurse(root);
@@ -102,7 +59,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
             private readonly BraceMatchingOptions _options;
-            private readonly ArrayBuilder<IEmbeddedLanguageBraceMatchingService> _serviceBuffer;
+            private readonly ArrayBuilder<IEmbeddedLanguageBraceMatcher> _serviceBuffer;
             private readonly CancellationToken _cancellationToken;
 
             public Worker(
@@ -110,7 +67,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                 SemanticModel semanticModel,
                 int position,
                 BraceMatchingOptions options,
-                ArrayBuilder<IEmbeddedLanguageBraceMatchingService> serviceBuffer,
+                ArrayBuilder<IEmbeddedLanguageBraceMatcher> serviceBuffer,
                 CancellationToken cancellationToken)
             {
                 _service = service;
@@ -154,14 +111,14 @@ namespace Microsoft.CodeAnalysis.BraceMatching
 
             private BraceMatchingResult? ClassifyToken(SyntaxToken token)
             {
-                if (token.Span.IntersectsWith(_position) && _service._syntaxTokenKinds.Contains(token.RawKind))
+                if (token.Span.IntersectsWith(_position) && _service.SyntaxTokenKinds.Contains(token.RawKind))
                 {
                     _serviceBuffer.Clear();
 
                     // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
                     // so, delegate to the first classifier we have registered for whatever language ID we find.
-                    if (_service._detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
-                        _service._identifierToServices.TryGetValue(identifier, out var services))
+                    if (_service.Detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
+                        _service.IdentifierToServices.TryGetValue(identifier, out var services))
                     {
                         foreach (var service in services)
                         {
@@ -177,7 +134,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
 
                     // It wasn't an annotated API.  See if it's some legacy API our historical classifiers have direct
                     // support for (for example, .net APIs prior to Net6).
-                    foreach (var legacyService in _service._legacyServices)
+                    foreach (var legacyService in _service.LegacyServices)
                     {
                         // don't bother trying to classify again if we already tried above.
                         if (_serviceBuffer.Contains(legacyService.Value))

@@ -18,39 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal abstract class AbstractEmbeddedLanguageClassificationService : IEmbeddedLanguageClassificationService
+    internal abstract class AbstractEmbeddedLanguageClassificationService :
+        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageClassifier>, IEmbeddedLanguageClassificationService
     {
-        /// <summary>
-        /// The kinds of literal tokens that we want to do embedded language classification for.
-        /// </summary>
-        private readonly HashSet<int> _syntaxTokenKinds = new();
-
-        /// <summary>
-        /// Classifiers that can annotated older APIs not updated to use the [StringSyntax] attribute.
-        /// </summary>
-        private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _legacyClassifiers;
-
         /// <summary>
         /// Finally classifier to run if there is no embedded language in a string.  It will just classify escape sequences.
         /// </summary>
         private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
-
-        /// <summary>
-        /// Ordered mapping of a lang ID (like 'Json') to all the classifiers that can actually classify that language.
-        /// This allows for multiple classifiers to be available.  The first classifier though that returns
-        /// classifications for a string will 'win' and no other classifiers will contribute.
-        /// </summary>
-        private readonly Dictionary<string, ArrayBuilder<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>
-        /// Information about the embedded language.
-        /// </summary>
-        private readonly EmbeddedLanguageInfo _info;
-
-        /// <summary>
-        /// Helper to look at string literals and determine what language they are annotated to take.
-        /// </summary>
-        private readonly EmbeddedLanguageDetector _detector;
 
         protected AbstractEmbeddedLanguageClassificationService(
             string languageName,
@@ -58,36 +32,9 @@ namespace Microsoft.CodeAnalysis.Classification
             ISyntaxKinds syntaxKinds,
             IEmbeddedLanguageClassifier fallbackClassifier,
             IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> allClassifiers)
+            : base(languageName, info, syntaxKinds, allClassifiers)
         {
             _fallbackClassifier = fallbackClassifier;
-
-            // Order the classifiers to respect the [Order] annotations.
-            var orderedClassifiers = ExtensionOrderer.Order(allClassifiers).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
-
-            // Grab out the classifiers that handle unannotated literals and APIs.
-            _legacyClassifiers = orderedClassifiers.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
-
-            foreach (var classifier in orderedClassifiers)
-            {
-                foreach (var identifier in classifier.Metadata.Identifiers)
-                    _identifierToClassifiers.MultiAdd(identifier, classifier);
-            }
-
-            foreach (var (_, classifiers) in _identifierToClassifiers)
-                classifiers.RemoveDuplicates();
-
-            _info = info;
-            _detector = new EmbeddedLanguageDetector(info, _identifierToClassifiers.Keys.ToImmutableArray());
-
-            _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
-            _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
-            _syntaxTokenKinds.Add(syntaxKinds.InterpolatedStringTextToken);
-
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.SingleLineRawStringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.MultiLineRawStringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8StringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8SingleLineRawStringLiteralToken);
-            _syntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8MultiLineRawStringLiteralToken);
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
@@ -166,17 +113,17 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ClassifyToken(SyntaxToken token)
             {
-                if (token.Span.IntersectsWith(_textSpan) && _service._syntaxTokenKinds.Contains(token.RawKind))
+                if (token.Span.IntersectsWith(_textSpan) && _service.SyntaxTokenKinds.Contains(token.RawKind))
                 {
                     _classifierBuffer.Clear();
 
                     var context = new EmbeddedLanguageClassificationContext(
-                        _project, _semanticModel, token, _options, _service._info.VirtualCharService, _result, _cancellationToken);
+                        _project, _semanticModel, token, _options, _service.Info.VirtualCharService, _result, _cancellationToken);
 
                     // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
                     // so, delegate to the first classifier we have registered for whatever language ID we find.
-                    if (_service._detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
-                        _service._identifierToClassifiers.TryGetValue(identifier, out var classifiers))
+                    if (_service.Detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
+                        _service.IdentifierToServices.TryGetValue(identifier, out var classifiers))
                     {
                         foreach (var classifier in classifiers)
                         {
@@ -191,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                     // It wasn't an annotated API.  See if it's some legacy API our historical classifiers have direct
                     // support for (for example, .net APIs prior to Net6).
-                    foreach (var legacyClassifier in _service._legacyClassifiers)
+                    foreach (var legacyClassifier in _service.LegacyServices)
                     {
                         // don't bother trying to classify again if we already tried above.
                         if (_classifierBuffer.Contains(legacyClassifier.Value))

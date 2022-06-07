@@ -4,10 +4,11 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    internal interface IEmbeddedLanguageBraceMatchingService
+    internal interface IEmbeddedLanguageBraceMatcher : IEmbeddedLanguageFeatureService
     {
         BraceMatchingResult? FindBraces(
             SemanticModel semanticModel,

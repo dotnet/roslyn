@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages;
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
     /// <summary>
-    /// Use this attribute to export a <see cref="IEmbeddedLanguageBraceMatchingService"/>.
+    /// Use this attribute to export a <see cref="IEmbeddedLanguageBraceMatcher"/>.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportEmbeddedLanguageBraceMatchingServiceAttribute : ExportAttribute
+    internal class ExportEmbeddedLanguageBraceMatcherAttribute : ExportAttribute
     {
         /// <summary>
         /// Name of the classifier.
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         /// </remarks>
         public string[] Identifiers { get; }
 
-        public ExportEmbeddedLanguageBraceMatchingServiceAttribute(
+        public ExportEmbeddedLanguageBraceMatcherAttribute(
             string name, string language, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageBraceMatchingService))
+            : base(typeof(IEmbeddedLanguageBraceMatcher))
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Language = language ?? throw new ArgumentNullException(nameof(language));
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportEmbeddedLanguageBraceMatchingServiceInternalAttribute : ExportEmbeddedLanguageBraceMatchingServiceAttribute
+    internal sealed class ExportEmbeddedLanguageBraceMatcherInternalAttribute : ExportEmbeddedLanguageBraceMatcherAttribute
     {
         /// <inheritdoc cref="EmbeddedLanguageMetadata.SupportsUnannotatedAPIs"/>
         public bool SupportsUnannotatedAPIs { get; }
 
-        public ExportEmbeddedLanguageBraceMatchingServiceInternalAttribute(
+        public ExportEmbeddedLanguageBraceMatcherInternalAttribute(
             string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
             : base(name, language, identifiers)
         {

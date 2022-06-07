@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    internal static class PredefinedEmbeddedLanguageBraceMatchingServiceNames
+    internal static class PredefinedEmbeddedLanguageBraceMatcherNames
     {
         public const string Regex = nameof(Regex);
 

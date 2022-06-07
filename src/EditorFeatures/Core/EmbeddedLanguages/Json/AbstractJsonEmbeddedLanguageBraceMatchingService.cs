@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 
     /// <summary>
-    /// Classifier impl for embedded json strings.
+    /// Brace matcher impl for embedded json strings.
     /// </summary>
-    internal abstract class AbstractJsonEmbeddedLanguageBraceMatchingService : IEmbeddedLanguageBraceMatchingService
+    internal abstract class AbstractJsonEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
         private readonly EmbeddedLanguageInfo _info;
 
-        public AbstractJsonEmbeddedLanguageBraceMatchingService(EmbeddedLanguageInfo info)
+        public AbstractJsonEmbeddedLanguageBraceMatcher(EmbeddedLanguageInfo info)
         {
             _info = info;
         }
