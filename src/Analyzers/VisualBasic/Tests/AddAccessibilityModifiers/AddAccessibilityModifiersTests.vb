@@ -419,7 +419,7 @@ end namespace"
             Dim test As New VerifyVB.Test()
             test.TestCode = source
             test.FixedCode = fixedSource
-            test.Options.Add(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault)
+            test.Options.Add(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault)
 
             Await test.RunAsync()
         End Function

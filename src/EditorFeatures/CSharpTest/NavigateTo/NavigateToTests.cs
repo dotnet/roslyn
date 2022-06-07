@@ -669,6 +669,113 @@ testHost, composition, @"public interface IGoo
 
         [Theory]
         [CombinatorialData]
+        public async Task FindTopLevelLocalFunction(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo()
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindTopLevelLocalFunction_WithParameters(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo(int i)
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindTopLevelLocalFunction_WithTypeArgumentsAndParameters(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo<T>(int i)
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>(int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindNestedLocalFunctionTopLevelStatements(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"void Goo()
+{
+    void Bar()
+    {
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Bar")).Single();
+    VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindLocalFunctionInMethod(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"
+class C
+{
+    void M()
+    {
+        void Goo()
+        {
+            void Bar()
+            {
+            }
+        }
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+    VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindNestedLocalFunctionInMethod(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"
+class C
+{
+    void M()
+    {
+        void Goo()
+        {
+            void Bar()
+            {
+            }
+        }
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Bar")).Single();
+    VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task FindDelegateInNamespace(TestHost testHost, Composition composition)
         {
             await TestAsync(

@@ -3287,13 +3287,8 @@ class C
             var s2 = s1.AddProject("P1", "A1", LanguageNames.VisualBasic).Solution;
             VerifyOptionSet(s2.Options);
 
-            // Verify option value is preserved on roundtriping the option set (serialize and deserialize).
-            var s3 = s2.AddProject("P2", "A2", LanguageNames.CSharp).Solution;
-            var roundTripOptionSet = SerializeAndDeserialize((SerializableOptionSet)s3.Options, optionService);
-            VerifyOptionSet(roundTripOptionSet);
-
             // Verify option value is preserved on removing a project.
-            var s4 = s3.RemoveProject(s3.Projects.Single(p => p.Name == "P2").Id);
+            var s4 = s2.RemoveProject(s2.Projects.Single(p => p.Name == "P1").Id);
             VerifyOptionSet(s4.Options);
 
             return;
@@ -3302,16 +3297,6 @@ class C
             {
                 Assert.Equal(changedValue, optionSet.GetOption(option, LanguageNames.CSharp));
                 Assert.Equal(defaultValue, optionSet.GetOption(option, LanguageNames.VisualBasic));
-            }
-
-            static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
-            {
-                using var stream = new MemoryStream();
-                using var writer = new ObjectWriter(stream);
-                optionSet.Serialize(writer, CancellationToken.None);
-                stream.Position = 0;
-                using var reader = ObjectReader.TryGetReader(stream);
-                return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
         }
 
@@ -3422,8 +3407,10 @@ class C
 
             var document = solution.GetRequiredDocument(documentId);
 
+#pragma warning disable RS0030 // Do not used banned APIs
             var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
             Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+#pragma warning restore
 
             var syntaxTree = await document.GetSyntaxTreeAsync();
             var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);

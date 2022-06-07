@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
 
             var projectsSyncObject = await scope.GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
             await validator.VerifySynchronizationObjectInServiceAsync(projectsSyncObject).ConfigureAwait(false);
@@ -134,7 +133,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var projectSyncObject = await scope.GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
             await validator.VerifySynchronizationObjectInServiceAsync(projectSyncObject).ConfigureAwait(false);
@@ -171,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
             Assert.Equal(1, solutionObject.Projects.Count);
@@ -210,7 +207,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
             Assert.Equal(2, solutionObject.Projects.Count);
@@ -752,7 +748,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var recoveredSolution = await validator.GetSolutionAsync(scope);
 

@@ -4054,7 +4054,12 @@ namespace Microsoft.Cci
                 encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
             }
 
-            return new EditAndContinueMethodDebugInformation(methodBody.MethodId.Ordinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
+            return new EditAndContinueMethodDebugInformation(
+                methodBody.MethodId.Ordinal,
+                encLocalSlots,
+                methodBody.ClosureDebugInfo,
+                methodBody.LambdaDebugInfo,
+                methodBody.StateMachineStatesDebugInfo.States);
         }
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)

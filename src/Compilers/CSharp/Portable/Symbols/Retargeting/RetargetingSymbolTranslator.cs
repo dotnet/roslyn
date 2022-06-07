@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 Debug.Assert(type.IsDefinition);
 
-                if (type.IsNativeIntegerType)
+                if (type.IsNativeIntegerWrapperType)
                 {
                     var result = RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options);
                     return result.SpecialType == SpecialType.None ? result : result.AsNativeInteger();

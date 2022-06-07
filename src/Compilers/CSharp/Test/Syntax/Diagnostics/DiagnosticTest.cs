@@ -270,8 +270,7 @@ class X
                         case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
-                        case ErrorCode.WRN_NullCheckedHasDefaultNull:
-                        case ErrorCode.WRN_NullCheckingOnNullableType:
+                        case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -420,8 +419,6 @@ class X
                 // Nullable-unrelated warnings in the C# 8 range should be added to this array.
                 var nullableUnrelatedWarnings = new[]
                 {
-                    ErrorCode.WRN_NullCheckingOnNullableType,
-                    ErrorCode.WRN_NullCheckedHasDefaultNull,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,

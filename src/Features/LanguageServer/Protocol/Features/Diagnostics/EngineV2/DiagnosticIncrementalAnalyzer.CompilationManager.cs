@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return CompilationWithAnalyzer for given project with given stateSets
         /// </summary>
-        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var language = objectCreationExpression.Language;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language);
+            var option = context.GetAnalyzerOptions().PreferCollectionInitializer;
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = context.GetOption(
-                CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
+            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexObjectInitialization;
             if (!fadeOutCode)
                 return;
 

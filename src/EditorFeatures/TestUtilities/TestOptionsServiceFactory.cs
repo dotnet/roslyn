@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             // give out new option service per workspace
             return new OptionServiceFactory.OptionService(
-                new GlobalOptionService(_workspaceThreadingService, _providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersisterProvider>>()),
-                workspaceServices);
+                new GlobalOptionService(_workspaceThreadingService, _providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersisterProvider>>()));
         }
     }
 }

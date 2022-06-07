@@ -13,6 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// This wrapper is only used on platforms where System.IntPtr isn't considered
+    /// a numeric type (as indicated by a RuntimeFeature flag).
+    /// </summary>
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
 #if !DEBUG
         , Cci.IReference
@@ -27,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingType.TupleData is null);
             Debug.Assert(!underlyingType.IsNativeIntegerType);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
+            Debug.Assert(!underlyingType.ContainingAssembly.RuntimeSupportsNumericIntPtr);
             VerifyEquality(this, underlyingType);
         }
 
@@ -45,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SpecialType SpecialType => _underlyingType.SpecialType;
 
         public override IEnumerable<string> MemberNames => GetMembers().Select(m => m.Name);
+
+        internal override bool HasDeclaredRequiredMembers => false;
 
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:
@@ -163,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
 
-        internal override bool IsNativeIntegerType => true;
+        internal override bool IsNativeIntegerWrapperType => true;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 
@@ -187,8 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
+
             return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
-                other.IsNativeIntegerType;
+                other.IsNativeIntegerWrapperType;
         }
 
         public override int GetHashCode() => _underlyingType.GetHashCode();

@@ -2752,45 +2752,6 @@ namespace ConsoleApplication1
     Property("Length"));
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern1(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        if (s is var v)
-        {
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
-        }
-
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern2(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        switch (s)
-        {
-            case var v:
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
-        }
-
         [Theory]
         [CombinatorialData]
         [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
@@ -3679,6 +3640,27 @@ Regex.Comment("(?#comment)"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string field = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
         {
             await TestAsync(
@@ -3698,6 +3680,27 @@ class Program
 }" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Property("Prop"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string Prop { get; set; } = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
 Regex.Anchor("$"),
 Regex.OtherEscape("\\"),
 Regex.OtherEscape("a"),

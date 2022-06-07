@@ -605,6 +605,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Создать и назначить оставшиеся как свойства</target>
         <note />
       </trans-unit>
+      <trans-unit id="Decompiled">
+        <source>decompiled</source>
+        <target state="new">decompiled</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">Для удаления {0} вокруг активного оператора требуется перезапустить приложение.</target>
@@ -2503,6 +2508,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Замените '{0}' на '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
