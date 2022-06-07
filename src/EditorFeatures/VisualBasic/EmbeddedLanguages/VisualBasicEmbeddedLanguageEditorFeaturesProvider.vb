@@ -1,8 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
@@ -17,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
 
-        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
-            Return EmbeddedLanguageUtilities.EscapeText(text, token)
+        Public Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+            Return EmbeddedLanguageUtilities.EscapeText(text)
         End Function
     End Class
 End Namespace

@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 
@@ -8,39 +9,32 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class OptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        private sealed class GlobalOptionChangedEventSource : AbstractTaggerEventSource
         {
-            private readonly IOption _option;
-            private IOptionService _optionService;
+            private readonly IOption _globalOption;
+            private readonly IGlobalOptionService _globalOptions;
 
-            public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option, TaggerDelay delay) : base(subjectBuffer, delay)
+            public GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, IOption globalOption)
             {
-                _option = option;
+                _globalOptions = globalOptions;
+                _globalOption = globalOption;
             }
 
-            protected override void ConnectToWorkspace(Workspace workspace)
+            public override void Connect()
             {
-                _optionService = workspace.Services.GetService<IOptionService>();
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged += OnOptionChanged;
-                }
+                _globalOptions.OptionChanged += OnGlobalOptionChanged;
             }
 
-            protected override void DisconnectFromWorkspace(Workspace workspace)
+            public override void Disconnect()
             {
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged -= OnOptionChanged;
-                    _optionService = null;
-                }
+                _globalOptions.OptionChanged -= OnGlobalOptionChanged;
             }
 
-            private void OnOptionChanged(object sender, OptionChangedEventArgs e)
+            private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                if (e.Option == _option)
+                if (e.Option == _globalOption)
                 {
-                    this.RaiseChanged();
+                    RaiseChanged();
                 }
             }
         }

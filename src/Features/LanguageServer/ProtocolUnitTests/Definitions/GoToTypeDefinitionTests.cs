@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
@@ -22,10 +26,10 @@ class B
 {
     {|caret:|}A classA;
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
-            AssertLocationsEqual(locations["definition"], results);
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
         [Fact]
@@ -47,10 +51,11 @@ class B
     }
 }"
             };
-            var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
-            AssertLocationsEqual(locations["definition"], results);
+            using var testLspServer = await CreateTestLspServerAsync(markups);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
         [Fact]
@@ -65,13 +70,16 @@ class B
     A classA;
     {|caret:|}
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunGotoTypeDefinitionAsync(solution, locations["caret"].Single());
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 
-        private static async Task<LSP.Location[]> RunGotoTypeDefinitionAsync(Solution solution, LSP.Location caret)
-            => await GetLanguageServer(solution).GoToTypeDefinitionAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+        private static async Task<LSP.Location[]> RunGotoTypeDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentTypeDefinitionName,
+                           CreateTextDocumentPositionParams(caret), CancellationToken.None);
+        }
     }
 }

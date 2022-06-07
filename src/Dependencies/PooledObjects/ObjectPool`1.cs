@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // define TRACE_LEAKS to get additional diagnostics that can lead to the leak sources. note: it will
 // make everything about 2-3x slower
@@ -16,8 +18,8 @@ using System.Threading;
 
 #if DETECT_LEAKS
 using System.Runtime.CompilerServices;
-
 #endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         [DebuggerDisplay("{Value,nq}")]
         private struct Element
         {
-            internal T Value;
+            internal T? Value;
         }
 
         /// <remarks>
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         // Storage for the pool objects. The first item is stored in a dedicated field because we
         // expect to be able to satisfy most requests from it.
-        private T _firstItem;
+        private T? _firstItem;
         private readonly Element[] _items;
 
         // factory is stored for the lifetime of the pool. We will call this only when pool needs to
@@ -110,6 +112,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             Debug.Assert(size >= 1);
             _factory = factory;
+            _items = new Element[size - 1];
+        }
+
+        internal ObjectPool(Func<ObjectPool<T>, T> factory, int size)
+        {
+            Debug.Assert(size >= 1);
+            _factory = () => factory(this);
             _items = new Element[size - 1];
         }
 
@@ -224,7 +233,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// return a larger array to the pool than was originally allocated.
         /// </summary>
         [Conditional("DEBUG")]
-        internal void ForgetTrackedObject(T old, T replacement = null)
+        internal void ForgetTrackedObject(T old, T? replacement = null)
         {
 #if DETECT_LEAKS
             LeakTracker tracker;

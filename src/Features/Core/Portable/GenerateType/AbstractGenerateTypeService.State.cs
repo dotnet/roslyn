@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -61,9 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; }
 
             private State(Compilation compilation)
-            {
-                Compilation = compilation;
-            }
+                => Compilation = compilation;
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -86,14 +88,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
-                if (!(node is TSimpleNameSyntax))
+                if (node is not TSimpleNameSyntax)
                 {
                     return false;
                 }
 
                 SimpleName = (TSimpleNameSyntax)node;
                 var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out var arity);
+                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out _);
 
                 Name = name;
                 NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(SimpleName.GetFirstToken());
@@ -146,9 +148,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                if (info.CandidateReason == CandidateReason.Inaccessible ||
-                    info.CandidateReason == CandidateReason.NotReferencable ||
-                    info.CandidateReason == CandidateReason.OverloadResolutionFailure)
+                if (info.CandidateReason is CandidateReason.Inaccessible or
+                    CandidateReason.NotReferencable or
+                    CandidateReason.OverloadResolutionFailure)
                 {
                     // We bound to something inaccessible, or overload resolution on a 
                     // constructor call failed.  Don't want to offer GenerateType here.
@@ -208,52 +210,44 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (service.IsInCatchDeclaration(NameOrMemberAccessExpression))
                 {
-                    BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.ExceptionType();
+                    SetBaseType(document.SemanticModel.Compilation.ExceptionType());
                 }
                 else if (syntaxFacts.IsAttributeName(NameOrMemberAccessExpression))
                 {
-                    BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.AttributeType();
+                    SetBaseType(document.SemanticModel.Compilation.AttributeType());
                 }
-                else if (
-                    service.IsArrayElementType(NameOrMemberAccessExpression) ||
-                    service.IsInVariableTypeContext(NameOrMemberAccessExpression) ||
-                    ObjectCreationExpressionOpt != null)
+                else
                 {
                     var expr = ObjectCreationExpressionOpt ?? NameOrMemberAccessExpression;
-                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
-                    var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
-                    SetBaseType(baseType);
+                    if (expr != null)
+                    {
+                        var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
+                        var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
+                        SetBaseType(baseType);
+                    }
                 }
             }
 
             private void SetBaseType(INamedTypeSymbol baseType)
             {
                 if (baseType == null)
-                {
                     return;
-                }
 
                 // A base type need to be non class or interface type.  Also, being 'object' is
                 // redundant as the base type.  
                 if (baseType.IsSealed || baseType.IsStatic || baseType.SpecialType == SpecialType.System_Object)
-                {
                     return;
-                }
 
-                if (baseType.TypeKind != TypeKind.Class && baseType.TypeKind != TypeKind.Interface)
-                {
+                if (baseType.TypeKind is not TypeKind.Class and not TypeKind.Interface)
                     return;
-                }
 
                 // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
                 // if you're deriving some interface like IEnumerable<string?>.
-                BaseTypeOrInterfaceOpt = baseType.WithNullability(NullableAnnotation.None);
+                BaseTypeOrInterfaceOpt = (INamedTypeSymbol)baseType.WithNullableAnnotation(NullableAnnotation.None);
             }
 
             private bool GenerateStruct(TService service, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                return service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
-            }
+                => service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
 
             private bool GenerateInterface(TService service)
             {
@@ -279,8 +273,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Can only generate into a type if it's a class and it's from source.
                 if (TypeToGenerateInOpt != null)
                 {
-                    if (TypeToGenerateInOpt.TypeKind != TypeKind.Class &&
-                        TypeToGenerateInOpt.TypeKind != TypeKind.Module)
+                    if (TypeToGenerateInOpt.TypeKind is not TypeKind.Class and
+                        not TypeKind.Module)
                     {
                         TypeToGenerateInOpt = null;
                     }
@@ -308,7 +302,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
                         if (documentToBeGeneratedIn.Project != document.Project ||
-                            service.GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
                         {
                             IsPublicAccessibilityForTypeGeneration = true;
                         }

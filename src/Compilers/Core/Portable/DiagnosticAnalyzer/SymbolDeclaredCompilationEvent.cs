@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -14,83 +16,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly Lazy<ImmutableArray<SyntaxReference>> _lazyCachedDeclaringReferences;
 
-        public SymbolDeclaredCompilationEvent(Compilation compilation, ISymbol symbol) : base(compilation)
+        public SymbolDeclaredCompilationEvent(Compilation compilation, ISymbol symbol, SemanticModel? semanticModelWithCachedBoundNodes = null)
+            : base(compilation)
         {
-            this.Symbol = symbol;
-            this._lazyCachedDeclaringReferences = new Lazy<ImmutableArray<SyntaxReference>>(() => symbol.DeclaringSyntaxReferences);
-        }
-
-        public SymbolDeclaredCompilationEvent(Compilation compilation, ISymbol symbol, Lazy<SemanticModel> lazySemanticModel) : this(compilation, symbol)
-        {
-            _lazySemanticModel = lazySemanticModel;
-        }
-
-        private SymbolDeclaredCompilationEvent(SymbolDeclaredCompilationEvent original, SemanticModel newSemanticModel) : this(original.Compilation, original.Symbol)
-        {
-            _semanticModel = newSemanticModel;
+            Symbol = symbol;
+            SemanticModelWithCachedBoundNodes = semanticModelWithCachedBoundNodes;
+            _lazyCachedDeclaringReferences = new Lazy<ImmutableArray<SyntaxReference>>(() => symbol.DeclaringSyntaxReferences);
         }
 
         public ISymbol Symbol { get; }
+        public SemanticModel? SemanticModelWithCachedBoundNodes { get; }
 
         // PERF: We avoid allocations in re-computing syntax references for declared symbol during event processing by caching them directly on this member.
         public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _lazyCachedDeclaringReferences.Value;
 
-        // At most one of these should be non-null.
-        private Lazy<SemanticModel> _lazySemanticModel;
-        private SemanticModel _semanticModel;
-        private WeakReference<SemanticModel> _weakModel;
-
-        /// <summary>
-        /// Lockable object only instance is knowledgeable about.
-        /// </summary>
-        private readonly object _gate = new object();
-
-        public SemanticModel SemanticModel(SyntaxReference reference)
-        {
-            lock (_gate)
-            {
-                var semanticModel = _semanticModel;
-                if (semanticModel == null && _lazySemanticModel != null)
-                {
-                    _semanticModel = semanticModel = _lazySemanticModel.Value;
-                    _lazySemanticModel = null;
-                }
-                if (semanticModel == null)
-                {
-                    _weakModel?.TryGetTarget(out semanticModel);
-                }
-                if (semanticModel == null || semanticModel.SyntaxTree != reference.SyntaxTree)
-                {
-                    semanticModel = Compilation.GetSemanticModel(reference.SyntaxTree);
-                    _weakModel = new WeakReference<SemanticModel>(semanticModel);
-                }
-
-                return semanticModel;
-            }
-        }
-        override public void FlushCache()
-        {
-            lock (_gate)
-            {
-                var semanticModel = _semanticModel;
-                _lazySemanticModel = null;
-                if (semanticModel == null) return;
-                _weakModel = new WeakReference<SemanticModel>(semanticModel);
-                _semanticModel = null;
-            }
-        }
-
-        public SymbolDeclaredCompilationEvent WithSemanticModel(SemanticModel model)
-        {
-            return new SymbolDeclaredCompilationEvent(this, model);
-        }
-
         public override string ToString()
         {
-            var name = this.Symbol.Name;
+            var name = Symbol.Name;
             if (name == "") name = "<empty>";
-            var loc = DeclaringSyntaxReferences.Length != 0 ? " @ " + String.Join(", ", System.Linq.Enumerable.Select(DeclaringSyntaxReferences, r => r.GetLocation().GetLineSpan())) : null;
-            return "SymbolDeclaredCompilationEvent(" + name + " " + this.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) + loc + ")";
+            var loc = DeclaringSyntaxReferences.Length != 0 ? " @ " + string.Join(", ", System.Linq.Enumerable.Select(DeclaringSyntaxReferences, r => r.GetLocation().GetLineSpan())) : null;
+            return "SymbolDeclaredCompilationEvent(" + name + " " + Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) + loc + ")";
         }
     }
 }

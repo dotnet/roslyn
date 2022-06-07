@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Wrapping;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
@@ -16,21 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
-        private IDictionary<OptionKey, object> EndOfLine => Option(
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
-            OperatorPlacementWhenWrappingPreference.EndOfLine);
+        private TestParameters EndOfLine
+            => new(options: Option(CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.EndOfLine));
 
-        private IDictionary<OptionKey, object> BeginningOfLine => Option(
-            CodeStyleOptions.OperatorPlacementWhenWrapping,
-            OperatorPlacementWhenWrappingPreference.BeginningOfLine);
+        private TestParameters BeginningOfLine
+            => new(options: Option(CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.BeginningOfLine));
 
         private Task TestEndOfLine(string markup, string expected)
-            => TestInRegularAndScript1Async(markup, expected, parameters: new TestParameters(
-                options: EndOfLine));
+            => TestInRegularAndScript1Async(markup, expected, EndOfLine);
 
         private Task TestBeginningOfLine(string markup, string expected)
-            => TestInRegularAndScript1Async(markup, expected, parameters: new TestParameters(
-                options: BeginningOfLine));
+            => TestInRegularAndScript1Async(markup, expected, BeginningOfLine);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestMissingWithSyntaxError()
@@ -655,6 +655,28 @@ EndOfLine,
         a &&
         b &&
         c;
+}");
+        }
+
+        [WorkItem(34127, "https://github.com/dotnet/roslyn/issues/34127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrapLowerPrecedenceInLargeBinary()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C
+{
+    bool v = [||]a + b + c + d == x * y * z;
+}",
+EndOfLine,
+@"class C
+{
+    bool v = a + b + c + d ==
+        x * y * z;
+}",
+@"class C
+{
+    bool v = a + b + c + d ==
+             x * y * z;
 }");
         }
     }

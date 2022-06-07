@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,7 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState>
+    internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState, ControlFlowPass.LocalFunctionState>
     {
         private readonly PooledDictionary<LabelSymbol, BoundBlock> _labelsDefined = PooledDictionary<LabelSymbol, BoundBlock>.GetInstance();
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
@@ -62,11 +66,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void Meet(ref LocalState self, ref LocalState other)
+        internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
+            public LocalFunctionState(LocalState unreachableState)
+                : base(unreachableState.Clone(), unreachableState.Clone())
+            { }
+        }
+
+        protected override LocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol) => new LocalFunctionState(UnreachableState());
+
+        protected override bool Meet(ref LocalState self, ref LocalState other)
+        {
+            var old = self;
             self.Alive &= other.Alive;
             self.Reported &= other.Reported;
             Debug.Assert(!self.Alive || !self.Reported);
+            return self.Alive != old.Alive;
         }
 
         protected override bool Join(ref LocalState self, ref LocalState other)
@@ -188,6 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.RemoveReturns();
             foreach (var pending in result)
             {
+                if (pending.Branch is null)
+                {
+                    continue;
+                }
+
                 switch (pending.Branch.Kind)
                 {
                     case BoundKind.GotoStatement:
@@ -274,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldPending2 = SavePending(); // track only the branches out of the finally block
             base.VisitFinallyBlock(finallyBlock, ref endState);
             RestorePending(oldPending2); // resolve branches that remain within the finally block
-            foreach (var branch in PendingBranches)
+            foreach (var branch in PendingBranches.AsEnumerable())
             {
                 if (branch.Branch == null) continue; // a tracked exception
                 var location = new SourceLocation(branch.Branch.Syntax.GetFirstToken());
@@ -352,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                var syntax = node.SwitchLabels.Last().Pattern.Syntax;
+                var syntax = node.SwitchLabels.Last().Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
             }

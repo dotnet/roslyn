@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -14,7 +14,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -28,6 +27,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
+        internal const string SynthesizedReadOnlySpanHashFunctionName = "ComputeReadOnlySpanHash";
+        internal const string SynthesizedSpanHashFunctionName = "ComputeSpanHash";
+
+        internal const string SynthesizedThrowIfNullFunctionName = "ThrowIfNull";
+        internal const string SynthesizedThrowFunctionName = "Throw";
+
+        internal const string SynthesizedThrowSwitchExpressionExceptionFunctionName = "ThrowSwitchExpressionException";
+        internal const string SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName = "ThrowSwitchExpressionExceptionParameterless";
+        internal const string SynthesizedThrowInvalidOperationExceptionFunctionName = "ThrowInvalidOperationException";
 
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type
@@ -174,20 +182,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 Interlocked.CompareExchange(ref _mvidField, new ModuleVersionIdField(this, mvidType), null);
             }
 
-            Debug.Assert(_mvidField.Type.Equals(mvidType));
+            Debug.Assert(_mvidField.Type == mvidType);
             return _mvidField;
         }
 
         internal Cci.IFieldReference GetOrAddInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadRootType)
         {
-            InstrumentationPayloadRootField payloadRootField;
+            InstrumentationPayloadRootField? payloadRootField;
             if (!_instrumentationPayloadRootFields.TryGetValue(analysisKind, out payloadRootField))
             {
                 Debug.Assert(!IsFrozen);
                 payloadRootField = _instrumentationPayloadRootFields.GetOrAdd(analysisKind, kind => new InstrumentationPayloadRootField(this, kind, payloadRootType));
             }
 
-            Debug.Assert(payloadRootField.Type.Equals(payloadRootType));
+            Debug.Assert(payloadRootField.Type == payloadRootType);
             return payloadRootField;
         }
 
@@ -220,9 +228,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // Get method by name, if one exists. Otherwise return null.
-        internal Cci.IMethodDefinition GetMethod(string name)
+        internal Cci.IMethodDefinition? GetMethod(string name)
         {
-            Cci.IMethodDefinition method;
+            Cci.IMethodDefinition? method;
             _synthesizedMethods.TryGetValue(name, out method);
             return method;
         }
@@ -293,8 +301,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
             }
 
-            public int Compare(SynthesizedStaticField x, SynthesizedStaticField y)
+            public int Compare(SynthesizedStaticField? x, SynthesizedStaticField? y)
             {
+                RoslynDebug.Assert(x is object && y is object);
+
                 // Fields are always synthesized with non-null names.
                 RoslynDebug.Assert(x.Name != null && y.Name != null);
                 return x.Name.CompareTo(y.Name);
@@ -321,15 +331,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override string ToString()
             => _containingType.ToString() + "." + this.Name;
 
-        override public ushort Alignment => 1;
+        public override ushort Alignment => 1;
 
-        override public Cci.ITypeReference GetBaseClass(EmitContext context) => _sysValueType;
+        public override Cci.ITypeReference GetBaseClass(EmitContext context) => _sysValueType;
 
-        override public LayoutKind Layout => LayoutKind.Explicit;
+        public override LayoutKind Layout => LayoutKind.Explicit;
 
-        override public uint SizeOf => _size;
+        public override uint SizeOf => _size;
 
-        override public void Dispatch(Cci.MetadataVisitor visitor)
+        public override void Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
@@ -366,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _name = name;
         }
 
-        public override string ToString() => $"{_type} {_containingType}.{this.Name}";
+        public override string ToString() => $"{(object?)_type.GetInternalSymbol() ?? _type} {(object?)_containingType.GetInternalSymbol() ?? _containingType}.{this.Name}";
 
         public MetadataConstant? GetCompileTimeValue(EmitContext context) => null;
 
@@ -414,6 +424,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             throw ExceptionUtilities.Unreachable;
         }
 
+        Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
+
         public string Name => _name;
 
         public bool IsContextualNamedEntity => false;
@@ -429,6 +441,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public MetadataConstant Constant
         {
             get { throw ExceptionUtilities.Unreachable; }
+        }
+
+        public sealed override bool Equals(object? obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
     }
 
@@ -481,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
 
-        virtual public IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
+        public virtual IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.IFieldDefinition>();
 
         public IEnumerable<Cci.IGenericTypeParameter> GenericParameters
@@ -503,6 +527,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public bool IsGeneric => false;
 
         public bool IsInterface => false;
+
+        public bool IsDelegate => false;
 
         public bool IsRuntimeSpecial => false;
 
@@ -532,6 +558,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
         public Cci.IDefinition AsDefinition(EmitContext context) => this;
+
+        Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
 
         public bool IsEnum => false;
 
@@ -581,5 +609,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public virtual bool IsValueType => false;
+
+        public sealed override bool Equals(object? obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
     }
 }

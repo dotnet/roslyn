@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -15,12 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(pool)
         End Sub
 
-        Protected Shared ReadOnly s_reduceParentheses As Func(Of ParenthesizedExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf ReduceParentheses
+        Protected Shared ReadOnly s_reduceParentheses As Func(Of ParenthesizedExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf ReduceParentheses
 
         Protected Shared Function ReduceParentheses(
             node As ParenthesizedExpressionSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As SimplifierOptions,
             cancellationToken As CancellationToken
         ) As SyntaxNode
 
@@ -30,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' cases if elastic trivia is there -- and it's not clear why.
                 ' Specifically removing the elastic trivia formatting rule doesn't
                 ' have any effect.
-                Dim resultNode = VisualBasicSyntaxFactsService.Instance.Unparenthesize(node)
+                Dim resultNode = VisualBasicSyntaxFacts.Instance.Unparenthesize(node)
                 resultNode = SimplificationHelpers.CopyAnnotations(node, resultNode)
 
                 Return resultNode
@@ -39,5 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' We don't know how to simplify this.
             Return node
         End Function
+
+        Public NotOverridable Overrides Function IsApplicable(options As SimplifierOptions) As Boolean
+            Return IsApplicable(CType(options, VisualBasicSimplifierOptions))
+        End Function
+
+        Public MustOverride Overloads Function IsApplicable(options As VisualBasicSimplifierOptions) As Boolean
     End Class
 End Namespace

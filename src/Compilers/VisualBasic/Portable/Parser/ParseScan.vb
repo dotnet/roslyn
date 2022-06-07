@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -11,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' //============ Methods to encapsulate scanning ========================
     ' //
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Scanner.h
         ' Lines: 301 - 301
@@ -83,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Dev10#708061: Treat Select in "From x in Sub() End Select" as part of End statement.
             Return If(Context.IsWithinSingleLineLambda,
                       CanFollowExpression(nextToken) AndAlso Not nextToken.Kind = SyntaxKind.SelectKeyword,
-                      IsValidStatementTerminator(nextToken))
+                      IsValidStatementTerminator(nextToken)) OrElse (Context.IsLineIf AndAlso nextToken.Kind = SyntaxKind.ElseKeyword)
         End Function
 
         ' Is this token a valid end of executable statement?

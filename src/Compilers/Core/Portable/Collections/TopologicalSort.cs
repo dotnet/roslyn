@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -23,8 +25,10 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="TNode">The type of the node</typeparam>
         /// <param name="nodes">Any subset of the nodes that includes all nodes with no predecessors</param>
         /// <param name="successors">A function mapping a node to its set of successors</param>
-        /// <returns>A list of all reachable nodes, in which each node always precedes its successors</returns>
-        public static ImmutableArray<TNode> IterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, ImmutableArray<TNode>> successors)
+        /// <param name="result">A list of all reachable nodes, in which each node always precedes its successors</param>
+        /// <returns>true if successful; false if not successful due to cycles in the graph</returns>
+        public static bool TryIterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, ImmutableArray<TNode>> successors, out ImmutableArray<TNode> result)
+            where TNode : notnull
         {
             // First, count the predecessors of each node
             PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, successors, out ImmutableArray<TNode> allNodes);
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Process the ready set. Output a node, and decrement the predecessor count of its successors.
-            var resultBuilder = ImmutableArray.CreateBuilder<TNode>();
+            var resultBuilder = ArrayBuilder<TNode>.GetInstance();
             while (ready.Count != 0)
             {
                 var node = ready.Pop();
@@ -58,20 +62,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             // At this point all the nodes should have been output, otherwise there was a cycle
-            if (predecessorCounts.Count != resultBuilder.Count)
-            {
-                throw new ArgumentException("Cycle in the input graph");
-            }
-
+            bool hadCycle = predecessorCounts.Count != resultBuilder.Count;
+            result = hadCycle ? ImmutableArray<TNode>.Empty : resultBuilder.ToImmutable();
             predecessorCounts.Free();
             ready.Free();
-            return resultBuilder.ToImmutable();
+            resultBuilder.Free();
+            return !hadCycle;
         }
 
         private static PooledDictionary<TNode, int> PredecessorCounts<TNode>(
             IEnumerable<TNode> nodes,
             Func<TNode, ImmutableArray<TNode>> successors,
             out ImmutableArray<TNode> allNodes)
+            where TNode : notnull
         {
             var predecessorCounts = PooledDictionary<TNode, int>.GetInstance();
             var counted = PooledHashSet<TNode>.GetInstance();

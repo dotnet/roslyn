@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (boundSymbols.Length == 1)
                 {
-                    var boundAlias = boundSymbols[0] as AliasSymbol;
+                    var boundAlias = boundSymbols[0] as IAliasSymbol;
                     if ((object)boundAlias != null && alias.Target.Equals(symbol))
                     {
                         builder.Add(CreatePart(SymbolDisplayPartKind.AliasName, alias, aliasName));
@@ -193,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 startNode = usingDirective.Parent.Parent;
             }
 
-            var usingAliases = GetAncestorsOrThis<NamespaceDeclarationSyntax>(startNode)
+            var usingAliases = GetAncestorsOrThis<BaseNamespaceDeclarationSyntax>(startNode)
                 .SelectMany(n => n.Usings)
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
@@ -258,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null
             };
 
-        private string RemoveAttributeSufficeIfNecessary(INamedTypeSymbol symbol, string symbolName)
+        private string RemoveAttributeSuffixIfNecessary(INamedTypeSymbol symbol, string symbolName)
         {
             if (this.IsMinimizing &&
                 format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&

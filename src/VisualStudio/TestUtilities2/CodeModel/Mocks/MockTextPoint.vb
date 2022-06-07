@@ -1,20 +1,19 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
+Imports EnvDTE
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
     Friend NotInheritable Class MockTextPoint
         Implements EnvDTE.TextPoint
 
         Private ReadOnly _point As VirtualTreePoint
-        Private ReadOnly _tabSize As Integer
 
-        Public Sub New(point As VirtualTreePoint, tabSize As Integer)
+        Public Sub New(point As VirtualTreePoint)
             _point = point
-            _tabSize = tabSize
         End Sub
 
         Public ReadOnly Property AbsoluteCharOffset As Integer Implements EnvDTE.TextPoint.AbsoluteCharOffset
@@ -113,6 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
                 If _point.IsInVirtualSpace Then
                     result += _point.VirtualSpaces
                 End If
+
                 Return result
             End Get
         End Property
@@ -130,8 +130,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             End Get
         End Property
 
-        Public Function TryToShow(Optional How As EnvDTE.vsPaneShowHow = EnvDTE.vsPaneShowHow.vsPaneShowCentered, Optional PointOrCount As Object = Nothing) As Boolean Implements EnvDTE.TextPoint.TryToShow
-            Throw New NotImplementedException
+        Public Function TryToShow(Optional How As vsPaneShowHow = vsPaneShowHow.vsPaneShowCentered, Optional PointOrCount As Object = Nothing) As Boolean Implements TextPoint.TryToShow
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

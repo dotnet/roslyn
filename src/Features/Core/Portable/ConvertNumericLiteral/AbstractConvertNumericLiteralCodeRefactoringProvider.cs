@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text.RegularExpressions;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 {
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 return;
             }
 
-            var syntaxNode = numericToken.Parent;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxNode = numericToken.GetRequiredParent();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetTypeInfo(syntaxNode, cancellationToken).Type;
             if (symbol == null)
             {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var value = IntegerUtilities.ToInt64(valueOpt.Value);
             var numericText = numericToken.ToString();
@@ -104,12 +105,12 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             void RegisterRefactoringWithResult(string text, string title)
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(title, c => ReplaceToken(document, root, numericToken, value, text, suffix)),
+                    CodeAction.Create(title, c => ReplaceTokenAsync(document, root, numericToken, value, text, suffix), title),
                     numericToken.Span);
             }
         }
 
-        private static Task<Document> ReplaceToken(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
+        private static Task<Document> ReplaceTokenAsync(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
 
         internal virtual async Task<SyntaxToken> GetNumericTokenAsync(CodeRefactoringContext context)
         {
-            var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var literalNode = await context.TryGetRelevantNodeAsync<TNumericLiteralExpression>().ConfigureAwait(false);
             var numericLiteralExpressionNode = syntaxFacts.IsNumericLiteralExpression(literalNode)
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
             // Insert digit separators in the given interval.
             var result = Regex.Replace(numericText, $"(.{{{interval}}})", "_$1", RegexOptions.RightToLeft);
             // Fix for the case "0x_1111" that is not supported yet.
-            return result[0] == '_' ? result.Substring(1) : result;
+            return result[0] == '_' ? result[1..] : result;
         }
 
         private static bool IsIntegral(SpecialType specialType)
@@ -167,12 +168,5 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
         }
 
         private enum NumericKind { Unknown, Decimal, Binary, Hexadecimal }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
-            {
-            }
-        }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim displayString = part.ToString()
                 Select Case part.Kind
                     Case SymbolDisplayPartKind.ClassName
-                        If Not displayString.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+                        If Not displayString.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
                             builder.Append(displayString)
                         Else
                             ' Drop any remaining display class name parts and the subsequent dot...
@@ -45,13 +47,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             i -= 1
                         End If
                     Case SymbolDisplayPartKind.MethodName
-                        If displayString.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
+                        If displayString.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
                             builder.Append(s_closureDisplayName)
                             builder.Append("."c)
                             ' NOTE: The old implementation only appended the first ordinal number.  Since this is not useful
                             ' in uniquely identifying the lambda, we'll append the entire ordinal suffix (which may contain
                             ' multiple numbers, as well as '-' or '_').
-                            builder.AppendFormat(s_lambdaDisplayName, displayString.Substring(StringConstants.LambdaMethodNamePrefix.Length))
+                            builder.AppendFormat(s_lambdaDisplayName, displayString.Substring(GeneratedNameConstants.LambdaMethodNamePrefix.Length))
                         Else
                             builder.Append(displayString)
                         End If

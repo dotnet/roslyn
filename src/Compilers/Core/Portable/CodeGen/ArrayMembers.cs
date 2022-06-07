@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -97,16 +97,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Maps {array type, method kind} tuples to implementing pseudo-methods.
         /// </summary>
-        private readonly ConcurrentDictionary<(byte methodKind, Cci.IArrayTypeReference arrayType), ArrayMethod> _dict =
-            new ConcurrentDictionary<(byte, Cci.IArrayTypeReference), ArrayMethod>();
+        private readonly ConcurrentDictionary<(byte methodKind, IReferenceOrISignature arrayType), ArrayMethod> _dict =
+            new ConcurrentDictionary<(byte, IReferenceOrISignature), ArrayMethod>();
 
         /// <summary>
         /// lazily fetches or creates a new array method.
         /// </summary>
         private ArrayMethod GetArrayMethod(Cci.IArrayTypeReference arrayType, ArrayMethodKind id)
         {
-            var key = ((byte)id, arrayType);
-            ArrayMethod result;
+            var key = ((byte)id, new IReferenceOrISignature(arrayType));
+            ArrayMethod? result;
 
             var dict = _dict;
             if (!dict.TryGetValue(key, out result))
@@ -362,6 +362,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
             => null;
 
         public override string ToString()
-            => arrayType.ToString() + "." + Name;
+            => ((object?)arrayType.GetInternalSymbol() ?? arrayType).ToString() + "." + Name;
+
+        Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
+
+        public sealed override bool Equals(object? obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
     }
 }

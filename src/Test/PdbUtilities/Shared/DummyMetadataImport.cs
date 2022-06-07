@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -64,16 +68,18 @@ namespace Roslyn.Test.PdbUtilities
             ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
             pcbSig = signature.Length;
 
+#pragma warning disable RS0042 // Do not copy value
             _pinnedBuffers.Add(pinnedBuffer);
+#pragma warning restore RS0042 // Do not copy value
             return 0;
         }
 
         public void GetTypeDefProps(
             int typeDefinition,
-            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            [MarshalAs(UnmanagedType.LPWStr), Out] StringBuilder qualifiedName,
             int qualifiedNameBufferLength,
             out int qualifiedNameLength,
-            [MarshalAs(UnmanagedType.U4)]out TypeAttributes attributes,
+            [MarshalAs(UnmanagedType.U4)] out TypeAttributes attributes,
             out int baseType)
         {
             if (_metadataReaderOpt == null)
@@ -111,7 +117,7 @@ namespace Roslyn.Test.PdbUtilities
         public void GetTypeRefProps(
             int typeReference,
             out int resolutionScope,
-            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            [MarshalAs(UnmanagedType.LPWStr), Out] StringBuilder qualifiedName,
             int qualifiedNameBufferLength,
             out int qualifiedNameLength)
         {
@@ -158,7 +164,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint EnumCustomAttributes(ref uint handlePointerEnum, uint tk, uint tokenType, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)]uint[] arrayCustomAttributes, uint countMax)
+        public uint EnumCustomAttributes(ref uint handlePointerEnum, uint tk, uint tokenType, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayCustomAttributes, uint countMax)
         {
             throw new NotImplementedException();
         }
@@ -173,32 +179,32 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint EnumFieldsWithName(ref uint handlePointerEnum, uint cl, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)]uint[] arrayFields, uint countMax)
+        public uint EnumFieldsWithName(ref uint handlePointerEnum, uint cl, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayFields, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumInterfaceImpls(ref uint handlePointerEnum, uint td, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]uint[] arrayImpls, uint countMax)
+        public uint EnumInterfaceImpls(ref uint handlePointerEnum, uint td, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayImpls, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumMemberRefs(ref uint handlePointerEnum, uint tokenParent, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]uint[] arrayMemberRefs, uint countMax)
+        public uint EnumMemberRefs(ref uint handlePointerEnum, uint tokenParent, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayMemberRefs, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumMembers(ref uint handlePointerEnum, uint cl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]uint[] arrayMembers, uint countMax)
+        public uint EnumMembers(ref uint handlePointerEnum, uint cl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayMembers, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumMembersWithName(ref uint handlePointerEnum, uint cl, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)]uint[] arrayMembers, uint countMax)
+        public uint EnumMembersWithName(ref uint handlePointerEnum, uint cl, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayMembers, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumMethodImpls(ref uint handlePointerEnum, uint td, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)]uint[] arrayMethodBody, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)]uint[] arrayMethodDecl, uint countMax)
+        public uint EnumMethodImpls(ref uint handlePointerEnum, uint td, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayMethodBody, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayMethodDecl, uint countMax)
         {
             throw new NotImplementedException();
         }
@@ -208,27 +214,27 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint EnumMethodSemantics(ref uint handlePointerEnum, uint mb, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]uint[] arrayEventProp, uint countMax)
+        public uint EnumMethodSemantics(ref uint handlePointerEnum, uint mb, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayEventProp, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumMethodsWithName(ref uint handlePointerEnum, uint cl, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)]uint[] arrayMethods, uint countMax)
+        public uint EnumMethodsWithName(ref uint handlePointerEnum, uint cl, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayMethods, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumModuleRefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]uint[] arrayModuleRefs, uint cmax)
+        public uint EnumModuleRefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayModuleRefs, uint cmax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumParams(ref uint handlePointerEnum, uint mb, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]uint[] arrayParams, uint countMax)
+        public uint EnumParams(ref uint handlePointerEnum, uint mb, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayParams, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumPermissionSets(ref uint handlePointerEnum, uint tk, uint dwordActions, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)]uint[] arrayPermission, uint countMax)
+        public uint EnumPermissionSets(ref uint handlePointerEnum, uint tk, uint dwordActions, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayPermission, uint countMax)
         {
             throw new NotImplementedException();
         }
@@ -238,52 +244,52 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint EnumSignatures(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]uint[] arraySignatures, uint cmax)
+        public uint EnumSignatures(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arraySignatures, uint cmax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumTypeDefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]uint[] arrayTypeDefs, uint countMax)
+        public uint EnumTypeDefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayTypeDefs, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumTypeRefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]uint[] arrayTypeRefs, uint countMax)
+        public uint EnumTypeRefs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayTypeRefs, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumTypeSpecs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]uint[] arrayTypeSpecs, uint cmax)
+        public uint EnumTypeSpecs(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayTypeSpecs, uint cmax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumUnresolvedMethods(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]uint[] arrayMethods, uint countMax)
+        public uint EnumUnresolvedMethods(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayMethods, uint countMax)
         {
             throw new NotImplementedException();
         }
 
-        public uint EnumUserStrings(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)]uint[] arrayStrings, uint cmax)
+        public uint EnumUserStrings(ref uint handlePointerEnum, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] uint[] arrayStrings, uint cmax)
         {
             throw new NotImplementedException();
         }
 
-        public uint FindField(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]byte[] voidPointerSigBlob, uint byteCountSigBlob)
+        public uint FindField(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] voidPointerSigBlob, uint byteCountSigBlob)
         {
             throw new NotImplementedException();
         }
 
-        public uint FindMember(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]byte[] voidPointerSigBlob, uint byteCountSigBlob)
+        public uint FindMember(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] voidPointerSigBlob, uint byteCountSigBlob)
         {
             throw new NotImplementedException();
         }
 
-        public uint FindMemberRef(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]byte[] voidPointerSigBlob, uint byteCountSigBlob)
+        public uint FindMemberRef(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] voidPointerSigBlob, uint byteCountSigBlob)
         {
             throw new NotImplementedException();
         }
 
-        public uint FindMethod(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]byte[] voidPointerSigBlob, uint byteCountSigBlob)
+        public uint FindMethod(uint td, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] voidPointerSigBlob, uint byteCountSigBlob)
         {
             throw new NotImplementedException();
         }
@@ -298,7 +304,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]ulong[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset)
+        public uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] ulong[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset)
         {
             throw new NotImplementedException();
         }
@@ -313,7 +319,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint GetEventProps(uint ev, out uint pointerClass, StringBuilder stringEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 11)]uint[] rmdOtherMethod, uint countMax)
+        public uint GetEventProps(uint ev, out uint pointerClass, StringBuilder stringEvent, uint cchEvent, out uint pchEvent, out uint pdwEventFlags, out uint ptkEventType, out uint pmdAddOn, out uint pmdRemoveOn, out uint pmdFire, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 11)] uint[] rmdOtherMethod, uint countMax)
         {
             throw new NotImplementedException();
         }
@@ -398,7 +404,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetPropertyProps(uint prop, out uint pointerClass, StringBuilder stringProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags, out byte* ppvSig, out uint bytePointerSig, out uint pdwCPlusTypeFlag, out void* ppDefaultValue, out uint pcchDefaultValue, out uint pmdSetter, out uint pmdGetter, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 14)]uint[] rmdOtherMethod, uint countMax)
+        public unsafe uint GetPropertyProps(uint prop, out uint pointerClass, StringBuilder stringProperty, uint cchProperty, out uint pchProperty, out uint pdwPropFlags, out byte* ppvSig, out uint bytePointerSig, out uint pdwCPlusTypeFlag, out void* ppDefaultValue, out uint pcchDefaultValue, out uint pmdSetter, out uint pmdGetter, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 14)] uint[] rmdOtherMethod, uint countMax)
         {
             throw new NotImplementedException();
         }
@@ -439,7 +445,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint ResolveTypeRef(uint tr, [In]ref Guid riid, [MarshalAs(UnmanagedType.Interface)]out object ppIScope)
+        public uint ResolveTypeRef(uint tr, [In] ref Guid riid, [MarshalAs(UnmanagedType.Interface)] out object ppIScope)
         {
             throw new NotImplementedException();
         }

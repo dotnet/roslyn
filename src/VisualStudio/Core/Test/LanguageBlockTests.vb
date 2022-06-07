@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -230,7 +233,7 @@ System.Console$$.WriteLine(message)
 ", LanguageNames.VisualBasic, SourceCodeKind.Regular)
         End Sub
 
-        Private Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)
+        Private Shared Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)
             Dim xml = <Workspace>
                           <Project Language=<%= languageName %> CommonReferences="True">
                               <Document>
@@ -239,17 +242,22 @@ System.Console$$.WriteLine(message)
                               </Document>
                           </Project>
                       </Workspace>
-            Using workspace = TestWorkspace.Create(xml)
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService))
+
+            Using workspace = TestWorkspace.Create(xml, composition:=composition)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Assert.Null(VsLanguageBlock.GetCurrentBlock(
-                    hostDocument.TextBuffer.CurrentSnapshot,
+                    hostDocument.GetTextBuffer().CurrentSnapshot,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None))
             End Using
         End Sub
 
-        Private Sub VerifyBlock(markup As String, languageName As String, expectedDescription As String)
+        Private Shared Sub VerifyBlock(markup As String, languageName As String, expectedDescription As String)
             Dim xml = <Workspace>
                           <Project Language=<%= languageName %> CommonReferences="True">
                               <Document>
@@ -261,7 +269,7 @@ System.Console$$.WriteLine(message)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Dim tuple = VsLanguageBlock.GetCurrentBlock(
-                    hostDocument.TextBuffer.CurrentSnapshot,
+                    hostDocument.GetTextBuffer().CurrentSnapshot,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
 

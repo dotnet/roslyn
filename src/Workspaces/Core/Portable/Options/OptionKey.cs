@@ -1,20 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#endif
-
 namespace Microsoft.CodeAnalysis.Options
 {
-    public struct OptionKey : IEquatable<OptionKey>
+    /// <inheritdoc cref="OptionKey2"/>
+    [NonDefaultable]
+    public readonly struct OptionKey : IEquatable<OptionKey>
     {
+        /// <inheritdoc cref="OptionKey2.Option"/>
         public IOption Option { get; }
-        public string Language { get; }
 
-        public OptionKey(IOption option, string language = null)
+        /// <inheritdoc cref="OptionKey2.Language"/>
+        public string? Language { get; }
+
+        public OptionKey(IOption option, string? language = null)
         {
             if (language != null && !option.IsPerLanguage)
             {
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Options
             this.Language = language;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is OptionKey key &&
                    Equals(key);
@@ -37,12 +40,24 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool Equals(OptionKey other)
         {
-            return Option == other.Option && Language == other.Language;
+            return OptionEqual(Option, other.Option) && Language == other.Language;
+
+            static bool OptionEqual(IOption thisOption, IOption otherOption)
+            {
+                if (thisOption is not IOption2 thisOption2 ||
+                    otherOption is not IOption2 otherOption2)
+                {
+                    // Third party definition of 'IOption'.
+                    return thisOption.Equals(otherOption);
+                }
+
+                return thisOption2.Equals(otherOption2);
+            }
         }
 
         public override int GetHashCode()
         {
-            var hash = Option.GetHashCode();
+            var hash = Option?.GetHashCode() ?? 0;
 
             if (Language != null)
             {
@@ -67,13 +82,9 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static bool operator ==(OptionKey left, OptionKey right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(OptionKey left, OptionKey right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

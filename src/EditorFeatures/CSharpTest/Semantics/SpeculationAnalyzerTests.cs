@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -35,6 +39,10 @@ class Program
         [Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")]
         public void SpeculationAnalyzerExtensionMethodExplicitInvocation()
         {
+            // We consider a change here to be a change in semantics as an instance call became a static call. In
+            // practice this is fine as the only thing that makes this change is complexification, and we don't test for
+            // semantics changed after that as the purpose of complexification is to put us in a safe place to make
+            // changes that won't break semantics.
             Test(@"
 static class Program
 {
@@ -43,7 +51,7 @@ static class Program
     {
         [|5.Vain()|];
     }
-}           ", "Vain(5)", false);
+}           ", "Vain(5)", semanticChanges: true);
         }
 
         [Fact]
@@ -174,7 +182,7 @@ class Program
         var d = new Class();
         [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(d)", false);
+}           ", "((IComparable)c).CompareTo(d)", semanticChanges: false);
         }
 
         [Fact]
@@ -491,14 +499,10 @@ class Program
         }
 
         protected override SyntaxTree Parse(string text)
-        {
-            return SyntaxFactory.ParseSyntaxTree(text);
-        }
+            => SyntaxFactory.ParseSyntaxTree(text);
 
         protected override bool IsExpressionNode(SyntaxNode node)
-        {
-            return node is ExpressionSyntax;
-        }
+            => node is ExpressionSyntax;
 
         protected override Compilation CreateCompilation(SyntaxTree tree)
         {
@@ -518,8 +522,6 @@ class Program
         }
 
         protected override bool ReplacementChangesSemantics(SyntaxNode initialNode, SyntaxNode replacementNode, SemanticModel initialModel)
-        {
-            return new SpeculationAnalyzer((ExpressionSyntax)initialNode, (ExpressionSyntax)replacementNode, initialModel, CancellationToken.None).ReplacementChangesSemantics();
-        }
+            => new SpeculationAnalyzer((ExpressionSyntax)initialNode, (ExpressionSyntax)replacementNode, initialModel, CancellationToken.None).ReplacementChangesSemantics();
     }
 }

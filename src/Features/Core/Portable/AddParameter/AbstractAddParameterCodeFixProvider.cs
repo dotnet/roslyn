@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -32,13 +34,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
         protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
-        public override FixAllProvider GetFixAllProvider()
+        protected abstract ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken);
+
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Fix All is not supported for this code fix.
             return null;
         }
 
-        protected virtual RegisterFixData<TArgumentSyntax> TryGetLanguageSpecificFixInfo(
+        protected virtual RegisterFixData<TArgumentSyntax>? TryGetLanguageSpecificFixInfo(
             SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)
@@ -50,11 +54,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var diagnostic = context.Diagnostics.First();
 
             var document = context.Document;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var initialNode = root.FindNode(diagnostic.Location.SourceSpan);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             for (var node = initialNode; node != null; node = node.Parent)
             {
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// There are some exceptions to this rule. Returning null indicates that the fixer needs
         /// to find the relevant argument by itself.
         /// </summary>
-        private TArgumentSyntax TryGetRelevantArgument(
+        private TArgumentSyntax? TryGetRelevantArgument(
             SyntaxNode initialNode, SyntaxNode node, Diagnostic diagnostic)
         {
             if (TooManyArgumentsDiagnosticIds.Contains(diagnostic.Id))
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                               .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
 
-        private static RegisterFixData<TArgumentSyntax> TryGetInvocationExpressionFixInfo(
+        private static RegisterFixData<TArgumentSyntax>? TryGetInvocationExpressionFixInfo(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode node,
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private static RegisterFixData<TArgumentSyntax> TryGetObjectCreationFixInfo(
+        private static RegisterFixData<TArgumentSyntax>? TryGetObjectCreationFixInfo(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode node,
@@ -138,15 +142,25 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
 
                 // Not supported if this is "new { ... }" (as there are no parameters at all.
-                var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
+                var typeNode = syntaxFacts.IsImplicitObjectCreationExpression(node)
+                    ? node
+                    : syntaxFacts.GetTypeOfObjectCreationExpression(objectCreation);
                 if (typeNode == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();
                 }
 
+                var symbol = semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol();
+                var type = symbol switch
+                {
+                    IMethodSymbol methodSymbol => methodSymbol.ContainingType, // Implicit object creation expressions
+                    INamedTypeSymbol namedTypeSymbol => namedTypeSymbol, // Standard object creation expressions
+                    _ => null,
+                };
+
                 // If we can't figure out the type being created, or the type isn't in source,
                 // then there's nothing we can do.
-                if (!(semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() is INamedTypeSymbol type))
+                if (type == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();
                 }
@@ -166,7 +180,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
-            TArgumentSyntax argumentOpt,
+            TArgumentSyntax? argumentOpt,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
@@ -185,7 +199,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     {
                         var argumentToAdd = DetermineFirstArgumentToAdd(
                             semanticModel, syntaxFacts, comparer, method,
-                            arguments, argumentOpt);
+                            arguments);
 
                         if (argumentToAdd != null)
                         {
@@ -235,9 +249,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
                     var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
-                    CodeAction codeAction = new MyCodeAction(
-                        title: title,
-                        data.CreateChangedSolutionNonCascading);
+                    var codeAction = CodeAction.Create(
+                        title,
+                        data.CreateChangedSolutionNonCascading,
+                        equivalenceKey: title);
                     if (data.CreateChangedSolutionCascading != null)
                     {
                         // We have two fixes to offer. We nest the two fixes in an inlinable CodeAction 
@@ -245,13 +260,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         var titleForNesting = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
                         var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method,
                                                              includeParameters: true);
-                        codeAction = new CodeAction.CodeActionWithNestedActions(
+                        codeAction = CodeAction.CodeActionWithNestedActions.Create(
                             title: titleForNesting,
                             ImmutableArray.Create(
                                 codeAction,
-                                new MyCodeAction(
-                                    title: titleCascading,
-                                    data.CreateChangedSolutionCascading)),
+                                CodeAction.Create(
+                                    titleCascading,
+                                    data.CreateChangedSolutionCascading,
+                                    equivalenceKey: titleCascading)),
                             isInlinable: true);
                     }
 
@@ -266,32 +282,33 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
 
-                var nonCascadingActions = ImmutableArray.CreateRange<CodeFixData, CodeAction>(codeFixData, data =>
+                var nonCascadingActions = codeFixData.SelectAsArray(data =>
                 {
                     var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
-                    return new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
+                    return CodeAction.Create(title, data.CreateChangedSolutionNonCascading, equivalenceKey: title);
                 });
 
-                var cascading = codeFixData.Where(data => data.CreateChangedSolutionCascading != null);
-                var cascadingActions = ImmutableArray.CreateRange<CodeAction>(cascading.Select(data =>
-                {
-                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
-                    return new MyCodeAction(title: title, data.CreateChangedSolutionCascading);
-                }));
+                var cascadingActions = codeFixData.SelectAsArray(
+                    data => data.CreateChangedSolutionCascading != null,
+                    data =>
+                    {
+                        var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
+                        return CodeAction.Create(title, data.CreateChangedSolutionCascading!, equivalenceKey: title);
+                    });
 
                 var aMethod = codeFixData.First().Method; // We need to term the MethodGroup and need an arbitrary IMethodSymbol to do so.
                 var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, includeParameters: false);
 
                 // Create a sub-menu entry with all the non-cascading CodeActions.
                 // We make sure the IDE does not inline. Otherwise the context menu gets flooded with our fixes.
-                builder.Add(new CodeAction.CodeActionWithNestedActions(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
+                builder.Add(CodeAction.CodeActionWithNestedActions.Create(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
 
                 if (cascadingActions.Length > 0)
                 {
                     // if there are cascading CodeActions create a second sub-menu.
                     var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations,
                                                                aMethod, includeParameters: false);
-                    builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
+                    builder.Add(CodeAction.CodeActionWithNestedActions.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
 
                 return builder.ToImmutable();
@@ -313,7 +330,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
                 var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
 
-                var cascadingFix = AddParameterService.Instance.HasCascadingDeclarations(methodToUpdate)
+                var cascadingFix = AddParameterService.HasCascadingDeclarations(methodToUpdate)
                     ? new Func<CancellationToken, Task<Solution>>(c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))
                     : null;
 
@@ -331,12 +348,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)
         {
             var methodDisplay = methodToUpdate.ToDisplayString(new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
                 parameterOptions: SymbolDisplayParameterOptions.None,
-                memberOptions: methodToUpdate.IsConstructor()
-                    ? SymbolDisplayMemberOptions.None
-                    : SymbolDisplayMemberOptions.IncludeContainingType));
+                memberOptions: SymbolDisplayMemberOptions.None));
 
             var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
             var signature = includeParameters
@@ -359,10 +374,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
             // The argumentNameSuggestion is the base for the parameter name.
             // For each method declaration the name is made unique to avoid name collisions.
             var (argumentNameSuggestion, isNamedArgument) = await GetNameSuggestionForArgumentAsync(
-                invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+                invocationDocument, argument, method.ContainingType, cancellationToken).ConfigureAwait(false);
 
             var newParameterIndex = isNamedArgument ? (int?)null : argumentList.IndexOf(argument);
-            return await AddParameterService.Instance.AddParameterAsync(
+            return await AddParameterService.AddParameterAsync(
                 invocationDocument,
                 method,
                 argumentType,
@@ -373,20 +388,19 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<(ITypeSymbol, RefKind)> GetArgumentTypeAndRefKindAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
+        private async Task<(ITypeSymbol, RefKind)> GetArgumentTypeAndRefKindAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
-            var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
-            var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
-            var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
+            var syntaxFacts = invocationDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticModel = await invocationDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var argumentType = GetArgumentType(argument, semanticModel, cancellationToken);
             var refKind = syntaxFacts.GetRefKindOfArgument(argument);
             return (argumentType, refKind);
         }
 
-        private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
-            Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
+        private static async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
+            Document invocationDocument, TArgumentSyntax argument, INamedTypeSymbol containingType, CancellationToken cancellationToken)
         {
-            var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = invocationDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var argumentName = syntaxFacts.GetNameForArgument(argument);
             if (!string.IsNullOrWhiteSpace(argumentName))
@@ -397,28 +411,28 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var expression = syntaxFacts.GetExpressionOfArgument(argument);
-                var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
+                var semanticFacts = invocationDocument.GetRequiredLanguageService<ISemanticFactsService>();
                 argumentName = semanticFacts.GenerateNameForExpression(
-                    semanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
+                    semanticModel, expression, capitalize: containingType.IsRecord, cancellationToken: cancellationToken);
                 return (argumentNameSuggestion: argumentName, isNamed: false);
             }
         }
 
         private static readonly SymbolDisplayFormat SimpleFormat =
-                    new SymbolDisplayFormat(
+                    new(
                         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                         genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                         parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
                         miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static TArgumentSyntax DetermineFirstArgumentToAdd(
+        private static TArgumentSyntax? DetermineFirstArgumentToAdd(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             StringComparer comparer,
             IMethodSymbol method,
-            SeparatedSyntaxList<TArgumentSyntax> arguments,
-            TArgumentSyntax argumentOpt)
+            SeparatedSyntaxList<TArgumentSyntax> arguments)
         {
+            var compilation = semanticModel.Compilation;
             var methodParameterNames = new HashSet<string>(comparer);
             methodParameterNames.AddRange(method.Parameters.Select(p => p.Name));
 
@@ -458,6 +472,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     {
                         return null;
                     }
+
                     var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgument);
                     var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgument);
                     var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgument);
@@ -475,9 +490,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     var parameter = method.Parameters[i];
 
-                    if (!TypeInfoMatchesType(argumentTypeInfo, parameter.Type, isNullLiteral, isDefaultLiteral))
+                    if (!TypeInfoMatchesType(
+                            compilation, argumentTypeInfo, parameter.Type,
+                            isNullLiteral, isDefaultLiteral))
                     {
-                        if (TypeInfoMatchesWithParamsExpansion(argumentTypeInfo, parameter, isNullLiteral, isDefaultLiteral))
+                        if (TypeInfoMatchesWithParamsExpansion(
+                                compilation, argumentTypeInfo, parameter,
+                                isNullLiteral, isDefaultLiteral))
                         {
                             // The argument matched if we expanded out the params-parameter.
                             // As the params-parameter has to be last, there's nothing else to 
@@ -494,12 +513,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static bool TypeInfoMatchesWithParamsExpansion(
-            TypeInfo argumentTypeInfo, IParameterSymbol parameter,
+            Compilation compilation, TypeInfo argumentTypeInfo, IParameterSymbol parameter,
             bool isNullLiteral, bool isDefaultLiteral)
         {
             if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
             {
-                if (TypeInfoMatchesType(argumentTypeInfo, arrayType.ElementType, isNullLiteral, isDefaultLiteral))
+                if (TypeInfoMatchesType(
+                        compilation, argumentTypeInfo, arrayType.ElementType,
+                        isNullLiteral, isDefaultLiteral))
                 {
                     return true;
                 }
@@ -509,40 +530,38 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static bool TypeInfoMatchesType(
-            TypeInfo argumentTypeInfo, ITypeSymbol type,
+            Compilation compilation, TypeInfo argumentTypeInfo, ITypeSymbol parameterType,
             bool isNullLiteral, bool isDefaultLiteral)
         {
-            if (type.Equals(argumentTypeInfo.Type) || type.Equals(argumentTypeInfo.ConvertedType))
-            {
+            if (parameterType.Equals(argumentTypeInfo.Type) || parameterType.Equals(argumentTypeInfo.ConvertedType))
                 return true;
-            }
 
             if (isDefaultLiteral)
-            {
                 return true;
-            }
 
             if (isNullLiteral)
-            {
-                return type.IsReferenceType || type.IsNullable();
-            }
+                return parameterType.IsReferenceType || parameterType.IsNullable();
 
             // Overload resolution couldn't resolve the actual type of the type parameter. We assume
             // that the type parameter can be the argument's type (ignoring any type parameter constraints).
-            if (type.Kind == SymbolKind.TypeParameter)
-            {
+            if (parameterType.Kind == SymbolKind.TypeParameter)
                 return true;
+
+            // If there's an implicit conversion from the arg type to the param type then 
+            // count this as a match.  This happens commonly with cases like:
+            //
+            //  `Goo(derivedType)`
+            //  `void Goo(BaseType baseType)`.  
+            //
+            // We want this simple case to match.
+            if (argumentTypeInfo.Type != null)
+            {
+                var conversion = compilation.ClassifyCommonConversion(argumentTypeInfo.Type, parameterType);
+                if (conversion.IsImplicit)
+                    return true;
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
-            {
-            }
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Symbols;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -281,6 +282,11 @@ namespace Microsoft.Cci
         /// Containing namespace or null if this namespace is global.
         /// </summary>
         INamespace ContainingNamespace { get; }
+
+        /// <summary>
+        /// Returns underlying internal symbol object, if any.
+        /// </summary>
+        INamespaceSymbolInternal GetInternalSymbol();
     }
 
     /// <summary>
@@ -382,6 +388,17 @@ namespace Microsoft.Cci
         /// The type of value stored at the target memory location.
         /// </summary>
         ITypeReference GetTargetType(EmitContext context);
+    }
+
+    /// <summary>
+    /// This interface models the metadata representation of a pointer to a function in unmanaged memory.
+    /// </summary>
+    internal interface IFunctionPointerTypeReference : ITypeReference
+    {
+        /// <summary>
+        /// The signature of the function located at the target memory address.
+        /// </summary>
+        ISignature Signature { get; }
     }
 
     /// <summary>
@@ -502,6 +519,11 @@ namespace Microsoft.Cci
         /// True if the type is an interface.
         /// </summary>
         bool IsInterface { get; }
+
+        /// <summary>
+        /// True if the type is a delegate.
+        /// </summary>
+        bool IsDelegate { get; }
 
         /// <summary>
         /// True if this type gets special treatment from the runtime.
@@ -713,6 +735,11 @@ namespace Microsoft.Cci
         /// Not a primitive type.
         /// </summary>
         NotPrimitive,
+
+        /// <summary>
+        /// A pointer to a function in fixed or managed memory.
+        /// </summary>
+        FunctionPointer,
 
         /// <summary>
         /// Type is a dummy type.

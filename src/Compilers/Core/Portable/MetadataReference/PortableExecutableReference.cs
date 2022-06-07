@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Roslyn.Utilities;
 using System;
 using System.IO;
 using System.Threading;
-using System.Diagnostics;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 
@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class PortableExecutableReference : MetadataReference
     {
-        private readonly string _filePath;
+        private readonly string? _filePath;
 
-        private DocumentationProvider _lazyDocumentation;
+        private DocumentationProvider? _lazyDocumentation;
 
         protected PortableExecutableReference(
             MetadataReferenceProperties properties,
-            string fullPath = null,
-            DocumentationProvider initialDocumentation = null)
+            string? fullPath = null,
+            DocumentationProvider? initialDocumentation = null)
             : base(properties)
         {
             _filePath = fullPath;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Display string used in error messages to identity the reference.
         /// </summary>
-        public override string Display
+        public override string? Display
         {
             get { return FilePath; }
         }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Path describing the location of the metadata, or null if the metadata have no location.
         /// </summary>
-        public string FilePath
+        public string? FilePath
         {
             get { return _filePath; }
         }

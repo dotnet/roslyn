@@ -1,16 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal struct AnonymousTypeKeyField : IEquatable<AnonymousTypeKeyField>
+    internal readonly struct AnonymousTypeKeyField : IEquatable<AnonymousTypeKeyField>
     {
         /// <summary>
         /// Name of the anonymous type field.
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Emit
     }
 
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct AnonymousTypeKey : IEquatable<AnonymousTypeKey>
+    internal readonly struct AnonymousTypeKey : IEquatable<AnonymousTypeKey>
     {
         internal readonly bool IsDelegate;
         internal readonly ImmutableArray<AnonymousTypeKeyField> Fields;
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     builder.Append("|");
                 }
-                builder.Append(this.Fields[i]);
+                builder.Append(this.Fields[i].Name);
             }
             return pooledBuilder.ToStringAndFree();
         }

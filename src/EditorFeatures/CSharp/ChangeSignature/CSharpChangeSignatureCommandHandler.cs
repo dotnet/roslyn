@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature;
+using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -11,11 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.ChangeSignature)]
-    internal class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
+    internal sealed class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
     {
         [ImportingConstructor]
-        public CSharpChangeSignatureCommandHandler(IThreadingContext threadingContext)
-            : base(threadingContext)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpChangeSignatureCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+            : base(threadingContext, globalOptions)
         {
         }
     }

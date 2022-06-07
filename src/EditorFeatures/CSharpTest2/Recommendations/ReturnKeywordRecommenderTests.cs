@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -15,10 +20,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"$$");
         }
 
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtRoot_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"$$");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"class C { }
+$$");
+        }
+
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterClass_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"class C { }
 $$");
         }
@@ -31,10 +53,28 @@ $$");
 $$");
         }
 
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalStatement_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"System.Console.WriteLine();
+$$");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"int i = 0;
+$$");
+        }
+
+        [WorkItem(57121, "https://github.com/dotnet/roslyn/issues/57121")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalVariableDeclaration_Regular()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"int i = 0;
 $$");
         }
@@ -44,6 +84,48 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestIncompleteStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalFunctionAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr] void local1() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1([$$Attr] int i) { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionTypeParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1<[$$Attr] T>() { }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
@@ -21,17 +25,20 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly Document _document;
             private readonly State _state;
             private readonly string _equivalenceKey;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public GenerateTypeCodeAction(
                 TService service,
                 Document document,
                 State state,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool intoNamespace,
                 bool inNewFile)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _fallbackOptions = fallbackOptions;
                 _intoNamespace = intoNamespace;
                 _inNewFile = inNewFile;
                 _equivalenceKey = Title;
@@ -42,8 +49,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 bool inNewFile,
                 bool isNested)
             {
-                var finalName = GetTypeName(state);
-
                 if (inNewFile)
                 {
                     return string.Format(FeaturesResources.Generate_0_1_in_new_file,
@@ -62,41 +67,32 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
-                var editor = new Editor(_service, semanticDocument, _state, _intoNamespace, _inNewFile, cancellationToken: cancellationToken);
+                var editor = new Editor(_service, semanticDocument, _state, _fallbackOptions, _intoNamespace, _inNewFile, cancellationToken);
 
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
 
             public override string Title
-            {
-                get
-                {
-                    if (_intoNamespace)
-                    {
-                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.Global_Namespace : _state.NamespaceToGenerateInOpt;
-                        return FormatDisplayText(_state, _inNewFile, isNested: false);
-                    }
-                    else
-                    {
-                        return FormatDisplayText(_state, inNewFile: false, isNested: true);
-                    }
-                }
-            }
+                => _intoNamespace
+                    ? FormatDisplayText(_state, _inNewFile, isNested: false)
+                    : FormatDisplayText(_state, inNewFile: false, isNested: true);
 
             public override string EquivalenceKey => _equivalenceKey;
         }
 
-        private class GenerateTypeCodeActionWithOption : CodeActionWithOptions
+        private sealed class GenerateTypeCodeActionWithOption : CodeActionWithOptions
         {
             private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
-            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state)
+            internal GenerateTypeCodeActionWithOption(TService service, Document document, State state, CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
                 _state = state;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override string Title => FeaturesResources.Generate_new_type;
@@ -105,7 +101,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetService<IGenerateTypeOptionsService>();
+                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetRequiredService<IGenerateTypeOptionsService>();
                 var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
                 var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
                 var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
@@ -121,9 +117,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private bool IsPublicOnlyAccessibility(State state, Project project)
-            {
-                return _service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || _service.IsPublicOnlyAccessibility(state.SimpleName, project);
-            }
+                => _service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || _service.IsPublicOnlyAccessibility(state.SimpleName, project);
 
             private TypeKindOptions GetTypeKindOption(State state)
             {
@@ -148,8 +142,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return true;
                 }
 
-                var typeKindValue = TypeKindOptions.None;
-                if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out typeKindValue) || _service.TryGetBaseList(state.SimpleName, out typeKindValue))
+                if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out var typeKindValue) ||
+                    _service.TryGetBaseList(state.SimpleName, out typeKindValue))
                 {
                     typeKindValueFinal = typeKindValue;
                     return true;
@@ -180,12 +174,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
-                IEnumerable<CodeActionOperation> operations = null;
+                var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
                 if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
                 {
                     var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
-                    var editor = new Editor(_service, semanticDocument, _state, true, generateTypeOptions, cancellationToken);
+                    var editor = new Editor(_service, semanticDocument, _state, _fallbackOptions, fromDialog: true, generateTypeOptions, cancellationToken);
                     operations = await editor.GetOperationsAsync().ConfigureAwait(false);
                 }
 

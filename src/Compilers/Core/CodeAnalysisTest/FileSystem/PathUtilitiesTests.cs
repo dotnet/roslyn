@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -318,6 +319,85 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             {
                 Assert.True(isValid == PathUtilities.IsValidFilePath(path), $"Expected {isValid} for \"{path}\"");
             }
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"C:\", "B")]
+        [InlineData(@"C:\A", "B")]
+        [InlineData(@"C:\A\", "B")]
+        [InlineData(@"C:A\", "B")]
+        [InlineData(@"\A", "B")]
+        [InlineData(@"\\A\B\C", "B")]
+        [InlineData(@"C", @"B:\")]
+        [InlineData(@"C:", @"B:\")]
+        [InlineData(@"C:\", @"B:\")]
+        [InlineData(@"C:\A", @"B:\")]
+        [InlineData(@"C:\A\", @"B:\")]
+        [InlineData(@"C:A\", @"B:\")]
+        [InlineData(@"\A", @"B:\")]
+        [InlineData(@"\\A\B\C", @"B:\")]
+        [InlineData("", @"B:\")]
+        [InlineData(" ", @"B:\")]
+        public void CombinePaths_SameAsPathCombine_Windows(string path1, string path2)
+        {
+            Assert.Equal(Path.Combine(path1, path2), PathUtilities.CombinePaths(path1, path2));
+        }
+
+        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [InlineData("C", "B")]
+        [InlineData("C/", "\t")]
+        [InlineData("C/", "B")]
+        [InlineData("/C", "B")]
+        [InlineData("/C/", "B")]
+        [InlineData("C", "/B")]
+        [InlineData("C/", "/B")]
+        [InlineData("/C", "/B")]
+        [InlineData("/C/", "/B")]
+        [InlineData("", "/B/")]
+        [InlineData(" ", "/B/")]
+        public void CombinePaths_SameAsPathCombine_Linux(string path1, string path2)
+        {
+            Assert.Equal(Path.Combine(path1, path2), PathUtilities.CombinePaths(path1, path2));
+        }
+
+        [Theory]
+        [InlineData("C", " ")]
+        [InlineData("C", "B")]
+        [InlineData("", "")]
+        [InlineData(" ", " ")]
+        [InlineData("", "B")]
+        [InlineData(" ", "B")]
+        public void CombinePaths_SameAsPathCombine_Common(string path1, string path2)
+        {
+            Assert.Equal(Path.Combine(path1, path2), PathUtilities.CombinePaths(path1, path2));
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"C:\|\<>", @"C:\|", "<>")]
+        [InlineData("C:\\\t", @"C:\", "\t")]
+        [InlineData("C", "C", null)]
+        [InlineData("C:B", "C:", "B")]
+        [InlineData(null, null, null)]
+        [InlineData("B", null, "B")]
+        public void CombinePaths_DifferentFromPathCombine(string expected, string path1, string path2)
+        {
+            Assert.Equal(expected, PathUtilities.CombinePaths(path1, path2));
+        }
+
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
+        public void GetRelativePath_EnsureNo_IndexOutOfRangeException_Windows()
+        {
+            var expected = "";
+            var result = PathUtilities.GetRelativePath(@"C:\A\B\", @"C:\A\B");
+            Assert.Equal(expected, result);
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
+        public void GetRelativePath_EnsureNo_IndexOutOfRangeException_Unix()
+        {
+            var expected = "";
+            var result = PathUtilities.GetRelativePath(@"/A/B/", @"/A/B");
+            Assert.Equal(expected, result);
         }
     }
 }

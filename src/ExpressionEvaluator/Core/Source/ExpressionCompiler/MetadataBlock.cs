@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// Module metadata block
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct MetadataBlock : IEquatable<MetadataBlock>
+    internal readonly struct MetadataBlock : IEquatable<MetadataBlock>
     {
         /// <summary>
         /// Module version id.
@@ -34,18 +36,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal MetadataBlock(Guid moduleVersionId, Guid generationId, IntPtr pointer, int size)
         {
-            this.ModuleVersionId = moduleVersionId;
-            this.GenerationId = generationId;
-            this.Pointer = pointer;
-            this.Size = size;
+            ModuleVersionId = moduleVersionId;
+            GenerationId = generationId;
+            Pointer = pointer;
+            Size = size;
         }
 
         public bool Equals(MetadataBlock other)
         {
-            return (this.Pointer == other.Pointer) &&
-                (this.Size == other.Size) &&
-                (this.ModuleVersionId == other.ModuleVersionId) &&
-                (this.GenerationId == other.GenerationId);
+            return Pointer == other.Pointer &&
+                   Size == other.Size &&
+                   ModuleVersionId == other.ModuleVersionId &&
+                   GenerationId == other.GenerationId;
         }
 
         public override bool Equals(object obj)
@@ -60,8 +62,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public override int GetHashCode()
         {
             return Hash.Combine(
-                Hash.Combine(this.Pointer.GetHashCode(), this.Size),
-                Hash.Combine(this.ModuleVersionId.GetHashCode(), this.GenerationId.GetHashCode()));
+                Hash.Combine(Pointer.GetHashCode(), Size),
+                Hash.Combine(ModuleVersionId.GetHashCode(), GenerationId.GetHashCode()));
         }
 
         private string GetDebuggerDisplay()

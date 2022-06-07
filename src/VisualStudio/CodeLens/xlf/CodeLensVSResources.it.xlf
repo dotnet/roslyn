@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="property">
         <source>property</source>
-        <target state="translated">Proprietà.</target>
+        <target state="translated">proprietà</target>
         <note />
       </trans-unit>
       <trans-unit id="type">

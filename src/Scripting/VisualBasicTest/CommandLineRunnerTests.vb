@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.IO
@@ -75,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/46720")>
         Public Sub TestReferenceDirective()
             Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithCorlib("
 public Class C1
@@ -115,7 +117,7 @@ End Class", "1").EmitToArray())
             AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > #r ""://invalidfilepath""
 «Red»
-(1) : error BC2017: " + String.Format(ERR_LibNotFound, "://invalidfilepath") + "
+(1) : error BC2017: " + String.Format(VBResources.ERR_LibNotFound, "://invalidfilepath") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub

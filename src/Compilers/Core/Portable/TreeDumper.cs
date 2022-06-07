@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -75,8 +77,8 @@ namespace Microsoft.CodeAnalysis
 
         private void DoDumpCompact(TreeDumperNode node, string indent)
         {
-            Debug.Assert(node != null);
-            Debug.Assert(indent != null);
+            RoslynDebug.Assert(node != null);
+            RoslynDebug.Assert(indent != null);
 
             // Precondition: indentation and prefix has already been output
             // Precondition: indent is correct for node's *children*
@@ -87,14 +89,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             _sb.AppendLine();
-            var children = node.Children.ToList();
+            var children = node.Children.Where(c => !skip(c)).ToList();
             for (int i = 0; i < children.Count; ++i)
             {
                 var child = children[i];
-                if (child == null)
-                {
-                    continue;
-                }
 
                 _sb.Append(indent);
                 _sb.Append(i == children.Count - 1 ? '\u2514' : '\u251C');
@@ -104,18 +102,40 @@ namespace Microsoft.CodeAnalysis
                 // the child node's children:
                 DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "\u2502 "));
             }
+
+            static bool skip(TreeDumperNode node)
+            {
+                if (node is null)
+                {
+                    return true;
+                }
+
+                if (node.Text is "locals" or "localFunctions"
+                    && node.Value is IList { Count: 0 })
+                {
+                    return true;
+                }
+
+                if (node.Text is "hasErrors" or "isSuppressed" or "isRef"
+                    && node.Value is false)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
-        public static string DumpXML(TreeDumperNode root, string indent = null)
+        public static string DumpXML(TreeDumperNode root, string? indent = null)
         {
             var dumper = new TreeDumper();
-            dumper.DoDumpXML(root, string.Empty, string.IsNullOrEmpty(indent) ? string.Empty : indent);
+            dumper.DoDumpXML(root, string.Empty, indent ?? string.Empty);
             return dumper._sb.ToString();
         }
 
         private void DoDumpXML(TreeDumperNode node, string indent, string relativeIndent)
         {
-            Debug.Assert(node != null);
+            RoslynDebug.Assert(node != null);
             if (node.Children.All(child => child == null))
             {
                 _sb.Append(indent);
@@ -162,8 +182,13 @@ namespace Microsoft.CodeAnalysis
         private static bool IsDefaultImmutableArray(Object o)
         {
             var ti = o.GetType().GetTypeInfo();
-            return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) &&
-                (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, Array.Empty<object>());
+            if (ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
+            {
+                var result = ti?.GetDeclaredMethod("get_IsDefault")?.Invoke(o, Array.Empty<object>());
+                return result is bool b && b;
+            }
+
+            return false;
         }
 
         protected virtual string DumperString(object o)
@@ -196,7 +221,7 @@ namespace Microsoft.CodeAnalysis
                 return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
             }
 
-            return o.ToString();
+            return o.ToString() ?? "";
         }
     }
 
@@ -205,7 +230,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class TreeDumperNode
     {
-        public TreeDumperNode(string text, object value, IEnumerable<TreeDumperNode> children)
+        public TreeDumperNode(string text, object? value, IEnumerable<TreeDumperNode>? children)
         {
             this.Text = text;
             this.Value = value;
@@ -213,10 +238,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public TreeDumperNode(string text) : this(text, null, null) { }
-        public object Value { get; }
+        public object? Value { get; }
         public string Text { get; }
         public IEnumerable<TreeDumperNode> Children { get; }
-        public TreeDumperNode this[string child]
+        public TreeDumperNode? this[string child]
         {
             get
             {
@@ -225,10 +250,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         // enumerates all edges of the tree yielding (parent, node) pairs. The first yielded value is (null, this).
-        public IEnumerable<KeyValuePair<TreeDumperNode, TreeDumperNode>> PreorderTraversal()
+        public IEnumerable<KeyValuePair<TreeDumperNode?, TreeDumperNode>> PreorderTraversal()
         {
-            var stack = new Stack<KeyValuePair<TreeDumperNode, TreeDumperNode>>();
-            stack.Push(new KeyValuePair<TreeDumperNode, TreeDumperNode>(null, this));
+            var stack = new Stack<KeyValuePair<TreeDumperNode?, TreeDumperNode>>();
+            stack.Push(new KeyValuePair<TreeDumperNode?, TreeDumperNode>(null, this));
             while (stack.Count != 0)
             {
                 var currentEdge = stack.Pop();
@@ -236,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                 var currentNode = currentEdge.Value;
                 foreach (var child in currentNode.Children.Where(x => x != null).Reverse())
                 {
-                    stack.Push(new KeyValuePair<TreeDumperNode, TreeDumperNode>(currentNode, child));
+                    stack.Push(new KeyValuePair<TreeDumperNode?, TreeDumperNode>(currentNode, child));
                 }
             }
         }

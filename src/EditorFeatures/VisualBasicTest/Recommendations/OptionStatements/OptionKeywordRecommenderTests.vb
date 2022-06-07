@@ -1,54 +1,58 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class OptionKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionInBlankFileTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>|</File>, "Option")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionAfterAnotherOptionStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub OptionInBlankFileTest()
+            VerifyRecommendationsContain(<File>|</File>, "Option")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub OptionAfterAnotherOptionStatementTest()
+            VerifyRecommendationsContain(<File>
 Option Strict On
 |</File>, "Option")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionAfterBlankLineTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub OptionAfterBlankLineTest()
+            VerifyRecommendationsContain(<File>
 Option Strict On
 
 |</File>, "Option")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionNotAfterImportsTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub OptionNotAfterImportsTest()
+            VerifyRecommendationsMissing(<File>
 Imports Goo
 |</File>, "Option")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionNotAfterTypeTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub OptionNotAfterTypeTest()
+            VerifyRecommendationsMissing(<File>
 Class Goo
 End Class
 |</File>, "Option")
-        End Function
+        End Sub
 
         <WorkItem(543008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543008")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function OptionNotAfterRegionKeywordTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub OptionNotAfterRegionKeywordTest()
+            VerifyRecommendationsMissing(<File>
 #Region |
 </File>, "Option")
-        End Function
+        End Sub
     End Class
 End Namespace

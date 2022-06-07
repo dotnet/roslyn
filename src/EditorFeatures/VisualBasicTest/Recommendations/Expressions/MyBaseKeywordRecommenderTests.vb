@@ -1,179 +1,183 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class MyBaseKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "MyBase")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInModuleDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleDeclaration>|</ModuleDeclaration>, "MyBase")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInModuleMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ModuleMethodBody>|</ModuleMethodBody>, "MyBase")
-        End Function
+        Public Sub NoneInModuleDeclarationTest()
+            VerifyRecommendationsMissing(<ModuleDeclaration>|</ModuleDeclaration>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInStructureDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<StructureDeclaration>|</StructureDeclaration>, "MyBase")
-        End Function
+        Public Sub NoneInModuleMethodBodyTest()
+            VerifyRecommendationsMissing(<ModuleMethodBody>|</ModuleMethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInStructureMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<StructureMethodBody>|</StructureMethodBody>, "MyBase")
-        End Function
+        Public Sub NoneInStructureDeclarationTest()
+            VerifyRecommendationsMissing(<StructureDeclaration>|</StructureDeclaration>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseInStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "MyBase")
-        End Function
+        Public Sub NoneInStructureMethodBodyTest()
+            VerifyRecommendationsMissing(<StructureMethodBody>|</StructureMethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseInStatementTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub MyBaseAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "MyBase")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub MyBaseAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "MyBase")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub MyBaseAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "MyBase")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "MyBase")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseNotInModuleTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub MyBaseNotInModuleTest()
+            VerifyRecommendationsMissing(<File>
 Module Goo
 Sub Goo()
 |
 End Sub()
 End Module</File>, "MyBase")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseInStructureTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub MyBaseInStructureTest()
+            VerifyRecommendationsMissing(<File>
 Module Goo
 Sub Goo()
 |
 End Sub()
 End Module</File>, "MyBase")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseToHandleInheritedMemberTest() As Task
+        Public Sub MyBaseToHandleInheritedMemberTest()
             Dim text = <File>Public Class BaseClass
     Protected Event Event1()
 End Class
@@ -184,11 +188,11 @@ Public Class Class1
         Sub Handler() Handles |
     End Class</File>
 
-            Await VerifyRecommendationsContainAsync(text, "MyBase")
-        End Function
+            VerifyRecommendationsContain(text, "MyBase")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoMyBaseToHandleInheritedMemberIfThereIsNotOneTest() As Task
+        Public Sub NoMyBaseToHandleInheritedMemberIfThereIsNotOneTest()
             Dim text = <File>Public Class BaseClass
 End Class
                            
@@ -198,11 +202,11 @@ Public Class Class1
         Sub Handler() Handles |
     End Class |</File>
 
-            Await VerifyRecommendationsMissingAsync(text, "MyBase")
-        End Function
+            VerifyRecommendationsMissing(text, "MyBase")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoMyBaseToHandleInaccessibleInheritedMemberTest() As Task
+        Public Sub NoMyBaseToHandleInaccessibleInheritedMemberTest()
             Dim text = <File>Public Class Base
     Private Event Click()
     Sub a() Handles MyClass.Click
@@ -214,17 +218,17 @@ Public Class Derived
 End Class
 </File>
 
-            Await VerifyRecommendationsMissingAsync(text, "MyBase")
-        End Function
+            VerifyRecommendationsMissing(text, "MyBase")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseInNameOf1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim s = NameOf(|</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseInNameOf1Test()
+            VerifyRecommendationsContain(<MethodBody>Dim s = NameOf(|</MethodBody>, "MyBase")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function MyBaseInNameOf2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim s = NameOf(System.|</MethodBody>, "MyBase")
-        End Function
+        Public Sub MyBaseInNameOf2Test()
+            VerifyRecommendationsMissing(<MethodBody>Dim s = NameOf(System.|</MethodBody>, "MyBase")
+        End Sub
     End Class
 End Namespace

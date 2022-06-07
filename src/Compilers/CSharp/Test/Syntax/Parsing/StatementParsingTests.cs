@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2231,7 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ss.SwitchKeyword);
             Assert.Equal(SyntaxKind.SwitchKeyword, ss.SwitchKeyword.Kind());
             Assert.NotEqual(default, ss.OpenParenToken);
-            Assert.NotEqual(default, ss.Expression);
+            Assert.NotNull(ss.Expression);
             Assert.Equal("a", ss.Expression.ToString());
             Assert.NotEqual(default, ss.CloseParenToken);
             Assert.NotEqual(default, ss.OpenBraceToken);
@@ -2750,25 +2754,25 @@ class C
         [Fact]
         public void TestAwaitUsingVarWithVarAndNoUsingDeclarationTree()
         {
-            UsingStatement(@"await var a = b;", TestOptions.Regular8, expectedErrors:
-                // (1,11): error CS1003: Syntax error, ',' expected
+            UsingStatement(@"await var a = b;", TestOptions.Regular8,
+                // (1,1): error CS1073: Unexpected token 'a'
                 // await var a = b;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 11)
-            );
-            N(SyntaxKind.LocalDeclarationStatement);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "await var ").WithArguments("a").WithLocation(1, 1),
+                // (1,11): error CS1002: ; expected
+                // await var a = b;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "a").WithLocation(1, 11));
+
+            N(SyntaxKind.ExpressionStatement);
             {
-                N(SyntaxKind.VariableDeclaration);
+                N(SyntaxKind.AwaitExpression);
                 {
+                    N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "await");
-                    }
-                    N(SyntaxKind.VariableDeclarator);
                     {
                         N(SyntaxKind.IdentifierToken, "var");
                     }
                 }
-                N(SyntaxKind.SemicolonToken);
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -3450,7 +3454,7 @@ class C
             tree.GetDiagnostics(root).Verify(
                 // (7,36): error CS1003: Syntax error, 'when' expected
                 //         catch (System.Exception e) if (true) { }
-                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when").WithLocation(7, 36));
 
             var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
@@ -3559,6 +3563,22 @@ System.Console.WriteLine(true)";
                 // { label: public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
                 );
+
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.LabeledStatement);
+                {
+                    N(SyntaxKind.IdentifierToken, "label");
+                    N(SyntaxKind.ColonToken);
+                    M(SyntaxKind.EmptyStatement);
+                    {
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
 
         [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
@@ -3571,7 +3591,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 1),
                 // (1,1): error CS1003: Syntax error, '(' expected
                 // else {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 1),
                 // (1,1): error CS1525: Invalid expression term 'else'
                 // else {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 1),
@@ -3625,7 +3645,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 3),
                 // (1,3): error CS1003: Syntax error, '(' expected
                 // { else {} else {} }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 3),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 3),
                 // (1,3): error CS1525: Invalid expression term 'else'
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
@@ -3643,7 +3663,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 11),
                 // (1,11): error CS1003: Syntax error, '(' expected
                 // { else {} else {} }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 11),
                 // (1,11): error CS1525: Invalid expression term 'else'
                 // { else {} else {} }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
@@ -3729,7 +3749,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 23),
                 // (1,23): error CS1003: Syntax error, '(' expected
                 // { if (a) { } else { } else { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 23),
                 // (1,23): error CS1525: Invalid expression term 'else'
                 // { if (a) { } else { } else { } }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 23),
@@ -3812,7 +3832,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 8),
                 // (1,8): error CS1003: Syntax error, '(' expected
                 // if (a) else {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 8),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(").WithLocation(1, 8),
                 // (1,8): error CS1525: Invalid expression term 'else'
                 // if (a) else {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
@@ -4159,7 +4179,7 @@ System.Console.WriteLine(true)";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(1, 7),
                 // (1,7): error CS1003: Syntax error, ',' expected
                 // int []* p;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",", "*").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",").WithLocation(1, 7)
                 );
             N(SyntaxKind.LocalDeclarationStatement);
             {

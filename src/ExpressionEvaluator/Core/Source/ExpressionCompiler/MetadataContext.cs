@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,14 +15,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal MetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, ImmutableDictionary<MetadataContextId, TAssemblyContext> assemblyContexts)
         {
-            this.MetadataBlocks = metadataBlocks;
-            this.AssemblyContexts = assemblyContexts;
+            MetadataBlocks = metadataBlocks;
+            AssemblyContexts = assemblyContexts;
         }
 
         internal bool Matches(ImmutableArray<MetadataBlock> metadataBlocks)
-        {
-            return !this.MetadataBlocks.IsDefault &&
-                this.MetadataBlocks.SequenceEqual(metadataBlocks);
-        }
+            => !MetadataBlocks.IsDefault &&
+                MetadataBlocks.SequenceEqual(metadataBlocks);
     }
 }

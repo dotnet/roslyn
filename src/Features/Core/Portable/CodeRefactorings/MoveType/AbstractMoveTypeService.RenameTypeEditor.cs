@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // if no such conflicts exist, proceed with RenameSymbolAsync.
                 var solution = SemanticDocument.Document.Project.Solution;
                 var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
-                var documentOptions = await SemanticDocument.Document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                return await Renamer.RenameSymbolAsync(solution, symbol, FileName, documentOptions, CancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(solution, symbol, new SymbolRenameOptions(), FileName, CancellationToken).ConfigureAwait(false);
             }
         }
     }

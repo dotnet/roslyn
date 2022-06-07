@@ -1,38 +1,41 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class SelectKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SelectInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Select")
-        End Function
+        Public Sub SelectInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Select")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SelectInMultiLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub SelectInMultiLineLambdaTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
 |
 End Sub
                                          </ClassDeclaration>, "Select")
 
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SelectNotInSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub SelectNotInSingleLineLambdaTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "Select")
-        End Function
+        End Sub
 
         <WorkItem(543396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543396")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SelectInSingleLineIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then S|</MethodBody>, "Select")
-        End Function
+        Public Sub SelectInSingleLineIfTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then S|</MethodBody>, "Select")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SelectAfterExitInsideCaseTest() As Task
+        Public Sub SelectAfterExitInsideCaseTest()
             Dim code =
 <MethodBody>
 Dim i As Integer = 1
@@ -41,11 +44,11 @@ Select Case i
         Exit |
 </MethodBody>
 
-            Await VerifyRecommendationsContainAsync(code, "Select")
-        End Function
+            VerifyRecommendationsContain(code, "Select")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SelectNotAfterExitInsideCaseInsideFinallyBlockTest() As Task
+        Public Sub SelectNotAfterExitInsideCaseInsideFinallyBlockTest()
             Dim code =
 <MethodBody>
 Try
@@ -56,11 +59,11 @@ Finally
             Exit |
 </MethodBody>
 
-            Await VerifyRecommendationsMissingAsync(code, "Select")
-        End Function
+            VerifyRecommendationsMissing(code, "Select")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SelectNotAfterExitInsideFinallyBlockInsideCaseTest() As Task
+        Public Sub SelectNotAfterExitInsideFinallyBlockInsideCaseTest()
             Dim code =
 <MethodBody>
 Select Case i
@@ -71,7 +74,7 @@ Select Case i
                     Exit |
 </MethodBody>
 
-            Await VerifyRecommendationsMissingAsync(code, "Select")
-        End Function
+            VerifyRecommendationsMissing(code, "Select")
+        End Sub
     End Class
 End Namespace

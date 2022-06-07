@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -52,10 +54,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// A <see cref="Bitmap"/> containing the screen capture of the desktop, or null if a screen
         /// capture can't be created.
         /// </returns>
-        private static BitmapSource TryCaptureFullScreen()
+        private static BitmapSource? TryCaptureFullScreen()
         {
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
+            var width = Screen.PrimaryScreen.Bounds.Width;
+            var height = Screen.PrimaryScreen.Bounds.Height;
 
             if (width <= 0 || height <= 0)
             {

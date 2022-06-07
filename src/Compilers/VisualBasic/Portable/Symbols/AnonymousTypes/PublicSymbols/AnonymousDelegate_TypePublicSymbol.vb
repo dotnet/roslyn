@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -149,11 +151,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.Manager.ConstructAnonymousDelegateImplementationSymbol(Me)
             End Function
 
-            Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+            Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                 Return Manager.System_MulticastDelegate
             End Function
 
-            Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                 Return ImmutableArray(Of NamedTypeSymbol).Empty
             End Function
 
@@ -163,18 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _members(_members.Length - 1)
                 End Get
             End Property
-
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-                Dim other = TryCast(obj, AnonymousDelegatePublicSymbol)
-                Return other IsNot Nothing AndAlso Me.TypeDescriptor.Equals(other.TypeDescriptor)
-            End Function
-
-            Public Overrides Function GetHashCode() As Integer
-                Return Me.TypeDescriptor.GetHashCode()
-            End Function
 
         End Class
 

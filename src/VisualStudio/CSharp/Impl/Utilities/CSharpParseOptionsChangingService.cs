@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
+using System;
 using System.Composition;
 using System.Drawing.Text;
 using Microsoft.CodeAnalysis;
@@ -17,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
     internal class CSharpParseOptionsChangingService : IParseOptionsChangingService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpParseOptionsChangingService()
         {
         }
@@ -34,6 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
 
             if (string.IsNullOrEmpty(maxLangVersion))
             {
+                return true;
+            }
+            else if (newCSharpOptions.LanguageVersion == LanguageVersion.Preview)
+            {
+                // It's always fine to upgrade a project to 'preview'.  This allows users to try out new features to see
+                // how well they work, while also explicitly putting them into a *known* unsupported state (that's what
+                // preview is after all).  Importantly, this doesn't put them into an unrealized unsupported state (for
+                // example, picking some combo of a real lang version that isn't supported with their chosen framework
+                // version).
                 return true;
             }
             else

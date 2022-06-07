@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.CodeAnalysis.Wrapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
@@ -21,21 +25,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override string Wrap_every_item => FeaturesResources.Wrap_every_parameter;
         protected override string Wrap_long_list => FeaturesResources.Wrap_long_parameter_list;
 
+        public override bool Supports_UnwrapGroup_WrapFirst_IndentRest => true;
+        public override bool Supports_WrapEveryGroup_UnwrapFirst => true;
+        public override bool Supports_WrapLongGroup_UnwrapFirst => true;
+
+        protected override bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options)
+            => false;
+
+        protected override bool ShouldMoveCloseBraceToNewLine
+            => false;
+
         protected override SeparatedSyntaxList<ParameterSyntax> GetListItems(BaseParameterListSyntax listSyntax)
             => listSyntax.Parameters;
 
-        protected override BaseParameterListSyntax TryGetApplicableList(SyntaxNode node)
-            => CSharpSyntaxGenerator.GetParameterList(node);
+        protected override BaseParameterListSyntax? TryGetApplicableList(SyntaxNode node)
+            => node.GetParameterList();
 
         protected override bool PositionIsApplicable(
-            SyntaxNode root, int position, SyntaxNode declaration, BaseParameterListSyntax listSyntax)
+            SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, BaseParameterListSyntax listSyntax)
         {
             // CSharpSyntaxGenerator.GetParameterList synthesizes a parameter list for simple-lambdas.
             // In that case, we're not applicable in that list.
             if (declaration.Kind() == SyntaxKind.SimpleLambdaExpression)
-            {
                 return false;
-            }
 
             var generator = CSharpSyntaxGenerator.Instance;
             var attributes = generator.GetAttributes(declaration);
@@ -49,7 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             var lastToken = listSyntax.GetLastToken();
 
             var headerSpan = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-            return headerSpan.IntersectsWith(position);
+            if (!headerSpan.IntersectsWith(position))
+                return false;
+
+            if (containsSyntaxError && ContainsOverlappingSyntaxErrror(declaration, headerSpan))
+                return false;
+
+            return true;
         }
     }
 }

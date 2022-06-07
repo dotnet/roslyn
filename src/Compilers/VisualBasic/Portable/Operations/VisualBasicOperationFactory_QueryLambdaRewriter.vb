@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.BoundTreeVisitor
@@ -84,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             End Function
 
             Public Overrides Function VisitParameter(node As BoundParameter) As BoundNode
-                If node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod AndAlso Not _uniqueNodes.Add(node) Then
+                If If(node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod, False) AndAlso Not _uniqueNodes.Add(node) Then
                     Dim wasCompilerGenerated As Boolean = node.WasCompilerGenerated
                     node = New BoundParameter(node.Syntax, node.ParameterSymbol, node.IsLValue, node.SuppressVirtualCalls, node.Type, node.HasErrors)
                     If wasCompilerGenerated Then

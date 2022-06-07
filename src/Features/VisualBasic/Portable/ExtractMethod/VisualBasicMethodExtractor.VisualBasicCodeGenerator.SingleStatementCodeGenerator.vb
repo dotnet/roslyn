@@ -1,8 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -11,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class SingleStatementCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
-                    MyBase.New(insertionPoint, selectionResult, analyzerResult)
+                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                    MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
                 End Sub
 
                 Public Shared Function IsExtractMethodOnSingleStatement(code As SelectionResult) As Boolean
@@ -32,10 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As IEnumerable(Of StatementSyntax)
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
                     Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(VBSelectionResult))
 
-                    Return SpecializedCollections.SingletonEnumerable(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
+                    Return ImmutableArray.Create(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
                 End Function
 
                 Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
@@ -58,8 +62,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return VBSelectionResult.GetFirstStatement()
                 End Function
 
-                Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(callSiteAnnotation As SyntaxAnnotation, cancellationToken As CancellationToken) As Task(Of StatementSyntax)
-                    Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(callSiteAnnotation))
+                Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                    Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
                 End Function
             End Class
         End Class

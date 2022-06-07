@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -27,7 +30,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.
   Children(1):
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Console')
+            IOperation:  (OperationKind.None, Type: System.Console, IsInvalid) (Syntax: 'Console')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -341,7 +344,7 @@ IFieldInitializerOperation (Field: Program.x As System.Int32) (OperationKind.Fie
   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+      IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -403,7 +406,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: X(), IsInvalid) (Syn
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'Program - 1')
                 Left: 
-                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+                  IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -489,7 +492,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'C1(1)')
   Children(2):
-      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1')
+      IOperation:  (OperationKind.None, Type: M1.C1, IsInvalid) (Syntax: 'C1')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -910,5 +913,49 @@ Block[B8] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(35813, "https://github.com/dotnet/roslyn/issues/35813"), WorkItem(45382, "https://github.com/dotnet/roslyn/issues/45382")>
+        Public Sub InvalidTypeArguments()
+            Dim source = <![CDATA[
+Class C
+    Public Sub M(node As Object)
+        node.ExtensionMethod(Of Object)() 'BIND:"node.ExtensionMethod(Of Object)()"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedStrictOperationTree = <![CDATA[
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'node.Extens ... f Object)()')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'node.Extens ... (Of Object)')
+        Children(2):
+            IParameterReferenceOperation: node (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'node')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '(Of Object)')
+              Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30574: Option Strict On disallows late binding.
+        node.ExtensionMethod(Of Object)() 'BIND:"node.ExtensionMethod(Of Object)()"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)("Option Strict On" + Environment.NewLine + source, expectedStrictOperationTree, expectedDiagnostics)
+
+            Dim expectedNonStrictOperationTree = <![CDATA[
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: 'node.Extens ... f Object)()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: "ExtensionMethod", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'node.Extens ... (Of Object)')
+      Type Arguments(1):
+        Symbol: System.Object
+      Instance Receiver: 
+        IParameterReferenceOperation: node (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'node')
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds: null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)("Option Strict Off" + Environment.NewLine + source, expectedNonStrictOperationTree, expectedDiagnostics:=String.Empty)
+        End Sub
     End Class
 End Namespace

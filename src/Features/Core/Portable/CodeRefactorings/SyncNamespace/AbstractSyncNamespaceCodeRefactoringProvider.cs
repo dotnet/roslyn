@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -36,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 // These code actions try to move file to a new location based on declared namespace
                 // and the default namespace of the project. The new location is a list of folders
-                // determined by the relateive part of the declared namespace compare to the default namespace.
+                // determined by the relative part of the declared namespace compare to the default namespace.
                 // 
                 // For example, if he default namespace is `A.B.C`, file path is 
                 // "[project root dir]\Class1.cs" and declared namespace in the file is
@@ -65,13 +69,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // is global namespace, i.e. default namespace is "" and the file is located at project 
                 // root directory, and no namespace declaration in the document, respectively.
 
-                var service = document.GetLanguageService<IChangeNamespaceService>();
+                var service = document.GetRequiredLanguageService<IChangeNamespaceService>();
 
-                var solutionChangeAction = new ChangeNamespaceCodeAction(
-                    state.TargetNamespace.Length == 0
-                        ? FeaturesResources.Change_to_global_namespace
-                        : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace),
-                    token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
+                var title = state.TargetNamespace.Length == 0
+                    ? FeaturesResources.Change_to_global_namespace
+                    : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace);
+                var solutionChangeAction = CodeAction.Create(
+                    title,
+                    token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, context.Options, token),
+                    title);
 
                 context.RegisterRefactoring(solutionChangeAction, textSpan);
             }
@@ -81,22 +87,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// Try to get the node that can be used to trigger the refactoring based on current cursor position. 
         /// </summary>
         /// <returns>
-        /// (1) a node of type <typeparamref name="TNamespaceDeclarationSyntax"/> node, if curosr in the name and it's the 
+        /// (1) a node of type <typeparamref name="TNamespaceDeclarationSyntax"/> node, if cursor in the name and it's the 
         /// only namespace declaration in the document.
         /// (2) a node of type <typeparamref name="TCompilationUnitSyntax"/> node, if the cursor is in the name of first 
         /// declaration in global namespace and there's no namespace declaration in this document.
         /// (3) otherwise, null.
         /// </returns>
-        protected abstract Task<SyntaxNode> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode?> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         protected abstract string EscapeIdentifier(string identifier);
-
-        private class ChangeNamespaceCodeAction : SolutionChangeAction
-        {
-            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
-            {
-            }
-        }
     }
 }

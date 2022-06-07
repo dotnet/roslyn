@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -10,9 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal partial class CSharpProjectShim : ICSInputSet
     {
         public ICSCompiler GetCompiler()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void AddSourceFile(string filename)
         {
@@ -25,19 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void RemoveAllSourceFiles()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void AddResourceFile(string filename, string ident, bool embed, bool vis)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void RemoveResourceFile(string filename, string ident, bool embed, bool vis)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void SetWin32Resource(string filename)
         {
@@ -49,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // Some projects like web projects give us just a filename; those aren't really useful (they're just filler) so we'll ignore them for purposes of tracking the path
             if (PathUtilities.IsAbsolute(filename))
             {
-                VisualStudioProject.IntermediateOutputFilePath = filename;
+                VisualStudioProject.CompilationOutputAssemblyFilePath = filename;
             }
 
             if (filename != null)
@@ -61,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void SetOutputFileType(OutputFileType fileType)
-        {
-            VisualStudioProjectOptionsProcessor.SetOutputFileType(fileType);
-        }
+            => VisualStudioProjectOptionsProcessor.SetOutputFileType(fileType);
 
         public void SetImageBase(uint imageBase)
         {
@@ -71,9 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void SetMainClass(string fullyQualifiedClassName)
-        {
-            VisualStudioProjectOptionsProcessor.SetMainTypeName(fullyQualifiedClassName);
-        }
+            => VisualStudioProjectOptionsProcessor.SetMainTypeName(fullyQualifiedClassName);
 
         public void SetWin32Icon(string iconFileName)
         {
@@ -96,9 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public string GetWin32Resource()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void SetWin32Manifest(string manifestFileName)
         {

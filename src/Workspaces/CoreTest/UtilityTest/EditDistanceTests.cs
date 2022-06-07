@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Linq;
 using Roslyn.Utilities;
 using Xunit;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             if (editDistance1 > 0)
             {
                 var editDistance4 = EditDistance.GetEditDistance(s, t, editDistance1 - 1);
-                Assert.Equal(editDistance4, EditDistance.BeyondThreshold);
+                Assert.Equal(EditDistance.BeyondThreshold, editDistance4);
             }
         }
 
@@ -73,51 +76,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         public void EditDistance4()
-        {
-            VerifyEditDistance("XlmReade", "XmlReader", 2);
-        }
+            => VerifyEditDistance("XlmReade", "XmlReader", 2);
 
         [Fact]
         public void EditDistance5()
-        {
-            VerifyEditDistance("Zeil", "trials", 4);
-        }
+            => VerifyEditDistance("Zeil", "trials", 4);
 
         [Fact]
         public void EditDistance6()
-        {
-            VerifyEditDistance("barking", "corkliness", 6);
-        }
+            => VerifyEditDistance("barking", "corkliness", 6);
 
         [Fact]
         public void EditDistance7()
-        {
-            VerifyEditDistance("kitten", "sitting", 3);
-        }
+            => VerifyEditDistance("kitten", "sitting", 3);
 
         [Fact]
         public void EditDistance8()
-        {
-            VerifyEditDistance("sunday", "saturday", 3);
-        }
+            => VerifyEditDistance("sunday", "saturday", 3);
 
         [Fact]
         public void EditDistance9()
-        {
-            VerifyEditDistance("meilenstein", "levenshtein", 4);
-        }
+            => VerifyEditDistance("meilenstein", "levenshtein", 4);
 
         [Fact]
         public void EditDistance10()
-        {
-            VerifyEditDistance("rosettacode", "raisethysword", 8);
-        }
+            => VerifyEditDistance("rosettacode", "raisethysword", 8);
 
         [Fact]
         public void EditDistance11()
         {
             var editDistance = EditDistance.GetEditDistance("book", "moons", 1);
-            Assert.Equal(editDistance, EditDistance.BeyondThreshold);
+            Assert.Equal(EditDistance.BeyondThreshold, editDistance);
             VerifyEditDistance("book", "moons", 3);
         }
 
@@ -223,7 +212,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "wish","with","woman","women","wonder","wont","wood","word","work","world","would","write","written",
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
             };
-
 
         [Fact]
         public void Top1000Test()

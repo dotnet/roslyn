@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -100,11 +103,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Protected Overrides Function GetTypeHandleToTypeMap() As ConcurrentDictionary(Of TypeDefinitionHandle, TypeSymbol)
-            Return moduleSymbol.TypeHandleToTypeMap
+            Return ModuleSymbol.TypeHandleToTypeMap
         End Function
 
         Protected Overrides Function GetTypeRefHandleToTypeMap() As ConcurrentDictionary(Of TypeReferenceHandle, TypeSymbol)
-            Return moduleSymbol.TypeRefHandleToTypeMap
+            Return ModuleSymbol.TypeRefHandleToTypeMap
         End Function
 
         Protected Overrides Function LookupNestedTypeDefSymbol(
@@ -131,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
-            Catch e As Exception When FatalError.Report(e) ' Trying to get more useful Watson dumps.
+            Catch e As Exception When FatalError.ReportAndPropagate(e) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function
@@ -140,10 +143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' Lookup a type defined in a module of a multi-module assembly.
         ''' </summary>
         Protected Overrides Function LookupTopLevelTypeDefSymbol(moduleName As String, ByRef emittedName As MetadataTypeName, <Out> ByRef isNoPiaLocalType As Boolean) As TypeSymbol
-            For Each m As ModuleSymbol In moduleSymbol.ContainingAssembly.Modules
+            For Each m As ModuleSymbol In ModuleSymbol.ContainingAssembly.Modules
                 If String.Equals(m.Name, moduleName, StringComparison.OrdinalIgnoreCase) Then
-                    If m Is moduleSymbol Then
-                        Return moduleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
+                    If m Is ModuleSymbol Then
+                        Return ModuleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
                     Else
                         isNoPiaLocalType = False
                         Return m.LookupTopLevelMetadataType(emittedName)
@@ -152,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
 
             isNoPiaLocalType = False
-            Return New MissingMetadataTypeSymbol.TopLevel(New MissingModuleSymbolWithName(moduleSymbol.ContainingAssembly, moduleName), emittedName, SpecialType.None)
+            Return New MissingMetadataTypeSymbol.TopLevel(New MissingModuleSymbolWithName(ModuleSymbol.ContainingAssembly, moduleName), emittedName, SpecialType.None)
         End Function
 
         ''' <summary>
@@ -163,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' TypeDef row id. 
         ''' </summary>
         Protected Overloads Overrides Function LookupTopLevelTypeDefSymbol(ByRef emittedName As MetadataTypeName, <Out> ByRef isNoPiaLocalType As Boolean) As TypeSymbol
-            Return moduleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
+            Return ModuleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
         End Function
 
         Protected Overrides Function GetIndexOfReferencedAssembly(identity As AssemblyIdentity) As Integer
@@ -256,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         interfaceGuid,
                         scope,
                         identifier,
-                        moduleSymbol.ContainingAssembly)
+                        ModuleSymbol.ContainingAssembly)
 
             Catch mrEx As BadImageFormatException
                 result = GetUnsupportedMetadataTypeSymbol(mrEx)
@@ -359,8 +362,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         ' Let's use a trick. To make sure the kind is the same, make sure
                         ' base type is the same.
-                        Dim baseSpecialType As SpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault()
-                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> (baseType?.SpecialType).GetValueOrDefault() Then
+                        Dim baseSpecialType As SpecialType = If(candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType, SpecialType.None)
+                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> If(baseType?.SpecialType, SpecialType.None) Then
                             Continue For
                         End If
 
@@ -446,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Debug.Assert(Not targetTypeSymbol.IsTupleType)
 
-            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
+            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                 Return Nothing
             End If
 
@@ -456,8 +459,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' We're going to use a special decoder that can generate usable symbols for type parameters without full context.
             ' (We're not just using a different type - we're also changing the type context.)
-            Dim memberRefDecoder = New MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol)
-            Return memberRefDecoder.FindMember(targetTypeSymbol, memberRef, methodsOnly)
+            Dim memberRefDecoder = New MemberRefMetadataDecoder(ModuleSymbol, targetTypeSymbol.OriginalDefinition)
+
+            Dim definition = memberRefDecoder.FindMember(memberRef, methodsOnly)
+
+            If definition IsNot Nothing AndAlso Not targetTypeSymbol.IsDefinition Then
+                Return definition.AsMember(DirectCast(targetTypeSymbol, NamedTypeSymbol))
+            End If
+
+            Return definition
         End Function
 
         Protected Overrides Sub EnqueueTypeSymbolInterfacesAndBaseTypes(typeDefsToSearch As Queue(Of TypeDefinitionHandle), typeSymbolsToSearch As Queue(Of TypeSymbol), typeSymbol As TypeSymbol)
@@ -471,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Protected Overrides Sub EnqueueTypeSymbol(typeDefsToSearch As Queue(Of TypeDefinitionHandle), typeSymbolsToSearch As Queue(Of TypeSymbol), typeSymbol As TypeSymbol)
             If typeSymbol IsNot Nothing Then
                 Dim peTypeSymbol As PENamedTypeSymbol = TryCast(typeSymbol, PENamedTypeSymbol)
-                If peTypeSymbol IsNot Nothing AndAlso peTypeSymbol.ContainingPEModule Is moduleSymbol Then
+                If peTypeSymbol IsNot Nothing AndAlso peTypeSymbol.ContainingPEModule Is ModuleSymbol Then
                     typeDefsToSearch.Enqueue(peTypeSymbol.Handle)
                 Else
                     typeSymbolsToSearch.Enqueue(typeSymbol)
@@ -482,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Protected Overrides Function GetMethodHandle(method As MethodSymbol) As MethodDefinitionHandle
             Dim peMethod As PEMethodSymbol = TryCast(method, PEMethodSymbol)
-            If peMethod IsNot Nothing AndAlso peMethod.ContainingModule Is moduleSymbol Then
+            If peMethod IsNot Nothing AndAlso peMethod.ContainingModule Is ModuleSymbol Then
                 Return peMethod.Handle
             End If
 

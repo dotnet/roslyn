@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -12,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         public abstract void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder);
 
-        public abstract LocalDefinition GetPreviousLocal(
+        public abstract LocalDefinition? GetPreviousLocal(
             Cci.ITypeReference type,
             ILocalSymbolInternal symbol,
-            string? nameOpt,
+            string? name,
             SynthesizedLocalKind kind,
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<bool> dynamicTransformFlags,
             ImmutableArray<string> tupleElementNames);
 
-        public abstract string PreviousStateMachineTypeName { get; }
+        public abstract string? PreviousStateMachineTypeName { get; }
 
         /// <summary>
         /// Returns an index of a slot that stores specified hoisted local variable in the previous generation.
@@ -78,5 +80,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// or lambda body syntax (<paramref name="isLambdaBody"/> is true).
         /// </summary>
         public abstract bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId);
+
+        /// <summary>
+        /// State number to be used for next state of the state machine,
+        /// or <see langword="null"/> if none of the previous versions of the method was a state machine with a increasing state
+        /// </summary>
+        /// <param name="increasing">True if the state number increases with progress, false if it decreases.</param>
+        public abstract int? GetFirstUnusedStateMachineState(bool increasing);
+
+        /// <summary>
+        /// For a given node associated with entering a state of a state machine in the new compilation,
+        /// returns the ordinal of the corresponding state in the previous version of the state machine.
+        /// </summary>
+        /// <returns>
+        /// True if there is a corresponding node in the previous code version that matches the given <paramref name="syntax"/>.
+        /// </returns>
+        /// <remarks>
+        /// <paramref name="syntax"/> is an await expression, yield return statement, or try block syntax node.
+        /// </remarks>
+        public abstract bool TryGetPreviousStateMachineState(SyntaxNode syntax, out int stateOrdinal);
     }
 }

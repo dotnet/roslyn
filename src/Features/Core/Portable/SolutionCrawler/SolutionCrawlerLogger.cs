@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -84,15 +85,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogOptionChanged(int correlationId, bool value)
-        {
-            Logger.Log(FunctionId.WorkCoordinator_SolutionCrawlerOption, KeyValueLogMessage.Create(m =>
-            {
-                m[Id] = correlationId;
-                m[Enabled] = value;
-            }));
-        }
-
         public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
             if (onlyHighPriorityAnalyzer)
@@ -143,9 +135,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogWorkspaceEvent(LogAggregator logAggregator, int kind)
-        {
-            logAggregator.IncreaseCount(kind);
-        }
+            => logAggregator.IncreaseCount(kind);
 
         public static void LogWorkCoordinatorShutdown(int correlationId, LogAggregator logAggregator)
         {
@@ -162,22 +152,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogGlobalOperation(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(GlobalOperation);
-        }
+            => logAggregator.IncreaseCount(GlobalOperation);
 
         public static void LogActiveFileEnqueue(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(ActiveFileEnqueue);
-        }
+            => logAggregator.IncreaseCount(ActiveFileEnqueue);
 
-        public static void LogWorkItemEnqueue(LogAggregator logAggregator, ProjectId projectId)
-        {
-            logAggregator.IncreaseCount(ProjectEnqueue);
-        }
+        public static void LogWorkItemEnqueue(LogAggregator logAggregator, ProjectId _)
+            => logAggregator.IncreaseCount(ProjectEnqueue);
 
         public static void LogWorkItemEnqueue(
-            LogAggregator logAggregator, string language, DocumentId documentId, InvocationReasons reasons, bool lowPriority, SyntaxPath activeMember, bool added)
+            LogAggregator logAggregator, string language, DocumentId? documentId, InvocationReasons reasons, bool lowPriority, SyntaxPath? activeMember, bool added)
         {
             logAggregator.IncreaseCount(language);
             logAggregator.IncreaseCount(added ? NewWorkItem : UpdateWorkItem);
@@ -206,9 +190,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogResetStates(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(ResetStates);
-        }
+            => logAggregator.IncreaseCount(ResetStates);
 
         public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, LogAggregator logAggregator, ImmutableArray<IIncrementalAnalyzer> analyzers)
         {
@@ -220,46 +202,41 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 m[SolutionHash] = solutionHash.ToString();
 
                 var statMap = new Dictionary<string, List<int>>();
-                foreach (var kv in logAggregator)
+                foreach (var (key, counter) in logAggregator)
                 {
-                    if (kv.Key is string)
+                    if (key is string stringKey)
                     {
-                        m[kv.Key.ToString()] = kv.Value.GetCount();
+                        m[stringKey] = counter.GetCount();
                         continue;
                     }
 
-                    if (kv.Key is ValueTuple<string, Guid> tuple)
+                    if (key is ValueTuple<string, Guid> propertyNameAndId)
                     {
-                        var list = statMap.GetOrAdd(tuple.Item1, _ => new List<int>());
-                        list.Add(kv.Value.GetCount());
+                        var list = statMap.GetOrAdd(propertyNameAndId.Item1, _ => new List<int>());
+                        list.Add(counter.GetCount());
                         continue;
                     }
 
                     throw ExceptionUtilities.Unreachable;
                 }
 
-                foreach (var kv in statMap)
+                foreach (var (propertyName, propertyValues) in statMap)
                 {
-                    var key = kv.Key.ToString();
-                    var result = LogAggregator.GetStatistics(kv.Value);
+                    var result = LogAggregator.GetStatistics(propertyValues);
 
-                    m[CreateProperty(key, Max)] = result.Maximum;
-                    m[CreateProperty(key, Min)] = result.Minimum;
-                    m[CreateProperty(key, Median)] = result.Median.Value;
-                    m[CreateProperty(key, Mean)] = result.Mean;
-                    m[CreateProperty(key, Mode)] = result.Mode.Value;
-                    m[CreateProperty(key, Range)] = result.Range;
-                    m[CreateProperty(key, Count)] = result.Count;
+                    m[CreateProperty(propertyName, Max)] = result.Maximum;
+                    m[CreateProperty(propertyName, Min)] = result.Minimum;
+                    m[CreateProperty(propertyName, Median)] = result.Median!.Value;
+                    m[CreateProperty(propertyName, Mean)] = result.Mean;
+                    m[CreateProperty(propertyName, Mode)] = result.Mode!.Value;
+                    m[CreateProperty(propertyName, Range)] = result.Range;
+                    m[CreateProperty(propertyName, Count)] = result.Count;
                 }
             }));
 
             foreach (var analyzer in analyzers)
             {
-                if (analyzer is DiagnosticIncrementalAnalyzer diagIncrementalAnalyzer)
-                {
-                    diagIncrementalAnalyzer.LogAnalyzerCountSummary();
-                    break;
-                }
+                analyzer.LogAnalyzerCountSummary();
             }
         }
 
@@ -274,9 +251,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         private static string CreateProperty(string parent, string child)
-        {
-            return parent + "." + child;
-        }
+            => parent + "." + child;
 
         public static void LogProcessCloseDocument(LogAggregator logAggregator, Guid documentId)
         {
@@ -290,7 +265,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             logAggregator.IncreaseCount(ValueTuple.Create(OpenDocument, documentId));
         }
 
-        public static void LogProcessActiveFileDocument(LogAggregator logAggregator, Guid documentId, bool processed)
+        public static void LogProcessActiveFileDocument(LogAggregator logAggregator, Guid _, bool processed)
         {
             if (processed)
             {
@@ -317,9 +292,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogProcessDocumentNotExist(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(DocumentNotExist);
-        }
+            => logAggregator.IncreaseCount(DocumentNotExist);
 
         public static void LogProcessProject(LogAggregator logAggregator, Guid projectId, bool processed)
         {
@@ -336,8 +309,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogProcessProjectNotExist(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(ProjectNotExist);
-        }
+            => logAggregator.IncreaseCount(ProjectNotExist);
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
 using Xunit;
@@ -11,14 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private readonly CSharpCommandLineParserService _parser = new CSharpCommandLineParserService();
 
         private CSharpCommandLineArguments GetArguments(params string[] args)
-        {
-            return (CSharpCommandLineArguments)_parser.Parse(args, baseDirectory: s_directory, isInteractive: false, sdkDirectory: s_directory);
-        }
+            => (CSharpCommandLineArguments)_parser.Parse(args, baseDirectory: s_directory, isInteractive: false, sdkDirectory: s_directory);
 
         private CSharpParseOptions GetParseOptions(params string[] args)
-        {
-            return GetArguments(args).ParseOptions;
-        }
+            => GetArguments(args).ParseOptions;
 
         [Fact]
         public void FeaturesSingle()
