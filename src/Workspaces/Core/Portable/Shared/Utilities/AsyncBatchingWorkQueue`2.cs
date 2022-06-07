@@ -179,6 +179,10 @@ namespace Roslyn.Utilities
                 // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
                 // associated with the token we pass into it.  We don't want an errant cancellation token for some
                 // other reason to cancel this queue from performing work.
+                //
+                // Note: we report-and-catch, so that further batches of work can still process.  The sentiment being
+                // that generally failures are recoverable here, and we will have reported the error so we can see in
+                // telemetry if we have a problem that needs addressing.
                 return default;
             }
         }
