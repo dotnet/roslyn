@@ -464,8 +464,8 @@ class D { }
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step =>
             {
-                Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-                Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "D" }));
+                Assert.True(step.Outputs.First().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                Assert.True(step.Outputs.Last().Value is ClassDeclarationSyntax { Identifier.ValueText: "D" });
             });
     }
 
@@ -496,7 +496,7 @@ class D { }
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step =>
             {
-                Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+                Assert.True(step.Outputs.First().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
                 Assert.False(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "D" }));
             });
     }
@@ -529,7 +529,7 @@ class D { }
             step =>
             {
                 Assert.False(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-                Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "D" }));
+                Assert.True(step.Outputs.Last().Value is ClassDeclarationSyntax { Identifier.ValueText: "D" });
             });
     }
 
@@ -562,8 +562,8 @@ class C
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step =>
             {
-                Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-                Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "D" }));
+                Assert.True(step.Outputs.First().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                Assert.True(step.Outputs.Last().Value is ClassDeclarationSyntax { Identifier.ValueText: "D" });
             });
     }
 
@@ -593,7 +593,7 @@ namespace N
         var runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" })));
+            step => Assert.True(step.Outputs.First().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
     }
 
     [Fact]

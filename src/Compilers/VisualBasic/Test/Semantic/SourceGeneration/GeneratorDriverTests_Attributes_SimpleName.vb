@@ -468,8 +468,8 @@ end class
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
-                    Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "C")))
-                    Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "D")))
+                    Assert.True(IsClassStatementWithName(_step.Outputs.First().Value, "C"))
+                    Assert.True(IsClassStatementWithName(_step.Outputs.Last().Value, "D"))
                 End Sub)
         End Sub
 
@@ -500,7 +500,7 @@ end class
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
-                    Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "C")))
+                    Assert.True(IsClassStatementWithName(_step.Outputs.First().Value, "C"))
                     Assert.False(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "D")))
                 End Sub)
         End Sub
@@ -533,7 +533,7 @@ end class
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
                     Assert.False(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "C")))
-                    Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "D")))
+                    Assert.True(IsClassStatementWithName(_step.Outputs.Last().Value, "D"))
                 End Sub)
         End Sub
 
@@ -564,8 +564,8 @@ end class
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step)
-                    Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "C")))
-                    Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "D")))
+                    Assert.True(IsClassStatementWithName(_step.Outputs.First().Value, "C"))
+                    Assert.True(IsClassStatementWithName(_step.Outputs.Last().Value, "D"))
                 End Sub)
         End Sub
 
@@ -594,7 +594,7 @@ end namespace
             Dim runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(_step.Outputs.Any(Function(o) IsClassStatementWithName(o.Value, "C"))))
+                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.First().Value, "C")))
         End Sub
 
         <Fact>
