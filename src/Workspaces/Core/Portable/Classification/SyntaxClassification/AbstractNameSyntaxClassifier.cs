@@ -63,13 +63,6 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 return false;
             }
 
-            if (symbol.IsLocalFunction())
-            {
-                // Local function names are not classified as static since the
-                // the symbol returning true for IsStatic is an implementation detail.
-                return false;
-            }
-
             return true;
         }
     }

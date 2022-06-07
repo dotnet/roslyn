@@ -5594,10 +5594,12 @@ int m(Delegate d) { }",
                 testHost,
                 Method("localFunction"),
                 Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
                 Method("M"),
                 Method("localFunction"),
                 Method("M"),
-                Method("staticLocalFunction"));
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"));
         }
     }
 }
