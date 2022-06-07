@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     {
                         // If there are no type forwards in this DLL, or not one for this type, then it means
                         // we've found the right DLL
-                        if (typeForwards?.TryGetValue((typeSymbol.ContainingNamespace.MetadataName, typeSymbol.MetadataName), out var assemblyName) is null or false)
+                        if (typeForwards?.TryGetValue((typeSymbol.ContainingNamespace.MetadataName, typeSymbol.MetadataName), out var assemblyName) != true)
                         {
                             return dllPath;
                         }

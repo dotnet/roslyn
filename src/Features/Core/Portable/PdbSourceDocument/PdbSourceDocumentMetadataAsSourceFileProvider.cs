@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -200,9 +201,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var encoding = defaultEncoding ?? Encoding.UTF8;
             var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useExtendedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
-
-            // No point continuing if no source files were found
-            if (!sourceFileInfos.WhereNotNull().Any())
+            if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
