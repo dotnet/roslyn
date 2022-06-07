@@ -26,10 +26,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
         ' These tests just validate basic correctness of results in different scenarios, without actually validating
         ' that the incremental nature of this provider works properly.
 
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1()
-            Dim source = "
-<X>
+        <Theory>
+        <InlineData("<X>")>
+        <InlineData("<X, Y>")>
+        <InlineData("<Y, X>")>
+        <InlineData("<X, X>")>
+        <InlineData("<X><Y>")>
+        <InlineData("<Y><X>")>
+        <InlineData("<X><X>")>
+        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1(attribute As String)
+            Dim source = $"
+{attribute}
 class C
 end class
 "
@@ -44,162 +51,6 @@ end class
                                                             ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                             End Sub)
                                                         End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList1()
-            Dim source = "
-<X, Y>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList2()
-            Dim source = "
-<Y, X>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList3()
-            Dim source = "
-<X, X>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists1()
-            Dim source = "
-<X><Y>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists2()
-            Dim source = "
-<Y><X>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists3()
-            Dim source = "
-<X><X>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
 
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
             driver = driver.RunGenerators(compilation)
