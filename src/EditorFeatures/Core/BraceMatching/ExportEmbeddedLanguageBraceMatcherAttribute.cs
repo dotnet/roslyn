@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     }
 
     /// <summary>
-    /// Internal version of ExportEmbeddedLanguageBraceMatchingServiceAttribute.  Used so we can allow regex/json to still light
-    /// up on legacy APIs not using the new [StringSyntax] attribute the runtime added.  For public extensions that's
-    /// the only mechanism we support.
+    /// Internal version of <see cref="ExportEmbeddedLanguageBraceMatcherAttribute"/>.  Used so we can allow regex/json
+    /// to still light up on legacy APIs not using the new [StringSyntax] attribute the runtime added.  For public
+    /// extensions that's the only mechanism we support.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
