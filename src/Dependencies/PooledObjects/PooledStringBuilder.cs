@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Text;
@@ -15,13 +17,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     /// </summary>
     internal sealed partial class PooledStringBuilder
     {
-        public readonly StringBuilder Builder = new StringBuilder();
+        public readonly StringBuilder Builder = new();
         private readonly ObjectPool<PooledStringBuilder> _pool;
 
         private PooledStringBuilder(ObjectPool<PooledStringBuilder> pool)
         {
             Debug.Assert(pool != null);
-            _pool = pool;
+            _pool = pool!;
         }
 
         public int Length
@@ -78,8 +80,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <returns></returns>
         public static ObjectPool<PooledStringBuilder> CreatePool(int size = 32)
         {
-            ObjectPool<PooledStringBuilder> pool = null;
-            pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool), size);
+            ObjectPool<PooledStringBuilder>? pool = null;
+            pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool!), size);
             return pool;
         }
 

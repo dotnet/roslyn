@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -81,10 +85,38 @@ public class N : D.K<M>
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var baseLine = System.Xml.Linq.XElement.Load(new StringReader(Resources.EmitSimpleBaseLine1));
-                System.Xml.Linq.XElement dumpXML = DumpTypeInfo(module);
+                var dump = DumpTypeInfo(module).ToString();
 
-                Assert.Equal(baseLine.ToString(), dumpXML.ToString());
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+<Global>
+  <type name=""&lt;Module&gt;"" />
+  <type name=""A"" Of=""T"" base=""System.Object"">
+    <field name=""x1"" type=""A&lt;T&gt;"" />
+    <field name=""x2"" type=""A&lt;D&gt;"" />
+    <type name=""B"" base=""A&lt;T&gt;"">
+      <field name=""y1"" type=""A&lt;T&gt;.B"" />
+      <field name=""y2"" type=""A&lt;D&gt;.B"" />
+      <type name=""C"" base=""A&lt;T&gt;.B"" />
+    </type>
+    <type name=""H"" Of=""S"" base=""System.Object"">
+      <type name=""I"" base=""A&lt;T&gt;.H&lt;S&gt;"" />
+    </type>
+  </type>
+  <type name=""D"" base=""System.Object"">
+    <type name=""K"" Of=""T"" base=""System.Object"">
+      <type name=""L"" base=""D.K&lt;T&gt;"" />
+    </type>
+  </type>
+  <type name=""F"" base=""A&lt;D&gt;"" />
+  <type name=""G"" base=""A&lt;NS1.E&gt;.B"" />
+  <type name=""J"" base=""A&lt;D&gt;.H&lt;D&gt;"" />
+  <type name=""M"" base=""System.Object"" />
+  <type name=""N"" base=""D.K&lt;M&gt;"" />
+  <NS1>
+    <type name=""E"" base=""D"" />
+  </NS1>
+</Global>
+", dump);
             }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
@@ -174,7 +206,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, verify: Verification.FailsILVerify, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -210,7 +242,8 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
+            // ILVerify: Assembly or module not found: netModule1
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, verify: Verification.FailsILVerify, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 
@@ -1261,7 +1294,7 @@ class C : B<string>
             {
                 if (property is SourcePropertySymbol sourceProperty)
                 {
-                    Assert.True(sourceProperty.IsAutoProperty);
+                    Assert.True(sourceProperty.IsAutoPropertyWithGetAccessor);
                 }
             }
             else
@@ -1347,7 +1380,7 @@ class C : B<string>
             var sourceType = type as SourceNamedTypeSymbol;
             if ((object)sourceType != null)
             {
-                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field;
+                var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field.GetCciAdapter();
                 Assert.False(fieldDefinition.IsSpecialName);
                 Assert.False(fieldDefinition.IsRuntimeSpecial);
             }
@@ -1370,7 +1403,7 @@ class C : B<string>
             {
                 field = sourceType.EnumValueField;
                 Assert.NotNull(field);
-                Assert.Equal(field.Name, WellKnownMemberNames.EnumBackingFieldName);
+                Assert.Equal(WellKnownMemberNames.EnumBackingFieldName, field.Name);
                 Assert.False(field.IsStatic);
                 Assert.False(field.IsConst);
                 Assert.False(field.IsReadOnly);
@@ -1382,9 +1415,9 @@ class C : B<string>
 
                 var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
-                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
+                var typeDefinition = (Microsoft.Cci.ITypeDefinition)type.GetCciAdapter();
                 var fieldDefinition = typeDefinition.GetFields(context).First();
-                Assert.Same(fieldDefinition, field); // Dev10: value__ field is the first field.
+                Assert.Same(fieldDefinition.GetInternalSymbol(), field); // Dev10: value__ field is the first field.
                 Assert.True(fieldDefinition.IsSpecialName);
                 Assert.True(fieldDefinition.IsRuntimeSpecial);
                 context.Diagnostics.Verify();

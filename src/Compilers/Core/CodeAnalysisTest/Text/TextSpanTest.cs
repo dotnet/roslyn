@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -117,8 +121,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             TextSpan span = new TextSpan(0, int.MaxValue - 1);
             Assert.Equal(0, span.Start);
-            Assert.Equal(span.End, int.MaxValue - 1);
-            Assert.Equal(span.Length, int.MaxValue - 1);
+            Assert.Equal(int.MaxValue - 1, span.End);
+            Assert.Equal(int.MaxValue - 1, span.Length);
         }
 
         [Fact]

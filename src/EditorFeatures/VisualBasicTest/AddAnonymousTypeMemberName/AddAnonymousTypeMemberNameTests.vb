@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -76,7 +78,7 @@ end class",
 "
 class C
     sub M()
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
     end sub
 end class")
         End Function
@@ -97,7 +99,7 @@ class C
 {
     sub M()
     {
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
     }
 end class")
         End Function
@@ -114,7 +116,7 @@ end class",
 "
 class C
     sub M()
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.Equals(2)}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.Equals(2)}}
     end sub
 end class")
         End Function

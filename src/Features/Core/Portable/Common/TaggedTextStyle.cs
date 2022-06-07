@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -9,12 +11,14 @@ namespace Microsoft.CodeAnalysis
     {
         None = 0,
 
-        Strong = 0x1,
+        Strong = 1 << 0,
 
-        Emphasis = 0x2,
+        Emphasis = 1 << 1,
 
-        Underline = 0x4,
+        Underline = 1 << 2,
 
-        Code = 0x8,
+        Code = 1 << 3,
+
+        PreserveWhitespace = 1 << 4,
     }
 }

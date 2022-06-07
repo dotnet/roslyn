@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -25,6 +30,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         public async Task<ImmutableArray<CodeAction>> GenerateMethodAsync(
             Document document,
             SyntaxNode node,
+            CodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
@@ -36,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                return GetActions(document, state, cancellationToken);
+                return await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
             }
         }
     }

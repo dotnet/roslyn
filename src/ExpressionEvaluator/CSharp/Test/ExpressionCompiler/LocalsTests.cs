@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -2769,7 +2773,7 @@ static class C
 
                 Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: expectedIL);
-                Assert.Equal(SpecialType.System_Int32, testData.GetMethodData(typeName + ".<>m0").Method.ReturnType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((MethodSymbol)testData.GetMethodData(typeName + ".<>m0").Method).ReturnType.SpecialType);
                 locals.Free();
 
                 testData = new CompilationTestData();
@@ -2778,7 +2782,7 @@ static class C
                 Assert.Null(error);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(expectedIL);
-                Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((MethodSymbol)methodData.Method).ReturnType.SpecialType);
             });
         }
 
@@ -3838,6 +3842,43 @@ class C
             });
         }
 
+        [WorkItem(55606, "https://github.com/dotnet/roslyn/issues/55606")]
+        [Fact]
+        public void OrderOfArguments_ArgumentsOnly_Async()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    static async IAsyncEnumerable<object> F(object y, object x)
+    {
+        Task.Yield();
+        yield return x;
+#line 500
+        DummySequencePoint();
+        yield return y;
+    }
+    static void DummySequencePoint()
+    {
+    }
+}";
+            var references = TargetFrameworkUtil.Mscorlib461ExtendedReferences.Concat(new[] { TestMetadata.Net461.SystemThreadingTasks, TestMetadata.SystemThreadingTasksExtensions.PortableLib });
+            var comp = CreateEmptyCompilation(new[] { source, AsyncStreamsTypes }, references: references);
+            WithRuntimeInstance(comp, references, runtime =>
+            {
+                EvaluationContext context;
+                context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
+                string unused;
+                var locals = new ArrayBuilder<LocalAndMethod>();
+                context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
+                var names = locals.Select(l => l.LocalName).ToArray();
+                // The order must confirm the order of the arguments in the method signature.
+                Assert.Equal(names, new[] { "y", "x" });
+                locals.Free();
+            });
+        }
+
         /// <summary>
         /// CompileGetLocals should skip locals with errors.
         /// </summary>
@@ -4028,7 +4069,6 @@ class Base
 
                 locals.Free();
             });
-
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -5081,6 +5121,69 @@ class C
                 Assert.InRange(assembly.Count, 0, int.MaxValue);
             }
             Assert.Equal(count, locals.Count);
+        }
+
+        [Fact]
+        public void EENamedTypeSymbolNeverSkipsLocalsInit()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M<T>()
+    {
+        var t = default(T);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+
+                Assert.Equal(3, locals.Count);
+                VerifyLocal(testData, "<>x", locals[0], "<>m0<T>", "this", expectedILOpt: @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}",
+                    expectedGeneric: true);
+
+                VerifyLocal(testData, "<>x", locals[1], "<>m1<T>", "t", expectedILOpt: @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}",
+                    expectedGeneric: true);
+
+                VerifyLocal(testData, "<>x", locals[2], "<>m2<T>", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (T V_0) //t
+  IL_0000:  newobj     ""<>c__TypeVariables<T>..ctor()""
+  IL_0005:  ret
+}",
+                        expectedGeneric: true);
+            });
         }
     }
 }

@@ -1,18 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol>
         where TCompilation : Compilation
-        where TMethodSymbol : class, IMethodSymbol
-        where TModuleSymbol : class, IModuleSymbol
-        where TTypeSymbol : class, ITypeSymbol
-        where TTypeParameterSymbol : class, ITypeParameterSymbol
+        where TMethodSymbol : class, IMethodSymbolInternal
+        where TModuleSymbol : class, IModuleSymbolInternal
+        where TTypeSymbol : class, ITypeSymbolInternal
+        where TTypeParameterSymbol : class, ITypeParameterSymbolInternal
     {
         internal static readonly SymbolDisplayFormat DisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract TMethodSymbol GetMethod(TCompilation compilation, DkmClrInstructionAddress instructionAddress);
 
-        internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string> argumentValues = null)
+        internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string?>? argumentValues = null)
         {
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
@@ -60,8 +63,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             AppendFullName(builder, method);
 
             // parameter list...
-            var parameters = method.Parameters;
-            var includeArgumentValues = (argumentValues != null) && (parameters.Length == argumentValues.Count);
+            var parameters = ((IMethodSymbol)method.GetISymbol()).Parameters;
+            var includeArgumentValues = argumentValues != null && parameters.Length == argumentValues.Count;
             if (includeParameterTypes || includeParameterNames || includeArgumentValues)
             {
                 builder.Append('(');
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     if (includeArgumentValues)
                     {
-                        var argumentValue = argumentValues[i];
+                        var argumentValue = argumentValues![i];
                         if (argumentValue != null)
                         {
                             if (includeParameterTypes || includeParameterNames)
@@ -111,12 +114,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string GetReturnTypeName(TMethodSymbol method)
         {
-            return method.ReturnType.ToDisplayString(DisplayFormat);
+            return ((IMethodSymbol)method.GetISymbol()).ReturnType.ToDisplayString(DisplayFormat);
         }
 
         internal abstract TypeNameDecoder<TModuleSymbol, TTypeSymbol> GetTypeNameDecoder(TCompilation compilation, TMethodSymbol method);
 
-        internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string[] serializedTypeNames)
+        internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string?[]? serializedTypeNames)
         {
             if (serializedTypeNames == null)
             {

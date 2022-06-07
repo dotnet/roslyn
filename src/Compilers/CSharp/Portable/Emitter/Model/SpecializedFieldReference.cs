@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -41,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 Debug.Assert(_underlyingField.OriginalDefinition.IsDefinition);
-                return _underlyingField.OriginalDefinition;
+                return _underlyingField.OriginalDefinition.GetCciAdapter();
             }
         }
 
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             TypeWithAnnotations oldType = _underlyingField.TypeWithAnnotations;
             var customModifiers = oldType.CustomModifiers;
-            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
 
             if (customModifiers.Length == 0)
             {
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, customModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(customModifiers));
             }
         }
 

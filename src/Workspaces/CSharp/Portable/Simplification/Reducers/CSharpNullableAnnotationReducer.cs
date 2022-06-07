@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -15,19 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal sealed partial class CSharpNullableAnnotationReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
+
+        private static readonly Func<NullableTypeSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyNullableType = SimplifyNullableType;
 
         public CSharpNullableAnnotationReducer() : base(s_pool)
         {
         }
 
-        private static readonly Func<NullableTypeSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyNullableType = SimplifyNullableType;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static SyntaxNode SimplifyNullableType(
             NullableTypeSyntax node,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            SimplifierOptions options,
             CancellationToken cancellationToken)
         {
             // If annotations are enabled, there's no further simplification to do

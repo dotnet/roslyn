@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
@@ -16,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Protected CancellationToken As CancellationToken
             Protected Property ParseOptions As VisualBasicParseOptions
-            Private _simplificationOptions As OptionSet
+            Private _simplificationOptions As VisualBasicSimplifierOptions
 
             Private ReadOnly _processedParentNodes As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
             Private _semanticModel As SemanticModel
@@ -28,10 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 _pool = pool
             End Sub
 
-            Public Sub Initialize(parseOptions As ParseOptions, optionSet As OptionSet, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
+            Public Sub Initialize(parseOptions As ParseOptions, options As SimplifierOptions, cancellationToken As CancellationToken) Implements IReductionRewriter.Initialize
                 Me.ParseOptions = DirectCast(parseOptions, VisualBasicParseOptions)
-                _simplificationOptions = optionSet
-                cancellationToken = cancellationToken
+                _simplificationOptions = DirectCast(options, VisualBasicSimplifierOptions)
+                Me.CancellationToken = cancellationToken
             End Sub
 
             Public Sub Dispose() Implements IDisposable.Dispose
@@ -45,6 +47,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 _alwaysSimplify = False
 
                 _pool.Free(Me)
+            End Sub
+
+            Public Sub RequireInitialized()
+                Contract.ThrowIfNull(ParseOptions)
+                Debug.Assert(_simplificationOptions IsNot Nothing)
+                Debug.Assert(_semanticModel IsNot Nothing)
             End Sub
 
             Public ReadOnly Property HasMoreWork As Boolean Implements IReductionRewriter.HasMoreWork
@@ -72,9 +80,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 node As TNode,
                 newNode As SyntaxNode,
                 parentNode As SyntaxNode,
-                simplifyFunc As Func(Of TNode, SemanticModel, OptionSet, CancellationToken, SyntaxNode)
+                simplifyFunc As Func(Of TNode, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode)
             ) As SyntaxNode
 
+                RequireInitialized()
                 Debug.Assert(parentNode IsNot Nothing)
 
                 CancellationToken.ThrowIfCancellationRequested()
@@ -103,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Protected Function SimplifyToken(
                 token As SyntaxToken,
                 newToken As SyntaxToken,
-                simplifyFunc As Func(Of SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken)
+                simplifyFunc As Func(Of SyntaxToken, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxToken)
             ) As SyntaxToken
 
                 If token.Kind = SyntaxKind.None Then
@@ -147,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Protected Function SimplifyExpression(Of TExpression As ExpressionSyntax)(
                 expression As TExpression,
                 newNode As SyntaxNode,
-                simplifier As Func(Of TExpression, SemanticModel, OptionSet, CancellationToken, SyntaxNode)
+                simplifier As Func(Of TExpression, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode)
             ) As SyntaxNode
 
                 Return SimplifyNode(expression, newNode, GetParentNode(expression), simplifier)
@@ -156,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Protected Function SimplifyStatement(Of TStatement As StatementSyntax)(
                 statement As TStatement,
                 newNode As SyntaxNode,
-                simplifier As Func(Of TStatement, SemanticModel, OptionSet, CancellationToken, SyntaxNode)
+                simplifier As Func(Of TStatement, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode)
             ) As SyntaxNode
 
                 Return SimplifyNode(statement, newNode, GetParentNode(statement), simplifier)

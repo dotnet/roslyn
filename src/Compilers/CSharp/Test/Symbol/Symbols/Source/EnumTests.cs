@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -337,7 +341,8 @@ class c1
     static void Main(string[] args)
     {
         Suits S = (Suits)Enum.ToObject(typeof(Suits), 2);
-        Console.WriteLine(S.ToString()); // ValueE
+        Console.WriteLine(S == Suits.ValueB);
+        Console.WriteLine(S == Suits.ValueE);
         Suits S1 = (Suits)Enum.ToObject(typeof(Suits), -1);
         Console.WriteLine(S1.ToString()); // -1
     }
@@ -345,8 +350,8 @@ class c1
 ";
             VerifyEnumsValue(source, "c1.Suits", 1, 2, 4, 2, 2);
 
-            CompileAndVerify(source, expectedOutput: @"
-ValueE
+            CompileAndVerify(source, expectedOutput: @"True
+True
 -1
 ");
         }
@@ -729,7 +734,7 @@ enum Figure : C { One, Two, Three }
 @"
 partial class EnumPartial
 {
-    internal enum partial
+    internal enum @partial
     { }
     partial M;
 }

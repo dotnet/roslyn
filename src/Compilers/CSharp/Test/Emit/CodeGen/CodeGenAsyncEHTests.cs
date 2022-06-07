@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -969,6 +973,10 @@ class Test
           <slot kind=""28"" offset=""156"" />
           <slot kind=""28"" offset=""156"" ordinal=""1"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""65"" />
+          <state number=""1"" offset=""156"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
   </methods>

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -28,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="AsyncVoidMethodBuilder"/>, <see cref="AsyncTaskMethodBuilder"/>, or <see cref="AsyncTaskMethodBuilder{TResult}"/> depending on the
         /// return type of the async method.
         /// </summary>
-        private readonly FieldSymbol _asyncMethodBuilderField;
+        protected readonly FieldSymbol _asyncMethodBuilderField;
 
         /// <summary>
         /// A collection of well-known members for the current async method builder.
         /// </summary>
-        private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
+        protected readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
 
         /// <summary>
         /// The exprReturnLabel is used to label the return handling code at the end of the async state-machine
@@ -70,10 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics)
-            : base(F, method, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics, useFinalizerBookkeeping: false)
+            BindingDiagnosticBag diagnostics)
+            : base(F, method, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
@@ -81,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _exprReturnLabel = F.GenerateLabel("exprReturn");
             _exitLabel = F.GenerateLabel("exitLabel");
 
-            _exprRetValue = method.IsGenericTaskReturningAsync(F.Compilation)
+            _exprRetValue = method.IsAsyncEffectivelyReturningGenericTask(F.Compilation)
                 ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, syntax: F.Syntax, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
                 : null;
 
             _dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
-            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            _awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
             _nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
 
             _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_awaiterFields.TryGetValue(awaiterType, out result))
             {
                 int slotIndex;
-                if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), F.Diagnostics, out slotIndex))
+                if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, out slotIndex))
                 {
                     slotIndex = _nextAwaiterId++;
                 }
@@ -115,6 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
+
+        protected sealed override string EncMissingStateMessage
+            => CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod;
+
+        protected sealed override int FirstIncreasingResumableState
+            => StateMachineStates.FirstResumableAsyncState;
 
         /// <summary>
         /// Generate the body for <c>MoveNext()</c>.
@@ -139,18 +150,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Block(ImmutableArray<LocalSymbol>.Empty,
                         // switch (state) ...
                         F.HiddenSequencePoint(),
-                        Dispatch(),
+                        Dispatch(isOutermost: true),
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal)))
+                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
             bodyBuilder.Add(F.Label(_exprReturnLabel));
 
             // this.state = finishedState
-            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
+            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState));
             var block = body.Syntax as BlockSyntax;
             if (block == null)
             {
@@ -163,6 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(F.HiddenSequencePoint());
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
+
+            bodyBuilder.Add(GenerateHoistedLocalsCleanup(rootScopeHoistedLocals));
 
             bodyBuilder.Add(GenerateSetResultCall());
 
@@ -202,23 +215,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Call(
                     F.Field(F.This(), _asyncMethodBuilderField),
                     _asyncMethodBuilderMemberCollection.SetResult,
-                    _method.IsGenericTaskReturningAsync(F.Compilation)
+                    _method.IsAsyncEffectivelyReturningGenericTask(F.Compilation)
                         ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
                         : ImmutableArray<BoundExpression>.Empty));
         }
 
-        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
+        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal, ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
         {
             // catch (Exception ex)
             // {
             //     _state = finishedState;
+            //
+            //     for each hoisted local:
+            //     <>x__y = default
+            //
             //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
             //     return;
             // }
 
             // _state = finishedState;
             BoundStatement assignFinishedState =
-                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)));
+                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState)));
 
             // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
             BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
@@ -228,12 +245,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(exceptionLocal),
                 F.Local(exceptionLocal),
                 exceptionLocal.Type,
+                exceptionFilterPrologueOpt: null,
                 exceptionFilterOpt: null,
                 body: F.Block(
                     assignFinishedState, // _state = finishedState;
+                    GenerateHoistedLocalsCleanup(hoistedLocals),
                     callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
                     GenerateReturn(false)), // return;
                 isSynthesizedAsyncCatchAll: true);
+        }
+
+        protected BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // Cleanup all hoisted local variables
+            // so that they can be collected by GC if needed
+            foreach (var hoistedLocal in hoistedLocals)
+            {
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+                var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
+                F.Diagnostics.Add(hoistedLocal.Locations.FirstOrNone(), useSiteInfo);
+                if (!isManagedType)
+                {
+                    continue;
+                }
+
+                builder.Add(F.Assignment(F.Field(F.This(), hoistedLocal), F.NullOrDefault(hoistedLocal.Type)));
+            }
+
+            return F.Block(builder.ToImmutableAndFree());
         }
 
         protected virtual BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
@@ -402,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp)
         {
-            AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(awaiterTemp.GetDeclaratorSyntax(), out int stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             TypeSymbol awaiterFieldType = awaiterTemp.Type.IsVerifierReference()
                 ? F.SpecialType(SpecialType.System_Object)
@@ -456,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                     // this.state = cachedState = NotStartedStateMachine
-                    GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
+                    GenerateSetBothStates(StateMachineStates.NotStartedOrRunningState));
 
             return F.Block(blockBuilder.ToImmutableAndFree());
         }
@@ -549,18 +590,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LocalSymbol thisTemp = (F.CurrentType.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentType) : null;
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversionFromType(
                 loweredAwaiterType,
                 F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
-                ref useSiteDiagnostics).IsImplicit;
+                ref discardedUseSiteInfo).IsImplicit;
 
             var onCompleted = (useUnsafeOnCompleted ?
                 _asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted :
                 _asyncMethodBuilderMemberCollection.AwaitOnCompleted).Construct(loweredAwaiterType, F.This().Type);
             if (_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
             {
-                onCompleted.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, this.Diagnostics);
+                onCompleted.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(F.Compilation, F.Compilation.Conversions, includeNullability: false, F.Syntax.Location, this.Diagnostics));
             }
 
             BoundExpression result =
@@ -589,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ExpressionOpt != null)
             {
-                Debug.Assert(_method.IsGenericTaskReturningAsync(F.Compilation));
+                Debug.Assert(_method.IsAsyncEffectivelyReturningGenericTask(F.Compilation));
                 return F.Block(
                     F.Assignment(F.Local(_exprRetValue), (BoundExpression)Visit(node.ExpressionOpt)),
                     F.Goto(_exprReturnLabel));

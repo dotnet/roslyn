@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy;
@@ -24,7 +28,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo()");
         }
@@ -40,7 +44,7 @@ namespace N
         public int G$$oo { get; set;}
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo");
         }
@@ -57,7 +61,7 @@ namespace N
         public event EventHandler Go$$o;
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo");
         }
@@ -90,7 +94,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.G.Main()", "N.G.Main2()" });
@@ -129,7 +133,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), string.Format(EditorFeaturesResources.Calls_To_Interface_Implementation_0, "N.I.Goo()") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.G.Main2()" });
@@ -164,7 +168,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), EditorFeaturesResources.Calls_To_Overrides });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.D.Bar()" });
@@ -199,7 +203,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.D.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, "N.C.Goo()") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.D.Baz()" });
@@ -219,7 +223,7 @@ namespace N
         protected int Goo$$() { return 0; }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo") });
             testState.VerifyResultName(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { EditorFeaturesResources.Initializers });
@@ -233,12 +237,12 @@ namespace N
 {
     class C
     {
-        public int g$$oo = Goo();
+        public int g$$oo;
 
-        protected int Goo() { goo = 3; }
+        protected void Goo() { goo = 3; }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.goo", new[] { string.Format(EditorFeaturesResources.References_To_Field_0, "goo") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.References_To_Field_0, "goo"), new[] { "N.C.Goo()" });
@@ -266,7 +270,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.val.get", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "get_val") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "get_val"), new[] { "N.C.goo()" });
@@ -292,7 +296,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.generic<T>(this string, ref T)", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "generic") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "generic"), new[] { "N.C.goo()" });
@@ -321,7 +325,7 @@ namespace ConsoleApplication10
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "ConsoleApplication10.Extensions.BarString(this string)", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "BarString") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "BarString"), new[] { "ConsoleApplication10.Program.Main(string[])" });
@@ -344,7 +348,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "System.Linq.Enumerable.Single<TSource>(this System.Collections.Generic.IEnumerable<TSource>)", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Single") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Single"), new[] { "N.Program.Main(string[])" });
@@ -363,7 +367,7 @@ namespace N
 
     class C : I
     {
-        public async Task Goo()
+        public void Goo()
         {
         }
     }
@@ -383,7 +387,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.I.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), string.Format(EditorFeaturesResources.Implements_0, "Goo") });
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), new[] { "N.G.Main()" });
@@ -403,7 +407,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             Assert.DoesNotContain("Overrides", root.SupportedSearchCategories.Select(s => s.DisplayName));
         }
@@ -428,7 +432,7 @@ namespace N
         }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), EditorFeaturesResources.Overrides_ });
             testState.VerifyResult(root, EditorFeaturesResources.Overrides_, new[] { "N.G.Goo()" });
@@ -453,7 +457,7 @@ class Derived : Base
         throw new NotImplementedException();
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
             testState.VerifyRoot(root, "Base.M()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "M"), EditorFeaturesResources.Overrides_, EditorFeaturesResources.Calls_To_Overrides });
             testState.VerifyResult(root, EditorFeaturesResources.Overrides_, new[] { "Derived.M()" });
@@ -470,15 +474,42 @@ namespace N
         void G$$oo()
         {
         }
+
+        void M()
+        {   
+            Goo();
+        }
     }
 }";
-            var testState = CallHierarchyTestState.Create(text);
+            using var testState = CallHierarchyTestState.Create(text);
             var root = testState.GetRoot();
 
             testState.Workspace.Documents.Single().GetTextBuffer().Insert(0, "/* hello */");
 
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), });
-            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.Goo()" });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.M()" });
+        }
+
+        [WorkItem(57856, "https://github.com/dotnet/roslyn/issues/57856")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        public void PropertySet()
+        {
+            var code = @"
+namespace N
+{
+    class C
+    {
+        public int Property { get; s$$et; }
+        void M()
+        {
+            Property = 2;
+        }
+    }
+}";
+            using var testState = CallHierarchyTestState.Create(code);
+            var root = testState.GetRoot();
+            testState.VerifyRoot(root, "N.C.Property.set", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "set_Property") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "set_Property"), new[] { "N.C.M()" });
         }
     }
 }

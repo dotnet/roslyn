@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Diagnostics
@@ -27,13 +29,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             New EventSignatureComparer(considerName:=False,
                                         considerType:=False,
                                         considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+                                        considerTupleNames:=False,
+                                        considerIsShared:=True)
 
         Public Shared ReadOnly ExplicitEventImplementationWithTupleNamesComparer As EventSignatureComparer =
             New EventSignatureComparer(considerName:=False,
                                         considerType:=False,
                                         considerCustomModifiers:=False,
-                                        considerTupleNames:=True)
+                                        considerTupleNames:=True,
+                                        considerIsShared:=True)
 
         ''' <summary>
         ''' This instance is used to check whether one event overrides another, according to the VB definition.
@@ -42,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             New EventSignatureComparer(considerName:=True,
                                         considerType:=False,
                                         considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+                                        considerTupleNames:=False,
+                                        considerIsShared:=False)
 
         ''' <summary>
         ''' This instance is intended to reflect the definition of signature equality used by the runtime (ECMA 335 Section 8.6.1.6).
@@ -52,7 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             New EventSignatureComparer(considerName:=True,
                                         considerType:=True,
                                         considerCustomModifiers:=True,
-                                        considerTupleNames:=False)
+                                        considerTupleNames:=False,
+                                        considerIsShared:=False)
 
         ''' <summary>
         ''' This instance is used to compare potential WinRT fake events in type projection.
@@ -68,7 +74,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             New EventSignatureComparer(considerName:=True,
                                        considerType:=False,
                                        considerCustomModifiers:=False,
-                                       considerTupleNames:=False)
+                                       considerTupleNames:=False,
+                                       considerIsShared:=False)
 
 
         ' Compare the event name (no explicit part)
@@ -83,15 +90,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Consider tuple names in parameters and return types (if return is considered).
         Private ReadOnly _considerTupleNames As Boolean
 
+        Private ReadOnly _considerIsShared As Boolean
+
         Private Sub New(considerName As Boolean,
                         considerType As Boolean,
                         considerCustomModifiers As Boolean,
-                        considerTupleNames As Boolean)
+                        considerTupleNames As Boolean,
+                        considerIsShared As Boolean)
 
             Me._considerName = considerName
             Me._considerType = considerType
             Me._considerCustomModifiers = considerCustomModifiers
             Me._considerTupleNames = considerTupleNames
+            Me._considerIsShared = considerIsShared
         End Sub
 
 #Region "IEqualityComparer(Of EventSymbol) Members"
@@ -104,6 +115,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If event1 Is Nothing OrElse event2 Is Nothing Then
+                Return False
+            End If
+
+            If _considerIsShared AndAlso event1.IsShared <> event2.IsShared Then
                 Return False
             End If
 

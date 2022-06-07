@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -662,7 +664,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.Xml.Linq.XElement>, IsInvalid, IsImplicit) (Syntax: 'New With {< ... some-name>}')
         Right: 
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<some-name></some-name>')
+          IOperation:  (OperationKind.None, Type: System.Xml.Linq.XElement, IsInvalid) (Syntax: '<some-name></some-name>')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -693,7 +695,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: aa As System.String>, IsImplicit) (Syntax: 'New With {< ... -name>.@aa}')
         Right: 
-          IOperation:  (OperationKind.None, Type: null) (Syntax: '<some-name> ... e-name>.@aa')
+          IOperation:  (OperationKind.None, Type: System.String) (Syntax: '<some-name> ... e-name>.@aa')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -720,7 +722,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {< ... me>.@<a-a>}')
         Right: 
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<some-name  ... ame>.@<a-a>')
+          IOperation:  (OperationKind.None, Type: System.String, IsInvalid) (Syntax: '<some-name  ... ame>.@<a-a>')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -764,7 +766,7 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Instance Receiver: 
                         IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid, IsImplicit) (Syntax: 'New With {<a/>.<_>}')
                   Right: 
-                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<a/>.<_>')
+                    IOperation:  (OperationKind.None, Type: System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement), IsInvalid) (Syntax: '<a/>.<_>')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ok = New Wi ... {<a/>.<__>}')
       Declarators:
@@ -781,7 +783,7 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Instance Receiver: 
                         IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsImplicit) (Syntax: 'New With {<a/>.<__>}')
                   Right: 
-                    IOperation:  (OperationKind.None, Type: null) (Syntax: '<a/>.<__>')
+                    IOperation:  (OperationKind.None, Type: System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) (Syntax: '<a/>.<__>')
   ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null

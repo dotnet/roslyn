@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -31,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AnonymousTypePublicSymbol(this, typeDescr);
         }
 
+        public NamedTypeSymbol ConstructAnonymousDelegateSymbol(AnonymousTypeDescriptor typeDescr)
+        {
+            return new AnonymousDelegatePublicSymbol(this, typeDescr);
+        }
+
         /// <summary>
         /// Get a symbol of constructed anonymous type property by property index
         /// </summary>
@@ -44,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Retrieves anonymous type properties types
+        /// Retrieves anonymous type field types.
         /// </summary>
-        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypePropertyTypesWithAnnotations(NamedTypeSymbol type)
+        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypeFieldTypes(NamedTypeSymbol type)
         {
             Debug.Assert(type.IsAnonymousType);
-            var anonymous = (AnonymousTypePublicSymbol)type;
+            var anonymous = (AnonymousTypeOrDelegatePublicSymbol)type;
             var fields = anonymous.TypeDescriptor.Fields;
             return fields.SelectAsArray(f => f.TypeWithAnnotations);
         }

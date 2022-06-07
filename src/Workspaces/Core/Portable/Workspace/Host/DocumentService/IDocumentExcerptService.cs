@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// 
         /// the result might not be an exact copy of the given source or contains more then given span
         /// </summary>
-        Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken);
+        Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -53,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// <see cref="Document"/> this excerpt is from
         /// 
-        /// should be same document in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, CancellationToken)" />
+        /// should be same document in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, ClassificationOptions, CancellationToken)" />
         /// </summary>
         public readonly Document Document;
 
         /// <summary>
         /// span on <see cref="Document"/> this excerpt is from
         /// 
-        /// should be same text span in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, CancellationToken)" />
+        /// should be same text span in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, ClassificationOptions, CancellationToken)" />
         /// </summary>
         public readonly TextSpan Span;
 

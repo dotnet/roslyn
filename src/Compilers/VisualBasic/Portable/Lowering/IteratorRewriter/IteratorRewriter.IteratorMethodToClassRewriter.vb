@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -22,20 +24,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _methodValue As LocalSymbol
             Private _tryNestingLevel As Integer
 
-            Friend Sub New(method As MethodSymbol,
-                           F As SyntheticBoundNodeFactory,
+            Friend Sub New(F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            current As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
-                           SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
-                           nextFreeHoistedLocalSlot As Integer,
-                           diagnostics As DiagnosticBag)
+                           diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                MyBase.New(F, state, hoistedVariables, localProxies, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, diagnostics)
 
-                Me._current = current
+                _current = current
             End Sub
 
             Public Sub GenerateMoveNextAndDispose(Body As BoundStatement,

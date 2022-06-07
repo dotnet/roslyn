@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_exitPoints == null)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<SyntaxNode>)ExitPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).ToImmutableArray()
+                        ? ImmutableArray<SyntaxNode>.CastUp(ExitPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<SyntaxNode>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _exitPoints, result);
                 }
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true iff analysis was successful.  Analysis can fail if the region does not properly span a single expression,
+        /// Returns true if and only if analysis was successful.  Analysis can fail if the region does not properly span a single expression,
         /// a single statement, or a contiguous series of statements within the enclosing block.
         /// </summary>
         public sealed override bool Succeeded

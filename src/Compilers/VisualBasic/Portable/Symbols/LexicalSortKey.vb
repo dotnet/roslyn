@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Threading
@@ -202,6 +204,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim firstKey = New LexicalSortKey(first, compilation)
             Dim secondKey = New LexicalSortKey(second, compilation)
+            Return LexicalSortKey.Compare(firstKey, secondKey)
+        End Function
+
+        Public Shared Function Compare(first As SyntaxNode, second As SyntaxNode, compilation As VisualBasicCompilation) As Integer
+            ' This is a shortcut to avoid building complete keys for the case when both locations belong to the same tree.
+            ' Also saves us in some speculative SemanticModel scenarios when the tree we are dealing with doesn't belong to
+            ' the compilation and an attempt of building the LexicalSortKey will simply assert and crash.
+            If first.SyntaxTree IsNot Nothing AndAlso first.SyntaxTree Is second.SyntaxTree Then
+                Return first.Span.Start - second.Span.Start
+            End If
+
+            Dim firstKey = New LexicalSortKey(first.SyntaxTree, first.SpanStart, compilation)
+            Dim secondKey = New LexicalSortKey(second.SyntaxTree, second.SpanStart, compilation)
             Return LexicalSortKey.Compare(firstKey, secondKey)
         End Function
 

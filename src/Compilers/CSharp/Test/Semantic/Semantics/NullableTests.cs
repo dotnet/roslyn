@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -65,7 +69,7 @@ class C
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(expected);
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string? s1 = null;
@@ -205,7 +209,7 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
@@ -264,7 +268,7 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
@@ -1187,6 +1191,7 @@ class C
                 { "/", "divide" },
                 { "%", "remainder" },
                 { ">>", "rshift" },
+                { ">>>", "urshift" },
                 { "<<", "lshift" },
                 { "&", "and" },
                 { "|", "or" },
@@ -1276,6 +1281,7 @@ class C
                 // UNDONE: so this test is disabled:
                 // UNDONE: Tuple.Create("-", enumSubtraction),
                 Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
                 Tuple.Create("<<", shift2),
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),
@@ -1902,7 +1908,7 @@ Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 || b2").WithArguments("||", "bool?", 
         [Fact]
         public void ShortCircuitLiftedUserDefinedOperators()
         {
-            // This test illustrates an bug in the native compiler which Roslyn fixes.
+            // This test illustrates a bug in the native compiler which Roslyn fixes.
             // The native compiler disallows a *lifted* & operator from being used as an &&
             // operator, but allows a *nullable* & operator to be used as an && operator.
             // There is no good reason for this discrepancy; either both should be legal
@@ -2106,5 +2112,34 @@ class Test
         }
 
         #endregion
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+
+
+_ = (bool?)new S();
+bool? z;
+z = new S();
+
+z.GetValueOrDefault();
+
+struct S
+{
+    [System.Obsolete()]
+    public static implicit operator bool(S s) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // _ = (bool?)new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
+                // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // z = new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
+                );
+        }
     }
 }

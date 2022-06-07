@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -390,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -407,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -424,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -441,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -458,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(3, ((string)token.ValueText).Length);
         }
@@ -475,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(4, ((string)token.ValueText).Length);
         }
@@ -492,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
+            Assert.NotNull(token.ValueText);
             Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
@@ -1202,7 +1206,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestVerbatimIdentifierWithNoCharactersAndTrivia()
+        public void TestVerbatimIdentifierWithNoCharacters2()
+        {
+            var text = "@@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharacters3()
+        {
+            var text = "@@@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia1()
         {
             var text = "@  ";
             var token = LexToken(text);
@@ -1214,6 +1248,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
             Assert.Equal(text, token.ToFullString());
             var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia2()
+        {
+            var text = "@@  ";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.ToFullString());
+            var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithNoCharactersAndTrivia3()
+        {
+            var text = "@@@  ";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
+            Assert.Equal(text, token.ToFullString());
+            var trivia = token.GetTrailingTrivia().ToList();
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithMultipleAtSign1()
+        {
+            var text = "@@class";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(ErrorCode.ERR_IllegalAtSequence, (ErrorCode)errors[0].Code);
+            Assert.Equal(text, token.Text);
+            Assert.Equal("class", token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimIdentifierWithMultipleAtSign2()
+        {
+            var text = "@@@class";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal(ErrorCode.ERR_IllegalAtSequence, (ErrorCode)errors[0].Code);
+            Assert.Equal(text, token.Text);
+            Assert.Equal("class", token.ValueText);
         }
 
         [Fact]

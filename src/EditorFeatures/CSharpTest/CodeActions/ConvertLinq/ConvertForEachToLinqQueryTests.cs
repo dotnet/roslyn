@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
@@ -465,7 +470,7 @@ class C
     IEnumerable<int> M()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        return nums.Where(x => x > 2).Select(x => x);
+        return nums.Where(x => x > 2);
     }
 }";
 
@@ -1262,7 +1267,6 @@ class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task ReturnIEnumerablePartialMethod()
         {
@@ -1320,6 +1324,108 @@ partial class C
     partial IEnumerable<int> M(IEnumerable<int> nums)
     {
         return nums.SelectMany(n1 => nums.Select(n2 => n1));
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ReturnIEnumerableExtendedPartialMethod()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                yield return n1;
+            }
+        }|]
+
+        yield break;
+    }
+}
+";
+            var queryOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return from int n1 in nums
+               from int n2 in nums
+               select n1;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
+
+            var linqInvocationOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    public partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return nums.SelectMany(n1 => nums.Select(n2 => n1));
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        [WorkItem(31784, "https://github.com/dotnet/roslyn/issues/31784")]
+        public async Task QueryWhichRequiresSelectManyWithIdentityLambda()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [|foreach (var x in new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } })
+        {
+            foreach (var y in x)
+            {
+                yield return y;
+            }
+        }|]
+    }
+}
+";
+
+            var linqInvocationOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        return (new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } }).SelectMany(x => x);
     }
 }
 ";
@@ -1612,7 +1718,7 @@ class C
 
     IEnumerable<C> Test()
     {
-        return (new[] { 1, 2, 3 }).Select(x => x);
+        return new[] { 1, 2, 3 };
     }
 }
 ";
@@ -1661,7 +1767,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -1707,7 +1813,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -3087,7 +3193,6 @@ class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task CountInMultipleDeclarationMergeToReturnLast()
         {
@@ -3864,7 +3969,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        int c = (nums.AsQueryable().Select(n1 => n1)).Count();
+        int c = (nums.AsQueryable()).Count();
     }
 }";
 
@@ -3923,9 +4028,9 @@ class C
             /* 10 */
         from/* 12 *//* 11 */int /* 13 */ y /* 14 */ in/* 15 */nums/* 16 *//* 17 */// 18
                                                                                   // 19
-    /*20 */
+            /*20 */
         where/* 21 *//* 22 */x > 2/* 23 */// 24
-/* 26 *//* 27 *//* 28 */
+        /* 26 *//* 27 *//* 28 */
         select x * y/* 29 *//* 31 */// 32
         /* 33 */// 34
         /* 35 *//* 36 */// 30
@@ -4126,11 +4231,10 @@ class C
         /*21*/
         return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
 /*23*/
-(nums /* 12 */.Select(
-/* 6 *//* 7 *//* 14 */// 15
-/* 9 */x /* 10 */ => x/* 10 *//*19*///20
+(nums /* 12 *//* 6 *//* 7 *//* 14 */// 15
+/* 9 *//* 10 *//* 10 *//*19*///20
 /* 8 *//* 11 */// 13
-)).Count()/* 16 *//* 17 *///18
+).Count()/* 16 *//* 17 *///18
 ; //24
     }
 }";
@@ -4217,10 +4321,10 @@ class C
         foreach (var n1 /* 4 */in
         /* 17 */// 18
         /* 1 */from/* 2 */int /* 3 */ n1 /* 4 */in/* 5 */nums/* 6 */// 7
-           /* 8*/// 9
-           /* 10 */
+                   /* 8*/// 9
+                   /* 10 */
                where/* 11 *//* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
-       select n1/* 4 *//* 21 */// 22
+               select n1/* 4 *//* 21 */// 22
         /*23*//*24*/
                     )
         {
@@ -4244,11 +4348,11 @@ class C
         /* 10 *//* 11 *//* 8*/// 9
         n1 =>
 /* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
-        ).Select(
+        )
         /* 1 *//* 2 *//* 17 */// 18
-        /* 3 */n1 /* 4 */=> n1/* 4 *//* 21 */// 22
+        /* 3 *//* 4 *//* 4 *//* 21 */// 22
         /*23*//*24*//* 5 */// 7
-        ))
+        )
         {
             /*19*/
             Console.WriteLine(n1);//20

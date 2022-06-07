@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Text
@@ -2208,7 +2210,8 @@ symbolValidator:=Sub([module])
                  End Sub)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40683: The test hook is blocked by this issue.
+        <WorkItem(40683, "https://github.com/dotnet/roslyn/issues/40683")>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo()
             Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="HasIVTToCompilationVbCore">
@@ -2792,9 +2795,9 @@ End Namespace
 references:={SystemCoreRef, SystemXmlLinqRef, SystemXmlRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
-            <errors>BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+            <errors>BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
-BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 Imports Microsoft.VisualBasic
         ~~~~~~~~~~~~~~~~~~~~~
@@ -2804,7 +2807,6 @@ BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'VisualBasic'.
     Public Module VisualBasic  
                   ~~~~~~~~~~~
-
 </errors>)
 
             ' Remove the reference to System.XML.Linq and verify compilation behavior that the 

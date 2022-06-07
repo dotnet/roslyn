@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -725,8 +729,8 @@ public interface CL3_I1 : CL2_I1
             var references = new[]
             {
                 MscorlibRef,
-                TestReferences.NetFx.v4_0_30319.System_Data,
-                TestReferences.NetFx.v4_0_30319.System,
+                TestMetadata.Net451.SystemData,
+                TestMetadata.Net451.System,
                 cl2,
                 cl3
             };

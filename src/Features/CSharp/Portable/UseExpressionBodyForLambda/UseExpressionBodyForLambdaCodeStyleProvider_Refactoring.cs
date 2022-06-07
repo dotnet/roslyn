@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -6,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return toExpressionBodyRefactorings.AddRange(toBlockBodyRefactorings);
         }
 
-        private async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        private static async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
             Document document, TextSpan span, ExpressionBodyPreference option, CancellationToken cancellationToken)
         {
             var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
@@ -99,30 +104,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
-            if (CanOfferUseExpressionBody(option, lambdaNode))
+            if (CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))
             {
-                result.Add(new MyCodeAction(
-                    UseExpressionBodyTitle.ToString(),
+                var title = UseExpressionBodyTitle.ToString();
+                result.Add(CodeAction.Create(
+                    title,
                     c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c)));
+                        document, root, lambdaNode, c),
+                    title));
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
             {
-                result.Add(new MyCodeAction(
-                    UseBlockBodyTitle.ToString(),
+                var title = UseBlockBodyTitle.ToString();
+                result.Add(CodeAction.Create(
+                    title,
                     c => UpdateDocumentAsync(
-                        document, root, lambdaNode, c)));
+                        document, root, lambdaNode, c),
+                    title));
             }
 
             return result.ToImmutable();
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

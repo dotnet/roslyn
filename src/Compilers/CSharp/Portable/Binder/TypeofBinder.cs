@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,55 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             OpenTypeVisitor.Visit(typeExpression, out _allowedMap, out _isTypeExpressionOpen);
         }
 
-        internal bool IsTypeExpressionOpen { get { return _isTypeExpressionOpen; } }
+        internal bool IsTypeExpressionOpen => _isTypeExpressionOpen;
 
         protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
             bool allowed;
             return _allowedMap != null && _allowedMap.TryGetValue(syntax, out allowed) && allowed;
         }
-
-        /////// <summary>
-        /////// Returns the list of the symbols which represent the argument of the nameof operator. Ambiguities are not an error for the nameof.
-        /////// </summary>
-        ////internal ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, bool isAliasQualified, out bool hasErrors)
-        ////{
-        ////    ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
-        ////    Symbol container = null;
-        ////    hasErrors = false;
-
-        ////    // We treat the AliasQualified syntax different than the rest. We bind the whole part for the alias.
-        ////    if (isAliasQualified)
-        ////    {
-        ////        container = BindNamespaceAliasSymbol((IdentifierNameSyntax)left, diagnostics);
-        ////        var aliasSymbol = container as AliasSymbol;
-        ////        if (aliasSymbol != null) container = aliasSymbol.Target;
-        ////        if (container.Kind == SymbolKind.NamedType)
-        ////        {
-        ////            diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, left.Location, left);
-        ////            hasErrors = true;
-        ////            return symbols.ToImmutableAndFree();
-        ////        }
-        ////    }
-        ////    // If it isn't AliasQualified, we first bind the left part, and then bind the right part as a simple name.
-        ////    else if (left != null)
-        ////    {
-        ////        // We use OriginalDefinition because of the unbound generic names such as List<>, Dictionary<,>.
-        ////        container = BindNamespaceOrTypeSymbol(left, diagnostics, null, false).OriginalDefinition;
-        ////    }
-
-        ////    this.BindNonGenericSimpleName(right, diagnostics, null, false, (NamespaceOrTypeSymbol)container, isNameofArgument: true, symbols: symbols);
-        ////    if (CheckUsedBeforeDeclarationIfLocal(symbols, right))
-        ////    {
-        ////        Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, right, right);
-        ////        hasErrors = true;
-        ////    }
-        ////    else if (symbols.Count == 0)
-        ////    {
-        ////        hasErrors = true;
-        ////    }
-        ////    return symbols.ToImmutableAndFree();
-        ////}
 
         /// <summary>
         /// This visitor walks over a type expression looking for open types.

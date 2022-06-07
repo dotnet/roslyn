@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Simplification
@@ -29,9 +32,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 New VisualBasicInferredMemberNameReducer())
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(s_reducers)
         End Sub
+
+        Public Overrides ReadOnly Property DefaultOptions As SimplifierOptions
+            Get
+                Return VisualBasicSimplifierOptions.Default
+            End Get
+        End Property
+
+        Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As SimplifierOptions) As SimplifierOptions
+            Return options.GetVisualBasicSimplifierOptions(DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
+        End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken)
@@ -55,31 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Public Overrides Function Expand(token As SyntaxToken, semanticModel As SemanticModel, expandInsideNode As Func(Of SyntaxNode, Boolean), cancellationToken As CancellationToken) As SyntaxToken
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken)
                 Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken)
-                Return TryEscapeIdentifierToken(rewriter.VisitToken(token), semanticModel)
+                Return TryEscapeIdentifierToken(rewriter.VisitToken(token))
             End Using
-        End Function
-
-        Public Shared Function TryEscapeIdentifierToken(identifierToken As SyntaxToken, semanticModel As SemanticModel, Optional oldIdentifierToken As SyntaxToken? = Nothing) As SyntaxToken
-            If identifierToken.Kind <> SyntaxKind.IdentifierToken OrElse identifierToken.ValueText.Length = 0 Then
-                Return identifierToken
-            End If
-
-            If identifierToken.IsBracketed Then
-                Return identifierToken
-            End If
-
-            If identifierToken.GetTypeCharacter() <> TypeCharacter.None Then
-                Return identifierToken
-            End If
-
-            Dim unescapedIdentifier = identifierToken.ValueText
-            If SyntaxFacts.GetKeywordKind(unescapedIdentifier) = SyntaxKind.None AndAlso SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) = SyntaxKind.None Then
-                Return identifierToken
-            End If
-
-            Return identifierToken.CopyAnnotationsTo(
-                        SyntaxFactory.BracketedIdentifier(identifierToken.LeadingTrivia, identifierToken.ValueText, identifierToken.TrailingTrivia) _
-                            .WithAdditionalAnnotations(Simplifier.Annotation))
         End Function
 
         Protected Overrides Function GetSpeculativeSemanticModel(ByRef nodeToSpeculate As SyntaxNode, originalSemanticModel As SemanticModel, originalNode As SyntaxNode) As SemanticModel
@@ -160,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans)
         End Function
 
-        Protected Overrides Function CanNodeBeSimplifiedWithoutSpeculation(node As SyntaxNode) As Boolean
+        Protected Overrides Function NodeRequiresNonSpeculativeSemanticModel(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso node.Parent IsNot Nothing AndAlso
                 TypeOf node Is VariableDeclaratorSyntax AndAlso
                 TypeOf node.Parent Is FieldDeclarationSyntax
@@ -170,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Const s_BC50001_UnusedImportsStatement As String = "BC50001"
 
         Protected Overrides Sub GetUnusedNamespaceImports(model As SemanticModel, namespaceImports As HashSet(Of SyntaxNode), cancellationToken As CancellationToken)
-            Dim root = model.SyntaxTree.GetRoot()
+            Dim root = model.SyntaxTree.GetRoot(cancellationToken)
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
             For Each diagnostic In diagnostics

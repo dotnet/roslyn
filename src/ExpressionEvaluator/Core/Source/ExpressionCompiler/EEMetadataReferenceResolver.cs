@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,7 +14,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly IReadOnlyDictionary<string, ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)>> _referencesBySimpleName;
 
 #if DEBUG
-        internal readonly Dictionary<AssemblyIdentity, (AssemblyIdentity Identity, int Count)> Requests = new Dictionary<AssemblyIdentity, (AssemblyIdentity Identity, int Count)>();
+        internal readonly Dictionary<AssemblyIdentity, (AssemblyIdentity? Identity, int Count)> Requests =
+            new Dictionary<AssemblyIdentity, (AssemblyIdentity? Identity, int Count)>();
 #endif
 
         internal EEMetadataReferenceResolver(
@@ -25,9 +28,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override bool ResolveMissingAssemblies => true;
 
-        public override PortableExecutableReference ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
+        public override PortableExecutableReference? ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
         {
-            (AssemblyIdentity Identity, MetadataReference Reference) result = default;
+            (AssemblyIdentity? Identity, MetadataReference? Reference) result = default;
             if (_referencesBySimpleName.TryGetValue(referenceIdentity.Name, out var references))
             {
                 result = GetBestMatch(references, referenceIdentity);
@@ -39,29 +42,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             Requests[referenceIdentity] = (result.Identity, request.Count + 1);
 #endif
-            return (PortableExecutableReference)result.Reference;
+            return (PortableExecutableReference?)result.Reference;
         }
 
-        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
+        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
+            => throw ExceptionUtilities.Unreachable;
 
-        public override bool Equals(object other)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
+        public override bool Equals(object? other)
+            => throw ExceptionUtilities.Unreachable;
 
         public override int GetHashCode()
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
+            => throw ExceptionUtilities.Unreachable;
 
-        private (AssemblyIdentity Identity, MetadataReference Reference) GetBestMatch(
+        private (AssemblyIdentity? Identity, MetadataReference? Reference) GetBestMatch(
             ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)> references,
             AssemblyIdentity referenceIdentity)
         {
-            (AssemblyIdentity Identity, MetadataReference Reference) best = default;
+            (AssemblyIdentity? Identity, MetadataReference? Reference) best = default;
             foreach (var pair in references)
             {
                 var identity = pair.Identity;
@@ -82,6 +79,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         throw ExceptionUtilities.UnexpectedValue(compareResult);
                 }
             }
+
             return best;
         }
     }

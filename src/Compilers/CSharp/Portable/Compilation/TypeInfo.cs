@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System;
@@ -48,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static implicit operator TypeInfo(CSharpTypeInfo info)
         {
-            return new TypeInfo(info.Type, info.ConvertedType, info.Nullability, info.ConvertedNullability);
+            return new TypeInfo(info.Type?.GetITypeSymbol(info.Nullability.FlowState.ToAnnotation()), info.ConvertedType?.GetITypeSymbol(info.ConvertedNullability.FlowState.ToAnnotation()),
+                                info.Nullability, info.ConvertedNullability);
         }
 
         public override bool Equals(object obj)

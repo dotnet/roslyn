@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------------------------------------
 ' This is the code that actually outputs the VB code that defines the tree. It is passed a read and validated
@@ -120,7 +122,6 @@ Public Class TestWriter
         _writer.Write("        Private Shared Function ")
 
         Dim functionName As String = If(nodeKind Is Nothing, FactoryName(nodeStructure), FactoryName(nodeKind))
-
 
         If isGreen Then
             _writer.Write("GenerateGreen" + functionName)
@@ -444,7 +445,6 @@ Public Class TestWriter
                     _writer.WriteLine()
                 Next
 
-
                 _writer.Write("            return ")
                 callTokens.ForEach(AddressOf _writer.Write)
                 _writer.WriteLine()
@@ -509,7 +509,6 @@ Public Class TestWriter
         _writer.WriteLine("        End Sub")
         _writer.WriteLine()
     End Sub
-
 
     Private Sub GenerateRewriterTests(isGreen As Boolean)
         For Each nodeStructure In _parseTree.NodeStructures.Values

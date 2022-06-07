@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -205,7 +207,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 readOutside = readInside
                 writtenOutside = readInside
                 captured = readInside
-
+                capturedInside = readInside
+                capturedOutside = readInside
             Else
                 ReadWriteWalker.Analyze(
                     _context.AnalysisInfo, _context.RegionInfo,
@@ -280,6 +283,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property UnsafeAddressTaken As ImmutableArray(Of ISymbol)
             Get
                 Return ImmutableArray(Of ISymbol).Empty
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property UsedLocalFunctions As ImmutableArray(Of IMethodSymbol)
+            Get
+                Return ImmutableArray(Of IMethodSymbol).Empty
             End Get
         End Property
 

@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            BoundBlock tryBlock = (BoundBlock)this.Visit(node.TryBlock);
+            BoundBlock? tryBlock = (BoundBlock?)this.Visit(node.TryBlock);
+            Debug.Assert(tryBlock is { });
 
             var origSawAwait = _sawAwait;
             _sawAwait = false;
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // When optimizing and we have a try block without side-effects, we can discard the catch blocks.
                 (optimizing && !HasSideEffects(tryBlock)) ? ImmutableArray<BoundCatchBlock>.Empty
                 : this.VisitList(node.CatchBlocks);
-            BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
+            BoundBlock? finallyBlockOpt = (BoundBlock?)this.Visit(node.FinallyBlockOpt);
 
             _sawAwaitInExceptionHandler |= _sawAwait;
             _sawAwait |= origSawAwait;
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// such as throwing an exception? This implementation is conservative, in the sense
         /// that it may return true when the statement actually may have no side effects.
         /// </summary>
-        private static bool HasSideEffects(BoundStatement statement)
+        private static bool HasSideEffects([NotNullWhen(true)] BoundStatement? statement)
         {
             if (statement == null) return false;
             switch (statement.Kind)
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+        public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
             if (node.ExceptionFilterOpt == null)
             {
@@ -84,10 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            BoundExpression rewrittenExceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
-            BoundExpression rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
-            BoundBlock rewrittenBody = (BoundBlock)this.Visit(node.Body);
-            TypeSymbol rewrittenExceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+            BoundExpression? rewrittenExceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
+            BoundStatementList? rewrittenFilterPrologue = (BoundStatementList?)this.Visit(node.ExceptionFilterPrologueOpt);
+            BoundExpression? rewrittenFilter = (BoundExpression?)this.Visit(node.ExceptionFilterOpt);
+            BoundBlock? rewrittenBody = (BoundBlock?)this.Visit(node.Body);
+            Debug.Assert(rewrittenBody is { });
+            TypeSymbol? rewrittenExceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
@@ -100,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Locals,
                 rewrittenExceptionSourceOpt,
                 rewrittenExceptionTypeOpt,
+                rewrittenFilterPrologue,
                 rewrittenFilter,
                 rewrittenBody,
                 node.IsSynthesizedAsyncCatchAll);

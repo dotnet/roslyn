@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// and pointer types do not have a base type. The base type of a type parameter
         /// is its effective base class.
         /// </summary>
-        INamedTypeSymbol BaseType { get; }
+        INamedTypeSymbol? BaseType { get; }
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements. This set does not include
@@ -73,6 +76,12 @@ namespace Microsoft.CodeAnalysis
         bool IsTupleType { get; }
 
         /// <summary>
+        /// True if the type represents a native integer. In C#, the types represented
+        /// by language keywords 'nint' and 'nuint'.
+        /// </summary>
+        bool IsNativeIntegerType { get; }
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then <see cref="OriginalDefinition"/> gets the original symbol as it was defined in
         /// source or metadata.
@@ -95,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="interfaceMember">
         /// Must be a non-null interface property, method, or event.
         /// </param>
-        ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember);
+        ISymbol? FindImplementationForInterfaceMember(ISymbol interfaceMember);
 
         /// <summary>
         /// True if the type is ref-like, meaning it follows rules similar to CLR by-ref variables. False if the type
@@ -118,12 +127,17 @@ namespace Microsoft.CodeAnalysis
         bool IsReadOnly { get; }
 
         /// <summary>
+        /// True if the type is a record.
+        /// </summary>
+        bool IsRecord { get; }
+
+        /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
         /// </summary>
         /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
         /// <param name="format">Format or null for the default.</param>
         /// <returns>A formatted string representation of the symbol with the given nullability.</returns>
-        string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
+        string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Converts a symbol to an array of string parts, each of which has a kind. Useful
@@ -132,7 +146,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
         /// <param name="format">Format or null for the default.</param>
         /// <returns>A read-only array of string parts.</returns>
-        ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Converts a symbol to a string that can be displayed to the user. May be tailored to a
@@ -148,7 +162,7 @@ namespace Microsoft.CodeAnalysis
             SemanticModel semanticModel,
             NullableFlowState topLevelNullability,
             int position,
-            SymbolDisplayFormat format = null);
+            SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. May be tailored
@@ -164,19 +178,30 @@ namespace Microsoft.CodeAnalysis
             SemanticModel semanticModel,
             NullableFlowState topLevelNullability,
             int position,
-            SymbolDisplayFormat format = null);
+            SymbolDisplayFormat? format = null);
+
+        /// <summary>
+        /// Nullable annotation associated with the type, or <see cref="NullableAnnotation.None"/> if there are none.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
+
+        /// <summary>
+        /// Returns the same type as this type but with the given nullable annotation.
+        /// </summary>
+        /// <param name="nullableAnnotation">The nullable annotation to use</param>
+        ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes
     // Once Default Interface Implementations are supported, we can move these methods into the interface. 
-    static internal class ITypeSymbolHelpers
+    internal static class ITypeSymbolHelpers
     {
-        internal static bool IsNullableType(ITypeSymbol typeOpt)
+        internal static bool IsNullableType([NotNullWhen(returnValue: true)] ITypeSymbol? typeOpt)
         {
             return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
-        internal static bool IsNullableOfBoolean(ITypeSymbol type)
+        internal static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] ITypeSymbol? type)
         {
             return IsNullableType(type) && IsBooleanType(GetNullableUnderlyingType(type));
         }
@@ -187,42 +212,43 @@ namespace Microsoft.CodeAnalysis
             return ((INamedTypeSymbol)type).TypeArguments[0];
         }
 
-        internal static bool IsBooleanType(ITypeSymbol type)
+        internal static bool IsBooleanType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
         {
             return type?.SpecialType == SpecialType.System_Boolean;
         }
 
-        internal static bool IsObjectType(ITypeSymbol type)
+        internal static bool IsObjectType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
         {
             return type?.SpecialType == SpecialType.System_Object;
         }
 
-        internal static bool IsSignedIntegralType(ITypeSymbol type)
+        internal static bool IsSignedIntegralType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
         {
             return type?.SpecialType.IsSignedIntegralType() == true;
         }
 
-        internal static bool IsUnsignedIntegralType(ITypeSymbol type)
+        internal static bool IsUnsignedIntegralType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
         {
             return type?.SpecialType.IsUnsignedIntegralType() == true;
         }
 
-        internal static bool IsNumericType(ITypeSymbol type)
+        internal static bool IsNumericType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
         {
             return type?.SpecialType.IsNumericType() == true;
         }
 
-        internal static ITypeSymbol GetEnumUnderlyingType(ITypeSymbol type)
+        internal static ITypeSymbol? GetEnumUnderlyingType(ITypeSymbol? type)
         {
             return (type as INamedTypeSymbol)?.EnumUnderlyingType;
         }
 
-        internal static ITypeSymbol GetEnumUnderlyingTypeOrSelf(ITypeSymbol type)
+        [return: NotNullIfNotNull(parameterName: "type")]
+        internal static ITypeSymbol? GetEnumUnderlyingTypeOrSelf(ITypeSymbol? type)
         {
             return GetEnumUnderlyingType(type) ?? type;
         }
 
-        internal static bool IsDynamicType(ITypeSymbol type)
+        internal static bool IsDynamicType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
         {
             return type?.Kind == SymbolKind.DynamicType;
         }

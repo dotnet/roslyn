@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
@@ -42,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        public override string GetMessage(IFormatProvider formatProvider = null)
+        public override string GetMessage(IFormatProvider? formatProvider = null)
         {
             var culture = formatProvider as CultureInfo;
 
             string messagePrefix = this.MessageProvider.LoadMessage(this.Code, culture);
             string message = ErrorFacts.GetMessage(_xmlErrorCode, culture);
 
-            System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(message));
+            RoslynDebug.Assert(!string.IsNullOrEmpty(message));
 
             if (this.Arguments == null || this.Arguments.Length == 0)
             {

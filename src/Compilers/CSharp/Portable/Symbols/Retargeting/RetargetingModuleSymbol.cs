@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -9,6 +13,7 @@ using System.Globalization;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -234,6 +239,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 #endif
         }
 
+        internal bool RetargetingDefinitions(AssemblySymbol from, out AssemblySymbol to)
+        {
+            DestinationData destination;
+
+            if (!_retargetingAssemblyMap.TryGetValue(from, out destination))
+            {
+                to = null;
+                return false;
+            }
+
+            to = destination.To;
+            return true;
+        }
+
         internal override ICollection<string> TypeNames
         {
             get
@@ -285,5 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
     }
 }

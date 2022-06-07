@@ -1,66 +1,49 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
         Inherits AbstractCommandHandlerTestState
 
-        Private Const timeoutMs = 10000
-        Private Const editorTimeoutMs = 20000
-        Friend Const RoslynItem = "RoslynItem"
+        Private Const timeoutMs = 60000
         Friend ReadOnly EditorCompletionCommandHandler As ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
 
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
+        Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
-        Private Shared s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of ComposableCatalog) =
-            New Lazy(Of ComposableCatalog)(Function()
-                                               Return TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.
-                                               WithoutPartsOfTypes({
-                                                                   GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
-                                                                   GetType(FormatCommandHandler)}).
-                                               WithParts({
-                                                         GetType(TestSignatureHelpPresenter),
-                                                         GetType(IntelliSenseTestState),
-                                                         GetType(MockCompletionPresenterProvider)
-                                                         })
-                                           End Function)
-
-        Private Shared ReadOnly Property EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog
-            Get
-                Return s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
-            End Get
-        End Property
-
-        Private Shared s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
-            New Lazy(Of IExportProviderFactory)(Function()
-                                                    Return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts)
-                                                End Function)
-
-        Private Shared ReadOnly Property ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As IExportProviderFactory
-            Get
-                Return s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
-            End Get
-        End Property
+        Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
+            AddExcludedPartTypes(
+                GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
+                GetType(FormatCommandHandler)).
+            AddParts(
+                GetType(TestSignatureHelpPresenter),
+                GetType(IntelliSenseTestState),
+                GetType(MockCompletionPresenterProvider))
 
         Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
@@ -70,37 +53,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         ' Do not call directly. Use TestStateFactory
         Friend Sub New(workspaceElement As XElement,
-                       extraCompletionProviders As CompletionProvider(),
-                       excludedTypes As List(Of Type),
-                       extraExportedTypes As List(Of Type),
+                       excludedTypes As IEnumerable(Of Type),
+                       extraExportedTypes As IEnumerable(Of Type),
                        includeFormatCommandHandler As Boolean,
                        workspaceKind As String,
-                       Optional cursorDocumentElement As XElement = Nothing,
+                       Optional makeSeparateBufferForCursor As Boolean = False,
                        Optional roles As ImmutableArray(Of String) = Nothing)
-            MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, cursorDocumentElement, roles)
+            MyBase.New(workspaceElement, GetComposition(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, makeSeparateBufferForCursor, roles)
 
-            ' The current default timeout defined in the Editor may not work on slow virtual test machines.
-            ' Need to use a safe timeout there to follow real code paths.
-            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
+            ' Disable editor's responsive completion option to ensure a deterministic test behavior
+            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
-
-            Dim lazyExtraCompletionProviders = CreateLazyProviders(extraCompletionProviders, language, roles:=Nothing)
-            If lazyExtraCompletionProviders IsNot Nothing Then
-                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
-                If completionService IsNot Nothing Then
-                    completionService.SetTestProviders(lazyExtraCompletionProviders.Select(Function(lz) lz.Value).ToList())
-                End If
-            End If
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
             Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
+            Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
+            Me.CompleteStatementCommandHandler = Workspace.ExportProvider.GetCommandHandler(Of CompleteStatementCommandHandler)(NameOf(CompleteStatementCommandHandler))
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
@@ -108,18 +83,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Single(Function(e As ICommandHandler) e.GetType().Name = PredefinedCompletionNames.CompletionCommandHandler)
         End Sub
 
-        Private Overloads Shared Function GetExportProvider(excludedTypes As List(Of Type),
-                                                  extraExportedTypes As List(Of Type),
-                                                  includeFormatCommandHandler As Boolean) As ExportProvider
-            If (excludedTypes Is Nothing OrElse excludedTypes.Count = 0) AndAlso
-               (extraExportedTypes Is Nothing OrElse extraExportedTypes.Count = 0) AndAlso
-               Not includeFormatCommandHandler Then
-                Return ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.CreateExportProvider()
+        Private Overloads Shared Function GetComposition(
+            excludedTypes As IEnumerable(Of Type),
+            extraExportedTypes As IEnumerable(Of Type),
+            includeFormatCommandHandler As Boolean) As TestComposition
+
+            Dim composition = CompositionWithoutCompletionTestParts.
+                AddExcludedPartTypes(excludedTypes).
+                AddParts(extraExportedTypes)
+
+            If includeFormatCommandHandler Then
+                composition = composition.AddParts(GetType(FormatCommandHandler))
             End If
 
-            Dim combinedExcludedTypes = CombineExcludedTypes(excludedTypes, includeFormatCommandHandler)
-            Dim extraParts = ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type))))
-            Return GetExportProvider(combinedExcludedTypes, extraParts)
+            Return composition
         End Function
 
 #Region "Editor Related Operations"
@@ -131,12 +108,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If formatHandler Is Nothing Then
                 sigHelpHandler.ExecuteCommand(
                     args, Sub() completionCommandHandler.ExecuteCommand(
-                                    args, finalHandler, context), context)
+                                    args, Sub() CompleteStatementCommandHandler.ExecuteCommand(args, finalHandler, context), context), context)
             Else
                 formatHandler.ExecuteCommand(
                     args, Sub() sigHelpHandler.ExecuteCommand(
                                     args, Sub() completionCommandHandler.ExecuteCommand(
-                                                    args, finalHandler, context), context), context)
+                                                    args, Sub() CompleteStatementCommandHandler.ExecuteCommand(args, finalHandler, context), context), context), context)
             End If
         End Sub
 
@@ -246,9 +223,63 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Completion Operations"
 
-        Public Overloads Sub SendCommitUniqueCompletionListItem()
+        Public Async Function SendCommitUniqueCompletionListItemAsync() As Task
+            Await WaitForAsynchronousOperationsAsync()
+
+            ' When we send the commit completion list item, it processes asynchronously; we can find out when it's complete
+            ' by seeing that either the items are updated or the list is dismissed. We'll use a TaskCompletionSource to track
+            ' when it's done which will release an async token.
+            Dim sessionComplete = New TaskCompletionSource(Of Object)()
+            Dim asynchronousOperationListenerProvider = Workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
+            Dim asyncToken = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CompletionSet) _
+                .BeginAsyncOperation("SendCommitUniqueCompletionListItemAsync")
+
+#Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
+            sessionComplete.Task.CompletesAsyncOperation(asyncToken)
+#Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
+
+            Dim itemsUpdatedHandler = Sub(sender As Object, e As Data.ComputedCompletionItemsEventArgs)
+                                          ' If there is 0 or more than one item left, then it means this was the filter operation that resulted and we're done. 
+                                          ' Otherwise we know a Dismiss operation is coming so we should wait for it.
+                                          If e.Items.Items.Count() <> 1 Then
+                                              Task.Run(Sub()
+                                                           Thread.Sleep(5000)
+                                                           sessionComplete.TrySetResult(Nothing)
+                                                       End Sub)
+                                          End If
+                                      End Sub
+
+            Dim sessionDismissedHandler = Sub(sender As Object, e As EventArgs) sessionComplete.TrySetResult(Nothing)
+
+            Dim session As IAsyncCompletionSession
+
+            Dim addHandlers = Sub(sender As Object, e As Data.CompletionTriggeredEventArgs)
+                                  AddHandler e.CompletionSession.ItemsUpdated, itemsUpdatedHandler
+                                  AddHandler e.CompletionSession.Dismissed, sessionDismissedHandler
+                                  session = e.CompletionSession
+                              End Sub
+
+            Dim asyncCompletionBroker As IAsyncCompletionBroker = GetExportedValue(Of IAsyncCompletionBroker)()
+            session = asyncCompletionBroker.GetSession(TextView)
+            If session Is Nothing Then
+                AddHandler asyncCompletionBroker.CompletionTriggered, addHandlers
+            Else
+                ' A session was already active so we'll fake the event
+                addHandlers(asyncCompletionBroker, New Data.CompletionTriggeredEventArgs(session, TextView))
+            End If
+
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
+
+            Await WaitForAsynchronousOperationsAsync()
+
+            RemoveHandler session.ItemsUpdated, itemsUpdatedHandler
+            RemoveHandler session.Dismissed, sessionDismissedHandler
+            RemoveHandler asyncCompletionBroker.CompletionTriggered, addHandlers
+
+            ' It's possible for the wait to bail and give up if it was clear nothing was completing; ensure we clean up our
+            ' async token so as not to interfere with later tests.
+            sessionComplete.TrySetResult(Nothing)
+        End Function
 
         Public Async Function AssertNoCompletionSession() As Task
             Await WaitForAsynchronousOperationsAsync()
@@ -262,6 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             Dim completionItems = session.GetComputedItems(CancellationToken.None)
+
             ' During the computation we can explicitly dismiss the session or we can return no items.
             ' Each of these conditions mean that there is no active completion.
             Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0, "AssertNoCompletionSession")
@@ -294,6 +326,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Task.WaitAny(task1, task2)
         End Sub
 
+        Public Async Function GetCompletionSession(Optional projectionsView As ITextView = Nothing) As Task(Of IAsyncCompletionSession)
+            Await WaitForAsynchronousOperationsAsync()
+            Dim view = If(projectionsView, TextView)
+
+            Return GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
+        End Function
+
         Public Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)
@@ -315,9 +354,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+            Await AssertCompletionItemsContain(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
+        End Function
+
+        Public Async Function AssertCompletionItemsContain(predicate As Func(Of CompletionItem, Boolean)) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
-            Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
+            Assert.True(items.Any(predicate))
         End Function
 
         Public Sub AssertItemsInOrder(expectedOrder As String())
@@ -330,16 +373,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Next
         End Sub
 
+        Public Sub AssertItemsInOrder(expectedOrder As (String, String)())
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim items = session.GetComputedItems(CancellationToken.None).Items
+            Assert.Equal(expectedOrder.Count, items.Count)
+            For i = 0 To expectedOrder.Count - 1
+                Assert.Equal(expectedOrder(i).Item1, items(i).DisplayText)
+                Assert.Equal(expectedOrder(i).Item2, items(i).Suffix)
+            Next
+        End Sub
+
         Public Async Function AssertSelectedCompletionItem(
-                                                    Optional displayText As String = Nothing,
-                                                    Optional displayTextSuffix As String = Nothing,
-                                                    Optional description As String = Nothing,
-                                                    Optional isSoftSelected As Boolean? = Nothing,
-                                                    Optional isHardSelected As Boolean? = Nothing,
-                                                    Optional shouldFormatOnCommit As Boolean? = Nothing,
-                                                    Optional inlineDescription As String = Nothing,
-                                                    Optional automationText As String = Nothing,
-                                                    Optional projectionsView As ITextView = Nothing) As Task
+                Optional displayText As String = Nothing,
+                Optional displayTextSuffix As String = Nothing,
+                Optional description As String = Nothing,
+                Optional isSoftSelected As Boolean? = Nothing,
+                Optional isHardSelected As Boolean? = Nothing,
+                Optional shouldFormatOnCommit As Boolean? = Nothing,
+                Optional inlineDescription As String = Nothing,
+                Optional automationText As String = Nothing,
+                Optional projectionsView As ITextView = Nothing) As Task
 
             Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)
@@ -379,10 +433,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             If description IsNot Nothing Then
-                Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim service = CompletionService.GetService(document)
-                Dim roslynItem = GetRoslynCompletionItem(items.SelectedItem)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, roslynItem)
+                Dim itemDescription = Await GetSelectedItemDescriptionAsync()
                 Assert.Equal(description, itemDescription.Text)
             End If
 
@@ -394,6 +445,33 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Assert.Equal(automationText, items.SelectedItem.AutomationText)
             End If
         End Function
+
+        Public Async Function GetSelectedItemDescriptionAsync() As Task(Of CompletionDescription)
+            Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
+            Dim service = CompletionService.GetService(document)
+            Dim roslynItem = GetSelectedItem()
+            Dim options = CompletionOptions.Default
+            Return Await service.GetDescriptionAsync(document, roslynItem, options, SymbolDescriptionOptions.Default)
+        End Function
+
+        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            If Not isAvailable Then
+                Assert.False(isSelected)
+                Assert.Null(expander)
+            Else
+                Assert.NotNull(expander)
+                Assert.Equal(expander.IsSelected, isSelected)
+            End If
+        End Sub
+
+        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            Assert.NotNull(expander)
+            presenter.SetExpander(isSelected)
+        End Sub
 
         Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
@@ -424,7 +502,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem
-            Return If(item IsNot Nothing, DirectCast(item.Properties(RoslynItem), CompletionItem), Nothing)
+            If (item Is Nothing) Then
+                Return Nothing
+            End If
+
+            Dim roslynItemData As CompletionItemData = Nothing
+            If (CompletionItemData.TryGetData(item, roslynItemData) = False) Then
+                Return Nothing
+            End If
+            Return roslynItemData.RoslynItem
         End Function
 
         Public Sub RaiseFiltersChanged(args As ImmutableArray(Of Data.CompletionFilterWithState))
@@ -444,25 +530,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim computedItems = session.GetComputedItems(CancellationToken.None)
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
-
-        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            If Not isAvailable Then
-                Assert.False(isSelected)
-                Assert.Null(expander)
-            Else
-                Assert.NotNull(expander)
-                Assert.Equal(expander.IsSelected, isSelected)
-            End If
-        End Sub
-
-        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            Assert.NotNull(expander)
-            presenter.SetExpander(isSelected)
-        End Sub
 
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
@@ -590,36 +657,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #End Region
 
 #Region "Helpers"
-
-        Private Shared Function CombineExcludedTypes(excludedTypes As IList(Of Type), includeFormatCommandHandler As Boolean) As IList(Of Type)
-            Dim result = New List(Of Type) From {
-                GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
-            }
-
-            If Not includeFormatCommandHandler Then
-                result.Add(GetType(FormatCommandHandler))
-            End If
-
-            If excludedTypes IsNot Nothing Then
-                result.AddRange(excludedTypes)
-            End If
-
-            Return result
-        End Function
-
-        Private Shared Function CombineExtraTypes(extraExportedTypes As IList(Of Type)) As IList(Of Type)
-            Dim result = New List(Of Type) From {
-                GetType(TestSignatureHelpPresenter),
-                GetType(IntelliSenseTestState),
-                GetType(MockCompletionPresenterProvider)
-            }
-
-            If extraExportedTypes IsNot Nothing Then
-                result.AddRange(extraExportedTypes)
-            End If
-
-            Return result
-        End Function
 
         Private Shared Function GetDisplayText(item As SignatureHelpItem, selectedParameter As Integer) As String
             Dim suffix = If(selectedParameter < item.Parameters.Count,

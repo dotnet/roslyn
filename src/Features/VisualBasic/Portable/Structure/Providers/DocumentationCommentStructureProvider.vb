@@ -1,23 +1,25 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class DocumentationCommentStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of DocumentationCommentTriviaSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
-                                                  options As OptionSet,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  documentationComment As DocumentationCommentTriviaSyntax,
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
-            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()
+            Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNull()
+            Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNull()
             If firstCommentToken Is Nothing Then
                 Return
             End If
@@ -30,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            Dim maxBannerLength = options.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.VisualBasic)
-            Dim bannerText = VisualBasicSyntaxFactsService.Instance.GetBannerText(
+            Dim maxBannerLength = options.MaximumBannerLength
+            Dim bannerText = VisualBasicFileBannerFacts.Instance.GetBannerText(
                 documentationComment, maxBannerLength, cancellationToken)
 
             spans.AddIfNotNull(CreateBlockSpan(

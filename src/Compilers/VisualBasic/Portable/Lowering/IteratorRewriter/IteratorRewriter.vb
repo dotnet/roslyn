@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -21,11 +23,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        method As MethodSymbol,
                        isEnumerable As Boolean,
                        stateMachineType As IteratorStateMachine,
+                       stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                        slotAllocatorOpt As VariableSlotAllocator,
                        compilationState As TypeCompilationState,
-                       diagnostics As DiagnosticBag)
+                       diagnostics As BindingDiagnosticBag)
 
-            MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._isEnumerable = isEnumerable
 
@@ -44,9 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  methodOrdinal As Integer,
+                                                 stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag,
+                                                 diagnostics As BindingDiagnosticBag,
                                                  <Out> ByRef stateMachineType As IteratorStateMachine) As BoundBlock
 
             If body.HasErrors Or Not method.IsIterator Then
@@ -70,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
-            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -88,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = DiagnosticBag.GetInstance()
+            Dim bag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
 
             ' NOTE: We don't ensure DebuggerStepThroughAttribute, it is just not emitted if not found
             ' EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor, hasErrors)
@@ -122,6 +126,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasErrors As Boolean = bag.HasAnyErrors
             If hasErrors Then
                 Me.Diagnostics.AddRange(bag)
+            Else
+                Me.Diagnostics.AddDependencies(bag)
             End If
 
             bag.Free()
@@ -337,16 +343,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedMethod, disposeMethod As SynthesizedMethod)
-            Dim rewriter = New IteratorMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          current:=Me._currentField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          localProxies:=Me.nonReusableLocalProxies,
-                                                          SynthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
-                                                          diagnostics:=Diagnostics)
+            Dim rewriter = New IteratorMethodToClassRewriter(
+                F:=F,
+                state:=StateField,
+                current:=_currentField,
+                hoistedVariables:=hoistedVariables,
+                localProxies:=nonReusableLocalProxies,
+                StateDebugInfoBuilder,
+                slotAllocatorOpt:=SlotAllocatorOpt,
+                diagnostics:=Diagnostics)
 
             rewriter.GenerateMoveNextAndDispose(Body, moveNextMethod, disposeMethod)
         End Sub

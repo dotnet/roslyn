@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -44,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared { get { return true; } }
 
+        public override bool IsDiscard { get { return false; } }
+
         #region Not used by MethodSignatureComparer
 
         internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }
@@ -68,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable; } }
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
@@ -82,6 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+
         #endregion Not used by MethodSignatureComparer
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
@@ -92,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var other = obj as SignatureOnlyParameterSymbol;
-            return (object)other != null &&
+            return other is not null &&
                 TypeSymbol.Equals(_type.Type, other._type.Type, compareKind) &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&

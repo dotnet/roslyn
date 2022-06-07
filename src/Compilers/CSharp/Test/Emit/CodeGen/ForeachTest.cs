@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -473,10 +477,10 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestReadOnlySpanString()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var comp = CreateCompilation(@"
 using System;
 
 class Test
@@ -491,7 +495,7 @@ class Test
     }
 }
 
-", TestOptions.ReleaseExe);
+", targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "hello", verify: Verification.Passes).VerifyIL("Test.Main", @"
 {
@@ -500,7 +504,7 @@ class Test
   .locals init (System.ReadOnlySpan<char> V_0,
                 int V_1)
   IL_0000:  ldstr      ""hello""
-  IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.0
   IL_000c:  stloc.1
@@ -797,7 +801,7 @@ class Test
 {
   // Code size       95 (0x5f)
   .maxstack  5
-  .locals init (System.Span<(int, int)> V_0,
+  .locals init (System.Span<System.ValueTuple<int, int>> V_0,
                 int V_1,
                 int V_2) //i
   IL_0000:  ldc.i4.2
@@ -814,14 +818,14 @@ class Test
   IL_0017:  ldc.i4.4
   IL_0018:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_001d:  stelem     ""System.ValueTuple<int, int>""
-  IL_0022:  newobj     ""System.Span<(int, int)>..ctor((int, int)[])""
+  IL_0022:  newobj     ""System.Span<System.ValueTuple<int, int>>..ctor(System.ValueTuple<int, int>[])""
   IL_0027:  stloc.0
   IL_0028:  ldc.i4.0
   IL_0029:  stloc.1
   IL_002a:  br.s       IL_0054
   IL_002c:  ldloca.s   V_0
   IL_002e:  ldloc.1
-  IL_002f:  call       ""ref (int, int) System.Span<(int, int)>.this[int].get""
+  IL_002f:  call       ""ref System.ValueTuple<int, int> System.Span<System.ValueTuple<int, int>>.this[int].get""
   IL_0034:  ldobj      ""System.ValueTuple<int, int>""
   IL_0039:  dup
   IL_003a:  ldfld      ""int System.ValueTuple<int, int>.Item1""
@@ -836,7 +840,7 @@ class Test
   IL_0053:  stloc.1
   IL_0054:  ldloc.1
   IL_0055:  ldloca.s   V_0
-  IL_0057:  call       ""int System.Span<(int, int)>.Length.get""
+  IL_0057:  call       ""int System.Span<System.ValueTuple<int, int>>.Length.get""
   IL_005c:  blt.s      IL_002c
   IL_005e:  ret
 }");

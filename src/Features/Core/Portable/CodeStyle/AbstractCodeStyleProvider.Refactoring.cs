@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -10,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     // subclasses cannot change anything.  All code relevant to subclasses relating to refactorings
     // is contained in AbstractCodeStyleProvider.cs
 
-    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
+    internal abstract partial class AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>
     {
         private async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var optionValue = optionSet.GetOption(_option);
+            var optionProvider = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+            var optionValue = GetCodeStyleOption(optionProvider);
 
             var severity = GetOptionSeverity(optionValue);
             switch (severity)
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private async Task ComputeRefactoringsAsync(
-            CodeRefactoringContext context, TOptionKind option, bool analyzerActive)
+            CodeRefactoringContext context, TOptionValue option, bool analyzerActive)
         {
             var (document, span, cancellationToken) = context;
 
@@ -75,9 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             public readonly TCodeStyleProvider _codeStyleProvider;
 
             protected CodeRefactoringProvider()
-            {
-                _codeStyleProvider = new TCodeStyleProvider();
-            }
+                => _codeStyleProvider = new TCodeStyleProvider();
 
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
                 => _codeStyleProvider.ComputeRefactoringsAsync(context);

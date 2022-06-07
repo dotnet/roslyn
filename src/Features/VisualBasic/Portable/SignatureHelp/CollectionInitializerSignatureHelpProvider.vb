@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -12,6 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider(NameOf(CollectionInitializerSignatureHelpProvider), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class CollectionInitializerSignatureHelpProvider
         Inherits AbstractOrdinaryMethodSignatureHelpProvider
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
             Return ch = "{"c OrElse ch = ","c
@@ -37,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return expression.Span.Contains(token.SpanStart) AndAlso token <> expression.CloseBraceToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim collectionInitializer As CollectionInitializerSyntax = Nothing
             If Not TryGetInitializerExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService)(), triggerInfo.TriggerReason, cancellationToken, collectionInitializer) Then
@@ -45,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim addMethods = Await CommonSignatureHelpUtilities.GetCollectionInitializerAddMethodsAsync(
-                document, collectionInitializer.Parent, cancellationToken).ConfigureAwait(False)
+                document, collectionInitializer.Parent, options, cancellationToken).ConfigureAwait(False)
             If addMethods.IsDefaultOrEmpty Then
                 Return Nothing
             End If
@@ -55,11 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Return CreateCollectionInitializerSignatureHelpItems(
-                addMethods.Select(Function(s) ConvertMemberGroupMember(document, s, collectionInitializer.OpenBraceToken.SpanStart, semanticModel, cancellationToken)).ToList(),
+                addMethods.Select(Function(s) ConvertMemberGroupMember(document, s, collectionInitializer.OpenBraceToken.SpanStart, semanticModel)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim expression As CollectionInitializerSyntax = Nothing
             If TryGetInitializerExpression(
                         root,
