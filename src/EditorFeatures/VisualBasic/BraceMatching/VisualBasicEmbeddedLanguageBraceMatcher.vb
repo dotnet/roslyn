@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-                <ImportMany> services As IEnumerable(Of Lazy(Of IEmbeddedLanguageBraceMatchingService, EmbeddedLanguageMetadata)))
+                <ImportMany> services As IEnumerable(Of Lazy(Of IEmbeddedLanguageBraceMatcher, EmbeddedLanguageMetadata)))
             MyBase.New(LanguageNames.VisualBasic, VisualBasicEmbeddedLanguagesProvider.Info, VisualBasicSyntaxKinds.Instance, services)
         End Sub
     End Class

@@ -6,19 +6,19 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageBraceMatchingServiceInternal(
-        PredefinedEmbeddedLanguageBraceMatchingServiceNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
-    internal sealed class CSharpJsonEmbeddedLanguageBraceMatchingService :
-        AbstractJsonEmbeddedLanguageBraceMatchingService
+    [ExportEmbeddedLanguageBraceMatcherInternal(
+        PredefinedEmbeddedLanguageBraceMatcherNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
+    internal sealed class CSharpJsonEmbeddedLanguageBraceMatchergService :
+        AbstractJsonEmbeddedLanguageBraceMatcher
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpJsonEmbeddedLanguageBraceMatchingService()
+        public CSharpJsonEmbeddedLanguageBraceMatchergService()
             : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }

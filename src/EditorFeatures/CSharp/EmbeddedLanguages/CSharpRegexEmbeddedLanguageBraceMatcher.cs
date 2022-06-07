@@ -6,19 +6,19 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageBraceMatchingServiceInternal(
-        PredefinedEmbeddedLanguageBraceMatchingServiceNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
-    internal sealed class CSharpRegexEmbeddedLanguageBraceMatchingService :
-        AbstractRegexEmbeddedLanguageBraceMatchingService
+    [ExportEmbeddedLanguageBraceMatcherInternal(
+        PredefinedEmbeddedLanguageBraceMatcherNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
+    internal sealed class CSharpRegexEmbeddedLanguageBraceMatcher :
+        AbstractRegexEmbeddedLanguageBraceMatcher
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRegexEmbeddedLanguageBraceMatchingService()
+        public CSharpRegexEmbeddedLanguageBraceMatcher()
             : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }

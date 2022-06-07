@@ -19,9 +19,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    // Note: this type could be concrete, but we cannot export IBraceMatcher's for multiple
-    // languages at once.  So all logic is contained here.  The derived types only exist for
-    // exporting purposes.
+    /// <summary>
+    /// Brace matcher that analyzes string literals (for C#/VB) and then dispatches out to embedded brace matchers for
+    /// particular embedded languages (like JSON/Regex).
+    /// </summary>
     internal abstract class AbstractEmbeddedLanguageBraceMatcher :
         AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageBraceMatcher>, IBraceMatcher
     {

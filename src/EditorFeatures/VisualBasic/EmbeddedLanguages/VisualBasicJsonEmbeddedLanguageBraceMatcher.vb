@@ -4,15 +4,15 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.BraceMatching
-Imports Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EmbeddedLanguages
-    <ExportEmbeddedLanguageBraceMatchingServiceInternal(
-        PredefinedEmbeddedLanguageBraceMatchingServiceNames.Regex, LanguageNames.VisualBasic, True, "Regex", "Regexp"), [Shared]>
-    Friend Class VisualBasicRegexEmbeddedLanguageBraceMatchingService
-        Inherits AbstractRegexEmbeddedLanguageBraceMatchingService
+    <ExportEmbeddedLanguageBraceMatcherInternal(
+        PredefinedEmbeddedLanguageBraceMatcherNames.Json, LanguageNames.VisualBasic, True, "Json"), [Shared]>
+    Friend Class VisualBasicJsonEmbeddedLanguageBraceMatcher
+        Inherits AbstractJsonEmbeddedLanguageBraceMatcher
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
