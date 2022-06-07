@@ -147,7 +147,7 @@ namespace Roslyn.Utilities
                 }
                 // Make sure the task being performed doesn't propagate out a cancellation exception that isn't
                 // associated with the token we pass into it.
-                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, _cancellationToken))
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, _cancellationToken, ErrorSeverity.Critical))
                 {
                 }
 
