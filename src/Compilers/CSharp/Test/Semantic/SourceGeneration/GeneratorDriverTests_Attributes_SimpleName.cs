@@ -189,10 +189,11 @@ class C { }
 
         Assert.Single(compilation.SyntaxTrees);
 
+        var counter = 0;
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
             var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
+            ctx.RegisterSourceOutput(input, (spc, node) => { counter++; });
         }));
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
@@ -201,6 +202,7 @@ class C { }
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+        Assert.Equal(1, counter);
     }
 
     [Fact]
