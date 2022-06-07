@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
     internal static class CompletionProvidersLogger
     {
         private static readonly StatisticLogAggregator<ActionInfo> s_statisticLogAggregator = new();
-        private static readonly LogAggregator<ActionInfo> s_logAggregator = new();
+        private static readonly CountLogAggregator<ActionInfo> s_countLogAggregator = new();
 
         private static readonly HistogramLogAggregator<ActionInfo> s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
 
@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionReferenceCount, count);
 
         internal static void LogTypeImportCompletionCacheMiss() =>
-            s_logAggregator.IncreaseCount(ActionInfo.TypeImportCompletionCacheMissCount);
+            s_countLogAggregator.IncreaseCount(ActionInfo.TypeImportCompletionCacheMissCount);
 
         internal static void LogCommitOfTypeImportCompletionItem() =>
-            s_logAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
 
         internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, bool isRemote)
         {
@@ -70,16 +70,16 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
         internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
-            s_logAggregator.IncreaseCount(ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
 
         internal static void LogExtensionMethodCompletionPartialResultCount() =>
-            s_logAggregator.IncreaseCount(ActionInfo.ExtensionMethodCompletionPartialResultCount);
+            s_countLogAggregator.IncreaseCount(ActionInfo.ExtensionMethodCompletionPartialResultCount);
 
         internal static void LogCommitUsingSemicolonToAddParenthesis() =>
-            s_logAggregator.IncreaseCount(ActionInfo.CommitUsingSemicolonToAddParenthesis);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingSemicolonToAddParenthesis);
 
         internal static void LogCommitUsingDotToAddParenthesis() =>
-            s_logAggregator.IncreaseCount(ActionInfo.CommitUsingDotToAddParenthesis);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingDotToAddParenthesis);
 
         internal static void LogCustomizedCommitToAddParenthesis(char? commitChar)
         {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
                     m[CreateProperty(info, nameof(statistics.Count))] = statistics.Count;
                 }
 
-                foreach (var kv in s_logAggregator)
+                foreach (var kv in s_countLogAggregator)
                 {
                     var info = ((ActionInfo)kv.Key).ToString("f");
                     m[info] = kv.Value.GetCount();

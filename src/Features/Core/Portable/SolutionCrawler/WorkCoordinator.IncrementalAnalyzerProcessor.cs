@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 /// The keys in this are either a string or a (string, Guid) tuple. See <see cref="SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics"/>
                 /// for what is writing this out.
                 /// </summary>
-                private LogAggregator<object> _logAggregator = new();
+                private CountLogAggregator<object> _logAggregator = new();
 
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     => _registration.Workspace.GetOpenDocumentIds();
 
                 private void ResetLogAggregator()
-                    => _logAggregator = new LogAggregator<object>();
+                    => _logAggregator = new CountLogAggregator<object>();
 
                 private void ReportPendingWorkItemCount()
                 {

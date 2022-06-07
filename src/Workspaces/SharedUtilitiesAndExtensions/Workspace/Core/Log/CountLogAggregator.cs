@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal class LogAggregator<TKey> : AbstractLogAggregator<TKey, LogAggregator<TKey>.Counter>
+    internal class CountLogAggregator<TKey> : AbstractLogAggregator<TKey, CountLogAggregator<TKey>.Counter>
     {
         protected override Counter CreateCounter()
             => new();

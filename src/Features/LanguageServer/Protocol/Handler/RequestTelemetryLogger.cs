@@ -42,9 +42,9 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
     /// </summary>
     private readonly ConcurrentDictionary<string, Counter> _requestCounters;
 
-    private readonly LogAggregator<string> _findDocumentResults;
+    private readonly CountLogAggregator<string> _findDocumentResults;
 
-    private readonly LogAggregator<bool> _usedForkedSolutionCounter;
+    private readonly CountLogAggregator<bool> _usedForkedSolutionCounter;
 
     private int _disposed;
 
