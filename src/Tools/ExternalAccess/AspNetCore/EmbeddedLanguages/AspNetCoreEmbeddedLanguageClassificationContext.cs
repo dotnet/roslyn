@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
     {
         private readonly EmbeddedLanguageClassificationContext _context;
 
-        public AspNetCoreEmbeddedLanguageClassificationContext(EmbeddedLanguageClassificationContext context)
+        internal AspNetCoreEmbeddedLanguageClassificationContext(
+            EmbeddedLanguageClassificationContext context)
         {
             _context = context;
         }

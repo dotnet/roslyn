@@ -275,5 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : compilation.GetTypeByReflectionType(submissionReturnTypeOpt, diagnostics);
             returnType = taskT.Construct(resultType);
         }
+
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

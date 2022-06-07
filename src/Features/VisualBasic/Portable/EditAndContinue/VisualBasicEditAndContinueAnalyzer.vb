@@ -2612,6 +2612,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "State Machines"
 
+        Protected Overrides ReadOnly Property SupportsStateMachineUpdates As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Protected Overrides Function IsStateMachineResumableStateSyntax(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.AwaitExpression, SyntaxKind.YieldStatement)
+        End Function
+
         Friend Overrides Function IsStateMachineMethod(declaration As SyntaxNode) As Boolean
             Return SyntaxUtilities.IsAsyncMethodOrLambda(declaration) OrElse
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
@@ -2634,7 +2644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
 
-            If newNode.IsKind(SyntaxKind.AwaitExpression) Then
+            If newNode.IsKind(SyntaxKind.AwaitExpression) AndAlso oldNode.IsKind(SyntaxKind.AwaitExpression) Then
                 Dim oldContainingStatementPart = FindContainingStatementPart(oldNode)
                 Dim newContainingStatementPart = FindContainingStatementPart(newNode)
 

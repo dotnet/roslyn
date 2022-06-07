@@ -761,13 +761,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.ImplicitUtf8StringLiteral:
-                    if (_inExpressionLambda)
-                    {
-                        Error(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, node);
-                    }
-                    break;
-
                 default:
 
                     if (_inExpressionLambda && node.Conversion.Method is MethodSymbol method && (method.IsAbstract || method.IsVirtual) && method.IsStatic)
@@ -781,16 +774,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _inExpressionLambda = wasInExpressionLambda;
             _reportedUnsafe = oldReportedUnsafe;
             return result;
-        }
-
-        public override BoundNode VisitUTF8String(BoundUTF8String node)
-        {
-            if (_inExpressionLambda)
-            {
-                Error(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, node);
-            }
-
-            return null;
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -987,6 +970,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitWithExpression(node);
+        }
+
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node);
+            }
+
+            return base.VisitFunctionPointerInvocation(node);
         }
     }
 }

@@ -1764,7 +1764,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MultipleAnalyzerConfigsInSameDir = 37317
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 37318
 
-        ERR_NextAvailable = 37319
+        ERR_UnsupportedCompilerFeature = 37319
+        ERR_DoNotUseCompilerFeatureRequired = 37320
+
+        ERR_NextAvailable = 37321
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

@@ -1162,9 +1162,19 @@
         <target state="translated">Remover Usos Desnecessários</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="new">Rename</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">Renomear {0} para {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_asynchronously_experimental">
+        <source>Rename asynchronously experimental</source>
+        <target state="new">Rename asynchronously experimental</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1295,6 +1305,11 @@
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
         <target state="translated">Mostrar o comando "Remover as Referências Não Usadas" no Gerenciador de Soluções (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
