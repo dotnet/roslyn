@@ -1451,6 +1451,7 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(60946, "https://github.com/dotnet/roslyn/issues/60946")]
         public void RawString4()
         {
             var code = @"class Program
@@ -1466,11 +1467,12 @@ namespace NS
             AssertSmartIndent(
                 code,
                 indentationLine: 6,
-                expectedIndentation: 12);
+                expectedIndentation: 16);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(60946, "https://github.com/dotnet/roslyn/issues/60946")]
         public void RawString5()
         {
             var code = @"class Program
@@ -1487,7 +1489,7 @@ namespace NS
             AssertSmartIndent(
                 code,
                 indentationLine: 7,
-                expectedIndentation: 12);
+                expectedIndentation: 16);
         }
 
         [WpfFact]

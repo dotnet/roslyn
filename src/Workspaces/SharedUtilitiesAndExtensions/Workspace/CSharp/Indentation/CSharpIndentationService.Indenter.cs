@@ -84,8 +84,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 var endLine = sourceText.Lines.GetLineFromPosition(token.Span.End);
-                var nonWhitespaceOffset = endLine.GetFirstNonWhitespaceOffset();
-                Contract.ThrowIfNull(nonWhitespaceOffset);
+                var minimumOffset = endLine.GetFirstNonWhitespaceOffset();
+                Contract.ThrowIfNull(minimumOffset);
+
+                // If possible, indent to match the indentation of the previous non-whitespace line contained in the
+                // same raw string. Otherwise, indent to match the ending line of the raw string.
+                var startLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
+                for (var currentLineNumber = indenter.LineToBeIndented.LineNumber - 1; currentLineNumber >= startLine.LineNumber + 1; currentLineNumber--)
+                {
+                    var currentLine = sourceText.Lines[currentLineNumber];
+                    if (currentLine.GetFirstNonWhitespaceOffset() is { } priorLineOffset)
+                    {
+                        if (priorLineOffset >= minimumOffset.Value)
+                        {
+                            return indenter.GetIndentationOfLine(currentLine);
+                        }
+                        else
+                        {
+                            // The prior line is not sufficiently indented, so use the ending delimiter for the indent
+                            break;
+                        }
+                    }
+                }
+
                 return indenter.GetIndentationOfLine(endLine);
             }
 
