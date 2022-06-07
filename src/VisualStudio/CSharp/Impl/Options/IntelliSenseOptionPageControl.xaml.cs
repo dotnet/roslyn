@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
             Tab_twice_to_insert_arguments.IsChecked = this.OptionStore.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, LanguageNames.CSharp);
-
+            BindToOption(Show_new_snippet_experience, CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp);
         }
 
         private void Show_completion_list_after_a_character_is_typed_Checked(object sender, RoutedEventArgs e)
