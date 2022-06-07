@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
 {
     [ExportEmbeddedLanguageBraceMatcherInternal(
         PredefinedEmbeddedLanguageBraceMatcherNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
-    internal sealed class CSharpJsonEmbeddedLanguageBraceMatchergService :
+    internal sealed class CSharpJsonEmbeddedLanguageBraceMatcher :
         AbstractJsonEmbeddedLanguageBraceMatcher
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpJsonEmbeddedLanguageBraceMatchergService()
+        public CSharpJsonEmbeddedLanguageBraceMatcher()
             : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }
