@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             if (!this.SyntaxTokenKinds.Contains(token.RawKind))
                 return null;
 
-            using var _1 = ArrayBuilder<IEmbeddedLanguageBraceMatcher>.GetInstance(out var buffer);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
@@ -49,28 +48,23 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             {
                 foreach (var braceMatcher in braceMatchers)
                 {
-                    // keep track of what matchers we've run so we don't call into them multiple times.
-                    buffer.Add(braceMatcher.Value);
-
                     // If this service added values then need to check the other ones.
                     var result = braceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
                     if (result.HasValue)
                         return result;
                 }
             }
-
-            // It wasn't an annotated API.  See if it's some legacy API our legacy matchers have direct
-            // support for (for example, .net APIs prior to Net6).
-            foreach (var legacyBraceMatcher in this.LegacyServices)
+            else
             {
-                // don't bother trying to classify again if we already tried above.
-                if (buffer.Contains(legacyBraceMatcher.Value))
-                    continue;
-
-                // If this service added values then need to check the other ones.
-                var result = legacyBraceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
-                if (result.HasValue)
-                    return result;
+                // It wasn't an annotated API.  See if it's some legacy API our legacy matchers have direct
+                // support for (for example, .net APIs prior to Net6).
+                foreach (var legacyBraceMatcher in this.LegacyServices)
+                {
+                    // If this service added values then need to check the other ones.
+                    var result = legacyBraceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
+                    if (result.HasValue)
+                        return result;
+                }
             }
 
             return null;
