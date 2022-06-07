@@ -19,7 +19,7 @@ Brief summary of what this proposal is about.
 ## Background and Motivation
 
 <!--
-What the is problem we are solving and in what context did you encounter it?
+What is the problem we are solving and in what context did you encounter it?
 -->
 
 ## Proposed Feature
