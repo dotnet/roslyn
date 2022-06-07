@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly Registration _registration;
             private readonly object _gate = new();
 
-            private readonly LogAggregator<WorkspaceChangeKind> _logAggregator = new();
+            private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
             private readonly IDocumentTrackingService _documentTrackingService;
             private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
