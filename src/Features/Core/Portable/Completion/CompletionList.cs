@@ -23,10 +23,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public ImmutableArray<CompletionItem> Items => _lazyItems.Value;
 
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
         /// <summary>
         /// The completion items to present to the user.
+        /// This property is preferred over <see cref="Items"/> because it can be backed by types
+        /// like <see cref="Microsoft.CodeAnalysis.Collections.SegmentedList{T}"/> to avoid LOH allocations.
         /// </summary>
         internal IReadOnlyList<CompletionItem> ItemsList { get; }
+#pragma warning restore CS0419 // Ambiguous reference in cref attribute
+#pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>
         /// The span of the syntax element at the caret position when the <see cref="CompletionList"/> was created.

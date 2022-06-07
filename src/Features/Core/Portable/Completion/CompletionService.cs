@@ -232,16 +232,16 @@ namespace Microsoft.CodeAnalysis.Completion
            Document document,
            IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
            string filterText,
-           ImmutableArray<CompletionItem>.Builder builder)
+           IList<CompletionItem> builder)
         {
             // Default implementation just drops the pattern matches and builder, and
             // calls the public overload of FilterItems instead for compatibility.
             FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText);
         }
 
-        // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is very short i.e. <= 1
-        // Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
-        private static readonly ObjectPool<List<(CompletionItem item, PatternMatch? match)>> s_listOfItemMatchPairPool = new(factory: () => new(), size: 2);
+        // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
+        // very short, i.e. <= 1. Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
+        private static readonly ObjectPool<List<(CompletionItem item, PatternMatch? match)>> s_listOfItemMatchPairPool = new(factory: () => new());
 
         /// <summary>
         /// Determine among the provided items the best match w.r.t. the given filter text, 
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionHelper completionHelper,
             IReadOnlyList<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
             string filterText,
-            ImmutableArray<CompletionItem>.Builder builder)
+            IList<CompletionItem> builder)
         {
             // It's very common for people to type expecting completion to fix up their casing,
             // so if no uppercase characters were typed so far, we'd loosen our standard on comparing items

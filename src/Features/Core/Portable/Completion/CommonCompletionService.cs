@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
            Document document,
            IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
            string filterText,
-           ImmutableArray<CompletionItem>.Builder builder)
+           IList<CompletionItem> builder)
         {
             var helper = CompletionHelper.GetHelper(document);
             CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText, builder);

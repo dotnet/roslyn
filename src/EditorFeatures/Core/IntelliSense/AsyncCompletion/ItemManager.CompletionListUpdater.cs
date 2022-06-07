@@ -46,19 +46,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private readonly bool _highlightMatchingPortions;
             private readonly bool _showCompletionItemFilters;
 
-            private readonly Action<IReadOnlyList<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>.Builder> _filterMethod;
+            private readonly Action<IReadOnlyList<(RoslynCompletionItem, PatternMatch?)>, string, IList<RoslynCompletionItem>> _filterMethod;
 
             private CompletionTriggerReason InitialTriggerReason => _snapshotData.InitialTrigger.Reason;
             private CompletionTriggerReason UpdateTriggerReason => _snapshotData.Trigger.Reason;
 
-            // We might need to handle large amount of items with import completion enabled,
-            // so use a dedicated pool to minimize/avoid array allocations (especially in LOH)
-            // Set the size of pool to 1 because we don't expect UpdateCompletionListAsync to be
-            // called concurrently, which essentially makes the pooled list a singleton,
-            // but we still use ObjectPool for concurrency handling just to be robust.
-            private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool = new(factory: () => new(), size: 1);
-            private static readonly ObjectPool<List<(RoslynCompletionItem, PatternMatch?)>> s_listOfItemMatchPairPool = new(factory: () => new(), size: 1);
-            private static readonly ObjectPool<ImmutableArray<RoslynCompletionItem>.Builder> s_filteredItemBuilderPool = new(factory: () => ImmutableArray.CreateBuilder<RoslynCompletionItem>(), size: 1);
+            // We might need to handle large amount of items with import completion enabled, so use a dedicated pool to minimize/avoid array allocations
+            // (especially in LOH). In practice, the size of pool should be 1 because we don't expect UpdateCompletionListAsync to be called concurrently,
+            // which essentially makes the pooled list a singleton, but we still use ObjectPool for concurrency handling just to be robust.
+            private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool = new(factory: () => new());
+            private static readonly ObjectPool<List<(RoslynCompletionItem, PatternMatch?)>> s_listOfItemMatchPairPool = new(factory: () => new());
+            private static readonly ObjectPool<List<RoslynCompletionItem>> s_filteredItemBuilderPool = new(factory: () => new());
 
             public CompletionListUpdater(
                 ITrackingSpan applicableToSpan,
