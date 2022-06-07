@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
-            bool hasErrors = !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType);
+            bool hasErrors = !types.IsDefault && types.Any(static t => t.Type?.Kind == SymbolKind.ErrorType);
 
             var functionType = FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
             var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true);

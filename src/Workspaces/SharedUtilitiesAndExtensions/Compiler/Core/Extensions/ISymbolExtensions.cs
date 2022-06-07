@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is ITypeSymbol && ((ITypeSymbol)symbol).TypeKind == TypeKind.Delegate;
+            => symbol is ITypeSymbol { TypeKind: TypeKind.Delegate };
 
         public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol && ((INamedTypeSymbol)symbol).IsAnonymousType;
+            => symbol is INamedTypeSymbol { IsAnonymousType: true };
 
         public static bool IsNormalAnonymousType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol.IsAnonymousType() && !symbol.IsDelegateType();

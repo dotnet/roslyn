@@ -169,18 +169,21 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
         //          v = c;
 
         if (topExpression.Parent is TEqualsValueClauseSyntax equalsValue &&
-            equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator &&
-            conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>() is { } localDeclarationStatement &&
-            HasSingleVariable(localDeclarationStatement, out var variable) &&
-            syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(variableDeclarator, localDeclarationStatement) &&
-            CanRewriteLocalDeclarationStatement(localDeclarationStatement))
+            equalsValue.Parent is TVariableDeclaratorSyntax variableDeclarator)
         {
-            context.RegisterRefactoring(CodeAction.Create(
-                FeaturesResources.Replace_conditional_expression_with_statements,
-                c => ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
-                    document, conditionalExpression, variable, localDeclarationStatement, c)),
-                conditionalExpression.Span);
-            return;
+            var localDeclarationStatement = conditionalExpression.GetAncestor<TLocalDeclarationStatementSyntax>();
+            if (localDeclarationStatement != null &&
+                HasSingleVariable(localDeclarationStatement, out var variable) &&
+                syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(variableDeclarator, localDeclarationStatement) &&
+                CanRewriteLocalDeclarationStatement(localDeclarationStatement))
+            {
+                context.RegisterRefactoring(CodeAction.Create(
+                    FeaturesResources.Replace_conditional_expression_with_statements,
+                    c => ReplaceConditionalExpressionInLocalDeclarationStatementAsync(
+                        document, conditionalExpression, variable, localDeclarationStatement, c)),
+                    conditionalExpression.Span);
+                return;
+            }
         }
     }
 
@@ -204,20 +207,6 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
             return current;
         }
-    }
-
-    private static SyntaxNode TryConvert(
-        SyntaxGenerator generator,
-        SyntaxNode expression,
-        ITypeSymbol? conditionalType)
-    {
-        var syntaxFacts = generator.SyntaxFacts;
-        if (syntaxFacts.IsRefExpression(expression))
-            return syntaxFacts.GetExpressionOfRefExpression(expression);
-
-        return conditionalType is null or IErrorTypeSymbol
-            ? expression
-            : generator.ConvertExpression(conditionalType, expression);
     }
 
     private static async Task<Document> ReplaceConditionalExpressionInSingleStatementAsync(
@@ -326,9 +315,20 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
             if (syntaxFacts.IsThrowExpression(expression))
                 return generator.ThrowStatement(syntaxFacts.GetExpressionOfThrowExpression(expression));
 
-            var containerWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(generator, expression, conditionalType).WithTriviaFrom(conditionalExpression));
+            var containerWithConditionalReplaced = container.ReplaceNode(conditionalExpression, TryConvert(expression, conditionalType).WithTriviaFrom(conditionalExpression));
             Contract.ThrowIfNull(containerWithConditionalReplaced);
             return wrapConvertedSyntax(containerWithConditionalReplaced);
+        }
+
+        SyntaxNode TryConvert(SyntaxNode expression, ITypeSymbol? conditionalType)
+        {
+            var syntaxFacts = generator.SyntaxFacts;
+            if (syntaxFacts.IsRefExpression(expression))
+                return syntaxFacts.GetExpressionOfRefExpression(expression);
+
+            return conditionalType is null or IErrorTypeSymbol
+                ? expression
+                : generator.ConvertExpression(conditionalType, expression);
         }
     }
 }
