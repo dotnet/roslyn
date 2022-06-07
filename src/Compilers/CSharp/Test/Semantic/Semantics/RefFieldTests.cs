@@ -7022,23 +7022,17 @@ class Program
     {
         D1 d1 = (R x, scoped R y) => x;
         D2 d2 = (R x, R y) => x;
-        D3 d3A = (ref R x, ref scoped R y) => ref x;
-        D3 d3B = (ref R x, scoped ref R y) => ref x;
-        D4 d4A = (ref R x, ref R y) => ref x;
-        D4 d4B = (ref R x, scoped ref R y) => ref x;
-        D5 d5A = (ref R x, ref R y) => ref x;
-        D5 d5B = (ref R x, ref scoped R y) => ref x;
+        D3 d3 = (ref R x, ref scoped R y) => ref x;
+        D4 d4 = (ref R x, scoped ref R y) => ref x;
+        D5 d5 = (ref R x, ref R y) => ref x;
     }
     static void Explicit()
     {
-        D1 d1 = (D1)((R x, scoped R y) => x);
-        D2 d2 = (D2)((R x, R y) => x);
-        D3 d3A = (D3)((ref R x, ref scoped R y) => ref x);
-        D3 d3B = (D3)((ref R x, scoped ref R y) => ref x);
-        D4 d4A = (D4)((ref R x, ref R y) => ref x);
-        D4 d4B = (D4)((ref R x, scoped ref R y) => ref x);
-        D5 d5A = (D5)((ref R x, ref R y) => ref x);
-        D5 d5B = (D5)((ref R x, ref scoped R y) => ref x);
+        var d1 = (D1)((R x, scoped R y) => x);
+        var d2 = (D2)((R x, R y) => x);
+        var d3 = (D3)((ref R x, ref scoped R y) => ref x);
+        var d4 = (D4)((ref R x, scoped ref R y) => ref x);
+        var d5 = (D5)((ref R x, ref R y) => ref x);
     }
 }";
             var comp = CreateCompilation(source);
@@ -7067,23 +7061,17 @@ class Program
     {
         D1 dA = M2;
         D2 d2 = M1;
-        D3 d3A = M4;
-        D3 d3B = M5;
-        D4 d4A = M3;
-        D4 d4B = M5;
-        D5 d5A = M3;
-        D5 d5B = M4;
+        D3 d3 = M4;
+        D4 d4 = M5;
+        D5 d5 = M3;
     }
     static void Explicit()
     {
-        D1 d1 = (D1)M2;
-        D2 d2 = (D2)M1;
-        D3 d3A = (D3)M4;
-        D3 d3B = (D3)M5;
-        D4 d4A = (D4)M3;
-        D4 d4B = (D4)M5;
-        D5 d5A = (D5)M3;
-        D5 d5B = (D5)M4;
+        var d1 = (D1)M2;
+        var d2 = (D2)M1;
+        var d3 = (D3)M4;
+        var d4 = (D4)M5;
+        var d5 = (D5)M3;
     }
 }";
             var comp = CreateCompilation(source);
@@ -7105,20 +7093,14 @@ class Program
 {
     static D1 Implicit1(D2 d) => d;
     static D2 Implicit2(D1 d) => d;
-    static D3 Implicit3A(D4 d) => d;
-    static D3 Implicit3B(D5 d) => d;
-    static D4 Implicit4A(D3 d) => d;
-    static D4 Implicit4B(D5 d) => d;
-    static D5 Implicit5A(D3 d) => d;
-    static D5 Implicit5B(D4 d) => d;
+    static D3 Implicit3(D4 d) => d;
+    static D4 Implicit4(D5 d) => d;
+    static D5 Implicit5(D3 d) => d;
     static D1 Explicit1(D2 d) => (D1)d;
     static D2 Explicit2(D1 d) => (D2)d;
-    static D3 Explicit3A(D4 d) => (D3)d;
-    static D3 Explicit3B(D5 d) => (D3)d;
-    static D4 Explicit4A(D3 d) => (D4)d;
-    static D4 Explicit4B(D5 d) => (D4)d;
-    static D5 Explicit5A(D3 d) => (D5)d;
-    static D5 Explicit5B(D4 d) => (D5)d;
+    static D3 Explicit3(D4 d) => (D3)d;
+    static D4 Explicit4(D5 d) => (D4)d;
+    static D5 Explicit5(D3 d) => (D5)d;
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -7128,48 +7110,73 @@ class Program
                 // (10,34): error CS0029: Cannot implicitly convert type 'D1' to 'D2'
                 //     static D2 Implicit2(D1 d) => d;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D1", "D2").WithLocation(10, 34),
-                // (11,35): error CS0029: Cannot implicitly convert type 'D4' to 'D3'
-                //     static D3 Implicit3A(D4 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D4", "D3").WithLocation(11, 35),
-                // (12,35): error CS0029: Cannot implicitly convert type 'D5' to 'D3'
-                //     static D3 Implicit3B(D5 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D5", "D3").WithLocation(12, 35),
-                // (13,35): error CS0029: Cannot implicitly convert type 'D3' to 'D4'
-                //     static D4 Implicit4A(D3 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D3", "D4").WithLocation(13, 35),
-                // (14,35): error CS0029: Cannot implicitly convert type 'D5' to 'D4'
-                //     static D4 Implicit4B(D5 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D5", "D4").WithLocation(14, 35),
-                // (15,35): error CS0029: Cannot implicitly convert type 'D3' to 'D5'
-                //     static D5 Implicit5A(D3 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D3", "D5").WithLocation(15, 35),
-                // (16,35): error CS0029: Cannot implicitly convert type 'D4' to 'D5'
-                //     static D5 Implicit5B(D4 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D4", "D5").WithLocation(16, 35),
-                // (17,34): error CS0030: Cannot convert type 'D2' to 'D1'
+                // (11,34): error CS0029: Cannot implicitly convert type 'D4' to 'D3'
+                //     static D3 Implicit3(D4 d) => d;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D4", "D3").WithLocation(11, 34),
+                // (12,34): error CS0029: Cannot implicitly convert type 'D5' to 'D4'
+                //     static D4 Implicit4(D5 d) => d;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D5", "D4").WithLocation(12, 34),
+                // (13,34): error CS0029: Cannot implicitly convert type 'D3' to 'D5'
+                //     static D5 Implicit5(D3 d) => d;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D3", "D5").WithLocation(13, 34),
+                // (14,34): error CS0030: Cannot convert type 'D2' to 'D1'
                 //     static D1 Explicit1(D2 d) => (D1)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D1)d").WithArguments("D2", "D1").WithLocation(17, 34),
-                // (18,34): error CS0030: Cannot convert type 'D1' to 'D2'
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D1)d").WithArguments("D2", "D1").WithLocation(14, 34),
+                // (15,34): error CS0030: Cannot convert type 'D1' to 'D2'
                 //     static D2 Explicit2(D1 d) => (D2)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D2)d").WithArguments("D1", "D2").WithLocation(18, 34),
-                // (19,35): error CS0030: Cannot convert type 'D4' to 'D3'
-                //     static D3 Explicit3A(D4 d) => (D3)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D3)d").WithArguments("D4", "D3").WithLocation(19, 35),
-                // (20,35): error CS0030: Cannot convert type 'D5' to 'D3'
-                //     static D3 Explicit3B(D5 d) => (D3)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D3)d").WithArguments("D5", "D3").WithLocation(20, 35),
-                // (21,35): error CS0030: Cannot convert type 'D3' to 'D4'
-                //     static D4 Explicit4A(D3 d) => (D4)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D4)d").WithArguments("D3", "D4").WithLocation(21, 35),
-                // (22,35): error CS0030: Cannot convert type 'D5' to 'D4'
-                //     static D4 Explicit4B(D5 d) => (D4)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D4)d").WithArguments("D5", "D4").WithLocation(22, 35),
-                // (23,35): error CS0030: Cannot convert type 'D3' to 'D5'
-                //     static D5 Explicit5A(D3 d) => (D5)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D5)d").WithArguments("D3", "D5").WithLocation(23, 35),
-                // (24,35): error CS0030: Cannot convert type 'D4' to 'D5'
-                //     static D5 Explicit5B(D4 d) => (D5)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D5)d").WithArguments("D4", "D5").WithLocation(24, 35));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D2)d").WithArguments("D1", "D2").WithLocation(15, 34),
+                // (16,34): error CS0030: Cannot convert type 'D4' to 'D3'
+                //     static D3 Explicit3(D4 d) => (D3)d;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D3)d").WithArguments("D4", "D3").WithLocation(16, 34),
+                // (17,34): error CS0030: Cannot convert type 'D5' to 'D4'
+                //     static D4 Explicit4(D5 d) => (D4)d;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D4)d").WithArguments("D5", "D4").WithLocation(17, 34),
+                // (18,34): error CS0030: Cannot convert type 'D3' to 'D5'
+                //     static D5 Explicit5(D3 d) => (D5)d;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D5)d").WithArguments("D3", "D5").WithLocation(18, 34));
+        }
+
+        [Fact]
+        public void Delegates_Example()
+        {
+            var source =
+@"ref struct R
+{
+    public ref int F;
+    public R(ref int i) { F = ref i; }
+}
+delegate R D1(scoped R x);
+delegate R D2(R x);
+class Program
+{
+    static R F1(D1 d1)
+    {
+        int i = 0;
+        return d1(new R(ref i));
+    }
+    static R F2(D2 d2)
+    {
+        int i = 0;
+        return d2(new R(ref i));
+    }
+    static void Main()
+    {
+        R r1 = F1((R x) => x); // unsafe
+        R r2 = F2((scoped R x) => default);
+    }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Report error on call to F1.
+            comp.VerifyEmitDiagnostics(
+                // (18,16): error CS8347: Cannot use a result of 'D2.Invoke(R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return d2(new R(ref i));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "d2(new R(ref i))").WithArguments("D2.Invoke(R)", "x").WithLocation(18, 16),
+                // (18,19): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return d2(new R(ref i));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i)").WithArguments("R.R(ref int)", "i").WithLocation(18, 19),
+                // (18,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return d2(new R(ref i));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 29));
         }
 
         [Fact]
@@ -7238,7 +7245,31 @@ class Program
         }
 
         [Fact]
-        public void InferredDelegateType()
+        public void BestCommonType_04()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        var f1 = new[] { (R r) => { }, (scoped R r) => { } }[0]; // 1
+        var f2 = new[] { (scoped R r) => { }, (scoped R r) => { } }[0];
+        var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0]; // 2 
+        var f4 = new[] { (scoped ref R r) => { }, (scoped ref R r) => { } }[0];
+        var f5 = new[] { (scoped in R r) => { }, (in scoped R r) => { } }[0]; // 3
+        var f6 = new[] { (in scoped R r) => { }, (in scoped R r) => { } }[0];
+        var f7 = new[] { (out scoped R r) => { r = default; }, (out R r) => { r = default; } }[0]; // 4
+        var f8 = new[] { (out scoped R r) => { r = default; }, (out scoped R r) => { r = default; } }[0];
+    }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Report errors.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredDelegateTypes_01()
         {
             var source =
 @"ref struct R { }
@@ -7304,6 +7335,53 @@ class Program
             VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "R", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
             VerifyParameterSymbol(delegateInvokeMethods[2].Parameters[1], "ref System.Int32", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void InferredDelegateTypes_02()
+        {
+            var source =
+@"ref struct R { }
+static class E1
+{
+    public static void F1(this object o, R r) { }
+    public static void F2(this object o, ref R r) { }
+    public static void F3(this object o, scoped in R r) { }
+    public static void F4(this object o, out scoped R r) { }
+}
+static class E2
+{
+    public static void F1(this object o, scoped R r) { }
+    public static void F2(this object o, scoped ref R r) { }
+    public static void F3(this object o, in scoped R r) { }
+    public static void F4(this object o, out R r) { }
+}
+class Program
+{
+    static void Main()
+    {
+        object o = new object();
+        var d1 = o.F1;
+        var d2 = o.F2;
+        var d3 = o.F3;
+        var d4 = o.F4;
+    }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: [New] Should we also report ERR_CannotInferDelegateType?
+            comp.VerifyDiagnostics(
+                // (21,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F1(object, R)' and 'E2.F1(object, R)'
+                //         var d1 = o.F1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F1").WithArguments("E1.F1(object, R)", "E2.F1(object, R)").WithLocation(21, 18),
+                // (22,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F2(object, ref R)' and 'E2.F2(object, ref R)'
+                //         var d2 = o.F2;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F2").WithArguments("E1.F2(object, ref R)", "E2.F2(object, ref R)").WithLocation(22, 18),
+                // (23,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F3(object, in R)' and 'E2.F3(object, in R)'
+                //         var d3 = o.F3;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F3").WithArguments("E1.F3(object, in R)", "E2.F3(object, in R)").WithLocation(23, 18),
+                // (24,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F4(object, out R)' and 'E2.F4(object, out R)'
+                //         var d4 = o.F4;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F4").WithArguments("E1.F4(object, out R)", "E2.F4(object, out R)").WithLocation(24, 18));
         }
 
         [Fact]
