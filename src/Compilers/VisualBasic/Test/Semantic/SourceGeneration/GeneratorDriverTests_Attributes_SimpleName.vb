@@ -551,38 +551,15 @@ end class
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
         End Sub
 
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1()
-            Dim source = "
-imports A = XAttribute
-
-<A>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias2()
-            Dim source = "
-imports AAttribute = XAttribute
+        <Theory>
+        <InlineData("A = XAttribute")>
+        <InlineData("AAttribute = XAttribute")>
+        <InlineData("A = M.XAttribute")>
+        <InlineData("A = M.XAttribute(of integer)")>
+        <InlineData("A = global.M.XAttribute(of integer)")>
+        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1(text As String)
+            Dim source = $"
+imports {text}
 
 <A>
 class C
@@ -613,90 +590,6 @@ end class
 imports AAttribute = XAttribute
 
 <AAttribute>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias4()
-            Dim source = "
-imports A = M.XAttribute
-
-<A>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias5()
-            Dim source = "
-imports A = M.XAttribute<int>
-
-<A>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias6()
-            Dim source = "
-imports A = global.M.XAttribute(of integer)
-
-<A>
 class C
 end class
 "
