@@ -50,7 +50,7 @@ end class
             Dim runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
         End Sub
 
         <Fact>
@@ -76,7 +76,7 @@ end class
             Dim runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
         End Sub
 
         <Fact>
