@@ -3820,14 +3820,32 @@ end class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "FileIOPermission").WithArguments("action", "Public Overloads Sub New(action As System.Security.Permissions.SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("DirectCast(0, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("DirectCast(11, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("DirectCast(-1, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("DirectCast(0, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("DirectCast(11, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("DirectCast(-1, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_InvalidAttributeUsage2, "FileIOPermission").WithArguments("FileIOPermissionAttribute", "Field"))
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31214: SecurityAction value 'DirectCast(0, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <MySecurityAttribute(DirectCast(0, SecurityAction))>
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(11, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <MySecurityAttribute(DirectCast(11, SecurityAction))>
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(-1, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <MySecurityAttribute(DirectCast(-1, SecurityAction))>
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(0, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <FileIOPermission(DirectCast(0, SecurityAction))>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(11, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <FileIOPermission(DirectCast(11, SecurityAction))>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value 'DirectCast(-1, SecurityAction)' is invalid for security attributes applied to a type or a method.
+    <FileIOPermission(DirectCast(-1, SecurityAction))>
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30455: Argument not specified for parameter 'action' of 'Public Overloads Sub New(action As SecurityAction)'.
+    <FileIOPermission()>
+     ~~~~~~~~~~~~~~~~
+BC30662: Attribute 'FileIOPermissionAttribute' cannot be applied to 'Field' because the attribute is not valid on this declaration type.
+        <FileIOPermission(SecurityAction.Demand)>
+         ~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact()>
@@ -3840,7 +3858,9 @@ Imports System.Security.Permissions
 Public Class MySecurityAttribute
     Inherits SecurityAttribute
 
+#Disable Warning BC40000 ' RequestMinimum is obsolete
     Public Sub New(Optional action As SecurityAction = SecurityAction.RequestMinimum)
+#Enable Warning BC40000
         MyBase.New(action)
     End Sub
 
@@ -3858,9 +3878,6 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
-BC40000: 'RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'.
-    Public Sub New(Optional action As SecurityAction = SecurityAction.RequestMinimum)
-                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31214: SecurityAction value '8' is invalid for security attributes applied to a type or a method.
 <MySecurityAttribute>
  ~~~~~~~~~~~~~~~~~~~
@@ -3940,14 +3957,26 @@ end class
                          </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
-            comp.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute")
-                )
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute()>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Field := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Field := true, Prop := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Prop := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(Prop := true, Field := true)>
+ ~~~~~~~~~~~~~~~~~~~
+BC31211: First argument to a security attribute must be a valid SecurityAction.
+<MySecurityAttribute(0, SecurityAction.Assert)>
+ ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact()>
@@ -4216,8 +4245,14 @@ Imports System.Security.Permissions
 Namespace System.Security.Permissions
     Public Class PrincipalPermissionAttribute
         Inherits SecurityAttribute
+
         Public Sub New(Optional action As SecurityAction = SecurityAction.InheritanceDemand)
+            MyBase.New(action)
         End Sub
+
+        Public Overrides Function CreatePermission() As IPermission
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace
 
@@ -4232,13 +4267,6 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
-BC30610: Class 'PrincipalPermissionAttribute' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-    SecurityAttribute: Public MustOverride Overloads Function CreatePermission() As IPermission.
-    Public Class PrincipalPermissionAttribute
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class 'SecurityAttribute' of 'PrincipalPermissionAttribute' does not have an accessible 'Sub New' that can be called with no arguments.
-        Public Sub New(Optional action As SecurityAction = SecurityAction.InheritanceDemand)
-                   ~~~
 BC31215: SecurityAction value '7' is invalid for PrincipalPermission attribute.
     <PrincipalPermission>
      ~~~~~~~~~~~~~~~~~~~

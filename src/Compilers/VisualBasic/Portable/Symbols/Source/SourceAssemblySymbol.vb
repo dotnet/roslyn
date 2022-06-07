@@ -1143,7 +1143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Else
                         location = NoLocation.Singleton
                     End If
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, location, NoLocation.Singleton), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, location, attrData.AttributeClass)
                 End If
             Next
         End Sub
