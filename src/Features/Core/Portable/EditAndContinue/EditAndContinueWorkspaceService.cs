@@ -154,29 +154,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken);
         }
 
-        /// <summary>
-        /// Determine whether updates have been made to projects containing the specified file (or all projects that are built,
-        /// if <paramref name="sourceFilePath"/> is null).
-        /// </summary>
-        public ValueTask<bool> HasChangesAsync(
-            DebuggingSessionId sessionId,
-            Solution solution,
-            ActiveStatementSpanProvider activeStatementSpanProvider,
-            string? sourceFilePath,
-            CancellationToken cancellationToken)
-        {
-            // GetStatusAsync is called outside of edit session when the debugger is determining
-            // whether a source file checksum matches the one in PDB.
-            // The debugger expects no changes in this case.
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return default;
-            }
-
-            return debuggingSession.EditSession.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken);
-        }
-
         public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
             DebuggingSessionId sessionId,
             Solution solution,

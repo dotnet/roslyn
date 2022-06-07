@@ -523,6 +523,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return name.IsKind(SyntaxKind.GenericName)
         End Function
 
+        Public Function GetTypeArgumentsOfGenericName(genericName As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetTypeArgumentsOfGenericName
+            Dim castGenericName = TryCast(genericName, GenericNameSyntax)
+            If castGenericName IsNot Nothing Then
+                Return castGenericName.TypeArgumentList.Arguments
+            End If
+            Return Nothing
+        End Function
+
         Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfMemberAccessExpression
             Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget)
         End Function
@@ -1485,7 +1493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsEqualsValueOfPropertyDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsEqualsValueOfPropertyDeclaration
-            Return node IsNot Nothing AndAlso TryCast(node.Parent, PropertyStatementSyntax).Initializer Is node
+            Return node IsNot Nothing AndAlso TryCast(node.Parent, PropertyStatementSyntax)?.Initializer Is node
         End Function
 
         Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression
