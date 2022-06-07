@@ -1017,19 +1017,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var opened = false;
-            var closed = false;
+            var docOpened = false;
+            var docClosed = false;
+            var textDocOpened = false;
+            var textDocClosed = false;
 
-            workspace.DocumentOpened += (o, e) => opened = true;
-            workspace.DocumentClosed += (o, e) => closed = true;
+            workspace.DocumentOpened += (o, e) => docOpened = true;
+            workspace.DocumentClosed += (o, e) => docClosed = true;
+
+            workspace.TextDocumentOpened += (o, e) => textDocOpened = true;
+            workspace.TextDocumentClosed += (o, e) => textDocClosed = true;
 
             var id = workspace.Documents.First().Id;
             var worker = await ExecuteOperation(workspace, w => w.OpenDocument(id));
-            Assert.True(opened);
+            Assert.True(docOpened);
+            Assert.True(textDocOpened);
             Assert.Equal(1, worker.OpenedDocumentIds.Count);
 
             worker = await ExecuteOperation(workspace, w => w.CloseDocument(id));
-            Assert.True(closed);
+            Assert.True(docClosed);
+            Assert.True(textDocClosed);
             Assert.Equal(1, worker.ClosedDocumentIds.Count);
         }
 
@@ -1047,8 +1054,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var opened = false;
             var closed = false;
 
-            workspace.AdditionalDocumentOpened += (o, e) => opened = true;
-            workspace.AdditionalDocumentClosed += (o, e) => closed = true;
+            workspace.TextDocumentOpened += (o, e) => opened = true;
+            workspace.TextDocumentClosed += (o, e) => closed = true;
 
             var id = workspace.AdditionalDocuments.First().Id;
             var worker = await ExecuteOperation(workspace, w => w.OpenAdditionalDocument(id));
@@ -1075,8 +1082,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var opened = false;
             var closed = false;
 
-            workspace.AnalyzerConfigDocumentOpened += (o, e) => opened = true;
-            workspace.AnalyzerConfigDocumentClosed += (o, e) => closed = true;
+            workspace.TextDocumentOpened += (o, e) => opened = true;
+            workspace.TextDocumentClosed += (o, e) => closed = true;
 
             var id = workspace.AnalyzerConfigDocuments.First().Id;
             var worker = await ExecuteOperation(workspace, w => w.OpenAnalyzerConfigDocument(id));

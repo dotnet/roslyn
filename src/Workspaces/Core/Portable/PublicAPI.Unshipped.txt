@@ -1,23 +1,9 @@
-Microsoft.CodeAnalysis.AdditionalDocumentEventArgs
-Microsoft.CodeAnalysis.AdditionalDocumentEventArgs.AdditionalDocumentEventArgs(Microsoft.CodeAnalysis.AdditionalDocument document) -> void
-Microsoft.CodeAnalysis.AdditionalDocumentEventArgs.Document.get -> Microsoft.CodeAnalysis.AdditionalDocument
-Microsoft.CodeAnalysis.AnalyzerConfigDocumentEventArgs
-Microsoft.CodeAnalysis.AnalyzerConfigDocumentEventArgs.AnalyzerConfigDocumentEventArgs(Microsoft.CodeAnalysis.AnalyzerConfigDocument document) -> void
-Microsoft.CodeAnalysis.AnalyzerConfigDocumentEventArgs.Document.get -> Microsoft.CodeAnalysis.AnalyzerConfigDocument
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.FixAllContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan? diagnosticSpan, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingMember = 4 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
-Microsoft.CodeAnalysis.Workspace.AdditionalDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.AdditionalDocumentEventArgs>
-Microsoft.CodeAnalysis.Workspace.AdditionalDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.AdditionalDocumentEventArgs>
-Microsoft.CodeAnalysis.Workspace.AnalyzerConfigDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.AnalyzerConfigDocumentEventArgs>
-Microsoft.CodeAnalysis.Workspace.AnalyzerConfigDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.AnalyzerConfigDocumentEventArgs>
-Microsoft.CodeAnalysis.Workspace.RaiseAdditionalDocumentClosedEventAsync(Microsoft.CodeAnalysis.AdditionalDocument document) -> System.Threading.Tasks.Task
-Microsoft.CodeAnalysis.Workspace.RaiseAdditionalDocumentOpenedEventAsync(Microsoft.CodeAnalysis.AdditionalDocument document) -> System.Threading.Tasks.Task
-Microsoft.CodeAnalysis.Workspace.RaiseAnalyzerConfigDocumentClosedEventAsync(Microsoft.CodeAnalysis.AnalyzerConfigDocument document) -> System.Threading.Tasks.Task
-Microsoft.CodeAnalysis.Workspace.RaiseAnalyzerConfigDocumentOpenedEventAsync(Microsoft.CodeAnalysis.AnalyzerConfigDocument document) -> System.Threading.Tasks.Task
 static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
 static Microsoft.CodeAnalysis.Recommendations.Recommender.GetRecommendedSymbolsAtPositionAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>>
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions

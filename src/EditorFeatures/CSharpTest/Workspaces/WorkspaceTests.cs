@@ -869,16 +869,16 @@ class D { }
             using var closeWaiter = new EventWaiter();
             using var openWaiter = new EventWaiter();
             // Wrapping event handlers so they can notify us on being called.
-            var documentOpenedEventHandler = openWaiter.Wrap<AdditionalDocumentEventArgs>(
+            var documentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
                 (sender, args) => Assert.True(args.Document.Id == document.Id,
                 "The document given to the 'AdditionalDocumentOpened' event handler did not have the same id as the one created for the test."));
 
-            var documentClosedEventHandler = closeWaiter.Wrap<AdditionalDocumentEventArgs>(
+            var documentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
                 (sender, args) => Assert.True(args.Document.Id == document.Id,
                 "The document given to the 'AdditionalDocumentClosed' event handler did not have the same id as the one created for the test."));
 
-            workspace.AdditionalDocumentOpened += documentOpenedEventHandler;
-            workspace.AdditionalDocumentClosed += documentClosedEventHandler;
+            workspace.TextDocumentOpened += documentOpenedEventHandler;
+            workspace.TextDocumentClosed += documentClosedEventHandler;
 
             workspace.OpenAdditionalDocument(document.Id);
             workspace.CloseAdditionalDocument(document.Id);
@@ -895,8 +895,8 @@ class D { }
                                     string.Format("event 'AdditionalDocumentClosed' was not fired within {0} minutes.",
                                     longEventTimeout.Minutes));
 
-            workspace.AdditionalDocumentOpened -= documentOpenedEventHandler;
-            workspace.AdditionalDocumentClosed -= documentClosedEventHandler;
+            workspace.TextDocumentOpened -= documentOpenedEventHandler;
+            workspace.TextDocumentClosed -= documentClosedEventHandler;
 
             workspace.OpenAdditionalDocument(document.Id);
             workspace.CloseAdditionalDocument(document.Id);
@@ -930,16 +930,16 @@ class D { }
             using var closeWaiter = new EventWaiter();
             using var openWaiter = new EventWaiter();
             // Wrapping event handlers so they can notify us on being called.
-            var documentOpenedEventHandler = openWaiter.Wrap<AnalyzerConfigDocumentEventArgs>(
+            var documentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
                 (sender, args) => Assert.True(args.Document.Id == document.Id,
                 "The document given to the 'AnalyzerConfigDocumentOpened' event handler did not have the same id as the one created for the test."));
 
-            var documentClosedEventHandler = closeWaiter.Wrap<AnalyzerConfigDocumentEventArgs>(
+            var documentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
                 (sender, args) => Assert.True(args.Document.Id == document.Id,
                 "The document given to the 'AnalyzerConfigDocumentClosed' event handler did not have the same id as the one created for the test."));
 
-            workspace.AnalyzerConfigDocumentOpened += documentOpenedEventHandler;
-            workspace.AnalyzerConfigDocumentClosed += documentClosedEventHandler;
+            workspace.TextDocumentOpened += documentOpenedEventHandler;
+            workspace.TextDocumentClosed += documentClosedEventHandler;
 
             workspace.OpenAnalyzerConfigDocument(document.Id);
             workspace.CloseAnalyzerConfigDocument(document.Id);
@@ -956,8 +956,8 @@ class D { }
                                     string.Format("event 'AnalyzerConfigDocumentClosed' was not fired within {0} minutes.",
                                     longEventTimeout.Minutes));
 
-            workspace.AnalyzerConfigDocumentOpened -= documentOpenedEventHandler;
-            workspace.AnalyzerConfigDocumentClosed -= documentClosedEventHandler;
+            workspace.TextDocumentOpened -= documentOpenedEventHandler;
+            workspace.TextDocumentClosed -= documentClosedEventHandler;
 
             workspace.OpenAnalyzerConfigDocument(document.Id);
             workspace.CloseAnalyzerConfigDocument(document.Id);

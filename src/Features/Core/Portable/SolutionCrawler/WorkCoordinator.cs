@@ -70,12 +70,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
                 _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                _registration.Workspace.DocumentClosed += OnDocumentClosed;
-                _registration.Workspace.AdditionalDocumentOpened += OnAdditionalDocumentOpened;
-                _registration.Workspace.AdditionalDocumentClosed += OnAdditionalDocumentClosed;
-                _registration.Workspace.AnalyzerConfigDocumentOpened += OnAnalyzerConfigDocumentOpened;
-                _registration.Workspace.AnalyzerConfigDocumentClosed += OnAnalyzerConfigDocumentClosed;
+                _registration.Workspace.TextDocumentOpened += OnTextDocumentOpened;
+                _registration.Workspace.TextDocumentClosed += OnTextDocumentClosed;
 
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
@@ -104,12 +100,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                _registration.Workspace.DocumentOpened -= OnDocumentOpened;
-                _registration.Workspace.DocumentClosed -= OnDocumentClosed;
-                _registration.Workspace.AdditionalDocumentOpened -= OnAdditionalDocumentOpened;
-                _registration.Workspace.AdditionalDocumentClosed -= OnAdditionalDocumentClosed;
-                _registration.Workspace.AnalyzerConfigDocumentOpened -= OnAnalyzerConfigDocumentOpened;
-                _registration.Workspace.AnalyzerConfigDocumentClosed -= OnAnalyzerConfigDocumentClosed;
+                _registration.Workspace.TextDocumentOpened -= OnTextDocumentOpened;
+                _registration.Workspace.TextDocumentClosed -= OnTextDocumentClosed;
 
                 // cancel any pending blocks
                 _shutdownNotificationSource.Cancel();
@@ -297,39 +289,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnDocumentOpened(object? sender, DocumentEventArgs e)
+            private void OnTextDocumentOpened(object? sender, TextDocumentEventArgs e)
             {
-                _eventProcessingQueue.ScheduleTask("OnDocumentOpened",
+                _eventProcessingQueue.ScheduleTask("OnTextDocumentOpened",
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
             }
 
-            private void OnDocumentClosed(object? sender, DocumentEventArgs e)
+            private void OnTextDocumentClosed(object? sender, TextDocumentEventArgs e)
             {
-                _eventProcessingQueue.ScheduleTask("OnDocumentClosed",
-                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
-            }
-
-            private void OnAdditionalDocumentOpened(object? sender, AdditionalDocumentEventArgs e)
-            {
-                _eventProcessingQueue.ScheduleTask("OnAdditionalDocumentOpened",
-                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
-            }
-
-            private void OnAdditionalDocumentClosed(object? sender, AdditionalDocumentEventArgs e)
-            {
-                _eventProcessingQueue.ScheduleTask("OnAdditionalDocumentClosed",
-                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
-            }
-
-            private void OnAnalyzerConfigDocumentOpened(object? sender, AnalyzerConfigDocumentEventArgs e)
-            {
-                _eventProcessingQueue.ScheduleTask("OnAnalyzerConfigDocumentOpened",
-                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
-            }
-
-            private void OnAnalyzerConfigDocumentClosed(object? sender, AnalyzerConfigDocumentEventArgs e)
-            {
-                _eventProcessingQueue.ScheduleTask("OnAnalyzerConfigDocumentClosed",
+                _eventProcessingQueue.ScheduleTask("OnTextDocumentClosed",
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
             }
 
