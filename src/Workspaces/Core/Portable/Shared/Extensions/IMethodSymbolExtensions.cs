@@ -184,12 +184,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Many static predicates use the same state argument in this method
             var arg = (removeAttributeTypes, accessibleWithin);
 
-            var methodHasAttribute = method.GetAttributes().Any(static (attribute, arg) => shouldRemoveAttribute(attribute, arg), arg);
+            var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute, arg);
 
             var someParameterHasAttribute = method.Parameters
-                .Any(static (m, arg) => m.GetAttributes().Any(static (attribute, arg) => shouldRemoveAttribute(attribute, arg), arg), arg);
+                .Any(static (m, arg) => m.GetAttributes().Any(shouldRemoveAttribute, arg), arg);
 
-            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(static (attribute, arg) => shouldRemoveAttribute(attribute, arg), arg);
+            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute, arg);
 
             if (!methodHasAttribute && !someParameterHasAttribute && !returnTypeHasAttribute)
             {

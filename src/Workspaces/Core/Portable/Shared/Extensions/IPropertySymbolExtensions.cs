@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var arg = (attributesToRemove, accessibleWithin);
 
             var someParameterHasAttribute = property.Parameters
-                .Any(static (p, arg) => p.GetAttributes().Any(static (attribute, arg) => shouldRemoveAttribute(attribute, arg), arg), arg);
+                .Any(static (p, arg) => p.GetAttributes().Any(shouldRemoveAttribute, arg), arg);
             if (!someParameterHasAttribute)
             {
                 return property;
