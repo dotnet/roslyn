@@ -209,140 +209,16 @@ end class
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
         End Sub
 
-        <Fact>
-        Public Sub FindFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-            Dim source = "
-<XAttribute>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-            Dim source = "
-<A.X>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindDottedFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-            Dim source = "
-<A.XAttribute>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindDottedGenericAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-            Dim source = "
-<A.X(Of Y)>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindGlobalAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-            Dim source = "
-<global.X>
-class C
-end class
-"
-            Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
-
-            Assert.Single(compilation.SyntaxTrees)
-
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.ForAttributeWithSimpleName(Of ClassStatementSyntax)("XAttribute")
-                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
-                                                                                                                              End Sub)
-                                                                                          End Sub))
-
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
-            driver = driver.RunGenerators(compilation)
-            Dim runResult = driver.GetRunResult().Results(0)
-
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub FindGlobalDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-            Dim source = "
-<global.A.X>
+        <Theory>
+        <InlineData("XAttribute")>
+        <InlineData("A.X")>
+        <InlineData("A.XAttribute")>
+        <InlineData("A.X(Of Y)")>
+        <InlineData("global.X")>
+        <InlineData("global.A.X")>
+        Public Sub FindFullAttributeNameOnTopLevelClass(attribute As String)
+            Dim source = $"
+<{attribute}>
 class C
 end class
 "

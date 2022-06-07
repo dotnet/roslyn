@@ -205,142 +205,18 @@ class C { }
         Assert.Equal(1, counter);
     }
 
-    [Fact]
-    public void FindFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
+    [Theory]
+    [InlineData("XAttribute")]
+    [InlineData("A.X")]
+    [InlineData("A.XAttribute")]
+    [InlineData("A.X<Y>")]
+    [InlineData("global::X")]
+    [InlineData("global::A.X")]
+    public void FindFullAttributeNameOnTopLevelClass(string attribute)
     {
-        var source = @"
-[XAttribute]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-    {
-        var source = @"
-[A.X]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindDottedFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-    {
-        var source = @"
-[A.XAttribute]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindDottedGenericAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-    {
-        var source = @"
-[A.X<Y>]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindGlobalAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-    {
-        var source = @"
-[global::X]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindGlobalDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
-    {
-        var source = @"
-[global::A.X]
-class C { }
+        var source = @$"
+[{attribute}]
+class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
