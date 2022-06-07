@@ -717,8 +717,8 @@ End Class
 
             CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
-<FieldOffset>
- ~~~~~~~~~~~
+    <FieldOffset>
+     ~~~~~~~~~~~
 ]]>)
         End Sub
 
