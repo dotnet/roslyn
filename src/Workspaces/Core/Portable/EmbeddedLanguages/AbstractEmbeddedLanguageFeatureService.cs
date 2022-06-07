@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,14 +27,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         /// <summary>
         /// Services that can annotated older APIs not updated to use the [StringSyntax] attribute.
         /// </summary>
-        protected readonly ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>> LegacyServices;
+        private readonly ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>> _legacyServices;
 
         /// <summary>
         /// Ordered mapping of a lang ID (like 'Json') to all the services for that language. This allows for multiple
         /// classifiers to be available.  The first service though that returns results for a string will 'win' and no
         /// other services will contribute.
         /// </summary>
-        protected readonly Dictionary<string, ArrayBuilder<Lazy<TService, EmbeddedLanguageMetadata>>> IdentifierToServices = new(StringComparer.OrdinalIgnoreCase);
+        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>>> _identifierToServices;
 
         /// <summary>
         /// Information about the embedded language.
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         /// <summary>
         /// Helper to look at string literals and determine what language they are annotated to take.
         /// </summary>
-        protected readonly EmbeddedLanguageDetector Detector;
+        private readonly EmbeddedLanguageDetector _detector;
 
         protected AbstractEmbeddedLanguageFeatureService(
             string languageName,
@@ -55,19 +56,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             var orderedClassifiers = ExtensionOrderer.Order(allServices).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
 
             // Grab out the services that handle unannotated literals and APIs.
-            LegacyServices = orderedClassifiers.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
+            _legacyServices = orderedClassifiers.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
+
+            using var _ = PooledDictionary<string, ArrayBuilder<Lazy<TService, EmbeddedLanguageMetadata>>>.GetInstance(out var map);
 
             foreach (var classifier in orderedClassifiers)
             {
                 foreach (var identifier in classifier.Metadata.Identifiers)
-                    IdentifierToServices.MultiAdd(identifier, classifier);
+                    map.MultiAdd(identifier, classifier);
             }
 
-            foreach (var (_, services) in IdentifierToServices)
+            foreach (var (_, services) in map)
                 services.RemoveDuplicates();
 
+            this._identifierToServices = map.ToImmutableDictionary(
+                kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree(), StringComparer.OrdinalIgnoreCase);
+
             Info = info;
-            Detector = new EmbeddedLanguageDetector(info, IdentifierToServices.Keys.ToImmutableArray());
+            _detector = new EmbeddedLanguageDetector(info, _identifierToServices.Keys.ToImmutableArray());
 
             SyntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
             SyntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
@@ -78,6 +84,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             SyntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8StringLiteralToken);
             SyntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8SingleLineRawStringLiteralToken);
             SyntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8MultiLineRawStringLiteralToken);
+        }
+
+        protected ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>> GetServices(
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            CancellationToken cancellationToken)
+        {
+            // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
+            // so, delegate to the first classifier we have registered for whatever language ID we find.
+            if (this._detector.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var identifier, out _) &&
+                _identifierToServices.TryGetValue(identifier, out var services))
+            {
+                Contract.ThrowIfTrue(services.IsDefaultOrEmpty);
+                return services;
+            }
+
+            // If not, see if any of our legacy services might be able to handle this.
+            return _legacyServices;
         }
     }
 }

@@ -114,31 +114,15 @@ namespace Microsoft.CodeAnalysis.Classification
                     var context = new EmbeddedLanguageClassificationContext(
                         _project, _semanticModel, token, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
 
-                    // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
-                    // so, delegate to the first classifier we have registered for whatever language ID we find.
-                    if (_owner.Detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
-                        _owner.IdentifierToServices.TryGetValue(identifier, out var classifiers))
+                    var classifiers = _owner.GetServices(_semanticModel, token, _cancellationToken);
+                    foreach (var classifier in classifiers)
                     {
-                        foreach (var classifier in classifiers)
-                        {
-                            // If this classifier added values then need to check the other ones.
-                            if (TryClassify(classifier.Value, context))
-                                return;
-                        }
-                    }
-                    else
-                    {
-                        // It wasn't an annotated API.  See if it's some legacy API our historical classifiers have direct
-                        // support for (for example, .net APIs prior to Net6).
-                        foreach (var legacyClassifier in _owner.LegacyServices)
-                        {
-                            // If this classifier added values then need to check the other ones.
-                            if (TryClassify(legacyClassifier.Value, context))
-                                return;
-                        }
+                        // If this classifier added values then need to check the other ones.
+                        if (TryClassify(classifier.Value, context))
+                            return;
                     }
 
-                    // Finally, give the fallback classifier a chance to classify basic language escapes.
+                    // If not other classifier classified this, then give the fallback classifier a chance to classify basic language escapes.
                     TryClassify(_owner._fallbackClassifier, context);
                 }
             }

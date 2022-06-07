@@ -41,30 +41,13 @@ namespace Microsoft.CodeAnalysis.BraceMatching
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
-            // so, delegate to the first matcher we have registered for whatever language ID we find.
-            if (this.Detector.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var identifier, out _) &&
-                this.IdentifierToServices.TryGetValue(identifier, out var braceMatchers))
+            var braceMatchers = GetServices(semanticModel, token, cancellationToken);
+            foreach (var braceMatcher in braceMatchers)
             {
-                foreach (var braceMatcher in braceMatchers)
-                {
-                    // If this service added values then need to check the other ones.
-                    var result = braceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
-                    if (result.HasValue)
-                        return result;
-                }
-            }
-            else
-            {
-                // It wasn't an annotated API.  See if it's some legacy API our legacy matchers have direct
-                // support for (for example, .net APIs prior to Net6).
-                foreach (var legacyBraceMatcher in this.LegacyServices)
-                {
-                    // If this service added values then need to check the other ones.
-                    var result = legacyBraceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
-                    if (result.HasValue)
-                        return result;
-                }
+                // If this service added values then need to check the other ones.
+                var result = braceMatcher.Value.FindBraces(semanticModel, token, position, options, cancellationToken);
+                if (result.HasValue)
+                    return result;
             }
 
             return null;
