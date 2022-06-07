@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Host
                 await AddCompilationsForVisibleDocumentsAsync(
                     workspace.CurrentSolution, compilations, source.Token).ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (!disposalToken.IsCancellationRequested)
             {
-                // Don't bubble up cancellation to the queue.  Just because we decided to cancel this batch isn't
-                // something the queue should be aware of.
+                // Don't bubble up cancellation to the queue for our own internal cancellation.  Just because we decided
+                // to cancel this batch isn't something the queue should be aware of.
             }
         }
 
