@@ -1025,6 +1025,64 @@ Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(IsClassStatementW
             Sub(s) Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason))
         End Sub
 
+        <Fact>
+        Public Sub RerunWithChangedFileThatNowReferencesAttribute1()
+            Dim source = "
+class C
+end class
+
+class XAttribute
+    inherits System.Attribute
+end class
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)("XAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"))
+
+            driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
+            compilation.SyntaxTrees.First(),
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
+<X>
+class C
+end class
+
+class XAttribute
+    inherits System.Attribute
+end class
+"))))
+
+            runResult = driver.GetRunResult().Results(0)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+
+            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
+                Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason))
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("compilationGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("groupedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("compilationAndGroupedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("result_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
+        End Sub
+
 #End Region
     End Class
 End Namespace
