@@ -780,14 +780,16 @@ using AAttribute = XAttribute;
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
     }
 
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasInSameFile1()
+    [Theory]
+    [InlineData("A = XAttribute")]
+    [InlineData("AAttribute = XAttribute")]
+    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasInSameFile1(string alias)
     {
-        var source = @"
-global using A = XAttribute;
+        var source = @$"
+global using {alias};
 
 [A]
-class C { }
+class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
@@ -808,43 +810,17 @@ class C { }
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
     }
 
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasInSameFile2()
+    [Theory]
+    [InlineData("B = AAttribute")]
+    [InlineData("BAttribute = AAttribute")]
+    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasInSameFile1(string alias)
     {
-        var source = @"
+        var source = @$"
 global using AAttribute = XAttribute;
-
-[A]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasInSameFile1()
-    {
-        var source = @"
-global using AAttribute = XAttribute;
-using B = AAttribute;
+using {alias};
 
 [B]
-class C { }
+class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
@@ -865,72 +841,17 @@ class C { }
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
     }
 
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasInSameFile2()
-    {
-        var source = @"
-global using AAttribute = XAttribute;
-using BAttribute = AAttribute;
-
-[B]
-class C { }
-";
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile1()
+    [Theory]
+    [InlineData("A = XAttribute")]
+    [InlineData("AAttribute = XAttribute")]
+    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile1(string alias)
     {
         var source1 = @"
 [A]
 class C { }
 ";
-        var source2 = @"
-global using A = XAttribute;
-";
-
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
-    }
-
-    [Fact]
-    public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile2()
-    {
-        var source1 = @"
-[A]
-class C { }
-";
-        var source2 = @"
-global using AAttribute = XAttribute;
+        var source2 = @$"
+global using {alias};
 ";
 
         var parseOptions = TestOptions.RegularPreview;
