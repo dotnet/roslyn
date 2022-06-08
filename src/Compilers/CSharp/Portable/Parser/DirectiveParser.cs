@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // don't consume EOL characters here
                     break;
                 }
-                else if (ch is SlidingTextWindow.InvalidCharacter && !textWindow.IsReallyAtEnd())
+                else if (ch is SlidingTextWindow.InvalidCharacter && textWindow.IsReallyAtEnd())
                 {
                     // don't consume EOF characters here
                     break;
