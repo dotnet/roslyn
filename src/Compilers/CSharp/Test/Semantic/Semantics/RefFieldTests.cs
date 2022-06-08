@@ -674,6 +674,77 @@ class Program
             Assert.Equal(expectedDisplayString, field.ToTestDisplayString());
         }
 
+        [CombinatorialData]
+        [Theory]
+        public void RuntimeFeature(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Attribute
+    {
+    }
+}";
+            var sourceB =
+@"namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeFeature
+    {
+        public const string ByRefFields = nameof(ByRefFields);
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA }, parseOptions: TestOptions.Regular10);
+            var refA = AsReference(comp, useCompilationReference);
+
+            comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular10);
+            var refAB = AsReference(comp, useCompilationReference);
+
+            var source =
+@"ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+class Program
+{
+    static ref T F<T>(R<T> r)
+    {
+        return ref r.F;
+    }
+}";
+
+            comp = CreateEmptyCompilation(source, references: new[] { refA }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public ref T F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
+                // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
+                //         return ref r.F;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
+            Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
+
+            comp = CreateEmptyCompilation(source, references: new[] { refAB }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public ref T F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12));
+            Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+
+            comp = CreateEmptyCompilation(source, references: new[] { refA });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
+
+            comp = CreateEmptyCompilation(source, references: new[] { refAB });
+            comp.VerifyDiagnostics();
+            Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+        }
+
         [Fact]
         public void RefFields_RefEscape()
         {
@@ -718,7 +789,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -765,7 +836,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -840,7 +911,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -978,7 +1049,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1084,7 +1155,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1345,7 +1416,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1399,7 +1470,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1445,7 +1516,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1563,7 +1634,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1678,7 +1749,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1763,7 +1834,7 @@ class C
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
@@ -1949,7 +2020,7 @@ class Program
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(IsNet70OrGreater() ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
+            comp.VerifyDiagnostics(comp.Assembly.RuntimeSupportsByRefFields ? expectedUpdatedDiagnostics : expectedLegacyDiagnostics);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(expectedUpdatedDiagnostics);
