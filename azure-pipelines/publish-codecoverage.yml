@@ -21,7 +21,8 @@ steps:
     Write-Host 'Substituting {reporoot} with $(System.DefaultWorkingDirectory)'
     $reports = Get-ChildItem -Recurse '$(Pipeline.Workspace)/*.cobertura.xml'
     $reports |% {
-        $content = Get-Content -Path $_ |% { $_.Replace('{reporoot}', '$(System.DefaultWorkingDirectory)') }
+        # In addition to replacing {reporoot}, we also normalize on one kind of slash so that the report aggregates data for a file whether data was collected on Windows or not.
+        $content = Get-Content -Path $_ |% { [Regex]::Replace($_, '{reporoot}([^"]+)', { '$(System.DefaultWorkingDirectory)' + $args[0].groups[1].value.replace([IO.Path]::AltDirectorySeparatorChar, [IO.Path]::DirectorySeparatorChar) }) }
         Set-Content -Path $_ -Value $content -Encoding UTF8
     }
 
