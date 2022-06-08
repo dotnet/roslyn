@@ -62,6 +62,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
+            if (!context.CompletionOptions.ShouldShowNewSnippetExperience())
+            {
+                return;
+            }
+
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var position = context.Position;
