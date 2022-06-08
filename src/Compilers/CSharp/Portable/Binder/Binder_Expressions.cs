@@ -4837,7 +4837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
                             {
                                 var handlerPlaceholders = operand.GetInterpolatedStringHandlerData().ArgumentPlaceholders;
-                                if (handlerPlaceholders.Any(placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
+                                if (handlerPlaceholders.Any(static placeholder => placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
                                     hasErrors = true;
@@ -6753,7 +6753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ImplementsWinRTAsyncInterface(TypeSymbol type)
         {
-            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(i => IsWinRTAsyncInterface(i));
+            return IsWinRTAsyncInterface(type) || type.AllInterfacesNoUseSiteDiagnostics.Any(static (i, self) => self.IsWinRTAsyncInterface(i), this);
         }
 
         private bool IsWinRTAsyncInterface(TypeSymbol type)
@@ -8925,7 +8925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(refKind => refKind != RefKind.None);
+            bool hasByRefParameters = !parameterRefKinds.IsDefault && parameterRefKinds.Any(static refKind => refKind != RefKind.None);
 
             // Use System.Action<...> or System.Func<...> if possible.
             if (returnRefKind == RefKind.None && !hasByRefParameters)

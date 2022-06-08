@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // It is still possible that we actually looked for the accessor in interfaces, but failed due to an ambiguity.
                 // Let's try to look for a property to improve diagnostics in this scenario.
-                return !symbolAndDiagnostics.Diagnostics.Diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_MostSpecificImplementationIsNotFound);
+                return !symbolAndDiagnostics.Diagnostics.Diagnostics.Any(static d => d.Code == (int)ErrorCode.ERR_MostSpecificImplementationIsNotFound);
             }
         }
 

@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var rules = GetCompletionItemRules(symbols, context);
 
-            var preselect = symbols.Any(t => t.preselect);
+            var preselect = symbols.Any(static t => t.preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0].symbol) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 

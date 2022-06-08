@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
                         // So check if the symbol's location encompasses the span of the token we're asking about.
-                        if (symbol.Locations.Any(loc => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan)))
+                        if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
                             return symbol;
                     }
                     else
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
+            return syntaxRefs.Any(static (n, cancellationToken) => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword), cancellationToken);
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(
