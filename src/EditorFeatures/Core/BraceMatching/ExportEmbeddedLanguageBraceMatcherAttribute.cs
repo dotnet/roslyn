@@ -7,14 +7,14 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     /// <summary>
-    /// Use this attribute to export a <see cref="IEmbeddedLanguageClassifier"/>.
+    /// Use this attribute to export a <see cref="IEmbeddedLanguageBraceMatcher"/>.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportEmbeddedLanguageClassifierAttribute : ExportAttribute
+    internal class ExportEmbeddedLanguageBraceMatcherAttribute : ExportAttribute
     {
         /// <summary>
         /// Name of the classifier.
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </remarks>
         public string[] Identifiers { get; }
 
-        public ExportEmbeddedLanguageClassifierAttribute(
+        public ExportEmbeddedLanguageBraceMatcherAttribute(
             string name, string language, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageClassifier))
+            : base(typeof(IEmbeddedLanguageBraceMatcher))
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Language = language ?? throw new ArgumentNullException(nameof(language));
@@ -47,18 +47,18 @@ namespace Microsoft.CodeAnalysis.Classification
     }
 
     /// <summary>
-    /// Internal version of <see cref="ExportEmbeddedLanguageClassifierAttribute"/>.  Used so we can allow regex/json to
-    /// still light up on legacy APIs not using the new [StringSyntax] attribute the runtime added.  For public
+    /// Internal version of <see cref="ExportEmbeddedLanguageBraceMatcherAttribute"/>.  Used so we can allow regex/json
+    /// to still light up on legacy APIs not using the new [StringSyntax] attribute the runtime added.  For public
     /// extensions that's the only mechanism we support.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportEmbeddedLanguageClassifierInternalAttribute : ExportEmbeddedLanguageClassifierAttribute
+    internal sealed class ExportEmbeddedLanguageBraceMatcherInternalAttribute : ExportEmbeddedLanguageBraceMatcherAttribute
     {
         /// <inheritdoc cref="EmbeddedLanguageMetadata.SupportsUnannotatedAPIs"/>
         public bool SupportsUnannotatedAPIs { get; }
 
-        public ExportEmbeddedLanguageClassifierInternalAttribute(
+        public ExportEmbeddedLanguageBraceMatcherInternalAttribute(
             string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
             : base(name, language, identifiers)
         {
