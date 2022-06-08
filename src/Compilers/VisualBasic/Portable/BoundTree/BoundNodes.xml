@@ -79,7 +79,7 @@
          the l-value node; in lowering it is being substituted with rewritten l-value 
          converted to an r-value 
     -->
-    <Node Name="BoundLValueToRValueWrapper" Base="BoundExpression" HasValidate="true">
+    <Node Name="BoundLValueToRValueWrapper" Base="BoundExpression">
         <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
         <Field Name="UnderlyingLValue" Type="BoundExpression" Null="disallow" />
     </Node>
