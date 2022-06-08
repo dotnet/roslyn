@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         }
 
         protected static void TryClassifyStaticSymbol(
-            ISymbol? symbol,
+            ISymbol symbol,
             TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
         }
 
-        protected static bool IsStaticSymbol(ISymbol? symbol)
+        protected static bool IsStaticSymbol(ISymbol symbol)
         {
-            if (symbol is null || !symbol.IsStatic)
+            if (!symbol.IsStatic)
             {
                 return false;
             }
