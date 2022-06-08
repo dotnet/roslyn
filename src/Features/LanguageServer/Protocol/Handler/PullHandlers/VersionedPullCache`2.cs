@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -69,9 +70,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TExpensiveVersion expensiveVersion;
 
             var workspace = document.Project.Solution.Workspace;
+
+            // We have to make sure we've been fully loaded before using cached results as the previous results may not be complete.
+            var isFullyLoaded = await IsFullyLoadedAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (documentToPreviousResult.TryGetValue(document, out var previousResult) &&
+                if (isFullyLoaded && documentToPreviousResult.TryGetValue(document, out var previousResult) &&
                     previousResult.PreviousResultId != null &&
                     _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
                     lastResult.resultId == previousResult.PreviousResultId)
@@ -116,6 +120,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, cheapVersion, expensiveVersion);
                 return newResultId;
             }
+        }
+
+        private static async Task<bool> IsFullyLoadedAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var workspaceStatusService = solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var isFullyLoaded = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            return isFullyLoaded;
         }
     }
 }

@@ -690,9 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(containingType.IsDefinition);
             return type is TypeParameterSymbol p &&
-                // https://github.com/dotnet/roslyn/issues/53801: For now assuming the type parameter must belong to the containing type.
                 (object)p.ContainingSymbol == containingType &&
-                // https://github.com/dotnet/roslyn/issues/53801: For now assume containing type must be one of the directly specified constraints.
                 p.ConstraintTypesNoUseSiteDiagnostics.Any((typeArgument, containingType) => typeArgument.Type.Equals(containingType, ComparisonForUserDefinedOperators),
                                                           containingType);
         }

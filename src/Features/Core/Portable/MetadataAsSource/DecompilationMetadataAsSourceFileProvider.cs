@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // If the assembly wants to suppress decompilation we respect that
             if (useDecompiler)
             {
-                useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
+                useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                     && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
             }
 

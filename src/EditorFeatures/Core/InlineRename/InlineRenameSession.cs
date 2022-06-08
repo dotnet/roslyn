@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var documents = textBuffer.AsTextContainer().GetRelatedDocuments();
 
-                if (!documents.Any(d => locationsByDocument.Contains(d.Id)))
+                if (!documents.Any(static (d, locationsByDocument) => locationsByDocument.Contains(d.Id), locationsByDocument))
                 {
                     _openTextBuffers[textBuffer].SetReferenceSpans(SpecializedCollections.EmptyEnumerable<TextSpan>());
                 }

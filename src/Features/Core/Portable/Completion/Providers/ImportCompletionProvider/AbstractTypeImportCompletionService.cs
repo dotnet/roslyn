@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool HasGlobalAlias(ImmutableArray<string> aliases)
-            => aliases.IsEmpty || aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
+            => aliases.IsEmpty || aliases.Any(static alias => alias == MetadataReferenceProperties.GlobalAlias);
 
         private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
             => peReference.FilePath ?? peReference.Display;

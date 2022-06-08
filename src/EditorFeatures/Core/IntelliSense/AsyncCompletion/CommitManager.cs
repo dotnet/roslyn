@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
                 // (regardless of whether that filter button was active at the time of commit).
                 AsyncCompletionLogger.LogCommitWithTargetTypeCompletionExperimentEnabled();
-                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                if (item.Filters.Any(static f => f.DisplayText == FeaturesResources.Target_type_matches))
                 {
                     AsyncCompletionLogger.LogCommitItemWithTargetTypeFilter();
                 }
