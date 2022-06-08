@@ -2,7 +2,7 @@
 
 ## Required spaces in #line span directives
 
-***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
 
 When the `#line` span directive was introduced in C# 10, it required no particular spacing.  
 For example, this would be valid: `#line(1,2)-(3,4)5"file.cs"`.
