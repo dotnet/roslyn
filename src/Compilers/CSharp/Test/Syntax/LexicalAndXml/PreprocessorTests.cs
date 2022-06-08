@@ -2197,7 +2197,7 @@ class Test
             VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestRegionWithMessage1()
         {
@@ -2218,7 +2218,7 @@ class Test
             Assert.Equal("\"", regionText.ToFullString());
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestRegionWithMessage2()
         {
@@ -2239,7 +2239,7 @@ class Test
             Assert.Equal("\"goo\"", regionText.ToFullString());
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestRegionWithMessage3()
         {
@@ -2260,7 +2260,7 @@ class Test
             Assert.Equal("\"\"", regionText.ToFullString());
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestRegionWithMessage4()
         {
@@ -3190,7 +3190,7 @@ class A { }
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestErrorWithStringMessage1()
         {
@@ -3201,7 +3201,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestErrorWithStringMessage2()
         {
@@ -3212,7 +3212,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestErrorWithStringMessage3()
         {
@@ -3223,7 +3223,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact]
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
         [Trait("Feature", "Directives")]
         public void TestErrorWithStringMessage4()
         {
