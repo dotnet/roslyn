@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 foreach (var (propertyName, propertyValues) in statMap)
                 {
-                    var result = CountLogAggregator<object>.GetStatistics(propertyValues);
+                    var result = StatisticResult.FromList(propertyValues);
 
                     m[CreateProperty(propertyName, Max)] = result.Maximum;
                     m[CreateProperty(propertyName, Min)] = result.Minimum;
