@@ -1459,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal uint GetInvocationEscapeScope(
             Symbol symbol,
-            BoundExpression? receiverOpt,
+            BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
-                receiverOpt = null;
+                receiver = null;
             }
 
             //by default it is safe to escape
@@ -1513,7 +1513,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs, out var scope);
+                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs, out DeclarationScope scope);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1556,9 +1556,9 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsRefLikeType == true)
+            if (receiver?.Type?.IsRefLikeType == true)
             {
-                escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
+                escapeScope = Math.Max(escapeScope, GetValEscape(receiver, scopeOfTheContainingExpression));
             }
 
             return escapeScope;
@@ -1575,7 +1575,7 @@ moreArguments:
         private bool CheckInvocationEscape(
             SyntaxNode syntax,
             Symbol symbol,
-            BoundExpression? receiverOpt,
+            BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1596,7 +1596,7 @@ moreArguments:
             if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
-                receiverOpt = null;
+                receiver = null;
             }
 
             ArrayBuilder<bool>? inParametersMatchedWithArgs = null;
@@ -1623,7 +1623,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs, out var scope);
+                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs, out DeclarationScope scope);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1688,9 +1688,9 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsRefLikeType == true)
+            if (receiver?.Type?.IsRefLikeType == true)
             {
-                return CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, false, diagnostics);
+                return CheckValEscape(receiver.Syntax, receiver, escapeFrom, escapeTo, false, diagnostics);
             }
 
             return true;
@@ -2337,7 +2337,7 @@ moreArguments:
 
                         return GetInvocationEscapeScope(
                             methodSymbol,
-                            receiverOpt: null,
+                            receiver: null,
                             methodSymbol.Parameters,
                             ptrInvocation.Arguments,
                             ptrInvocation.ArgumentRefKindsOpt,
@@ -2879,7 +2879,7 @@ moreArguments:
 
                     return GetInvocationEscapeScope(
                         ptrSymbol,
-                        receiverOpt: null,
+                        receiver: null,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
@@ -3325,7 +3325,7 @@ moreArguments:
                     return CheckInvocationEscape(
                         ptrInvocation.Syntax,
                         ptrSymbol,
-                        receiverOpt: null,
+                        receiver: null,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
