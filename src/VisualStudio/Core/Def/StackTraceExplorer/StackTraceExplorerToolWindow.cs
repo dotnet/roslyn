@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             // where the window shows on code that parses as a stack frame but may not be. The explorer
             // should still handle those cases if explicitly pasted in, but can lead to false positives 
             // when automatically opening.
-            return firstNodeOrToken.Token.LeadingTrivia.Any(t => t.Kind == StackFrameKind.AtTrivia);
+            return firstNodeOrToken.Token.LeadingTrivia.Any(static t => t.Kind == StackFrameKind.AtTrivia);
         }
 
         public void InitializeIfNeeded(RoslynPackage roslynPackage)

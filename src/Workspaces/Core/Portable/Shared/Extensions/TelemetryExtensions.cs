@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {
             // we log diagnostic id as it is if it is from us
-            if (diagnostic.Descriptor.ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry))
+            if (diagnostic.Descriptor.ImmutableCustomTags().Any(static t => t == WellKnownDiagnosticTags.Telemetry))
             {
                 return diagnostic.Id;
             }

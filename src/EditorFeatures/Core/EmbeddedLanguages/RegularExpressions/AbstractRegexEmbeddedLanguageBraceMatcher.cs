@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
@@ -21,20 +19,26 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexBraceMatcher : IBraceMatcher
+    internal abstract class AbstractRegexEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
-        private readonly RegexEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public RegexBraceMatcher(RegexEmbeddedLanguage language)
-            => _language = language;
+        protected AbstractRegexEmbeddedLanguageBraceMatcher(EmbeddedLanguageInfo info)
+            => _info = info;
 
-        public async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+        public BraceMatchingResult? FindBraces(
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            int position,
+            BraceMatchingOptions options,
+            CancellationToken cancellationToken)
         {
             if (!options.HighlightingOptions.HighlightRelatedRegexComponentsUnderCursor)
                 return null;
 
-            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
             return tree == null ? null : GetMatchingBraces(tree, position);
         }
 
@@ -83,15 +87,15 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
             return node == null ? null : CreateResult(node.OpenBracketToken, node.CloseBracketToken);
         }
 
-        private static RegexGroupingNode FindGroupingNode(RegexNode node, VirtualChar ch)
+        private static RegexGroupingNode? FindGroupingNode(RegexNode node, VirtualChar ch)
             => FindNode<RegexGroupingNode>(node, ch, (grouping, c) =>
                     grouping.OpenParenToken.VirtualChars.Contains(c) || grouping.CloseParenToken.VirtualChars.Contains(c));
 
-        private static RegexBaseCharacterClassNode FindCharacterClassNode(RegexNode node, VirtualChar ch)
+        private static RegexBaseCharacterClassNode? FindCharacterClassNode(RegexNode node, VirtualChar ch)
             => FindNode<RegexBaseCharacterClassNode>(node, ch, (grouping, c) =>
                     grouping.OpenBracketToken.VirtualChars.Contains(c) || grouping.CloseBracketToken.VirtualChars.Contains(c));
 
-        private static TNode FindNode<TNode>(RegexNode node, VirtualChar ch, Func<TNode, VirtualChar, bool> predicate)
+        private static TNode? FindNode<TNode>(RegexNode node, VirtualChar ch, Func<TNode, VirtualChar, bool> predicate)
             where TNode : RegexNode
         {
             if (node is TNode nodeMatch && predicate(nodeMatch, ch))

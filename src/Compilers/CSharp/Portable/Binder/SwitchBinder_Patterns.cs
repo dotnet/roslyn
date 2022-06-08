@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If no switch sections are subsumed, just return
-            if (!switchSections.Any(static (s, reachableLabels) => s.SwitchLabels.Any(static (l, reachableLabels) => isSubsumed(l, reachableLabels), reachableLabels), reachableLabels))
+            if (!switchSections.Any(static (s, reachableLabels) => s.SwitchLabels.Any(isSubsumed, reachableLabels), reachableLabels))
             {
                 return;
             }

@@ -3,40 +3,39 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 
     /// <summary>
-    /// Brace matching impl for embedded json strings.
+    /// Brace matcher impl for embedded json strings.
     /// </summary>
-    internal class JsonEmbeddedBraceMatcher : IBraceMatcher
+    internal abstract class AbstractJsonEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
         private readonly EmbeddedLanguageInfo _info;
 
-        public JsonEmbeddedBraceMatcher(EmbeddedLanguageInfo info)
+        public AbstractJsonEmbeddedLanguageBraceMatcher(EmbeddedLanguageInfo info)
         {
             _info = info;
         }
 
-        public async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+        public BraceMatchingResult? FindBraces(
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            int position,
+            BraceMatchingOptions options,
+            CancellationToken cancellationToken)
         {
             if (!options.HighlightingOptions.HighlightRelatedJsonComponentsUnderCursor)
                 return null;
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
 
