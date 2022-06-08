@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //     We can analyze this correctly when we do points-to-analysis.
                     if (owningSymbol is IMethodSymbol method &&
                         (method.ReturnType.IsDelegateType() ||
-                         method.Parameters.Any(p => p.IsRefOrOut() && p.Type.IsDelegateType())))
+                         method.Parameters.Any(static p => p.IsRefOrOut() && p.Type.IsDelegateType())))
                     {
                         return false;
                     }

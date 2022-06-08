@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         {
             // If other local functions are called the it can't be made static unles the
             // are static, or the local function is recursive, or its calling a child local function
-            return !dataFlow.UsedLocalFunctions.Any(lf => !lf.IsStatic && !IsChildOrSelf(localFunction, lf));
+            return !dataFlow.UsedLocalFunctions.Any(static (lf, localFunction) => !lf.IsStatic && !IsChildOrSelf(localFunction, lf), localFunction);
 
             static bool IsChildOrSelf(LocalFunctionStatementSyntax containingLocalFunction, ISymbol calledLocationFunction)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         }
 
         private static bool HasCapturesThatArentThis(ImmutableArray<ISymbol> captures)
-            => !captures.IsEmpty && !captures.Any(s => s.IsThisParameter());
+            => !captures.IsEmpty && !captures.Any(static s => s.IsThisParameter());
 
         public static bool CanMakeLocalFunctionStaticBecauseNoCaptures(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel)
             => TryGetDataFlowAnalysis(localFunction, semanticModel, out var dataFLow)

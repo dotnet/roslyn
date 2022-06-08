@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, sharedContext, cancellationToken).ConfigureAwait(false);
 
             // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
-            if (!triggeredContexts.Any(cc => cc.Items.Count > 0))
+            if (!triggeredContexts.Any(static cc => cc.Items.Count > 0))
                 return CompletionList.Empty;
 
             // See if there were completion contexts provided that were exclusive. If so, then
