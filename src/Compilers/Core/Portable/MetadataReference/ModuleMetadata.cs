@@ -98,12 +98,16 @@ namespace Microsoft.CodeAnalysis
         /// doesn't get garbage collected.</param>
         /// <param name="disposeOwner">Whether or not <paramref name="owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
         /// Disposed.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="owner"/> is null.</exception>
         public static unsafe ModuleMetadata CreateFromMetadata(
             IntPtr metadata,
             int size,
             IDisposable owner,
             bool disposeOwner)
         {
+            if (owner is null)
+                throw new ArgumentNullException(nameof(owner));
+
             return CreateFromMetadataWorker(metadata, size, owner, disposeOwner);
         }
 
