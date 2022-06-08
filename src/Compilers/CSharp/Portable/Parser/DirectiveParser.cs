@@ -10,6 +10,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.PooledObjects;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal class DirectiveParser : SyntaxParser
@@ -671,30 +672,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()
         {
-            StringBuilder builder = null;
+            PooledStringBuilder builder = null;
 
-            if (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken &&
-                this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
+            // Skip the rest of the line until we hit a newline or EOF.  This follows the PP_Message portion of the specification.
+            var textWindow = this.lexer.TextWindow;
+            while (true)
             {
-                builder = new StringBuilder(this.CurrentToken.FullWidth);
-
-                while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken &&
-                       this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
+                var ch = this.lexer.TextWindow.PeekChar();
+                if (ch is '\r' or '\n' || SyntaxFacts.IsNewLine(ch))
                 {
-                    var token = this.EatToken();
-
-                    builder.Append(token.ToFullString());
+                    // don't consume end-of-line characters here
+                    break;
                 }
+                else if (ch is SlidingTextWindow.InvalidCharacter && !textWindow.IsReallyAtEnd())
+                {
+                    // don't consume end-of-line characters here
+                    break;
+                }
+
+                builder ??= PooledStringBuilder.GetInstance();
+                builder.Builder.Append(ch);
+                textWindow.AdvanceChar();
             }
 
-            SyntaxToken endOfDirective = this.CurrentToken.Kind == SyntaxKind.EndOfDirectiveToken
-                                         ? this.EatToken()
-                                         : SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken);
+            var endOfDirective = SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken);
 
             if (builder != null)
             {
                 endOfDirective = endOfDirective.TokenWithLeadingTrivia(
-                    SyntaxFactory.PreprocessingMessage(builder.ToString()));
+                    SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree()));
             }
 
             return endOfDirective;
