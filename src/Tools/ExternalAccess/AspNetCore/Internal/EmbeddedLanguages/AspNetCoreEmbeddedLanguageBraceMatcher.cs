@@ -25,20 +25,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
         {
         }
 
-        public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
-        {
-            if (context.Project is null)
-                return;
-
-            var classifiers = AspNetCoreClassifierExtensionProvider.GetExtensions(context.Project);
-            if (classifiers.Length == 0)
-                return;
-
-            var aspContext = new AspNetCoreEmbeddedLanguageClassificationContext(context);
-            foreach (var classifier in classifiers)
-                classifier.RegisterClassifications(aspContext);
-        }
-
         public BraceMatchingResult? FindBraces(
             Project project,
             SemanticModel semanticModel,
