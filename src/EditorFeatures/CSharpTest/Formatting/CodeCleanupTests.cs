@@ -109,7 +109,7 @@ global using System.Collections.Generic;
 global using System;
 class Program
 {
-    static async Task Main(string[] args)
+    static Task Main(string[] args)
     {
         Barrier b = new Barrier(0);
         var list = new List<int>();
@@ -126,7 +126,7 @@ using System.Threading.Tasks;
 
 internal class Program
 {
-    private static async Task Main(string[] args)
+    private static Task Main(string[] args)
     {
         Barrier b = new(0);
         List<int> list = new();
