@@ -48,7 +48,8 @@ if ($x86) {
     --no-build `
     -c $Configuration `
     --filter "TestCategory!=FailsInCloudTest" `
-    -p:CollectCoverage=true `
+    --collect "Code Coverage;Format=cobertura" `
+    --settings "$PSScriptRoot/test.runsettings" `
     --blame-hang-timeout 60s `
     --blame-crash `
     -bl:"$ArtifactStagingFolder/build_logs/test.binlog" `
