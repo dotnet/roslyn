@@ -10,8 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class BoundSequencePointExpression
 
-' Tracked by: https://github.com/dotnet/roslyn/issues/61776
-#Disable Warning IDE0051 ' Remove unused private members - Investigate why this assertion fail and add HasValidate="True" to BoundNodes.xml
+#Disable Warning IDE0051 ' Remove unused private members - https://github.com/dotnet/roslyn/issues/61776
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert(Type Is _Expression.Type)
