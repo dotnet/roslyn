@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool suppressRegularValidation = false;
 
                     if (!canBeImplementedImplicitlyInCSharp9 && interfaceMember.Kind == SymbolKind.Method &&
-                        (object)implementingBaseOpt == null)  // Otherwise any approprite errors are going to be reported for the base.
+                        (object)implementingBaseOpt == null)  // Otherwise any appropriate errors are going to be reported for the base.
                     {
                         var useSiteInfo2 = compilation is object ? new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 
