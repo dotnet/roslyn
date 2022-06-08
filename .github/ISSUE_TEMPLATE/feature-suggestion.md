@@ -1,6 +1,6 @@
 ---
-name: Feature suggestion
-about: Propose a new feature
+name: IDE Feature suggestion
+about: Propose a new IDE feature 
 title: ''
 labels: [Feature Request, Area-IDE]
 assignees: ''
