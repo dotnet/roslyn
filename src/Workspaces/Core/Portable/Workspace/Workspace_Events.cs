@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
                     using (Logger.LogBlock(FunctionId.Workspace_Events, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
                     {
                         var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                        ev.RaiseEvent(handler => handler(this, args));
+                        ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
                     }
                 }, WorkspaceChangeEventName);
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
             if (ev.HasHandlers)
             {
                 var args = new WorkspaceDiagnosticEventArgs(diagnostic);
-                ev.RaiseEvent(handler => handler(this, args));
+                ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
             }
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
+                    ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
                 }, DocumentOpenedEventName);
             }
             else
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
+                    ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
                 }, DocumentClosedEventName);
             }
             else
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
-                    ev.RaiseEvent(handler => handler(this, args));
+                    ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
                 }, "Workspace.WorkspaceChanged");
             }
             else

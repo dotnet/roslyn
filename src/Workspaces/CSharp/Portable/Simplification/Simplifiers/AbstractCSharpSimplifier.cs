@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 !SyntaxFacts.IsInNamespaceOrTypeContext(expression))
             {
                 var symbols = semanticModel.LookupSymbols(expression.SpanStart, name: identifierName.Identifier.ValueText);
-                return symbols.Any(s => s is ILocalSymbol);
+                return symbols.Any(static s => s is ILocalSymbol);
             }
 
             return false;

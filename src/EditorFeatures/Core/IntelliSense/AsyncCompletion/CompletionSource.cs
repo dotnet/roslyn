@@ -197,13 +197,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return false;
             }
 
-            var syntaxFactsOpt = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             // Snippets are included if the user types: <quesiton><tab>
             // If at least one condition for snippets do not hold, bail out.
-            if (syntaxFactsOpt == null ||
+            if (syntaxFacts == null ||
                 caretPoint < 3 ||
                 text[caretPoint - 2] != '?' ||
-                !QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFactsOpt))
+                !QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFacts))
             {
                 return false;
             }
@@ -444,9 +444,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, triggerLocation, options, document.Project.Solution.Options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
-            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
+            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.ItemsList.Count, out var itemsBuilder);
 
-            foreach (var roslynItem in completionList.Items)
+            foreach (var roslynItem in completionList.ItemsList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var item = Convert(document, roslynItem, filterSet, triggerLocation);
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             sessionData.HasSuggestionItemOptions |= completionList.SuggestionModeItem != null;
 
-            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
+            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.ItemsList);
             if (excludedCommitCharacters.Length > 0)
             {
                 if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return item;
         }
 
-        private static ImmutableArray<char> GetExcludedCommitCharacters(ImmutableArray<RoslynCompletionItem> roslynItems)
+        private static ImmutableArray<char> GetExcludedCommitCharacters(IReadOnlyList<RoslynCompletionItem> roslynItems)
         {
             var hashSet = new HashSet<char>();
             foreach (var roslynItem in roslynItems)

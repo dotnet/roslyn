@@ -345,9 +345,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
             {
                 return namedType.GetMembers(fieldOrPropertyName)
-                                .Any(m => (m is IFieldSymbol || m is IPropertySymbol) &&
+                                .Any(static (m, self) => (m is IFieldSymbol || m is IPropertySymbol) &&
                                           m.IsStatic &&
-                                          m.IsAccessibleWithin(_semanticModel.Compilation.Assembly));
+                                          m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
             }
 
             /// <summary>
