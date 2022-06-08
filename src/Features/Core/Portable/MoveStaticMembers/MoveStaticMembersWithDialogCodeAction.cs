@@ -75,26 +75,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             root = root.TrackNodes(memberNodes);
             var sourceDoc = _document.WithSyntaxRoot(root);
 
-            if (!moveOptions.IsNewType)
-            {
-                // we already have our destination type, but we need to find the document it is in
-                // When it is an existing type, "FileName" points to a full path rather than just the name
-                // There should be no two docs that have the same file path
-                var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
-                var fixedSolution = await RefactorAndMoveAsync(
-                    moveOptions.SelectedMembers,
-                    memberNodes,
-                    sourceDoc.Project.Solution,
-                    moveOptions.Destination!,
-                    // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
-                    typeArgIndices: ImmutableArray<int>.Empty,
-                    sourceDoc.Id,
-                    destinationDocId,
-                    cancellationToken).ConfigureAwait(false);
-                return new CodeActionOperation[] { new ApplyChangesOperation(fixedSolution) };
-            }
-
-            // otherwise, we need to create a destination ourselves
             var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, moveOptions.SelectedMembers);
             // which indices of the old type params should we keep for a new class reference, used for refactoring usages
             var typeArgIndices = Enumerable.Range(0, _selectedType.TypeParameters.Length)
@@ -107,7 +87,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
                 GetNewTypeKind(_selectedType),
-                moveOptions.TypeName!,
+                moveOptions.TypeName,
                 typeParameters: typeParameters);
 
             var (newDoc, annotation) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
@@ -155,60 +135,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private static TypeKind GetNewTypeKind(INamedTypeSymbol oldType)
         {
             return oldType.TypeKind;
-        }
-
-        /// <summary>
-        /// Finds references, refactors them, then moves the selected members to the destination.
-        /// Used when the destination type/file already exists.
-        /// </summary>
-        /// <param name="selectedMembers">selected member symbols</param>
-        /// <param name="oldMemberNodes">nodes corresponding to those symbols in the old solution, should have been annotated</param>
-        /// <param name="oldSolution">solution without any members moved/refactored</param>
-        /// <param name="newType">the type to move to, should be inserted into a document already</param>
-        /// <param name="typeArgIndices">generic type arg indices to keep when refactoring generic class access to the new type. Empty if not relevant</param>
-        /// <param name="sourceDocId">Id of the document where the mebers are being moved from</param>
-        /// <returns>The solution with references refactored and members moved to the newType</returns>
-        private async Task<Solution> RefactorAndMoveAsync(
-            ImmutableArray<ISymbol> selectedMembers,
-            ImmutableArray<SyntaxNode> oldMemberNodes,
-            Solution oldSolution,
-            INamedTypeSymbol newType,
-            ImmutableArray<int> typeArgIndices,
-            DocumentId sourceDocId,
-            DocumentId newTypeDocId,
-            CancellationToken cancellationToken)
-        {
-            // annotate our new type, in case our refactoring changes it
-            var newTypeDoc = await oldSolution.GetRequiredDocumentAsync(newTypeDocId, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newTypeNode = newType.DeclaringSyntaxReferences
-                .SelectAsArray(sRef => sRef.GetSyntax(cancellationToken))
-                .First(node => newTypeRoot.Contains(node));
-            newTypeRoot = newTypeRoot.TrackNodes(newTypeNode);
-            oldSolution = newTypeDoc.WithSyntaxRoot(newTypeRoot).Project.Solution;
-
-            // refactor references across the entire solution
-            var memberReferenceLocations = await FindMemberReferencesAsync(selectedMembers, oldSolution, cancellationToken).ConfigureAwait(false);
-            var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
-            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, oldSolution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
-
-            var sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDocId);
-
-            // get back tracked nodes from our changes
-            var root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var members = oldMemberNodes
-                .Select(node => root.GetCurrentNode(node))
-                .WhereNotNull()
-                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
-
-            newTypeDoc = solutionWithFixedReferences.GetRequiredDocument(newTypeDoc.Id);
-            newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newTypeSemanticModel = await newTypeDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            newType = (INamedTypeSymbol)newTypeSemanticModel.GetRequiredDeclaredSymbol(newTypeRoot.GetCurrentNode(newTypeNode)!, cancellationToken);
-
-            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-            return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> RefactorReferencesAsync(
