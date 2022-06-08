@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal RangeVariableSymbol(string Name, Symbol containingSymbol, Location location, bool isTransparent = false)
         {
+            Debug.Assert(Name is not null);
+            Debug.Assert(containingSymbol is not null);
+            Debug.Assert(location is not null);
+
             _name = Name;
             _containingSymbol = containingSymbol;
             _locations = ImmutableArray.Create<Location>(location);
