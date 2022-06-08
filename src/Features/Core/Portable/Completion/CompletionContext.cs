@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionContext
     {
-        private readonly List<CompletionItem> _items = new();
+        private readonly SegmentedList<CompletionItem> _items = new();
 
         private CompletionItem? _suggestionModeItem;
         private bool _isExclusive;

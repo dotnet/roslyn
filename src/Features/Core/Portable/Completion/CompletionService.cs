@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -15,6 +18,7 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -216,38 +220,38 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
-            return FilterItems(helper, items, filterText);
+            var itemsWithPatternMatch = new SegmentedList<(CompletionItem, PatternMatch?)>(items.Select(
+                item => (item, helper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
+
+            var builder = ImmutableArray.CreateBuilder<CompletionItem>();
+            FilterItems(helper, itemsWithPatternMatch, filterText, builder);
+            return builder.ToImmutable();
         }
 
-        internal virtual ImmutableArray<CompletionItem> FilterItems(
+        internal virtual void FilterItems(
            Document document,
-           ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
-           string filterText)
+           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           string filterText,
+           IList<CompletionItem> builder)
         {
-            // Default implementation just drops the pattern matches and
-            // calls the public overload of FilterItems for compatibility.
-            return FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText);
+            // Default implementation just drops the pattern matches and builder, and
+            // calls the public overload of FilterItems instead for compatibility.
+            FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText);
         }
 
-        internal static ImmutableArray<CompletionItem> FilterItems(
-            CompletionHelper completionHelper,
-            ImmutableArray<CompletionItem> items,
-            string filterText)
-        {
-            var itemsWithPatternMatch = items.SelectAsArray(
-                item => (item, completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
-
-            return FilterItems(completionHelper, itemsWithPatternMatch, filterText);
-        }
+        // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
+        // very short, i.e. <= 1. Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
+        private static readonly ObjectPool<List<(CompletionItem item, PatternMatch? match)>> s_listOfItemMatchPairPool = new(factory: () => new());
 
         /// <summary>
         /// Determine among the provided items the best match w.r.t. the given filter text, 
         /// those returned would be considered equally good candidates for selection by controller.
         /// </summary>
-        internal static ImmutableArray<CompletionItem> FilterItems(
+        internal static void FilterItems(
             CompletionHelper completionHelper,
-            ImmutableArray<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
-            string filterText)
+            IReadOnlyList<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
+            string filterText,
+            IList<CompletionItem> builder)
         {
             // It's very common for people to type expecting completion to fix up their casing,
             // so if no uppercase characters were typed so far, we'd loosen our standard on comparing items
@@ -267,78 +271,92 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Keep track the highest MatchPriority of all items in the best list.
             var highestMatchPriorityInBest = int.MinValue;
-            using var _1 = ArrayBuilder<(CompletionItem item, PatternMatch? match)>.GetInstance(out var bestItems);
+            var bestItems = s_listOfItemMatchPairPool.Allocate();
 
             // This contains a list of items that are considered equally good match as bestItems except casing,
             // and they have higher MatchPriority than the ones in bestItems (although as a perf optimization we don't
             // actually guarantee this during the process, instead we check the MatchPriority again after the loop.)
-            using var _2 = ArrayBuilder<(CompletionItem item, PatternMatch? match)>.GetInstance(out var itemsWithCasingMismatchButHigherMatchPriority);
+            var itemsWithCasingMismatchButHigherMatchPriority = s_listOfItemMatchPairPool.Allocate();
 
-            foreach (var pair in itemsWithPatternMatch)
+            try
             {
-                if (bestItems.Count == 0)
+                foreach (var pair in itemsWithPatternMatch)
                 {
-                    // We've found no good items yet.  So this is the best item currently.
-                    bestItems.Add(pair);
-                    highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
-                    continue;
-                }
-
-                var (bestItem, bestItemMatch) = bestItems.First();
-                var comparison = completionHelper.CompareItems(
-                    pair.item, pair.match, bestItem, bestItemMatch, out var onlyDifferInCaseSensitivity);
-
-                if (comparison == 0)
-                {
-                    // This item is as good as the items we've been collecting.  We'll return it and let the controller
-                    // decide what to do.  (For example, it will pick the one that has the best MRU index).
-                    // Also there's no need to remove items with lower MatchPriority from similarItemsWithHigerMatchPriority
-                    // list, we will only add ones with higher value at the end.
-                    bestItems.Add(pair);
-                    highestMatchPriorityInBest = Math.Max(highestMatchPriorityInBest, pair.item.Rules.MatchPriority);
-                }
-                else if (comparison < 0)
-                {
-                    // This item is strictly better than the best items we've found so far.
-                    // However, if it's only better in terms of case-sensitivity, we'd like 
-                    // to save the prior best items and consider their MatchPriority later.
-                    itemsWithCasingMismatchButHigherMatchPriority.Clear();
-
-                    if (filterTextContainsNoUpperLetters &&
-                        onlyDifferInCaseSensitivity &&
-                        highestMatchPriorityInBest > pair.item.Rules.MatchPriority) // don't add if this item has higher MatchPriority than all prior best items
+                    if (bestItems.Count == 0)
                     {
-                        itemsWithCasingMismatchButHigherMatchPriority.AddRange(bestItems);
+                        // We've found no good items yet.  So this is the best item currently.
+                        bestItems.Add(pair);
+                        highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
+                        continue;
                     }
 
-                    bestItems.Clear();
-                    bestItems.Add(pair);
-                    highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
-                }
-                else
-                {
-                    // otherwise, this item is strictly worse than the ones we've been collecting.
-                    // However, if it's only worse in terms of case-sensitivity, we'd like 
-                    // to save it and consider its MatchPriority later.
-                    if (filterTextContainsNoUpperLetters &&
-                        onlyDifferInCaseSensitivity &&
-                        pair.item.Rules.MatchPriority > highestMatchPriorityInBest)  // don't add if this item doesn't have higher MatchPriority
+                    var (bestItem, bestItemMatch) = bestItems[0];
+                    var comparison = completionHelper.CompareItems(
+                        pair.item, pair.match, bestItem, bestItemMatch, out var onlyDifferInCaseSensitivity);
+
+                    if (comparison == 0)
                     {
-                        itemsWithCasingMismatchButHigherMatchPriority.Add(pair);
+                        // This item is as good as the items we've been collecting.  We'll return it and let the controller
+                        // decide what to do.  (For example, it will pick the one that has the best MRU index).
+                        // Also there's no need to remove items with lower MatchPriority from similarItemsWithHigerMatchPriority
+                        // list, we will only add ones with higher value at the end.
+                        bestItems.Add(pair);
+                        highestMatchPriorityInBest = Math.Max(highestMatchPriorityInBest, pair.item.Rules.MatchPriority);
+                    }
+                    else if (comparison < 0)
+                    {
+                        // This item is strictly better than the best items we've found so far.
+
+                        // Switch the references to the two lists to avoid potential of copying multiple elements around.
+                        // Now itemsWithCasingMismatchButHigherMatchPriority contains prior best items.
+                        (bestItems, itemsWithCasingMismatchButHigherMatchPriority) = (itemsWithCasingMismatchButHigherMatchPriority, bestItems);
+
+                        // However, if this item only better in terms of case-sensitivity, and its MatchPriority is lower than prior best items,
+                        // we'd like to save prior best items and consider their MatchPriority later. Otherwise, no need to keep track the prior best items.
+                        if (!filterTextContainsNoUpperLetters ||
+                            !onlyDifferInCaseSensitivity ||
+                            highestMatchPriorityInBest <= pair.item.Rules.MatchPriority)
+                        {
+                            itemsWithCasingMismatchButHigherMatchPriority.Clear();
+                        }
+
+                        bestItems.Clear();
+                        bestItems.Add(pair);
+                        highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
+                    }
+                    else
+                    {
+                        // This item is strictly worse than the ones we've been collecting.
+                        // However, if it's only worse in terms of case-sensitivity, and has higher MatchPriority
+                        // than all current best items, we'd like to save it and consider its MatchPriority later.
+                        if (filterTextContainsNoUpperLetters &&
+                            onlyDifferInCaseSensitivity &&
+                            pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
+                        {
+                            itemsWithCasingMismatchButHigherMatchPriority.Add(pair);
+                        }
                     }
                 }
-            }
 
-            // Include those similar items (only worse in terms of case-sensitivity) that have better MatchPriority.
-            foreach (var pair in itemsWithCasingMismatchButHigherMatchPriority)
-            {
-                if (pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
+                // Include those similar items (only worse in terms of case-sensitivity) that have better MatchPriority.
+                foreach (var pair in itemsWithCasingMismatchButHigherMatchPriority)
                 {
-                    bestItems.Add(pair);
+                    if (pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
+                    {
+                        bestItems.Add(pair);
+                    }
                 }
-            }
 
-            return bestItems.ToImmutable().SelectAsArray(itemWithPatternMatch => itemWithPatternMatch.item);
+                builder.AddRange(bestItems.Select(itemWithPatternMatch => itemWithPatternMatch.item));
+            }
+            finally
+            {
+                // Don't call ClearAndFree, which resets the capacity to a default value.
+                bestItems.Clear();
+                itemsWithCasingMismatchButHigherMatchPriority.Clear();
+                s_listOfItemMatchPairPool.Free(bestItems);
+                s_listOfItemMatchPairPool.Free(itemsWithCasingMismatchButHigherMatchPriority);
+            }
         }
     }
 }
