@@ -671,40 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()
-        {
-            PooledStringBuilder builder = null;
-
-            // Skip the rest of the line until we hit a newline or EOF.  This follows the PP_Message portion of the specification.
-            var textWindow = this.lexer.TextWindow;
-            while (true)
-            {
-                var ch = this.lexer.TextWindow.PeekChar();
-                if (ch is '\r' or '\n' || SyntaxFacts.IsNewLine(ch))
-                {
-                    // don't consume EOL characters here
-                    break;
-                }
-                else if (ch is SlidingTextWindow.InvalidCharacter && textWindow.IsReallyAtEnd())
-                {
-                    // don't consume EOF characters here
-                    break;
-                }
-
-                builder ??= PooledStringBuilder.GetInstance();
-                builder.Builder.Append(ch);
-                textWindow.AdvanceChar();
-            }
-
-            var endOfDirective = SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken);
-
-            if (builder != null)
-            {
-                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
-                    SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree()));
-            }
-
-            return endOfDirective;
-        }
+            => this.lexer.LexEndOfDirectiveWithOptionalPreprocessingMessage();
 
         private SyntaxToken ParseEndOfDirective(bool ignoreErrors, bool afterPragma = false, bool afterLineNumber = false)
         {
