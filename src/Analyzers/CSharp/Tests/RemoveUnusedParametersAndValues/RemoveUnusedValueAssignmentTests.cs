@@ -8822,5 +8822,88 @@ namespace ConsoleApp
 }";
             await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
         }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_PartOfCase()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        switch (string.Empty.Length)
+        {
+            case var [|i|] when string.Empty.Length switch { var y => y > 0 }:
+            {
+                break;
+            }
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        switch (string.Empty.Length)
+        {
+            case var _ when string.Empty.Length switch { var y => y > 0 }:
+            {
+                break;
+            }
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_PartOfIs()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var [|x|])
+        {
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var _)
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_TestTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var [|/*1*/x/*2*/|])
+        {
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var /*1*/_/*2*/)
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
     }
 }

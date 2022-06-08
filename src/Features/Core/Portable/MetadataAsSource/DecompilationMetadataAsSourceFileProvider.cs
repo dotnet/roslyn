@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // If the assembly wants to suppress decompilation we respect that
             if (useDecompiler)
             {
-                useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
+                useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                     && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
             }
 
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var metadataReference = compilation.GetMetadataReference(containingAssembly);
             var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
 
-            var isReferenceAssembly = containingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
+            var isReferenceAssembly = containingAssembly.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
 
             if (assemblyLocation is not null &&

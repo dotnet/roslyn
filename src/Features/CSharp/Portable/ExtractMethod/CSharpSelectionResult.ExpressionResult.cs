@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // let's see whether this interface has coclass attribute
-            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass?.Equals(coclassSymbol) == true);
+            return info.ConvertedType.GetAttributes().Any(static (c, coclassSymbol) => c.AttributeClass?.Equals(coclassSymbol) == true, coclassSymbol);
         }
     }
 }

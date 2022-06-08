@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             TSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {
-            var preselect = symbols.Any(t => t.preselect);
+            var preselect = symbols.Any(static t => t.preselect);
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,

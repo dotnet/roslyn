@@ -339,9 +339,15 @@ namespace Microsoft.CodeAnalysis
                     return StructuredAnalyzerConfigOptions.Empty;
                 }
 
-                var options = GetOptionsForSourcePath(cache, filePath);
                 var workspace = _projectState._solutionServices.Workspace;
 
+                var legacyDocumentOptionsProvider = workspace.Services.GetService<ILegacyDocumentOptionsProvider>();
+                if (legacyDocumentOptionsProvider != null)
+                {
+                    return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(_projectState.Id, filePath));
+                }
+
+                var options = GetOptionsForSourcePath(cache, filePath);
                 var legacyIndentationService = workspace.Services.GetService<ILegacyIndentationManagerWorkspaceService>();
                 if (legacyIndentationService == null)
                 {
