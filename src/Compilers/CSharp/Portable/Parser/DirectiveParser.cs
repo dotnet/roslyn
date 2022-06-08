@@ -681,12 +681,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var ch = this.lexer.TextWindow.PeekChar();
                 if (ch is '\r' or '\n' || SyntaxFacts.IsNewLine(ch))
                 {
-                    // don't consume end-of-line characters here
+                    // don't consume EOL characters here
                     break;
                 }
                 else if (ch is SlidingTextWindow.InvalidCharacter && !textWindow.IsReallyAtEnd())
                 {
-                    // don't consume end-of-line characters here
+                    // don't consume EOF characters here
                     break;
                 }
 
