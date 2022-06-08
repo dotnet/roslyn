@@ -21,13 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameSession _session;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
+        private bool _isReplacementTextValid = true;
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public RenameFlyoutViewModel(InlineRenameSession session)
         {
             _session = session;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
-
+            _session.ReplacementsComputed += OnReplacementsComputed;
+            ComputeRenameFile();
             RegisterOleComponent();
         }
 
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed;
+        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
 
         public string FileRenameString => _session.FileRenameInfo switch
@@ -212,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (disposing)
                 {
                     _session.ReplacementTextChanged -= OnReplacementTextChanged;
+                    _session.ReplacementsComputed -= OnReplacementsComputed;
 
                     UnregisterOleComponent();
                 }
@@ -220,9 +223,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+        private void ComputeRenameFile()
+        {
+            // If replacementText is invalid, we won't rename the file.
+            RenameFileFlag = _isReplacementTextValid && AllowFileRename && _session.Options.RenameFile;
+        }
+
         private void OnReplacementTextChanged(object sender, EventArgs e)
         {
             NotifyPropertyChanged(nameof(IdentifierText));
+        }
+
+        private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
+        {
+            if (Set(ref _isReplacementTextValid, result.ReplacementTextValid, "IsReplacementTextValid"))
+            {
+                ComputeRenameFile();
+                NotifyPropertyChanged(nameof(AllowFileRename));
+            }
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string? name = null)
