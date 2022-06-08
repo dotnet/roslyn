@@ -6779,13 +6779,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The 'scoped' modifier can be used for refs and ref struct values only.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
-    <value>The 'scoped' declaration of parameter '{0}' doesn't match overridden or implemented member.</value>
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfTargetDelegate" xml:space="preserve">
-    <value>The 'scoped' declaration of parameter '{0}' doesn't match target delegate.</value>
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match target delegate '{1}'.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
-    <value>The 'scoped' declaration of parameter '{0}' doesn't match partial method declaration.</value>
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
   </data>
 
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">

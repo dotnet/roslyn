@@ -4350,10 +4350,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.AddRange(boundLambda.Diagnostics);
                 }
 
+                hasErrors = !conversion.IsImplicit;
+                if (!hasErrors)
+                {
+                    hasErrors = CheckValidScopedMethodConversion(unboundLambda.Syntax, boundLambda.Symbol, type, invokedAsExtensionMethod: false, diagnostics);
+                }
+
                 // Just stuff the bound lambda into the delegate creation expression. When we lower the lambda to
                 // its method form we will rewrite this expression to refer to the method.
 
-                return new BoundDelegateCreationExpression(node, boundLambda, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type, hasErrors: !conversion.IsImplicit);
+                return new BoundDelegateCreationExpression(node, boundLambda, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type, hasErrors: hasErrors);
             }
 
             else if (analyzedArguments.HasErrors)

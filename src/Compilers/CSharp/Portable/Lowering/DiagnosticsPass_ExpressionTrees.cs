@@ -723,18 +723,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    if (node.Operand is BoundMethodGroup group)
-                    {
-                        checkValidScopedMethodConversion(group.Syntax, node.Conversion.Method, node.Type, invokedAsExtensionMethod: node.IsExtensionMethod, _diagnostics);
-                    }
                     CheckMethodGroup((BoundMethodGroup)node.Operand, node.Conversion.Method, parentIsConversion: true, node.Type);
+
                     return node;
 
                 case ConversionKind.AnonymousFunction:
-                    if (node.Operand is BoundLambda lambda)
-                    {
-                        checkValidScopedMethodConversion(lambda.Syntax, lambda.Symbol, node.Type, invokedAsExtensionMethod: false, _diagnostics);
-                    }
                     if (!wasInExpressionLambda && node.Type.IsExpressionTree())
                     {
                         _inExpressionLambda = true;
@@ -788,21 +781,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _inExpressionLambda = wasInExpressionLambda;
             _reportedUnsafe = oldReportedUnsafe;
             return result;
-
-            static void checkValidScopedMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
-            {
-                if (targetType.GetDelegateType()?.DelegateInvokeMethod is { } delegateInvokeMethod)
-                {
-                    SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
-                        delegateInvokeMethod,
-                        lambdaOrMethod,
-                        diagnostics,
-                        static (diagnostics, _, _, parameter, _, location) =>
-                            diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate, location, new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat)),
-                        syntax.Location,
-                        invokedAsExtensionMethod);
-                }
-            }
         }
 
         public override BoundNode VisitUTF8String(BoundUTF8String node)

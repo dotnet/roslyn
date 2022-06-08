@@ -1218,18 +1218,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
-        <source>The 'scoped' declaration of parameter '{0}' doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' declaration of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
-        <source>The 'scoped' declaration of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="new">The 'scoped' declaration of parameter '{0}' doesn't match partial method declaration.</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTargetDelegate">
-        <source>The 'scoped' declaration of parameter '{0}' doesn't match target delegate.</source>
-        <target state="new">The 'scoped' declaration of parameter '{0}' doesn't match target delegate.</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target delegate '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target delegate '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
