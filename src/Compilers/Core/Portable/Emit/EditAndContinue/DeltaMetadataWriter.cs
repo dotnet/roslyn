@@ -228,6 +228,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousDelegates: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegates(),
                 anonymousDelegatesWithFixedTypes: ((IPEDeltaAssemblyBuilder)module).GetAnonymousDelegatesWithFixedTypes(),
                 synthesizedMembers: synthesizedMembers,
+                deletedMembers: _previousGeneration.DeletedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
                 debugInformationProvider: _previousGeneration.DebugInformationProvider,
                 localSignatureProvider: _previousGeneration.LocalSignatureProvider);

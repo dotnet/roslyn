@@ -13166,6 +13166,7 @@ class C
         [InlineData("void M1() { }", 0)]
         [InlineData("void M1(string s) { }", 1)]
         [InlineData("void M1(C c) { }", 1)]
+        [InlineData("C M1(C c) { return default; }", 1)]
         [InlineData("void M1(N n) { }", 1)]
         [InlineData("C M1() { return default; }", 0)]
         [InlineData("N M1() { return default; }", 0)]
@@ -13174,7 +13175,7 @@ class C
         [InlineData("void M1<T>(T t) where T : C { }", 1)]
         [InlineData("T M1<T>() { return default; }", 0)]
         [InlineData("T M1<T>() where T : C { return default; }", 0)]
-        public void Delete_Method(string methodDef, int numParams)
+        public void Method_Delete(string methodDef, int numParams)
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
                 .AddGeneration(
@@ -13220,6 +13221,104 @@ class C
                         {
                             Handle(1, TableIndex.MethodDef),
                         }.Concat(Enumerable.Range(1, numParams).Select(i => Handle(i, TableIndex.Param))));
+
+                        // TODO: This should be throwing MissingMethodException
+                        var expectedIL = """
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  ldnull
+                              IL_0001:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        // TODO: This should probably output more than just one method worth of IL, right?
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_AddThenDelete()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M1() { }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                           void M1() { }
+                           void M2() { }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M2")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M2");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                        });
+
+                        // TODO: This should be throwing MissingMethodException
+                        var expectedIL = """
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        // TODO: This should probably output more than just one method worth of IL, right?
+                        g.VerifyIL(expectedIL);
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                           void M1() { }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c=>c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M2");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                        });
 
                         // TODO: This should be throwing MissingMethodException
                         var expectedIL = """

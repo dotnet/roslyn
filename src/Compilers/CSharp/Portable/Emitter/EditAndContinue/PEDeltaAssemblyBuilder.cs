@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     sourceContext: context,
                     otherAssembly: previousAssembly,
                     otherContext: previousContext,
-                    otherSynthesizedMembersOpt: previousGeneration.SynthesizedMembers);
+                    otherSynthesizedMembersOpt: previousGeneration.SynthesizedMembers,
+                    otherDeletedMembers: previousGeneration.DeletedMembers);
             }
 
             _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious);

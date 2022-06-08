@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -47,6 +49,21 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         public DefinitionMap DefinitionMap => _definitionMap;
+
+        public ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllDeletedMethods()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
+
+            foreach (var type in _deletedMembers)
+            {
+                if (GetISymbolInternalOrNull(type.Key) is { } typeSymbol)
+                {
+                    builder.Add(typeSymbol, type.Value.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray());
+                }
+            }
+
+            return builder.ToImmutable();
+        }
 
         public IEnumerable<IMethodSymbolInternal> GetDeletedMethods(IDefinition containingType)
         {
