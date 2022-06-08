@@ -2281,6 +2281,24 @@ class Test
             Assert.Equal("\"\"\"", regionText.ToFullString());
         }
 
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage5()
+        {
+            var text =
+@"#region Region Process Information after the Grid """"""""""""""""""""""""""""""""""""""""""""""""""
+class C
+{
+}
+#endregion
+";
+            var node = Parse(text);
+            TestRoundTripping(node, text, disallowErrors: true);
+
+            // ensure that we don't see those quotes as the start of a raw string that consumes the class decl.
+            var classDeclaration = node.ChildNodes().Single(n => n is ClassDeclarationSyntax);
+        }
+
         #endregion
 
         #region #define/#undefine
