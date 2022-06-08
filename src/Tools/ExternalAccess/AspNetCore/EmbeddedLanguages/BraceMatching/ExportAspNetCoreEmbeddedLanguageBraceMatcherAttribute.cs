@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
     internal sealed class ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute : ExportAttribute
     {
         /// <summary>
-        /// Name of the classifier.
+        /// Name of the brace matcher.
         /// </summary>
         public string Name { get; }
 
