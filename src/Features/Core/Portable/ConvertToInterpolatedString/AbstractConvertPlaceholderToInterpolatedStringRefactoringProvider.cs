@@ -89,8 +89,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var shouldReplaceInvocation = stringInvocationMethods.Contains(invocationSymbol);
 
             context.RegisterRefactoring(
-                    new ConvertToInterpolatedStringCodeAction(
-                        c => CreateInterpolatedStringAsync(invocationSyntax, document, syntaxFactsService, shouldReplaceInvocation, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Convert_to_interpolated_string,
+                        c => CreateInterpolatedStringAsync(invocationSyntax, document, syntaxFactsService, shouldReplaceInvocation, c),
+                        nameof(FeaturesResources.Convert_to_interpolated_string)),
                     invocationSyntax.Span);
 
             // Local Functions
@@ -348,14 +350,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             return true;
-        }
-
-        private class ConvertToInterpolatedStringCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ConvertToInterpolatedStringCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
-            {
-            }
         }
 
         private static class StringFormatArguments

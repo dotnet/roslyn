@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
         public readonly TSyntaxKind Kind;
+        private TextSpan? _fullSpan;
 
         protected EmbeddedSyntaxNode(TSyntaxKind kind)
         {
@@ -60,6 +61,45 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             this.GetSpan(ref start, ref end);
 
             return TextSpan.FromBounds(start, end);
+        }
+
+        public TextSpan? GetFullSpan()
+            => _fullSpan ??= ComputeFullSpan();
+
+        private TextSpan? ComputeFullSpan()
+        {
+            var start = ComputeStart();
+            var end = ComputeEnd();
+            if (start == null || end == null)
+                return null;
+
+            return TextSpan.FromBounds(start.Value, end.Value);
+
+            int? ComputeStart()
+            {
+                for (int i = 0, n = ChildCount; i < n; i++)
+                {
+                    var child = ChildAt(i);
+                    var span = child.GetFullSpan();
+                    if (span != null)
+                        return span.Value.Start;
+                }
+
+                return null;
+            }
+
+            int? ComputeEnd()
+            {
+                for (var i = ChildCount - 1; i >= 0; i--)
+                {
+                    var child = ChildAt(i);
+                    var span = child.GetFullSpan();
+                    if (span != null)
+                        return span.Value.End;
+                }
+
+                return null;
+            }
         }
 
         private void GetSpan(ref int start, ref int end)

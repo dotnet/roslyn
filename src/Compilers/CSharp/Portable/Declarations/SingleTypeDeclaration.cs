@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// through a using alias in the file. For example
         /// <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c> or
         /// <c>[TypeForwardedToAttribute]</c>.  Can be used to avoid having to go back to source
-        /// to retrieve attributes whtn there is no chance they would bind to attribute of interest.
+        /// to retrieve attributes when there is no chance they would bind to attribute of interest.
         /// </summary>
         public QuickAttributes QuickAttributes { get; }
 
@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasReturnWithExpression = 1 << 8,
 
             IsSimpleProgram = 1 << 9,
+
+            HasRequiredMembers = 1 << 10,
         }
 
         internal SingleTypeDeclaration(
@@ -188,6 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
             }
         }
+
+        public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
 
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {

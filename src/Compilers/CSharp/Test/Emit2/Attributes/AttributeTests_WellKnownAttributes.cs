@@ -1794,40 +1794,52 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (63,65): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission5Attribute(SecurityAction action, object x = SecurityAction.Demand) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(63, 65),
                 // (76,42): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission6Attribute(object x = SecurityAction.Demand) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(76, 42),
                 // (101,46): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 //     public MyPermission8Attribute([Optional][DefaultParameterValueAttribute(null)]SecurityAction x) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute"),
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute").WithLocation(101, 46),
                 // (113,46): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 //     public MyPermission9Attribute([Optional][DefaultParameterValueAttribute(-1)]SecurityAction x) : base(SecurityAction.Demand)
-                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute"),
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValueAttribute").WithLocation(113, 46),
                 // (137,2): error CS7067: Attribute constructor parameter 'x' is optional, but no default parameter value was specified.
                 // [MyPermission(SecurityAction.Demand)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission").WithArguments("x"),
+                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission(SecurityAction.Demand)").WithArguments("x").WithLocation(137, 2),
                 // (140,2): error CS7067: Attribute constructor parameter 'x' is optional, but no default parameter value was specified.
                 // [MyPermission2(SecurityAction.Demand)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission2").WithArguments("x"),
+                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission2(SecurityAction.Demand)").WithArguments("x").WithLocation(140, 2),
                 // (143,2): error CS7067: Attribute constructor parameter 'x' is optional, but no default parameter value was specified.
                 // [MyPermission3()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission3").WithArguments("x"),
-                // (149,16): error CS1503: Argument 1: cannot convert from '<null>' to 'System.Security.Permissions.SecurityAction'
+                Diagnostic(ErrorCode.ERR_BadAttributeParamDefaultArgument, "MyPermission3()").WithArguments("x").WithLocation(143, 2),
+                // (149,16): error CS1503: Argument 1: cannot convert from '<null>' to 'SecurityAction'
                 // [MyPermission4(null)]
-                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.Security.Permissions.SecurityAction"),
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.Security.Permissions.SecurityAction").WithLocation(149, 16),
+                // (151,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission5(SecurityAction.Demand)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission5(SecurityAction.Demand)").WithLocation(151, 2),
+                // (154,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission6()]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission6()").WithLocation(154, 2),
+                // (161,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission8()]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission8()").WithLocation(161, 2),
+                // (164,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [MyPermission9()]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "MyPermission9()").WithLocation(164, 2),
                 // (167,2): error CS1763: 'y' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 // [MyPermission10(SecurityAction.Demand)]
-                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "MyPermission10(SecurityAction.Demand)").WithArguments("y", "object"),
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "MyPermission10(SecurityAction.Demand)").WithArguments("y", "object").WithLocation(167, 2),
                 // (145,2): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 // [MyPermission3(null)]
-                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission3"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission3").WithLocation(145, 2),
                 // (147,2): error CS7049: Security attribute 'MyPermission4' has an invalid SecurityAction value '0'
                 // [MyPermission4()]
-                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "MyPermission4()").WithArguments("MyPermission4", "0"),
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "MyPermission4()").WithArguments("MyPermission4", "0").WithLocation(147, 2),
                 // (156,2): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 // [MyPermission6(null)]
-                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission6"));
+                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MyPermission6").WithLocation(156, 2));
         }
 
         [Fact]
@@ -3606,7 +3618,7 @@ public class MainClass
 
             // the resulting code does not need to verify
             // This is consistent with Dev10 behavior
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Fails, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact, WorkItem(544507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]
@@ -5553,7 +5565,7 @@ class A
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails, targetFramework: TargetFramework.Mscorlib40);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify, targetFramework: TargetFramework.Mscorlib40);
         }
 
         #endregion
@@ -13716,6 +13728,78 @@ public class C
                 // (27,13): error CS0619: 'C.this[Range].get' is obsolete: 'error'
                 //         _ = this[..];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.this[System.Range].get", "error").WithLocation(27, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")]
+        public void ErrorInPropertyValue_01()
+        {
+            var source = @"
+class C
+{
+    public int Count
+    {
+        [System.Runtime.CompilerServices.MethodImpl(MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        get;
+        private set;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,53): error CS0599: Invalid value for named attribute argument 'MethodCodeType'
+                //         [System.Runtime.CompilerServices.MethodImpl(MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining").WithArguments("MethodCodeType").WithLocation(6, 53),
+                // (6,70): error CS0266: Cannot implicitly convert type 'System.Runtime.CompilerServices.MethodImplOptions' to 'System.Runtime.CompilerServices.MethodCodeType'. An explicit conversion exists (are you missing a cast?)
+                //         [System.Runtime.CompilerServices.MethodImpl(MethodCodeType = System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining").WithArguments("System.Runtime.CompilerServices.MethodImplOptions", "System.Runtime.CompilerServices.MethodCodeType").WithLocation(6, 70)
+                );
+        }
+
+        [Fact]
+        [WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")]
+        public void ErrorInPropertyValue_02()
+        {
+            var source = @"
+class C
+{
+    public int Count
+    {
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType = (System.Runtime.CompilerServices.MethodCodeType)System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        get;
+        private set;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,117): error CS0599: Invalid value for named attribute argument 'MethodCodeType'
+                //         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType = (System.Runtime.CompilerServices.MethodCodeType)System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "MethodCodeType = (System.Runtime.CompilerServices.MethodCodeType)System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining").WithArguments("MethodCodeType").WithLocation(6, 117)
+                );
+        }
+
+        [Fact]
+        public void ErrorInPropertyValue_03()
+        {
+            var source = @"
+using System.Runtime.InteropServices; 
+
+[StructLayout(CharSet=0)]
+public struct S1 { }
+
+[StructLayout(LayoutKind.Sequential, CharSet=0)]
+public struct S2 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS1729: 'StructLayoutAttribute' does not contain a constructor that takes 0 arguments
+                // [StructLayout(CharSet=0)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "StructLayout(CharSet=0)").WithArguments("System.Runtime.InteropServices.StructLayoutAttribute", "0").WithLocation(4, 2),
+                // (7,38): error CS0599: Invalid value for named attribute argument 'CharSet'
+                // [StructLayout(LayoutKind.Sequential, CharSet=0)]
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet=0").WithArguments("CharSet").WithLocation(7, 38)
                 );
         }
     }

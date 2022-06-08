@@ -11,7 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -23,6 +24,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -86,9 +88,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected abstract SyntaxGenerator Generator { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
                 ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal async Task<ChangeSignatureAnalyzedContext> GetChangeSignatureContextAsync(
-            Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
+            Document document, int position, bool restrictToDeclarations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
-                declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
+                declarationDocument, positionForTypeBinding, symbol, parameterConfiguration, fallbackOptions);
         }
 
         internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -398,7 +400,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 });
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
-                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(doc, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var formattedRoot = Formatter.Format(
                     newRoot,
@@ -415,9 +417,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
+                var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
                 currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, (await formattedDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!);
             }
@@ -913,7 +917,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
             var options = RecommendationServiceOptions.From(document.Project);
-            var recommendations = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options, cancellationToken).NamedSymbols;
+
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var recommendations = recommender.GetRecommendedSymbolsInContext(context, options, cancellationToken).NamedSymbols;
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1260,6 +1261,262 @@ class MyClass
 }
 "
 );
+        }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            Greeting.Goodbye or _ => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            _ or Greeting.Goodbye => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            Greeting.Goodbye => ""Bye!"",
+            _ and var v => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(58468, "https://github.com/dotnet/roslyn/issues/58468")]
+        public async Task NotOnOrPatternWhichAlwaysSucceeds4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Greeting
+{
+    Hello,
+    Goodbye
+};
+
+class C
+{
+    void M()
+    {
+        Greeting greeting = Greeting.Hello;
+        string message = greeting [||]switch
+        {
+            Greeting.Hello => ""Hey!"",
+            Greeting.Goodbye => ""Bye!"",
+            var x and var y => ""Not sure what to say 🤔""
+        };
+    }
+}
+");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableEnabled()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+            null => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+            null => throw null,
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable enable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            null => throw null,
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+            null => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
+        }
+
+        [Fact, WorkItem(61594, "https://github.com/dotnet/roslyn/issues/61594")]
+        public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue [||]switch
+        {
+            null => throw null,
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}",
+@"#nullable disable
+
+static class MyEnumExtensions
+{
+    public static string ToAnotherEnum(this MyEnum? myEnumValue)
+        => myEnumValue switch
+        {
+            null => throw null,
+            MyEnum.Value1 => throw new System.NotImplementedException(),
+            MyEnum.Value2 => throw new System.NotImplementedException(),
+        };
+}
+
+enum MyEnum
+{
+    Value1, Value2
+}");
         }
     }
 }

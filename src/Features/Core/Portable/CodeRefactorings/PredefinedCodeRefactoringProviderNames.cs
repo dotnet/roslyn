@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
         public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
+        public const string ConvertToProgramMain = "Convert To Program.Main";
+        public const string ConvertToRawString = nameof(ConvertToRawString);
+        public const string ConvertToTopLevelStatements = "Convert To Top Level Statements";
         public const string ConvertTryCastToDirectCast = "Convert Try Cast to Direct Cast";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
         public const string EnableNullable = "Enable Nullable Reference Types";
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string NameTupleElement = nameof(NameTupleElement);
         public const string PullMemberUp = "Pull Member Up Code Action Provider";
         public const string RenameTracking = nameof(RenameTracking);
+        public const string ReplaceConditionalWithStatements = nameof(ReplaceConditionalWithStatements);
         public const string ReplaceDocCommentTextWithTag = "Replace Documentation Comment Text With Tag Code Action Provider";
         public const string ReplaceMethodWithProperty = nameof(ReplaceMethodWithProperty);
         public const string ReplacePropertyWithMethods = nameof(ReplacePropertyWithMethods);

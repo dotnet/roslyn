@@ -168,11 +168,6 @@ namespace Microsoft.CodeAnalysis
                     && _warningLevel == other._warningLevel;
             }
 
-            public override bool Equals(object? obj)
-            {
-                return this.Equals(obj as Diagnostic);
-            }
-
             public override int GetHashCode()
             {
                 return Hash.Combine(_descriptor,

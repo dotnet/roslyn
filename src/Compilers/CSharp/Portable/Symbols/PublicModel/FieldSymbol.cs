@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IFieldSymbol.IsVolatile => _underlying.IsVolatile;
 
+        bool IFieldSymbol.IsRequired => _underlying.IsRequired;
+
         bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
 
         int IFieldSymbol.FixedSize => _underlying.FixedSize;
@@ -99,6 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitField(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitField(this, argument);
         }
 
         #endregion

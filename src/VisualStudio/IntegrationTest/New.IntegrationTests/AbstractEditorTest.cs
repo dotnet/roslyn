@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -61,7 +62,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected async Task SetUpEditorAsync(string markupCode, CancellationToken cancellationToken)
         {
-            MarkupTestFile.GetPosition(markupCode, out var code, out int caretPosition);
+            MarkupTestFile.GetPositionAndSpans(markupCode, out var code, out int? caretPosition, out var spans);
+
+            Assert.True(caretPosition.HasValue || spans.ContainsKey("selection"), "Must specify either a caret position ($$) or at least one selection span ({|selection:|})");
 
             await TestServices.Editor.DismissCompletionSessionsAsync(cancellationToken);
             await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
@@ -72,7 +75,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
             try
             {
                 await TestServices.Editor.SetTextAsync(code, cancellationToken);
-                await TestServices.Editor.MoveCaretAsync(caretPosition, cancellationToken);
+
+                if (caretPosition.HasValue)
+                {
+                    await TestServices.Editor.MoveCaretAsync(caretPosition.Value, cancellationToken);
+                }
+                else
+                {
+                    await TestServices.Editor.SetMultiSelectionAsync(spans["selection"], cancellationToken);
+                }
+
                 await TestServices.Editor.ActivateAsync(cancellationToken);
             }
             finally

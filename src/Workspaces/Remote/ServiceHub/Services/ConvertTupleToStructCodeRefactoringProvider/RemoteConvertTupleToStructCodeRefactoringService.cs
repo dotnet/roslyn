@@ -4,10 +4,15 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,34 +21,44 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteConvertTupleToStructCodeRefactoringService : BrokeredServiceBase, IRemoteConvertTupleToStructCodeRefactoringService
     {
-        internal sealed class Factory : FactoryBase<IRemoteConvertTupleToStructCodeRefactoringService>
+        internal sealed class Factory : FactoryBase<IRemoteConvertTupleToStructCodeRefactoringService, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>
         {
-            protected override IRemoteConvertTupleToStructCodeRefactoringService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteConvertTupleToStructCodeRefactoringService(arguments);
+            protected override IRemoteConvertTupleToStructCodeRefactoringService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
+                => new RemoteConvertTupleToStructCodeRefactoringService(arguments, callback);
         }
 
-        public RemoteConvertTupleToStructCodeRefactoringService(in ServiceConstructionArguments arguments)
+        private readonly RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> _callback;
+
+        public RemoteConvertTupleToStructCodeRefactoringService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
             : base(arguments)
         {
+            _callback = callback;
         }
 
+        // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
+        private CleanCodeGenerationOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
+            => new ClientCleanCodeGenerationOptionsProvider(
+                (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
+
         public ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             TextSpan span,
             Scope scope,
             bool isRecord,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
-                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
+                var fallbackOptions = GetClientOptionsProvider(callbackId);
 
-                var cleanedSolution = await CleanupAsync(solution, updatedSolution, cancellationToken).ConfigureAwait(false);
+                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
+
+                var cleanedSolution = await CleanupAsync(solution, updatedSolution, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(
                     solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
@@ -73,15 +88,18 @@ namespace Microsoft.CodeAnalysis.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;
 
             foreach (var docId in changes)
             {
-                var cleaned = await CodeAction.CleanupDocumentAsync(
-                    newSolution.GetDocument(docId), cancellationToken).ConfigureAwait(false);
+                var document = newSolution.GetDocument(docId);
+
+                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+
                 var cleanedRoot = await cleaned.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 final = final.WithDocumentSyntaxRoot(docId, cleanedRoot);
             }

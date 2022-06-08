@@ -6,7 +6,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
+using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -461,6 +461,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         return;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestInTopLevelStatements()
+        {
+            await TestAsync(
+@"if (args.Length > 0) [|return|] 0;
+{|Cursor:[|return|]|} 1;");
         }
     }
 }

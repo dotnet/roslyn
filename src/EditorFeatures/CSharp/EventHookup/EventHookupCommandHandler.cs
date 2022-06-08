@@ -38,8 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.EventHookup)]
     [Order(Before = PredefinedCommandHandlerNames.AutomaticCompletion)]
-    internal partial class EventHookupCommandHandler : ForegroundThreadAffinitizedObject
+    internal partial class EventHookupCommandHandler
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IGlobalOptionService _globalOptions;
@@ -57,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             EventHookupSessionManager eventHookupSessionManager,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _inlineRenameService = inlineRenameService;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
             _globalOptions = globalOptions;

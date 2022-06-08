@@ -5,10 +5,9 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.CSharp
-Imports Microsoft.CodeAnalysis.CSharp.CodeGeneration
-Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -395,16 +394,19 @@ using G=   H.I;
                     workspace.GetService(Of IGlobalOptionService))
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-                Dim options = Await document.GetOptionsAsync(CancellationToken.None).ConfigureAwait(False)
-                options = options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst)
-                Dim preferences = New CSharpCodeGenerationPreferences(CType(document.DocumentState.ParseOptions, CSharpParseOptions), options)
+                Dim addImportOptions = New AddImportPlacementOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+                }
+
+                Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
 
                 Dim updatedDocument = expansionClient.AddImports(
                     document,
-                    preferences,
+                    addImportOptions,
+                    formattingOptions,
                     If(position, 0),
                     snippetNode,
-                    allowInHiddenRegions:=False,
                     CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode,

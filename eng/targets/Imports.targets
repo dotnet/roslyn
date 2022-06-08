@@ -64,25 +64,6 @@
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
   
-  <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
-    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
-  </ItemGroup>
-
-  <!--
-    If the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFramework.ReferenceAssemblies nuget package.
-    Use the latest Framework toolset to build, but set msbuild properties below
-    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
-  -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <NoStdLib>true</NoStdLib>
-    <ResGenExecuteAsTool>false</ResGenExecuteAsTool>
-    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
-
-    <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
-    <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
-  </PropertyGroup>
-
   <!-- 
     Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
   -->

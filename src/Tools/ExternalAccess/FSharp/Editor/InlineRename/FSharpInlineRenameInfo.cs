@@ -36,13 +36,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         Glyph IInlineRenameInfo.Glyph
             => FSharpGlyphHelpers.ConvertTo(Glyph);
 
+        bool IInlineRenameInfo.MustRenameOverloads
+            => ForceRenameOverloads;
+
         ImmutableArray<DocumentSpan> IInlineRenameInfo.DefinitionLocations
             => DefinitionLocations.SelectAsArray(l => new DocumentSpan(l.Document, l.TextSpan));
 
-        async Task<IInlineRenameLocationSet> IInlineRenameInfo.FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+        async Task<IInlineRenameLocationSet> IInlineRenameInfo.FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
             => await FindRenameLocationsAsync(
-                optionSet.GetOption(RenameOptions.RenameInStrings),
-                optionSet.GetOption(RenameOptions.RenameInComments),
+                options.RenameInStrings,
+                options.RenameInComments,
                 cancellationToken).ConfigureAwait(false);
 
         TextSpan? IInlineRenameInfo.GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)

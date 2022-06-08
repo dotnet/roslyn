@@ -690,7 +690,8 @@ End Class"
 
             Dim comp = CreateEmptyCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
+            ' ILVerify: Failed to load type 'System.String' from assembly ...
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.FailsILVerify, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -2775,7 +2776,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2787,7 +2788,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2836,7 +2837,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2848,7 +2849,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                      ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -3848,7 +3849,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
+            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.FailsPEVerify Or Verification.FailsILVerify)
         End Sub
 
         <Fact>

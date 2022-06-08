@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             _sourceFilePath = sourceFilePath;
         }
 
-        public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, CancellationToken cancellationToken)
+        public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
         {
             if (_pdbFilePath is null)
             {

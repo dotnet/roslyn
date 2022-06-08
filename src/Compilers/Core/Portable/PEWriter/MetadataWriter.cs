@@ -4054,12 +4054,17 @@ namespace Microsoft.Cci
                 encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
             }
 
-            return new EditAndContinueMethodDebugInformation(methodBody.MethodId.Ordinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
+            return new EditAndContinueMethodDebugInformation(
+                methodBody.MethodId.Ordinal,
+                encLocalSlots,
+                methodBody.ClosureDebugInfo,
+                methodBody.LambdaDebugInfo,
+                methodBody.StateMachineStatesDebugInfo.States);
         }
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)
         {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            if (!locals.Any(static variable => !variable.SlotInfo.Id.IsNone))
             {
                 return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }
@@ -4069,7 +4074,7 @@ namespace Microsoft.Cci
 
         internal static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<EncHoistedLocalInfo> locals)
         {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            if (!locals.Any(static variable => !variable.SlotInfo.Id.IsNone))
             {
                 return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }

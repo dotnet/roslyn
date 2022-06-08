@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
             internal BoundStatement? LoweredInitializers { get; set; }
-            internal NullableWalker.VariableState AfterInitializersState;
             internal bool HasErrors { get; set; }
             internal ImportChain? FirstImportChain { get; set; }
         }
@@ -115,6 +114,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parentBinder = parentBinder.GetFieldInitializerBinder(fieldSymbol);
 
                                 BoundFieldEqualsValue boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
+
+                                if (!boundInitializer.Value.HasAnyErrors)
+                                {
+                                    var field = boundInitializer.Field;
+                                    if (field.Type.IsRefLikeType)
+                                    {
+                                        BoundExpression value = parentBinder.ValidateEscape(boundInitializer.Value, ExternalScope, isByRef: false, diagnostics);
+                                        boundInitializer = boundInitializer.Update(field, boundInitializer.Locals, value);
+                                    }
+                                }
+
                                 boundInitializers.Add(boundInitializer);
                                 break;
 

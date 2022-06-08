@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -21,18 +22,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [Export(typeof(IRefactorNotifyService))]
-    internal sealed class VsRefactorNotifyService : ForegroundThreadAffinitizedObject, IRefactorNotifyService
+    internal sealed class VsRefactorNotifyService : IRefactorNotifyService
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VsRefactorNotifyService(IThreadingContext threadingContext)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
             {
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
@@ -69,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
             {
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
@@ -110,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
             out string[] rqnames)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             rqnames = null;
             if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
@@ -129,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
             out string rqname)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             hierarchyToItemIDsMap = null;
             rqname = null;
@@ -172,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspace visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var hierarchyToItemIDsMap = new Dictionary<IVsHierarchy, List<uint>>();
 

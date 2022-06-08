@@ -3,10 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -86,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     session.Cancel()
                     VerifyBufferContentsInWorkspace(actualWorkspace, actualWorkspace)
                 ElseIf sessionCommit Then
-                    session.Commit()
+                    Await session.CommitAsync(previewChanges:=False, CancellationToken.None)
                     VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
                 End If
             End If
@@ -1674,10 +1676,11 @@ static class E
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim textBuffer = workspace.Documents(0).GetTextBuffer()
                 Dim session = StartSession(workspace)
-                session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=True)
+
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions(RenameInComments:=True))
                 Await WaitForRename(workspace)
 
-                session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=False)
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions())
                 Await WaitForRename(workspace)
 
                 textBuffer.Replace(New Span(location, 3), "Bar")

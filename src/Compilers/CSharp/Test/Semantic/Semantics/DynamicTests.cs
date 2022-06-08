@@ -2565,7 +2565,7 @@ IInvalidOperation (OperationKind.Invalid, Type: dynamic, IsInvalid) (Syntax: 'ne
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(11, 21),
                 // file.cs(6,26): error CS8382: Invalid object creation
                 // 		var x = /*<bind>*/ new dynamic
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(6, 26)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2802,7 +2802,7 @@ class C : List<int>
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(43, 55),
                 // (46,59): error CS8382: Invalid object creation
                 //         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
-                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(46, 59),
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(46, 59),
                 // (25,52): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e0 = () => new C { P = d };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(25, 52),
@@ -3603,7 +3603,8 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: [ : Program::Main][mdToken=0x6000001][offset 0x0000002C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3630,7 +3631,8 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: [ : Program::Main][mdToken=0x6000001][offset 0x0000002C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);

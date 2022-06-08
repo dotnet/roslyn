@@ -5,11 +5,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface;
+using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
@@ -623,6 +623,7 @@ using System;
 
 abstract class MyClass$$
 {
+    public required int RequiredProperty { get; set; }
     public void ExtractableMethod_Normal() { }
     public void ExtractableMethod_ParameterTypes(System.Diagnostics.CorrelationManager x, Nullable<Int32> y = 7, string z = ""42"") { }
     public abstract void ExtractableMethod_Abstract();
@@ -634,6 +635,8 @@ abstract class MyClass$$
 
 interface IMyClass
 {
+    int RequiredProperty { get; set; }
+
     void ExtractableMethod_Abstract();
     void ExtractableMethod_Normal();
     void ExtractableMethod_ParameterTypes(CorrelationManager x, int? y = 7, string z = ""42"");
@@ -954,7 +957,7 @@ abstract class MyClass$$
                 markup, LanguageNames.CSharp,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();

@@ -40,7 +40,7 @@ public class C
                 Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
                 var service = Assert.IsType<PdbFileLocatorService>(exportProvider.GetExportedValue<IPdbFileLocatorService>());
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.NotNull(result);
             });
@@ -72,7 +72,7 @@ public class C
                 Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
                 var service = Assert.IsType<PdbFileLocatorService>(exportProvider.GetExportedValue<IPdbFileLocatorService>());
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });
@@ -102,7 +102,7 @@ public class C
                 Assert.Empty(exportProvider.GetExportedValues<IPdbSourceDocumentLogger>());
                 var service = Assert.IsType<PdbFileLocatorService>(exportProvider.GetExportedValue<IPdbFileLocatorService>());
 
-                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+                using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
 
                 Assert.Null(result);
             });

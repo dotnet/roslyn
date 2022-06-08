@@ -219,15 +219,5 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             => TryGetActiveLogger(functionId, out _) ?
                 CreateLogBlock(functionId, logMessage, GetNextUniqueBlockId(), token) :
                 EmptyLogBlock.Instance;
-
-#if !CODE_STYLE
-        public static Func<FunctionId, bool> GetLoggingChecker(IGlobalOptionService optionService)
-        {
-            var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
-            var functionIdOptions = functionIds.ToDictionary(id => id, id => optionService.GetOption(FunctionIdOptions.GetOption(id)));
-
-            return functionId => functionIdOptions[functionId];
-        }
-#endif
     }
 }

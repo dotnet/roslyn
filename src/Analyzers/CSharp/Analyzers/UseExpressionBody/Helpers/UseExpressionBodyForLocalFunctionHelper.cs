@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    ImmutableArray.Create(SyntaxKind.LocalFunctionStatement))
         {
         }
+
+        public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
+            => options.PreferExpressionBodiedLocalFunctions;
 
         protected override BlockSyntax GetBody(LocalFunctionStatementSyntax statement)
             => statement.Body;

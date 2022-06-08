@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int? MultiLineDocCommentTrivia { get; }
         int? ShebangDirectiveTrivia { get; }
 
+        int IfDirectiveTrivia { get; }
+
         #endregion
 
         #region keywords
@@ -53,6 +55,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int CharacterLiteralToken { get; }
         int StringLiteralToken { get; }
+        int? SingleLineRawStringLiteralToken { get; }
+        int? MultiLineRawStringLiteralToken { get; }
+        int? UTF8StringLiteralToken { get; }
+        int? UTF8SingleLineRawStringLiteralToken { get; }
+        int? UTF8MultiLineRawStringLiteralToken { get; }
 
         #endregion
 
@@ -66,6 +73,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int IdentifierToken { get; }
         int InterpolatedStringTextToken { get; }
         int QuestionToken { get; }
+
+        #endregion
+
+        #region xml tokens
+
+        int XmlTextLiteralToken { get; }
 
         #endregion
 
@@ -98,11 +111,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region expressions
 
         int AnonymousObjectCreationExpression { get; }
+        int ArrayCreationExpression { get; }
         int AwaitExpression { get; }
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int? ImplicitArrayCreationExpression { get; }
         int? ImplicitObjectCreationExpression { get; }
+        int? IndexExpression { get; }
         int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
@@ -111,6 +127,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ObjectCreationExpression { get; }
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
+        int? RangeExpression { get; }
+        int? RefExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
@@ -131,6 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int YieldReturnStatement { get; }
 
         #endregion
 
@@ -138,6 +157,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int? RecordDeclaration { get; }
+        int? RecordStructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }

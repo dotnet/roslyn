@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
@@ -39,18 +40,22 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
         }
 
+        protected abstract ISyntaxFacts GetSyntaxFacts();
+
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             context.RegisterCompilationStartAction(context =>
             {
                 if (!AreObjectInitializersSupported(context.Compilation))
-                {
                     return;
-                }
 
-                context.RegisterSyntaxNodeAction(
-                    AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+                using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
+                matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                if (syntaxKinds.ImplicitObjectCreationExpression != null)
+                    matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+
+                context.RegisterSyntaxNodeAction(AnalyzeNode, matchKinds.ToImmutableAndClear());
             });
         }
 
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var option = context.GetOption(CodeStyleOptions2.PreferObjectInitializer, language);
+            var option = context.GetAnalyzerOptions().PreferObjectInitializer;
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -70,39 +75,30 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var syntaxFacts = GetSyntaxFacts();
-            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+            var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
-            {
                 return;
-            }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
-            {
                 return;
-            }
 
             if (!IsValidContainingStatement(containingStatement))
-            {
                 return;
-            }
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, context.CancellationToken))
-            {
                 return;
-            }
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Severity;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                objectCreationExpression.GetLocation(),
-                severity,
-                additionalLocations: locations,
+                objectCreationExpression.GetFirstToken().GetLocation(),
+                option.Notification.Severity,
+                locations,
                 properties: null));
 
             FadeOutCode(context, matches.Value, locations);
@@ -115,12 +111,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = context.GetOption(
-                CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, context.Node.Language);
+            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexObjectInitialization;
             if (!fadeOutCode)
-            {
                 return;
-            }
 
             var syntaxFacts = GetSyntaxFacts();
 
@@ -150,8 +143,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
             }
         }
-
-        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

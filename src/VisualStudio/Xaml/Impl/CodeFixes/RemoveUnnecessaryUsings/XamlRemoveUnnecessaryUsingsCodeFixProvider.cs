@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,25 +45,19 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
+                CodeAction.Create(
+                    Resources.RemoveUnnecessaryNamespaces,
+                    c => RemoveUnnecessaryImportsAsync(context.Document, c),
+                    nameof(Resources.RemoveUnnecessaryNamespaces)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
-        private static Task<Document> RemoveUnnecessaryImportsAsync(
+        private static async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(Resources.RemoveUnnecessaryNamespaces, createChangedDocument, nameof(Resources.RemoveUnnecessaryNamespaces))
-            {
-            }
+            return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions: null, cancellationToken).ConfigureAwait(false);
         }
     }
 }

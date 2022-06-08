@@ -123,6 +123,101 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
+        /// <summary>
+        /// This method generates a string that represents the input content to the compiler which impacts 
+        /// the output of the build. This string is effectively a content key for a <see cref="Compilation"/>
+        /// with these values that can be used to identify the outputs.
+        ///
+        /// The returned string has the following properties:
+        ///
+        /// <list type="bullet">
+        /// <item>
+        /// <description>
+        /// The format is undefined. Consumers should assume the format and content can change between 
+        /// compiler versions.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// It is designed to be human readable and diffable. This is to help developers
+        /// understand the difference between two compilations which is impacting the deterministic 
+        /// output
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// It is *not* in a minimal form. If used as a key in say a content addressable storage consumers
+        /// should first pass it through a strong hashing function.
+        /// </description>
+        /// </item>
+        /// </list>
+        ///
+        /// Compilations which do not use the /deterministic option can still use this API but
+        /// the results will change on every invocation.
+        /// </summary>
+        /// <remarks>
+        /// The set of inputs that impact deterministic output are described in the following document
+        ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
+        ///
+        /// There are a few dark corners of determinism that are not captured with this key as they are 
+        /// considered outside the scope of this work:
+        ///
+        /// <list type="number">
+        /// <item>
+        /// <description>
+        /// Environment variables: clever developers can subvert determinism by manipulation of 
+        /// environment variables that impact program execution. For example changing normal library 
+        /// loading by manipulating the %LIBPATH% environment variable. Doing so can cause a change 
+        /// in deterministic output of compilation by changing compiler, runtime or generator 
+        /// dependencies.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// Manipulation of strong name keys: strong name keys are read "on demand" by the compiler
+        /// and both normal compilation and this key can have non-deterministic output if they are 
+        /// manipulated at the correct point in program execution. That is an existing limitation
+        /// of compilation that is tracked by https://github.com/dotnet/roslyn/issues/57940
+        /// </description>
+        /// </item>
+        /// </list>
+        /// This API can throw exceptions in a few cases like invalid file paths.
+        /// </remarks>
+        internal static string GetDeterministicKey(
+            CompilationOptions compilationOptions,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey,
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+        {
+            return DeterministicKey.GetDeterministicKey(
+                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
+        }
+
+        internal string GetDeterministicKey(
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            => GetDeterministicKey(
+                Options,
+                CommonSyntaxTrees,
+                ExternalReferences.Concat(DirectiveReferences),
+                Assembly.Identity.PublicKey,
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                options);
+
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))
@@ -147,7 +242,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }
@@ -1074,7 +1169,9 @@ namespace Microsoft.CodeAnalysis
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
                 var result = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
-                Debug.Assert(result || (_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) && ReferenceEquals(addedType, val)));
+                Debug.Assert(result
+                 || !_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
+                 || ReferenceEquals(addedType, val));
             }
             return val;
         }
@@ -1101,8 +1198,8 @@ namespace Microsoft.CodeAnalysis
                 val = getTypesByMetadataNameImpl();
                 var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                    || (_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray)
-                        && Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance)));
+                    || !_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
+                    || Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance));
             }
 
             return val;

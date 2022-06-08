@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -477,7 +478,7 @@ Imports System.
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function AnchorQueryStatement() As Task
+        Public Async Function AnchorQueryStatement1() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim a =                              From q In
@@ -490,9 +491,57 @@ End Class</Code>
             Dim expected = <Code>Class C
     Sub Method()
         Dim a = From q In
+                                                {1, 3, 5}
+                Where q > 10
+                Select q
+    End Sub
+End Class</Code>
+
+            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function AnchorQueryStatement2() As Task
+            Dim code = <Code>Class C
+    Sub Method()
+      Dim a =   From q In
                    {1, 3, 5}
                 Where q > 10
                 Select q
+    End Sub
+End Class</Code>
+
+            Dim expected = <Code>Class C
+    Sub Method()
+        Dim a = From q In
+                     {1, 3, 5}
+                Where q > 10
+                Select q
+    End Sub
+End Class</Code>
+
+            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function AnchorQueryStatement3() As Task
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim a =
+                                             From q In
+                                                {1, 3, 5}
+                                             Where q > 10
+                                             Select q
+    End Sub
+End Class</Code>
+
+            Dim expected = <Code>Class C
+    Sub Method()
+        Dim a =
+                                             From q In
+                                                {1, 3, 5}
+                                             Where q > 10
+                                             Select q
     End Sub
 End Class</Code>
 
@@ -3029,7 +3078,7 @@ End Module"
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(inputOutput))
                 Dim root = Await document.GetSyntaxRootAsync()
-                Dim options = SyntaxFormattingOptions.Default
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 ' format first time
                 Dim result = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
@@ -3857,7 +3906,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Using workspace = New AdhocWorkspace()
-                Dim result = Formatter.Format(root, goo, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None).ToString()
+                Dim result = Formatter.Format(root, goo, workspace.Services, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
                 Assert.Equal(expected, result)
             End Using
         End Sub
@@ -4289,8 +4338,11 @@ End Module
 End Class</text>.Value)
 
             Dim propertyBlock = (Await document.GetSyntaxRootAsync()).DescendantNodes().OfType(Of PropertyBlockSyntax).Single()
-            document = Await Formatter.FormatAsync(document.WithSyntaxRoot(
-                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter)))))
+
+            Dim newDocument = document.WithSyntaxRoot(
+                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter))))
+
+            document = Await Formatter.FormatAsync(newDocument, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None)
 
             Dim actual = (Await document.GetTextAsync()).ToString()
             Assert.Equal(actual, actual)
@@ -4681,10 +4733,16 @@ End Class
                 ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
                 tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
 
-                Dim options = SyntaxFormattingOptions.Create(
-                    workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf),
-                    workspace.Services,
-                    tree.Language)
+                Dim options = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With
+                    {
+                        .LineFormatting = New LineFormattingOptions() With
+                        {
+                            .NewLine = vbLf
+                        }
+                    }
+                }
 
                 Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
                 Dim actual = formatted.ToFullString()

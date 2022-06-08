@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         public string DisplayName => EditorFeaturesResources.Signature_Help;
 
         public Controller(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IDocumentProvider documentProvider,
             IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
             IAsyncCompletionBroker completionBroker)
-            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
+            : base(globalOptions, threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _completionBroker = completionBroker;
             _allProviders = allProviders;
@@ -53,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         // For testing purposes.
         internal Controller(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IDocumentProvider documentProvider,
             IList<ISignatureHelpProvider> providers,
             IAsyncCompletionBroker completionBroker)
-            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
+            : base(globalOptions, threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _providers = providers.ToImmutableArray();
             _completionBroker = completionBroker;
@@ -71,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         private SnapshotPoint GetCaretPointInViewBuffer()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             return this.TextView.Caret.Position.BufferPosition;
         }
 
         internal override void OnModelUpdated(Model modelOpt, bool updateController)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (updateController)
             {
@@ -108,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private void StartSession(
             ImmutableArray<ISignatureHelpProvider> providers, SignatureHelpTriggerInfo triggerInfo)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             VerifySessionIsInactive();
 
             this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null));
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         private ImmutableArray<ISignatureHelpProvider> GetProviders()
         {
-            this.AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
             var currentContentType = snapshot.ContentType;
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         private void Retrigger()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             if (!IsSessionActive)
             {
                 return;

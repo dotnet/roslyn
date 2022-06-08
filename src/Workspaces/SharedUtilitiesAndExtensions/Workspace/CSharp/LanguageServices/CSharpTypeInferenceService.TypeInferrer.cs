@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RefExpressionSyntax refExpression => InferTypeInRefExpression(refExpression),
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement),
                     SubpatternSyntax subpattern => InferTypeInSubpattern(subpattern, node),
+                    SwitchExpressionArmSyntax arm => InferTypeInSwitchExpressionArm(arm),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel),
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement),
                     ThrowExpressionSyntax throwExpression => InferTypeInThrowExpression(throwExpression),
@@ -241,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LambdaExpressionSyntax lambdaExpression => InferTypeInLambdaExpression(lambdaExpression, token),
                     PostfixUnaryExpressionSyntax postfixUnary => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     PrefixUnaryExpressionSyntax prefixUnary => InferTypeInPrefixUnaryExpression(prefixUnary, token),
+                    RelationalPatternSyntax relationalPattern => InferTypeInRelationalPattern(relationalPattern),
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement, token),
                     SingleVariableDesignationSyntax singleVariableDesignationSyntax => InferTypeForSingleVariableDesignation(singleVariableDesignationSyntax),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
@@ -936,12 +938,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.LessThanLessThanToken:
                     case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.LessThanLessThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
 
                         if (onRightOfToken)
                         {
-                            // x << Goo(), x >> Goo(), x <<= Goo(), x >>= Goo()
+                            // x << Goo(), x >> Goo(), x >>> Goo(), x <<= Goo(), x >>= Goo(), x >>>= Goo()
                             return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                         }
 
@@ -1036,8 +1040,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PercentEqualsToken:
                     case SyntaxKind.LessThanLessThanToken:
                     case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.LessThanLessThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                         return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
                     case SyntaxKind.BarEqualsToken:
@@ -2058,6 +2064,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : null;
             }
 
+            private IEnumerable<TypeInferenceInfo> InferTypeInSwitchExpressionArm(
+                SwitchExpressionArmSyntax arm)
+            {
+                if (arm.Parent is SwitchExpressionSyntax switchExpression)
+                {
+                    // see if we can figure out an appropriate type from a prior arm.
+                    var armIndex = switchExpression.Arms.IndexOf(arm);
+                    if (armIndex > 0)
+                    {
+                        var previousArm = switchExpression.Arms[armIndex - 1];
+                        var priorArmTypes = GetTypes(previousArm.Expression, objectAsDefault: false);
+                        if (priorArmTypes.Any())
+                            return priorArmTypes;
+                    }
+
+                    // if a prior arm gave us nothing useful, or we're the first arm, then try to infer looking at
+                    // what type gets inferred for the switch expression itself.
+                    return InferTypes(switchExpression);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeInSwitchLabel(
                 SwitchLabelSyntax switchLabel, SyntaxToken? previousToken = null)
             {
@@ -2304,6 +2333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return CreateResult(SpecialType.System_Boolean);
             }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInRelationalPattern(RelationalPatternSyntax relationalPattern)
+                => InferTypes(relationalPattern);
         }
     }
 }

@@ -1241,6 +1241,7 @@ End Class
                                                             OutputKind.DynamicallyLinkedLibrary,
                                                             i3Compilation.EmitToArray(),
                                                             Nothing,
+                                                            False,
                                                             False)},
                              expectedOutput:=
             <![CDATA[

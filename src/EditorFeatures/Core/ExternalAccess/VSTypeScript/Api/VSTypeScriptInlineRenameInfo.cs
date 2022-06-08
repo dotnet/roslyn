@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public abstract string GetFinalSymbolName(string replacementText);
         public abstract TextSpan GetReferenceEditSpan(VSTypeScriptInlineRenameLocationWrapper location, CancellationToken cancellationToken);
 
+        bool IInlineRenameInfo.MustRenameOverloads
+            => ForceRenameOverloads;
+
         Glyph IInlineRenameInfo.Glyph
             => VSTypeScriptGlyphHelpers.ConvertTo(Glyph);
 
         ImmutableArray<DocumentSpan> IInlineRenameInfo.DefinitionLocations
             => DefinitionLocations.SelectAsArray(l => new DocumentSpan(l.Document, l.SourceSpan));
 
-        async Task<IInlineRenameLocationSet> IInlineRenameInfo.FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
-            => await FindRenameLocationsAsync(
-                optionSet.GetOption(RenameOptions.RenameInStrings),
-                optionSet.GetOption(RenameOptions.RenameInComments),
-                cancellationToken).ConfigureAwait(false);
+        async Task<IInlineRenameLocationSet> IInlineRenameInfo.FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
+            => await FindRenameLocationsAsync(options.RenameInStrings, options.RenameInComments, cancellationToken).ConfigureAwait(false);
 
         TextSpan? IInlineRenameInfo.GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
             => GetConflictEditSpan(new VSTypeScriptInlineRenameLocationWrapper(

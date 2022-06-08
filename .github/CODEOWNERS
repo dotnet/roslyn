@@ -3,6 +3,10 @@
 
 *.yml @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
+
+docs/compilers @dotnet/roslyn-compiler
+docs/ide @dotnet/roslyn-ide
+
 eng/ @dotnet/roslyn-infrastructure
 scripts/ @dotnet/roslyn-infrastructure
 
@@ -36,3 +40,5 @@ src/Compilers/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Workspaces/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
+
+src/Tools/ExternalAccess/OmniSharp*/ @333fred @joerobich

@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
             lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
             closureDebugInfoBuilder As ArrayBuilder(Of ClosureDebugInfo),
+            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
             ByRef delegateRelaxationIdDispenser As Integer,
             <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol,
             allowOmissionOfConditionalCalls As Boolean,
@@ -108,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return bodyWithoutLambdas
                 End If
 
-                Dim bodyWithoutIteratorAndAsync = RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, localDiagnostics, lazyVariableSlotAllocator, stateMachineTypeOpt)
+                Dim bodyWithoutIteratorAndAsync = RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, localDiagnostics, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, stateMachineTypeOpt)
 
                 diagnostics.AddRangeAndFree(localDiagnostics)
 
@@ -127,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        methodOrdinal As Integer,
                                                        compilationState As TypeCompilationState,
                                                        diagnostics As BindingDiagnosticBag,
+                                                       stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                                                        slotAllocatorOpt As VariableSlotAllocator,
                                                        <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol) As BoundBlock
 
@@ -136,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas,
                                                                 method,
                                                                 methodOrdinal,
+                                                                stateMachineStateDebugInfoBuilder,
                                                                 slotAllocatorOpt,
                                                                 compilationState,
                                                                 diagnostics,
@@ -149,6 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators,
                                                          method,
                                                          methodOrdinal,
+                                                         stateMachineStateDebugInfoBuilder,
                                                          slotAllocatorOpt,
                                                          compilationState,
                                                          diagnostics,

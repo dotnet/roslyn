@@ -18,9 +18,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="CodeStyleFixesResources.resx" GenerateSource="true" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

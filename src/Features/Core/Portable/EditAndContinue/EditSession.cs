@@ -153,8 +153,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
         /// </summary>
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
-        public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(documentAnalyses.IsEmpty);
+
             var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             if (availability.Status == ManagedHotReloadAvailabilityStatus.ModuleNotLoaded)
             {
@@ -167,7 +169,69 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(availability.Status);
-            return ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { projectDisplayName, availability.LocalizedMessage }));
+            var messageArgs = new[] { newProject.Name, availability.LocalizedMessage };
+
+            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+
+            await foreach (var location in CreateChangedLocationsAsync(oldProject, newProject, documentAnalyses, cancellationToken).ConfigureAwait(false))
+            {
+                diagnostics.Add(Diagnostic.Create(descriptor, location, messageArgs));
+            }
+
+            return diagnostics.ToImmutable();
+        }
+
+        private static async IAsyncEnumerable<Location> CreateChangedLocationsAsync(Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var hasRemovedOrAddedDocument = false;
+            foreach (var documentAnalysis in documentAnalyses)
+            {
+                if (!documentAnalysis.HasChanges)
+                {
+                    continue;
+                }
+
+                var oldDocument = await oldProject.GetDocumentAsync(documentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var newDocument = await newProject.GetDocumentAsync(documentAnalysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                if (oldDocument == null || newDocument == null)
+                {
+                    hasRemovedOrAddedDocument = true;
+                    continue;
+                }
+
+                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newTree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                // document location:
+                yield return Location.Create(newTree, GetFirstLineDifferenceSpan(oldText, newText));
+            }
+
+            // project location:
+            if (hasRemovedOrAddedDocument)
+            {
+                yield return Location.None;
+            }
+        }
+
+        private static TextSpan GetFirstLineDifferenceSpan(SourceText oldText, SourceText newText)
+        {
+            var oldLineCount = oldText.Lines.Count;
+            var newLineCount = newText.Lines.Count;
+
+            for (var i = 0; i < Math.Min(oldLineCount, newLineCount); i++)
+            {
+                var oldLineSpan = oldText.Lines[i].Span;
+                var newLineSpan = newText.Lines[i].Span;
+                if (oldLineSpan != newLineSpan || !oldText.GetSubText(oldLineSpan).ContentEquals(newText.GetSubText(newLineSpan)))
+                {
+                    return newText.Lines[i].Span;
+                }
+            }
+
+            return (oldLineCount == newLineCount) ? default :
+                   (newLineCount > oldLineCount) ? newText.Lines[oldLineCount].Span :
+                   TextSpan.FromBounds(newText.Lines[newLineCount - 1].End, newText.Lines[newLineCount - 1].EndIncludingLineBreak);
         }
 
         private async Task<EditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
@@ -197,17 +261,130 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        public static async ValueTask<bool> HasChangesAsync(Solution oldSolution, Solution newSolution, string sourceFilePath, CancellationToken cancellationToken)
+        {
+            var newDocumentIds = newSolution.GetDocumentIdsWithFilePath(sourceFilePath);
+            if (newDocumentIds.IsEmpty)
+            {
+                // file does not exist or has been removed:
+                return !oldSolution.GetDocumentIdsWithFilePath(sourceFilePath).IsEmpty;
+            }
+
+            // it suffices to check the content of one of the document if there are multiple linked ones:
+            var documentId = newDocumentIds.First();
+            var oldDocument = oldSolution.GetDocument(documentId);
+            if (oldDocument == null)
+            {
+                // file has been added
+                return true;
+            }
+
+            var newDocument = newSolution.GetRequiredDocument(documentId);
+            return oldDocument != newDocument && !await ContentEqualsAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async ValueTask<bool> HasChangesAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+        {
+            if (oldSolution == newSolution)
+            {
+                return false;
+            }
+
+            if (oldSolution.ProjectIds.Count != newSolution.ProjectIds.Count)
+            {
+                return true;
+            }
+
+            foreach (var newProject in newSolution.Projects)
+            {
+                var oldProject = oldSolution.GetProject(newProject.Id);
+                if (oldProject == null || await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments: null, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            // The number of projects in both solution is the same and there are no new projects and no changes in existing projects.
+            // Therefore there are no changes.
+            return false;
+        }
+
+        private static async ValueTask<bool> ContentEqualsAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        {
+            // Check if the currently observed document content has changed compared to the base document content.
+            // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
+            //
+            // We may be comparing out-of-date committed document content but we only make a decision based on that content
+            // if it matches the current content. If the current content is equal to baseline content that does not match
+            // the debuggee then the workspace has not observed the change made to the file on disk since baseline was captured
+            // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
+            // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
+            // if it is not applied yet. The change will be applied later after it's observed by the workspace.
+            var oldSource = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newSource = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return oldSource.ContentEquals(newSource);
+        }
+
+        private static async ValueTask<bool> HasChangedOrAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document>? changedOrAddedDocuments, CancellationToken cancellationToken)
+        {
+            if (!newProject.SupportsEditAndContinue())
+            {
+                return false;
+            }
+
+            if (oldProject.State == newProject.State)
+            {
+                return false;
+            }
+
+            foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
+            {
+                var document = newProject.GetRequiredDocument(documentId);
+                if (document.State.Attributes.DesignTimeOnly)
+                {
+                    continue;
+                }
+
+                if (await ContentEqualsAsync(oldProject.GetRequiredDocument(documentId), document, cancellationToken).ConfigureAwait(false))
+                {
+                    continue;
+                }
+
+                if (changedOrAddedDocuments is null)
+                {
+                    return true;
+                }
+
+                changedOrAddedDocuments.Add(document);
+            }
+
+            foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
+            {
+                var document = newProject.GetRequiredDocument(documentId);
+                if (document.State.Attributes.DesignTimeOnly)
+                {
+                    continue;
+                }
+
+                if (changedOrAddedDocuments is null)
+                {
+                    return true;
+                }
+
+                changedOrAddedDocuments.Add(document);
+            }
+
+            // Any changes in non-generated documents might affect source generated documents as well,
+            // no need to check further in that case.
+            return changedOrAddedDocuments is { Count: > 0 } ||
+                   HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State);
+        }
+
         private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution oldSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             changedOrAddedDocuments.Clear();
 
-            if (!newProject.SupportsEditAndContinue())
-            {
-                return;
-            }
-
             var oldProject = oldSolution.GetProject(newProject.Id);
-
             if (oldProject == null)
             {
                 EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
@@ -226,53 +403,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            if (oldProject.State == newProject.State)
+            if (!await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false))
             {
-                return;
-            }
-
-            foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
-            {
-                var document = newProject.GetRequiredDocument(documentId);
-                if (document.State.Attributes.DesignTimeOnly)
-                {
-                    continue;
-                }
-
-                // Check if the currently observed document content has changed compared to the base document content.
-                // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
-                //
-                // We may be comparing out-of-date committed document content but we only make a decision based on that content
-                // if it matches the current content. If the current content is equal to baseline content that does not match
-                // the debuggee then the workspace has not observed the change made to the file on disk since baseline was captured
-                // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
-                // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
-                // if it is not applied yet. The change will be applied later after it's observed by the workspace.
-                var baseSource = await oldProject.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var source = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                if (baseSource.ContentEquals(source))
-                {
-                    continue;
-                }
-
-                changedOrAddedDocuments.Add(document);
-            }
-
-            foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
-            {
-                var document = newProject.GetRequiredDocument(documentId);
-                if (document.State.Attributes.DesignTimeOnly)
-                {
-                    continue;
-                }
-
-                changedOrAddedDocuments.Add(document);
-            }
-
-            // TODO: support document removal/rename (see https://github.com/dotnet/roslyn/issues/41144, https://github.com/dotnet/roslyn/issues/49013).
-            if (changedOrAddedDocuments.IsEmpty() && !HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State))
-            {
-                // Based on the above assumption there are no changes in source generated files.
                 return;
             }
 
@@ -412,81 +544,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        /// <summary>
-        /// Determines whether projects contain any changes that might need to be applied.
-        /// Checks only projects containing a given <paramref name="sourceFilePath"/> or all projects of the solution if <paramref name="sourceFilePath"/> is null.
-        /// Invoked by the debugger on every step. It is critical for stepping performance that this method returns as fast as possible in absence of changes.
-        /// </summary>
-        public async ValueTask<bool> HasChangesAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var baseSolution = DebuggingSession.LastCommittedSolution;
-                if (baseSolution.HasNoChanges(solution))
-                {
-                    return false;
-                }
-
-                // TODO: source generated files?
-                var projects = (sourceFilePath == null) ? solution.Projects :
-                    from documentId in solution.GetDocumentIdsWithFilePath(sourceFilePath)
-                    select solution.GetProject(documentId.ProjectId)!;
-
-                using var _ = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
-
-                foreach (var project in projects)
-                {
-                    await PopulateChangedAndAddedDocumentsAsync(baseSolution, project, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
-                    if (changedOrAddedDocuments.IsEmpty())
-                    {
-                        continue;
-                    }
-
-                    // Check MVID before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
-                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
-                    if (mvidReadError != null)
-                    {
-                        // Can't read MVID. This might be an intermittent failure, so don't report it here.
-                        // Report the project as containing changes, so that we proceed to EmitSolutionUpdateAsync where we report the error if it still persists.
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not built", project.Id.DebugName, project.Id);
-                        return true;
-                    }
-
-                    if (mvid == Guid.Empty)
-                    {
-                        // Project not built. We ignore any changes made in its sources.
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not built", project.Id.DebugName, project.Id);
-                        continue;
-                    }
-
-                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-                    if (documentDiagnostics.Any())
-                    {
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: out-of-sync documents present (diagnostic: '{2}')",
-                            project.Id.DebugName, project.Id, documentDiagnostics[0]);
-
-                        // Although we do not apply changes in out-of-sync/indeterminate documents we report that changes are present,
-                        // so that the debugger triggers emit of updates. There we check if these documents are still in a bad state and report warnings
-                        // that any changes in such documents are not applied.
-                        return true;
-                    }
-
-                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
-                    if (projectSummary != ProjectAnalysisSummary.NoChanges)
-                    {
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: {2}", project.Id.DebugName, project.Id, projectSummary);
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         private static ProjectAnalysisSummary GetProjectAnalysisSymmary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
         {
             var hasChanges = false;
@@ -546,6 +603,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _3 = ArrayBuilder<DocumentActiveStatementChanges>.GetInstance(out var activeStatementsInChangedDocuments);
 
                 var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var requiredCapabilities = EditAndContinueCapabilities.None;
 
                 foreach (var analysis in changedDocumentAnalyses)
                 {
@@ -562,6 +620,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     allEdits.AddRange(analysis.SemanticEdits);
                     allLineEdits.AddRange(analysis.LineEdits);
+                    requiredCapabilities |= analysis.RequiredCapabilities;
 
                     if (analysis.ActiveStatements.Length > 0)
                     {
@@ -580,7 +639,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     mergedEdits,
                     allLineEdits.ToImmutable(),
                     addedSymbols,
-                    activeStatementsInChangedDocuments.ToImmutable());
+                    activeStatementsInChangedDocuments.ToImmutable(),
+                    requiredCapabilities);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -780,10 +840,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add((newProject.Id, documentDiagnostics));
                     }
 
+                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
+                    if (projectSummary == ProjectAnalysisSummary.NoChanges)
+                    {
+                        continue;
+                    }
+
+                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    Contract.ThrowIfNull(oldProject);
+
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
                     // we need to check with the debugger.
-                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, newProject.Name, cancellationToken).ConfigureAwait(false);
+                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
                     var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
                     if (isModuleEncBlocked)
@@ -792,7 +862,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         isBlocked = true;
                     }
 
-                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
                     if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
                     {
                         // only remember the first syntax error we encounter:
@@ -832,10 +901,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
-
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -905,7 +970,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 updatedMethodTokens,
                                 changedTypeTokens,
                                 activeStatementsInUpdatedMethods,
-                                exceptionRegionUpdates));
+                                exceptionRegionUpdates,
+                                projectChanges.RequiredCapabilities));
 
                             nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                             emitBaselines.Add((newProject.Id, emitResult.Baseline));
