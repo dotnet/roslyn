@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     s => IsValidForTaskLikeTypeOnlyContext(s, context),
                     s => (s, preselect: s.OriginalDefinition.Equals(taskType)));
             }
+            else if (context.IsGenericConstraintContext)
+            {
+                // Just filter valid symbols. Nothing to preselect
+                return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
+            }
             else
             {
                 var shouldPreselectInferredTypes = await ShouldPreselectInferredTypesAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false);
@@ -90,6 +95,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return symbol.IsAwaitableNonDynamic(context.SemanticModel, context.Position);
+        }
+
+        private static bool IsValidForGenericConstraintContext(ISymbol symbol)
+        {
+            if (symbol.IsNamespace() ||
+                symbol.IsKind(SymbolKind.TypeParameter))
+            {
+                return true;
+            }
+
+            if (symbol is not INamedTypeSymbol namedType ||
+                symbol.IsDelegateType() ||
+                namedType.IsEnumType())
+            {
+                return false;
+            }
+
+            // If current symbol is a struct or static or sealed class then it cannot be used as a generic constraint.
+            // However it can contain other valid constraint types and if this is true we should show it
+            if (namedType.IsStructType() || namedType.IsStatic || namedType.IsSealed)
+            {
+                return namedType.GetTypeMembers().Any(IsValidForGenericConstraintContext);
+            }
+
+            return true;
         }
 
         private static ITypeSymbol? GetSymbolType(ISymbol symbol)

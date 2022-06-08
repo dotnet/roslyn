@@ -147,6 +147,14 @@ namespace Microsoft.Cci
                     debugInfo,
                     (info, builder) => info.SerializeLambdaMap(builder));
             }
+
+            if (!debugInfo.StateMachineStates.IsDefaultOrEmpty)
+            {
+                encoder.AddRecord(
+                    CustomDebugInfoKind.EditAndContinueStateMachineStateMap,
+                    debugInfo,
+                    (info, builder) => info.SerializeStateMachineStates(builder));
+            }
         }
 
         private static ArrayBuilder<T> GetLocalInfoToSerialize<T>(

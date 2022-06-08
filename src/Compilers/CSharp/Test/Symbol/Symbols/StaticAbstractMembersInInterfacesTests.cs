@@ -15231,7 +15231,10 @@ typeKeyword + @"
             compilation2.VerifyDiagnostics(
                 // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
                 //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 20)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 20),
+                // (5,24): error CS8706: 'Test.M02()' cannot implement interface member 'I1.M02()' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                //     public static void M02() {}
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02()", "I1.M02()", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 24)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15282,9 +15285,9 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (2,12): error CS8929: 'Test1.M01()' cannot implement interface member 'I1.M01()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01()", "I1.M01()", "Test1").WithLocation(2, 12)
+                // (4,24): error CS8929: 'Test1.M01()' cannot implement interface member 'I1.M01()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static void M01() {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "M01").WithArguments("Test1.M01()", "I1.M01()", "Test1").WithLocation(4, 24)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15292,9 +15295,6 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (2,12): error CS8929: 'Test1.M01()' cannot implement interface member 'I1.M01()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01()", "I1.M01()", "Test1").WithLocation(2, 12),
                 // (9,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(9, 26)
@@ -15639,7 +15639,11 @@ public class C5 : C2, I1
                                                  parseOptions: TestOptions.Regular10,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics();
+            compilation1.VerifyDiagnostics(
+                // (10,23): error CS8706: 'C2.M01()' cannot implement interface member 'I1.M01()' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01()", "I1.M01()", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                );
         }
 
         [Fact]
@@ -15685,7 +15689,7 @@ public class C1 : I1
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS8706: 'I1.M01()' cannot implement interface member 'I1.M01()' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01()", "I1.M01()", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01()", "I1.M01()", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
                 );
 
             var source2 =
@@ -16072,15 +16076,13 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
-                {
-                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                         parseOptions: parseOptions,
-                                                         targetFramework: _supportingFramework,
-                                                         references: new[] { reference });
-                    var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: _supportingFramework,
+                                                        references: new[] { reference });
+                var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-                    verifier.VerifyIL("C3.I1.M01()",
+                verifier.VerifyIL("C3.I1.M01()",
 @"
 {
   // Code size        6 (0x6)
@@ -16089,7 +16091,6 @@ public class C3 : C2, I1
   IL_0005:  ret
 }
 ");
-                }
             }
 
             void validate(ModuleSymbol module)
@@ -16599,6 +16600,214 @@ public class C2 : C11<int>, I1<int>
                 else
                 {
                     Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(61553, "https://github.com/dotnet/roslyn/issues/61553")]
+        public void ImplementAbstractStaticMethod_23(bool genericFirst, bool isVirtual)
+        {
+            // An "ambiguity" in implicit implementation declared in generic base class 
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
+            var generic =
+@"
+    public static void M01(T x)
+    {
+        System.Console.WriteLine(""T"");
+    }
+";
+            var nonGeneric =
+@"
+    public static void M01(int x)
+    {
+        System.Console.WriteLine(""int"");
+    }
+";
+            var source1 =
+@"
+public interface I1
+{
+    " + modifier + @" static void M01(int x)" + body + @"
+}
+
+public class C1<T>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
+
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1<int>, I1
+{
+    static void Main()
+    {
+        Test<C2>();
+    }
+
+    static void Test<T>() where T : I1
+    {
+        T.M01(0);
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: _supportingFramework,
+                                             references: new[] { reference });
+
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !(Execute(isVirtual) && ExecutionConditionUtil.IsMonoOrCoreClr) ? null : (genericFirst ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics(
+                    // (2,28): warning CS1956: Member 'C1<int>.M01(int)' implements interface member 'I1.M01(int)' in type 'C2'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                    // public class C2 : C1<int>, I1
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "I1").WithArguments("C1<int>.M01(int)", "I1.M01(int)", "C2").WithLocation(2, 28)
+                    );
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var baseI1M01 = c2.BaseType().FindImplementationForInterfaceMember(m01);
+                Assert.Null(baseI1M01);
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal("void C2.I1.M01(System.Int32 x)", c1M01.ToTestDisplayString());
+                    Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                }
+                else if (genericFirst)
+                {
+                    Assert.Equal("void C1<T>.M01(T x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("void C1<T>.M01(System.Int32 x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+
+                foreach (var method in c2.BaseType().GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.Empty(method.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(61553, "https://github.com/dotnet/roslyn/issues/61553")]
+        public void ImplementAbstractStaticMethod_24(bool genericFirst, bool genericIsStatic, bool isVirtual)
+        {
+            // Static vs. instance doesn't cause an ambiguity in implicit implementation declared in generic base class 
+            var (modifier, body) = GetModifierAndBody(isVirtual);
+
+            var generic =
+@"
+    public " + (genericIsStatic ? "static " : "") + @"void M01(T x)
+    {
+        System.Console.WriteLine(""T"");
+    }
+";
+            var nonGeneric =
+@"
+    public " + (!genericIsStatic ? "static " : "") + @"void M01(int x)
+    {
+        System.Console.WriteLine(""int"");
+    }
+";
+            var source1 =
+@"
+public interface I1
+{
+    " + modifier + @" static void M01(int x)" + body + @"
+}
+
+public class C1<T>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { CreateCompilation("", targetFramework: _supportingFramework).ToMetadataReference() });
+
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains("M01")).Count());
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1<int>, I1
+{
+    static void Main()
+    {
+        Test<C2>();
+    }
+
+    static void Test<T>() where T : I1
+    {
+        T.M01(0);
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: _supportingFramework,
+                                             references: new[] { reference });
+
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: !(Execute(isVirtual) && ExecutionConditionUtil.IsMonoOrCoreClr) ? null : (genericIsStatic ? "T" : "int"), verify: Verification.Skipped).VerifyDiagnostics();
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var baseI1M01 = c2.BaseType().FindImplementationForInterfaceMember(m01);
+                Assert.Null(baseI1M01);
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal("void C2.I1.M01(System.Int32 x)", c1M01.ToTestDisplayString());
+                    Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                }
+                else if (genericIsStatic)
+                {
+                    Assert.Equal("void C1<T>.M01(T x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("void C1<T>.M01(System.Int32 x)", c1M01.OriginalDefinition.ToTestDisplayString());
+                }
+
+                foreach (var method in c2.BaseType().GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.Empty(method.ExplicitInterfaceImplementations);
                 }
             }
         }
@@ -17865,7 +18074,10 @@ typeKeyword + @"
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
                     // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static Test2 operator checked -(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
+                    // (9,42): error CS8706: 'Test2.operator checked -(Test2)' cannot implement interface member 'I2<Test2>.operator checked -(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    //     public static Test2 operator checked -(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator checked " + op + "(Test2)", "I2<Test2>.operator checked " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 42)
                     };
             }
             else
@@ -17873,7 +18085,10 @@ typeKeyword + @"
                 expected2 = new[] {
                     // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static I1 I1.operator +(I1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                    // (9,34): error CS8706: 'Test2.operator +(Test2)' cannot implement interface member 'I2<Test2>.operator +(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    //     public static Test2 operator +(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator " + op + "(Test2)", "I2<Test2>.operator " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 34)
                     };
             }
 
@@ -17986,7 +18201,10 @@ typeKeyword + @"
                     compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                         // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     static I1 I1.operator +(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                        // (9,34): error CS8706: 'Test2.operator +(Test2, int)' cannot implement interface member 'I2<Test2>.operator +(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                        //     public static Test2 operator +(Test2 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator " + op + "(Test2, int)", "I2<Test2>.operator " + op + "(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 34)
                         );
                 }
                 else
@@ -18000,7 +18218,10 @@ typeKeyword + @"
                         Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 27),
                         // (9,34): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                         //     public static Test2 operator >>>(Test2 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34),
+                        // (9,34): error CS8706: 'Test2.operator >>>(Test2, int)' cannot implement interface member 'I2<Test2>.operator >>>(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                        //     public static Test2 operator >>>(Test2 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, ">>>").WithArguments("Test2.operator >>>(Test2, int)", "I2<Test2>.operator >>>(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 34)
                         );
                 }
             }
@@ -18015,7 +18236,10 @@ typeKeyword + @"
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
                     // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static Test2 operator checked /(Test2 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
+                    // (9,42): error CS8706: 'Test2.operator checked /(Test2, int)' cannot implement interface member 'I2<Test2>.operator checked /(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    //     public static Test2 operator checked /(Test2 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator checked " + op + "(Test2, int)", "I2<Test2>.operator checked " + op + "(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 42)
                     );
             }
 
@@ -18130,9 +18354,9 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1)", "Test1").WithLocation(2, 12)
+                // (4,34): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static Test1 operator +(Test1 x) => default;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, op).WithArguments("Test1.operator " + checkedKeyword + op + "(Test1)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1)", "Test1").WithLocation(4, 34 + checkedKeyword.Length)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -18140,9 +18364,6 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1)", "Test1").WithLocation(2, 12),
                 // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator +(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32 + checkedKeyword.Length)
@@ -18190,9 +18411,9 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1, int)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1, int)", "Test1").WithLocation(2, 12)
+                // (4,34): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static Test1 operator >>(Test1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, op).WithArguments("Test1.operator " + checkedKeyword + op + "(Test1, int)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1, int)", "Test1").WithLocation(4, 34 + checkedKeyword.Length)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -18200,9 +18421,6 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1, int)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1, int)", "Test1").WithLocation(2, 12),
                 // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator >>(T x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32 + checkedKeyword.Length)
@@ -19231,7 +19449,11 @@ public class C5 : C2, I1
                                                  parseOptions: TestOptions.Regular10,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics();
+            compilation1.VerifyDiagnostics(
+                // (10,23): error CS8706: 'C2.operator --(I1)' cannot implement interface member 'I1.operator --(I1)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.operator " + checkedKeyword + op + "(I1)", "I1.operator " + checkedKeyword + op + "(I1)", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                );
         }
 
         [Theory]
@@ -19359,10 +19581,14 @@ public class C5 : C2, I1
             Assert.Equal(MethodKind.UserDefinedOperator, c2M01.MethodKind);
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular10,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics();
+            compilation1.VerifyDiagnostics(
+                // (10,23): error CS8706: 'C2.operator checked *(I1, int)' cannot implement interface member 'I1.operator checked *(I1, int)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.operator " + checkedKeyword + op + "(I1, int)", "I1.operator " + checkedKeyword + op + "(I1, int)", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                );
         }
 
         [Theory]
@@ -19420,7 +19646,7 @@ public class C1 : I1
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS8706: 'I1.operator ~(I1)' cannot implement interface member 'I1.operator ~(I1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1)", "I1.operator " + checkedKeyword + op + @"(I1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1)", "I1.operator " + checkedKeyword + op + @"(I1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
                 );
 
             var source2 =
@@ -19500,7 +19726,7 @@ public class C1 : I1
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS8706: 'I1.operator |(I1, int)' cannot implement interface member 'I1.operator |(I1, int)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1, int)", "I1.operator " + checkedKeyword + op + @"(I1, int)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1, int)", "I1.operator " + checkedKeyword + op + @"(I1, int)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
                 );
 
             var source2 =
@@ -20498,15 +20724,13 @@ public class C3 : C2, I1<C2>
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
-                {
-                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                     parseOptions: parseOptions,
-                                                     targetFramework: _supportingFramework,
-                                                     references: new[] { reference });
-                    var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework,
+                                                 references: new[] { reference });
+                var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-                    verifier.VerifyIL("C3.I1<C2>." + opName + "(C2, C1)",
+                verifier.VerifyIL("C3.I1<C2>." + opName + "(C2, C1)",
 @"
 {
   // Code size        8 (0x8)
@@ -20517,7 +20741,6 @@ public class C3 : C2, I1<C2>
   IL_0007:  ret
 }
 ");
-                }
             }
 
             void validate(ModuleSymbol module)
@@ -21707,7 +21930,16 @@ typeKeyword + @"
             compilation2.VerifyDiagnostics(
                 // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
                 //     static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 19),
+                // (5,23): error CS8706: 'Test.M02' cannot implement interface member 'I1.M02' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                //     public static int M02 { get; set; }
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02", "I1.M02", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 23),
+                // (5,29): error CS8706: 'Test.M02.get' cannot implement interface member 'I1.M02.get' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                //     public static int M02 { get; set; }
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "get").WithArguments("Test.M02.get", "I1.M02.get", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 29),
+                // (5,34): error CS8706: 'Test.M02.set' cannot implement interface member 'I1.M02.set' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                //     public static int M02 { get; set; }
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "set").WithArguments("Test.M02.set", "I1.M02.set", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 34)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -21758,15 +21990,15 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (2,12): error CS8929: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.set", "I1.M01.set", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.get", "I1.M01.get", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12)
+                // (4,23): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "M01").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(4, 23),
+                // (4,29): error CS8929: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "get").WithArguments("Test1.M01.get", "I1.M01.get", "Test1").WithLocation(4, 29),
+                // (4,34): error CS8929: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "set").WithArguments("Test1.M01.set", "I1.M01.set", "Test1").WithLocation(4, 34)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -21774,15 +22006,6 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (2,12): error CS8929: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.set", "I1.M01.set", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.get", "I1.M01.get", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12),
                 // (9,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(9, 31),
@@ -22363,10 +22586,20 @@ public class C5 : C2, I1
             Assert.Same(c2M01.SetMethod, c5.FindImplementationForInterfaceMember(m01.SetMethod));
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular10,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics();
+            compilation1.VerifyDiagnostics(
+                // (10,23): error CS8706: 'C2.M01.get' cannot implement interface member 'I1.M01.get' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.get", "I1.M01.get", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01.set' cannot implement interface member 'I1.M01.set' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.set", "I1.M01.set", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01' cannot implement interface member 'I1.M01' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01", "I1.M01", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                );
         }
 
         [Fact]
@@ -22436,10 +22669,10 @@ public class C1 : I1
                 compilation1.VerifyEmitDiagnostics(
                     // (2,19): error CS8706: 'I1.M01.get' cannot implement interface member 'I1.M01.get' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.get", "I1.M01.get", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.get", "I1.M01.get", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
                     // (2,19): error CS8706: 'I1.M01.set' cannot implement interface member 'I1.M01.set' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.set", "I1.M01.set", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.set", "I1.M01.set", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
                     );
 
                 var source2 =
@@ -23797,15 +24030,13 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
-                {
-                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                         parseOptions: parseOptions,
-                                                         targetFramework: _supportingFramework,
-                                                         references: new[] { reference });
-                    var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: _supportingFramework,
+                                                        references: new[] { reference });
+                var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-                    verifier.VerifyIL("C3.I1.get_M01",
+                verifier.VerifyIL("C3.I1.get_M01",
 @"
 {
   // Code size        6 (0x6)
@@ -23815,7 +24046,7 @@ public class C3 : C2, I1
 }
 ");
 
-                    verifier.VerifyIL("C3.I1.set_M01",
+                verifier.VerifyIL("C3.I1.set_M01",
 @"
 {
   // Code size        7 (0x7)
@@ -23825,7 +24056,6 @@ public class C3 : C2, I1
   IL_0006:  ret
 }
 ");
-                }
             }
 
             void validate(ModuleSymbol module)
@@ -24453,6 +24683,15 @@ typeKeyword + @"
                 // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
                 //     static event System.Action I1.M01 { add{} remove => throw null; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 35),
+                // (5,39): error CS8706: 'Test.M02.add' cannot implement interface member 'I1.M02.add' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                //     public static event System.Action M02;
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02.add", "I1.M02.add", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 39),
+                // (5,39): error CS8706: 'Test.M02.remove' cannot implement interface member 'I1.M02.remove' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                //     public static event System.Action M02;
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02.remove", "I1.M02.remove", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 39),
+                // (5,39): error CS8706: 'Test.M02' cannot implement interface member 'I1.M02' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                //     public static event System.Action M02;
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02", "I1.M02", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 39),
                 // (5,39): warning CS0067: The event 'Test.M02' is never used
                 //     public static event System.Action M02;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "M02").WithArguments("Test.M02").WithLocation(5, 39)
@@ -24509,15 +24748,15 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (2,12): error CS8929: 'Test1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.remove", "I1.M01.remove", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01.add' cannot implement interface member 'I1.M01.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.add", "I1.M01.add", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12)
+                // (4,39): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static event System.Action M01 { add{} remove{} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "M01").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(4, 39),
+                // (4,45): error CS8929: 'Test1.M01.add' cannot implement interface member 'I1.M01.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static event System.Action M01 { add{} remove{} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "add").WithArguments("Test1.M01.add", "I1.M01.add", "Test1").WithLocation(4, 45),
+                // (4,51): error CS8929: 'Test1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static event System.Action M01 { add{} remove{} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "remove").WithArguments("Test1.M01.remove", "I1.M01.remove", "Test1").WithLocation(4, 51)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -24525,15 +24764,6 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (2,12): error CS8929: 'Test1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.remove", "I1.M01.remove", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01.add' cannot implement interface member 'I1.M01.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.add", "I1.M01.add", "Test1").WithLocation(2, 12),
-                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12),
                 // (9,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static event System.Action M01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(9, 41)
@@ -25022,10 +25252,20 @@ public class C5 : C2, I1
             Assert.Same(c2M01.RemoveMethod, c5.FindImplementationForInterfaceMember(m01.RemoveMethod));
 
             compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular10,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics();
+            compilation1.VerifyDiagnostics(
+                // (10,23): error CS8706: 'C2.M01.add' cannot implement interface member 'I1.M01.add' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.add", "I1.M01.add", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.remove", "I1.M01.remove", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01' cannot implement interface member 'I1.M01' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01", "I1.M01", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                );
         }
 
         [Fact]
@@ -25096,10 +25336,10 @@ public class C1 : I1
                 compilation1.VerifyEmitDiagnostics(
                     // (2,19): error CS8706: 'I1.M01.add' cannot implement interface member 'I1.M01.add' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.add", "I1.M01.add", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.add", "I1.M01.add", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
                     // (2,19): error CS8706: 'I1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M01.remove", "I1.M01.remove", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.remove", "I1.M01.remove", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
                     );
 
                 var source2 =
@@ -26455,15 +26695,13 @@ public class C3 : C2, I1
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
-                foreach (var parseOptions in new[] { TestOptions.Regular10, TestOptions.RegularPreview })
-                {
-                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                         parseOptions: parseOptions,
-                                                         targetFramework: _supportingFramework,
-                                                         references: new[] { reference });
-                    var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: _supportingFramework,
+                                                        references: new[] { reference });
+                var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-                    verifier.VerifyIL("C3.I1.add_M01",
+                verifier.VerifyIL("C3.I1.add_M01",
 @"
 {
   // Code size        7 (0x7)
@@ -26474,7 +26712,7 @@ public class C3 : C2, I1
 }
 ");
 
-                    verifier.VerifyIL("C3.I1.remove_M01",
+                verifier.VerifyIL("C3.I1.remove_M01",
 @"
 {
   // Code size        7 (0x7)
@@ -26484,7 +26722,6 @@ public class C3 : C2, I1
   IL_0006:  ret
 }
 ");
-                }
             }
 
             void validate(ModuleSymbol module)
@@ -27064,7 +27301,10 @@ typeKeyword + @"
                 compilation2.VerifyDiagnostics(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator int(Test1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
+                    // (9,37): error CS8706: 'Test2.explicit operator int(Test2)' cannot implement interface member 'I2<Test2>.explicit operator int(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    //     public static explicit operator int(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "int").WithArguments("Test2." + op + " operator int(Test2)", "I2<Test2>." + op + " operator int(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 37)
                     );
             }
             else
@@ -27078,7 +27318,10 @@ typeKeyword + @"
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 40),
                     // (9,37): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static explicit operator checked int(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 37)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 37),
+                    // (9,45): error CS8706: 'Test2.explicit operator checked int(Test2)' cannot implement interface member 'I2<Test2>.explicit operator checked int(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    //     public static explicit operator checked int(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "int").WithArguments("Test2." + op + " operator checked int(Test2)", "I2<Test2>." + op + " operator checked int(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 45)
                     );
             }
 
@@ -27154,9 +27397,9 @@ public partial interface I1<T> where T : I1<T>
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator " + checkedKeyword + "int(Test1)", "I1<Test1>." + op + " operator " + checkedKeyword + "int(Test1)", "Test1").WithLocation(2, 12)
+                // (4,37): error CS8929: 'Test1.implicit operator int(Test1)' cannot implement interface member 'I1<Test1>.implicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     public static implicit operator int(Test1 x) => default;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "int").WithArguments("Test1." + op + " operator " + checkedKeyword + "int(Test1)", "I1<Test1>." + op + " operator " + checkedKeyword + "int(Test1)", "Test1").WithLocation(4, 37 + checkedKeyword.Length)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -27164,9 +27407,6 @@ public partial interface I1<T> where T : I1<T>
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
-                //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator " + checkedKeyword + "int(Test1)", "I1<Test1>." + op + " operator " + checkedKeyword + "int(Test1)", "Test1").WithLocation(2, 12),
                 // (9,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static explicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(9, 39 + checkedKeyword.Length)
@@ -27669,7 +27909,11 @@ public class C5 : C2, I1<C1>
                                                  parseOptions: TestOptions.Regular10,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics();
+            compilation1.VerifyDiagnostics(
+                // (10,23): error CS8706: 'C2.explicit operator int(C1)' cannot implement interface member 'I1<C1>.explicit operator int(C1)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // public class C5 : C2, I1<C1>
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<C1>").WithArguments("C2." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                );
         }
 
         [Theory]
@@ -27728,7 +27972,7 @@ public class C1 : I1<C1>
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS8706: 'I1<C1>.explicit operator int(C1)' cannot implement interface member 'I1<C1>.explicit operator int(C1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
                 // public class C1 : I1<C1>
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1<C1>").WithArguments("I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<C1>").WithArguments("I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
                 );
 
             var source2 =

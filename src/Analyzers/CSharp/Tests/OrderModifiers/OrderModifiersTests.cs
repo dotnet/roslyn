@@ -431,5 +431,39 @@ static internal class C2
     static internal class Nested { }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task RequiredAfterAllOnProp()
+        {
+            await TestInRegularAndScriptAsync("""
+                class C
+                {
+                    [|required|] public virtual unsafe int Prop { get; init; }
+                }
+                """,
+                """
+                class C
+                {
+                    public virtual unsafe required int Prop { get; init; }
+                }
+                """);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task RequiredAfterAllButVolatileOnField()
+        {
+            await TestInRegularAndScriptAsync("""
+                class C
+                {
+                    [|required|] public unsafe volatile int Field;
+                }
+                """,
+                """
+                class C
+                {
+                    public unsafe required volatile int Field;
+                }
+                """);
+        }
     }
 }
