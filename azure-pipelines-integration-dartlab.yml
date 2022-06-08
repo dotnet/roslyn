@@ -29,7 +29,7 @@ variables:
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
 
 stages:
-- template: \stages\visual-studio\base.yml@DartLabTemplates
+- template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
     displayName: VS Integration
     testLabPoolName: VS-Platform
