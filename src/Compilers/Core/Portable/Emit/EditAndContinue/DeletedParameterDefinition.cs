@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     internal class DeletedParameterDefinition : IParameterDefinition
     {
         private readonly IParameterDefinition _oldParameter;
+        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 
-        public DeletedParameterDefinition(IParameterDefinition oldParameter)
+        public DeletedParameterDefinition(IParameterDefinition oldParameter, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
         {
             _oldParameter = oldParameter;
+            _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
         }
 
         public bool HasDefaultValue => _oldParameter.HasDefaultValue;
@@ -73,11 +75,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ITypeReference GetType(EmitContext context)
         {
-            if (_oldParameter.GetType(context) is ITypeDefinition typeDef)
-            {
-                return new DeletedTypeDefinition(typeDef);
-            }
-            return _oldParameter.GetType(context);
+            return DeletedTypeDefinition.TryCreate(_oldParameter.GetType(context), _typesUsedByDeletedMembers);
         }
     }
 }

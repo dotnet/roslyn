@@ -15,9 +15,27 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     /// </summary>
     internal class DeletedTypeDefinition : ITypeDefinition
     {
+        public static ITypeReference TryCreate(ITypeReference typeReference, Dictionary<ITypeDefinition, DeletedTypeDefinition> cache)
+        {
+            if (typeReference is ITypeDefinition typeDef)
+            {
+                if (!cache.TryGetValue(typeDef, out var deletedType))
+                {
+                    deletedType = new DeletedTypeDefinition(typeDef);
+                    cache.Add(typeDef, deletedType);
+                }
+
+                return deletedType;
+            }
+
+            return typeReference;
+        }
+
         private readonly ITypeDefinition _oldTypeReference;
 
-        public DeletedTypeDefinition(ITypeDefinition typeReference)
+        public ITypeDefinition Original => _oldTypeReference;
+
+        private DeletedTypeDefinition(ITypeDefinition typeReference)
         {
             _oldTypeReference = typeReference;
         }

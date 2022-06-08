@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly List<ITypeDefinition> _changedTypeDefs;
 
+        /// <summary>
+        /// Cache of type definitions used by deleted members. Used so that if a method 'C M(C c)' is deleted
+        /// we use the same DeletedTypeDefinition instance for the method return type, and the parameter type.
+        /// </summary>
+        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
+
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
         private readonly DefinitionIndex<IEventDefinition> _eventDefs;
         private readonly DefinitionIndex<IFieldDefinition> _fieldDefs;
@@ -94,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var sizes = previousGeneration.TableSizes;
 
             _changedTypeDefs = new List<ITypeDefinition>();
+            _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(ReferenceEqualityComparer.Instance);
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -551,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var methodDef in _changes.GetDeletedMethods(typeDef))
             {
                 var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                var newMethodDef = new DeletedMethodDefinition(oldMethodDef, typeDef);
+                var newMethodDef = new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers);
                 _methodDefs.AddUpdated(newMethodDef);
 
                 CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
@@ -1378,6 +1385,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (_tryGetExistingIndex(item, out index))
                 {
+#if DEBUG
+                    // We expect that either we couldn't find the item in the map, because its new, or if we
+                    // found it, we found the same one (ie, no item representing the same item is there twice),
+                    // or it represents a deleted type. The deleted type, since we create it during emit, will
+                    // never equal the original symbol that it wraps, even though it represents the same type,
+                    // and the map uses reference equality.
+                    Debug.Assert(!_map.TryGetValue(index, out var other) || ((object)other == (object)item) || other is DeletedTypeDefinition || item is DeletedTypeDefinition);
+#endif
+
                     _map[index] = item;
                     return true;
                 }

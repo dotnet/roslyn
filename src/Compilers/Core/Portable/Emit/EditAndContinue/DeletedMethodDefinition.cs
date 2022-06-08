@@ -16,15 +16,17 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
     internal sealed partial class DeletedMethodDefinition : IMethodDefinition
     {
         private readonly ITypeDefinition _containingTypeDef;
+        private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
         private readonly IMethodDefinition _oldMethod;
         private readonly ImmutableArray<DeletedParameterDefinition> _parameters;
 
-        public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef)
+        public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
         {
             _oldMethod = oldMethod;
             _containingTypeDef = containingTypeDef;
+            _typesUsedByDeletedMembers = typesUsedByDeletedMembers;
 
-            _parameters = _oldMethod.Parameters.SelectAsArray(p => new DeletedParameterDefinition(p));
+            _parameters = _oldMethod.Parameters.SelectAsArray(p => new DeletedParameterDefinition(p, typesUsedByDeletedMembers));
         }
 
         public IEnumerable<IGenericMethodParameter> GenericParameters => _oldMethod.GenericParameters;
@@ -151,11 +153,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ITypeReference GetType(EmitContext context)
         {
-            if (_oldMethod.GetType(context) is ITypeDefinition typeDef)
-            {
-                return new DeletedTypeDefinition(typeDef);
-            }
-            return _oldMethod.GetType(context);
+            return DeletedTypeDefinition.TryCreate(_oldMethod.GetType(context), _typesUsedByDeletedMembers);
         }
 
         public sealed override bool Equals(object obj)
