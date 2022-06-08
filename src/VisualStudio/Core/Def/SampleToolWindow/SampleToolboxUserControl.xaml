@@ -24,12 +24,9 @@
             <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogLabelStyleKey}}" />
             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogRadioButtonStyleKey}}" />
             <Style TargetType="Hyperlink" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogHyperlinkStyleKey}}" />
-            <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" />
-            <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}" />
             <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogGridViewColumnHeaderStyleKey}}" />
             <Style TargetType="ListBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListBoxStyleKey}}" />
             <Style TargetType="ListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
-
 
             <Style TargetType="TabControl">
                 <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
@@ -38,28 +35,81 @@
             </Style>
 
             <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
                 <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Width" Value="20" />
+                <Setter Property="Padding" Value="5" />
+                <Setter Property="Margin" Value="0,0,0,3" />
+                <Setter Property="BorderThickness" Value="0" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
                         <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
+
+            <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0, 5, 0, 0" />
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
-        <!--<Label Name="_label1" Content="Nothing to show here"/>-->
-        <TreeView Name="trvFamilies">
+    <Grid Name="myGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="23" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="28" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Click="CollapseAll" ToolTip="Collapse All">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.CollapseAll}" />
+            </Button>
+            <Button Grid.Column="1" Click="ExpandAll" ToolTip="Expand All">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ExpandAll}" />
+            </Button>
+            <Button Grid.Column="2" Click="SortByName" ToolTip="Sort By Name">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortAscending}" />
+            </Button>
+            <Button Grid.Column="3" Click="SortByOrder" ToolTip="Sort By Order">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByNamespace}" />
+            </Button>
+            <Button Grid.Column="4" Click="SortByType" ToolTip="Sort By Type">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.SortByType}" />
+            </Button>
+        </Grid>
+        <TextBox Grid.Row="1" Name="searchBox" Text="Search Document Outline" TextChanged="Search" VerticalContentAlignment="Center"></TextBox>
+        <TreeView Grid.Row="2" Name="symbolTree">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocSymbol}" ItemsSource="{Binding Children}">
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="JumpToContent">
+                        <imaging:CrispImage Moniker="{Binding ImgMoniker}" Margin="0, 0, 5, 0" />
                         <TextBlock Text="{Binding Name}" />
-                        <TextBlock Text=" [" Foreground="Pink" />
-                        <TextBlock Text="{Binding Children.Count}" Foreground="Pink" />
-                        <TextBlock Text="]" Foreground="Pink" />
+                        <TextBlock Text=" [" />
+                        <TextBlock Text="{Binding Children.Count}" />
+                        <TextBlock Text="]" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="Padding" Value="0, 3, 0, 0" />
+                    <!--Style.Resources>
+                        <Style TargetType="{x:Type Border}">
+                            <Setter Property="Grid.ColumnSpan" Value="2" />
+                        </Style>
+                    </Style.Resources-->
+                </Style>
+            </TreeView.ItemContainerStyle>
         </TreeView>
     </Grid>
 </UserControl>

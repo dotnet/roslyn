@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             Content = SampleUserControl;
         }
 
-
         internal void InitializeIfNeeded(Workspace workspace, IDocumentTrackingService service, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
         {
             if (_initialized)
