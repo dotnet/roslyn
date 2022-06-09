@@ -29957,7 +29957,7 @@ class Test
         [InlineData("implicit", true)]
         [InlineData("explicit", false)]
         [InlineData("explicit", true)]
-        public void ConsumeAbstractConversionOperator_11([CombinatorialValues("implicit", "explicit")] string op, bool needCast)
+        public void ConsumeAbstractConversionOperator_11(string op, bool useCast)
         {
             // Same as ConsumeAbstractConversionOperator_10 only direction of conversion is flipped
             // Look in base interfaces for destination for explicit cast in code
@@ -29978,7 +29978,7 @@ class Test
 {
     static T M02<T, U>(int x) where T : U where U : I2<T>
     {
-        return " + (needCast ? "(T)" : "") + @"x;
+        return " + (useCast ? "(T)" : "") + @"x;
     }
 }
 ";
@@ -29986,7 +29986,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            if (needCast)
+            if (useCast)
             {
                 var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
