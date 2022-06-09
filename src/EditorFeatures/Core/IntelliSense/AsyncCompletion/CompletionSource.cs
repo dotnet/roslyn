@@ -442,7 +442,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, triggerLocation, options, document.Project.Solution.Options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
-            var completionItemList = session.CreateCompletionList(ConvertItems());
+            var completionItemList = session.CreateCompletionList(
+                completionList.ItemsList.Select(i => Convert(document, i, filterSet, triggerLocation, cancellationToken));
 
             var filters = filterSet.GetFilterStatesInSet();
 
