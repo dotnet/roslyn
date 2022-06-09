@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -40,7 +41,13 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
 
-        internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.CompilationOptions));
+        // Use a ReferenceEqualityComparer as we want to rerun this stage whenever the CompilationOptions changes at all
+        // (e.g. we don't care if it has the same conceptual value, we're ok rerunning as long as the actual instance
+        // changes).
+        internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider
+            => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput)
+                .WithComparer(ReferenceEqualityComparer.Instance)
+                .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions));
 
         public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions));
 
