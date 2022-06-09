@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (exception is ConnectionLostException)
             {
-                throw new OperationCanceledNotMachingCancellationTokenException(exception);
+                throw new OperationCanceledNotMatchingCancellationTokenException(exception);
             }
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token,

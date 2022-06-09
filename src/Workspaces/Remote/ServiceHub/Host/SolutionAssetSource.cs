@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (ObjectDisposedException e)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                throw new OperationCanceledNotMachingCancellationTokenException(e);
+                throw new OperationCanceledNotMatchingCancellationTokenException(e);
             }
 
             using (provider)
