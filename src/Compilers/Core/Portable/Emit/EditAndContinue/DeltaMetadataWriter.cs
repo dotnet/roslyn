@@ -550,9 +550,19 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var methodDef in typeDef.GetMethods(this.Context))
             {
-                this.AddDefIfNecessary(_methodDefs, methodDef);
                 var methodChange = _changes.GetChange(methodDef);
 
+                // If the method was added, but we can find an existing row id, then treat it as
+                // an update. This supercedes the other checks for edit types etc. because a method could be
+                // deleted in a generation, and then "added" in a subsequent one, but that is an update
+                // even if the collections at hand can't track it as such
+                if (methodChange == SymbolChange.Added &&
+                    TryGetExistingMethodDefIndex(methodDef, out _))
+                {
+                    methodChange = SymbolChange.Updated;
+                }
+
+                this.AddDefIfNecessary(_methodDefs, methodDef, methodChange);
                 CreateIndicesForMethod(methodDef, methodChange);
             }
 
@@ -688,8 +698,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private bool AddDefIfNecessary<T>(DefinitionIndex<T> defIndex, T def)
             where T : class, IDefinition
+            => AddDefIfNecessary(defIndex, def, _changes.GetChange(def));
+
+        private bool AddDefIfNecessary<T>(DefinitionIndex<T> defIndex, T def, SymbolChange change)
+            where T : class, IDefinition
         {
-            switch (_changes.GetChange(def))
+            switch (change)
             {
                 case SymbolChange.Added:
                     defIndex.Add(def);
@@ -1296,6 +1310,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // Fails if we are attempting to make a change that should have been reported as rude,
                 // e.g. the corresponding definitions type don't match, etc.
+                if (!containsItem)
+                {
+                }
                 Debug.Assert(containsItem);
                 Debug.Assert(rowId > 0);
 

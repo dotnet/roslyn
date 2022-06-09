@@ -13261,8 +13261,8 @@ class C
                     source: """
                         class C
                         {
-                           void M1() { }
-                           void M2() { }
+                            void M1() { }
+                            void M2() { }
                         }
                         """,
                     edits: new[] {
@@ -13300,7 +13300,7 @@ class C
                     source: """
                         class C
                         {
-                           void M1() { }
+                            void M1() { }
                         }
                         """,
                     edits: new[] {
@@ -13395,7 +13395,7 @@ class C
                     source: """
                         class C
                         {
-                           void M1() { System.Console.Write(1); }
+                            void M1() { System.Console.Write(1); }
                         }
                         """,
                     edits: new[] {
@@ -13412,6 +13412,151 @@ class C
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        9 (0x9)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldc.i4.1
+                              IL_0002:  call       0x0A000005
+                              IL_0007:  nop
+                              IL_0008:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        // TODO: This should probably output more than just one method worth of IL, right?
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_AddThenDeleteThenAdd()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void Goo() { }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("Goo", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void Goo() { }
+                            void M1(C c) { }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M1");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        // TODO: This should probably output more than just one method worth of IL, right?
+                        g.VerifyIL(expectedIL);
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void Goo() { }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M1");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                        });
+
+                        // TODO: This should be throwing MissingMethodException
+                        var expectedIL = """
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  ldnull
+                              IL_0001:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        // TODO: This should probably output more than just one method worth of IL, right?
+                        g.VerifyIL(expectedIL);
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void Goo() { }
+                            void M1(C c) { System.Console.Write(1); }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M1");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param)
                         });
 
                         var expectedIL = """
