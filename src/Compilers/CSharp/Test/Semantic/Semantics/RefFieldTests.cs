@@ -6333,14 +6333,28 @@ class Program
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
-                var decls = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
-                var lambdas = decls.Select(d => model.GetSymbolInfo(d).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+                var delegateTypesAndLambdas = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => getDelegateTypeAndLambda(model, d)).ToArray();
 
-                VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(lambdas[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(lambdas[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+                verifyParameter(delegateTypesAndLambdas[0], 0, "scoped R", "x1", RefKind.None, DeclarationScope.ValueScoped);
+                verifyParameter(delegateTypesAndLambdas[1], 0, "scoped ref System.Int32", "x2", RefKind.Ref, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[2], 0, "scoped in System.Int32", "x3", RefKind.In, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[3], 0, "scoped out System.Int32", "x4", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[4], 1, "ref scoped R", "x5", RefKind.Ref, DeclarationScope.ValueScoped);
+            }
+
+            static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)
+            {
+                var (delegateType, lambda) = delegateTypeAndLambda;
+                VerifyParameterSymbol(delegateType.DelegateInvokeMethod.Parameters[parameterIndex], expectedDisplayType, expectedRefKind, expectedScope);
+                VerifyParameterSymbol(lambda.Parameters[parameterIndex], $"{expectedDisplayType} {expectedDisplayName}", expectedRefKind, expectedScope);
+            }
+
+            static (NamedTypeSymbol, LambdaSymbol) getDelegateTypeAndLambda(SemanticModel model, VariableDeclaratorSyntax decl)
+            {
+                var delegateType = (NamedTypeSymbol)model.GetDeclaredSymbol(decl).GetSymbol<LocalSymbol>().Type;
+                var value = decl.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+                var lambda = model.GetSymbolInfo(value).Symbol.GetSymbol<LambdaSymbol>();
+                return (delegateType, lambda);
             }
         }
 
@@ -6407,12 +6421,21 @@ class Program
                 // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped R, void> f1 = &F1;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
+                // (8,40): error CS8989: The 'scoped' modifier of parameter 'r1' doesn't match target 'delegate*<R, void>'.
+                //         delegate*<scoped R, void> f1 = &F1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("r1", "delegate*<R, void>").WithLocation(8, 40),
                 // (9,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 23),
                 // (9,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33));
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33),
+                // (9,60): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'delegate*<ref R, ref int, void>'.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("x", "delegate*<ref R, ref int, void>").WithLocation(9, 60),
+                // (9,60): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref int, void>'.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref int, void>").WithLocation(9, 60));
             verify(comp);
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
@@ -6420,12 +6443,21 @@ class Program
                 // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped R, void> f1 = &F1;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
+                // (8,40): error CS8989: The 'scoped' modifier of parameter 'r1' doesn't match target 'delegate*<R, void>'.
+                //         delegate*<scoped R, void> f1 = &F1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("r1", "delegate*<R, void>").WithLocation(8, 40),
                 // (9,23): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 23),
                 // (9,33): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33));
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(9, 33),
+                // (9,60): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'delegate*<ref R, ref int, void>'.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("x", "delegate*<ref R, ref int, void>").WithLocation(9, 60),
+                // (9,60): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref int, void>'.
+                //         delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref int, void>").WithLocation(9, 60));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -6593,11 +6625,6 @@ readonly ref struct R2
 
         // PROTOTYPE: Test 'scoped' with extension method 'this'.
         // PROTOTYPE: Test 'scoped' with 'params'.
-
-        // PROTOTYPE: Report error for implicit conversion between delegate types that differ by 'scoped',
-        // and between function pointer types and methods that differ by 'scoped'.
-
-        // PROTOTYPE: Test distinct 'scoped' annotations in partial method parts.
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
@@ -7105,10 +7132,62 @@ class Program
         var d4 = (D4)((ref R x, scoped ref R y) => ref x);
         var d5 = (D5)((ref R x, ref R y) => ref x);
     }
+    static void New()
+    {
+        var d1 = new D1((R x, scoped R y) => x);
+        var d2 = new D2((R x, R y) => x);
+        var d3 = new D3((ref R x, ref scoped R y) => ref x);
+        var d4 = new D4((ref R x, scoped ref R y) => ref x);
+        var d5 = new D5((ref R x, ref R y) => ref x);
+    }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should report errors?
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         D1 d1 = (R x, scoped R y) => x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "D1").WithLocation(11, 17),
+                // (12,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         D2 d2 = (R x, R y) => x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(12, 17),
+                // (13,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         D3 d3 = (ref R x, ref scoped R y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref scoped R y) => ref x").WithArguments("y", "D3").WithLocation(13, 17),
+                // (14,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         D4 d4 = (ref R x, scoped ref R y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, scoped ref R y) => ref x").WithArguments("y", "D4").WithLocation(14, 17),
+                // (15,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         D5 d5 = (ref R x, ref R y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref R y) => ref x").WithArguments("y", "D5").WithLocation(15, 17),
+                // (19,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         var d1 = (D1)((R x, scoped R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)((R x, scoped R y) => x)").WithArguments("y", "D1").WithLocation(19, 18),
+                // (20,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         var d2 = (D2)((R x, R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)((R x, R y) => x)").WithArguments("y", "D2").WithLocation(20, 18),
+                // (21,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         var d3 = (D3)((ref R x, ref scoped R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D3)((ref R x, ref scoped R y) => ref x)").WithArguments("y", "D3").WithLocation(21, 18),
+                // (22,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         var d4 = (D4)((ref R x, scoped ref R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D4)((ref R x, scoped ref R y) => ref x)").WithArguments("y", "D4").WithLocation(22, 18),
+                // (23,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         var d5 = (D5)((ref R x, ref R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)((ref R x, ref R y) => ref x)").WithArguments("y", "D5").WithLocation(23, 18),
+                // (27,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         var d1 = new D1((R x, scoped R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "D1").WithLocation(27, 25),
+                // (28,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         var d2 = new D2((R x, R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(28, 25),
+                // (29,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         var d3 = new D3((ref R x, ref scoped R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref scoped R y) => ref x").WithArguments("y", "D3").WithLocation(29, 25),
+                // (30,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         var d4 = new D4((ref R x, scoped ref R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, scoped ref R y) => ref x").WithArguments("y", "D4").WithLocation(30, 25),
+                // (31,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         var d5 = new D5((ref R x, ref R y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref R y) => ref x").WithArguments("y", "D5").WithLocation(31, 25));
         }
 
         [Fact]
@@ -7144,14 +7223,164 @@ class Program
         var d4 = (D4)M5;
         var d5 = (D5)M3;
     }
+    static void New()
+    {
+        var d1 = new D1(M2);
+        var d2 = new D2(M1);
+        var d3 = new D3(M4);
+        var d4 = new D4(M5);
+        var d5 = new D5(M3);
+    }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should report errors?
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (16,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         D1 dA = M2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("y", "D1").WithLocation(16, 17),
+                // (17,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         D2 d2 = M1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(17, 17),
+                // (18,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         D3 d3 = M4;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M4").WithArguments("y", "D3").WithLocation(18, 17),
+                // (19,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         D4 d4 = M5;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M5").WithArguments("y", "D4").WithLocation(19, 17),
+                // (20,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         D5 d5 = M3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M3").WithArguments("y", "D5").WithLocation(20, 17),
+                // (24,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         var d1 = (D1)M2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)M2").WithArguments("y", "D1").WithLocation(24, 18),
+                // (25,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         var d2 = (D2)M1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)M1").WithArguments("y", "D2").WithLocation(25, 18),
+                // (26,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         var d3 = (D3)M4;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D3)M4").WithArguments("y", "D3").WithLocation(26, 18),
+                // (27,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         var d4 = (D4)M5;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D4)M5").WithArguments("y", "D4").WithLocation(27, 18),
+                // (28,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         var d5 = (D5)M3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)M3").WithArguments("y", "D5").WithLocation(28, 18),
+                // (32,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         var d1 = new D1(M2);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("y", "D1").WithLocation(32, 25),
+                // (33,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         var d2 = new D2(M1);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(33, 25),
+                // (34,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         var d3 = new D3(M4);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M4").WithArguments("y", "D3").WithLocation(34, 25),
+                // (35,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         var d4 = new D4(M5);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M5").WithArguments("y", "D4").WithLocation(35, 25),
+                // (36,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         var d5 = new D5(M3);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M3").WithArguments("y", "D5").WithLocation(36, 25));
         }
 
         [Fact]
         public void DelegateConversions_03()
+        {
+            var source =
+@"delegate ref int D1(ref int x, ref int y);
+delegate ref int D2(scoped ref int x, ref int y);
+delegate D1 D1R();
+delegate D2 D2R();
+class Program
+{
+    static void Implicit()
+    {
+        D1R d1 = () => (scoped ref int x, ref int y) => ref y;
+        D2R d2 = () => (ref int x, ref int y) => ref x;
+    }
+    static void Explicit()
+    {
+        var d1 = (D1R)(() => (scoped ref int x, ref int y) => ref y);
+        var d2 = (D2R)(() => (ref int x, ref int y) => ref x);
+    }
+    static void New()
+    {
+        var d1 = new D1R(() => (scoped ref int x, ref int y) => ref y);
+        var d2 = new D2R(() => (ref int x, ref int y) => ref x);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,24): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
+                //         D1R d1 = () => (scoped ref int x, ref int y) => ref y;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped ref int x, ref int y) => ref y").WithArguments("x", "D1").WithLocation(9, 24),
+                // (10,24): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
+                //         D2R d2 = () => (ref int x, ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("x", "D2").WithLocation(10, 24),
+                // (14,30): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
+                //         var d1 = (D1R)(() => (scoped ref int x, ref int y) => ref y);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped ref int x, ref int y) => ref y").WithArguments("x", "D1").WithLocation(14, 30),
+                // (15,30): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
+                //         var d2 = (D2R)(() => (ref int x, ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("x", "D2").WithLocation(15, 30),
+                // (19,32): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
+                //         var d1 = new D1R(() => (scoped ref int x, ref int y) => ref y);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped ref int x, ref int y) => ref y").WithArguments("x", "D1").WithLocation(19, 32),
+                // (20,32): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
+                //         var d2 = new D2R(() => (ref int x, ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("x", "D2").WithLocation(20, 32));
+        }
+
+        [Fact]
+        public void DelegateConversions_04()
+        {
+            var source =
+@"delegate ref int D1(ref int x, ref int y);
+delegate ref int D2(scoped ref int x, ref int y);
+delegate D1 D1R();
+delegate D2 D2R();
+class Program
+{
+    static ref int M1(ref int x, ref int y) => ref x;
+    static ref int M2(scoped ref int x, ref int y) => ref y;
+    static void Implicit()
+    {
+        D1R d1 = () => M2;
+        D2R d2 = () => M1;
+    }
+    static void Explicit()
+    {
+        var d1 = (D1R)M2;
+        var d2 = (D2R)M1;
+    }
+    static void New()
+    {
+        var d1 = new D1R(M2);
+        var d2 = new D2R(M1);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,24): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
+                //         D1R d1 = () => M2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("x", "D1").WithLocation(11, 24),
+                // (12,24): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
+                //         D2R d2 = () => M1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("x", "D2").WithLocation(12, 24),
+                // (16,18): error CS0123: No overload for 'M2' matches delegate 'D1R'
+                //         var d1 = (D1R)M2;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(D1R)M2").WithArguments("M2", "D1R").WithLocation(16, 18),
+                // (17,18): error CS0123: No overload for 'M1' matches delegate 'D2R'
+                //         var d2 = (D2R)M1;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(D2R)M1").WithArguments("M1", "D2R").WithLocation(17, 18),
+                // (21,18): error CS0123: No overload for 'M2' matches delegate 'D1R'
+                //         var d1 = new D1R(M2);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1R(M2)").WithArguments("M2", "D1R").WithLocation(21, 18),
+                // (22,18): error CS0123: No overload for 'M1' matches delegate 'D2R'
+                //         var d2 = new D2R(M1);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D2R(M1)").WithArguments("M1", "D2R").WithLocation(22, 18));
+        }
+
+        [Fact]
+        public void DelegateConversions_05()
         {
             var source =
 @"ref struct R { }
@@ -7162,49 +7391,614 @@ delegate ref R D4(ref R x, ref scoped R y);
 delegate ref R D5(ref R x, scoped ref R y);
 class Program
 {
-    static D1 Implicit1(D2 d) => d;
-    static D2 Implicit2(D1 d) => d;
-    static D3 Implicit3(D4 d) => d;
-    static D4 Implicit4(D5 d) => d;
-    static D5 Implicit5(D3 d) => d;
-    static D1 Explicit1(D2 d) => (D1)d;
-    static D2 Explicit2(D1 d) => (D2)d;
-    static D3 Explicit3(D4 d) => (D3)d;
-    static D4 Explicit4(D5 d) => (D4)d;
-    static D5 Explicit5(D3 d) => (D5)d;
+    static void Implicit()
+    {
+        D1 d1 = delegate(R x, scoped R y) { return x; };
+        D2 d2 = delegate(R x, R y) { return x; };
+        D3 d3 = delegate(ref R x, ref scoped R y) { return ref x; };
+        D4 d4 = delegate(ref R x, scoped ref R y) { return ref x; };
+        D5 d5 = delegate(ref R x, ref R y) { return ref x; };
+    }
+    static void Explicit()
+    {
+        var d1 = (D1)(delegate(R x, scoped R y) { return x; });
+        var d2 = (D2)(delegate(R x, R y) { return x; });
+        var d3 = (D3)(delegate(ref R x, ref scoped R y) { return ref x; });
+        var d4 = (D4)(delegate(ref R x, scoped ref R y) { return ref x; });
+        var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; });
+    }
+    static void New()
+    {
+        var d1 = new D1(delegate(R x, scoped R y) { return x; });
+        var d2 = new D2(delegate(R x, R y) { return x; });
+        var d3 = new D3(delegate(ref R x, ref scoped R y) { return ref x; });
+        var d4 = new D4(delegate(ref R x, scoped ref R y) { return ref x; });
+        var d5 = new D5(delegate(ref R x, ref R y) { return ref x; });
+    }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,34): error CS0029: Cannot implicitly convert type 'D2' to 'D1'
-                //     static D1 Implicit1(D2 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D2", "D1").WithLocation(9, 34),
-                // (10,34): error CS0029: Cannot implicitly convert type 'D1' to 'D2'
-                //     static D2 Implicit2(D1 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D1", "D2").WithLocation(10, 34),
-                // (11,34): error CS0029: Cannot implicitly convert type 'D4' to 'D3'
-                //     static D3 Implicit3(D4 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D4", "D3").WithLocation(11, 34),
-                // (12,34): error CS0029: Cannot implicitly convert type 'D5' to 'D4'
-                //     static D4 Implicit4(D5 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D5", "D4").WithLocation(12, 34),
-                // (13,34): error CS0029: Cannot implicitly convert type 'D3' to 'D5'
-                //     static D5 Implicit5(D3 d) => d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("D3", "D5").WithLocation(13, 34),
-                // (14,34): error CS0030: Cannot convert type 'D2' to 'D1'
-                //     static D1 Explicit1(D2 d) => (D1)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D1)d").WithArguments("D2", "D1").WithLocation(14, 34),
-                // (15,34): error CS0030: Cannot convert type 'D1' to 'D2'
-                //     static D2 Explicit2(D1 d) => (D2)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D2)d").WithArguments("D1", "D2").WithLocation(15, 34),
-                // (16,34): error CS0030: Cannot convert type 'D4' to 'D3'
-                //     static D3 Explicit3(D4 d) => (D3)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D3)d").WithArguments("D4", "D3").WithLocation(16, 34),
-                // (17,34): error CS0030: Cannot convert type 'D5' to 'D4'
-                //     static D4 Explicit4(D5 d) => (D4)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D4)d").WithArguments("D5", "D4").WithLocation(17, 34),
-                // (18,34): error CS0030: Cannot convert type 'D3' to 'D5'
-                //     static D5 Explicit5(D3 d) => (D5)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D5)d").WithArguments("D3", "D5").WithLocation(18, 34));
+                // (11,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         D1 d1 = delegate(R x, scoped R y) { return x; };
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, scoped R y) { return x; }").WithArguments("y", "D1").WithLocation(11, 17),
+                // (12,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         D2 d2 = delegate(R x, R y) { return x; };
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(12, 17),
+                // (13,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         D3 d3 = delegate(ref R x, ref scoped R y) { return ref x; };
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref scoped R y) { return ref x; }").WithArguments("y", "D3").WithLocation(13, 17),
+                // (14,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         D4 d4 = delegate(ref R x, scoped ref R y) { return ref x; };
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, scoped ref R y) { return ref x; }").WithArguments("y", "D4").WithLocation(14, 17),
+                // (15,17): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         D5 d5 = delegate(ref R x, ref R y) { return ref x; };
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref R y) { return ref x; }").WithArguments("y", "D5").WithLocation(15, 17),
+                // (19,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         var d1 = (D1)(delegate(R x, scoped R y) { return x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D1)(delegate(R x, scoped R y) { return x; })").WithArguments("y", "D1").WithLocation(19, 18),
+                // (20,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         var d2 = (D2)(delegate(R x, R y) { return x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)(delegate(R x, R y) { return x; })").WithArguments("y", "D2").WithLocation(20, 18),
+                // (21,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         var d3 = (D3)(delegate(ref R x, ref scoped R y) { return ref x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D3)(delegate(ref R x, ref scoped R y) { return ref x; })").WithArguments("y", "D3").WithLocation(21, 18),
+                // (22,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         var d4 = (D4)(delegate(ref R x, scoped ref R y) { return ref x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D4)(delegate(ref R x, scoped ref R y) { return ref x; })").WithArguments("y", "D4").WithLocation(22, 18),
+                // (23,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)(delegate(ref R x, ref R y) { return ref x; })").WithArguments("y", "D5").WithLocation(23, 18),
+                // (27,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D1'.
+                //         var d1 = new D1(delegate(R x, scoped R y) { return x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, scoped R y) { return x; }").WithArguments("y", "D1").WithLocation(27, 25),
+                // (28,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
+                //         var d2 = new D2(delegate(R x, R y) { return x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(28, 25),
+                // (29,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D3'.
+                //         var d3 = new D3(delegate(ref R x, ref scoped R y) { return ref x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref scoped R y) { return ref x; }").WithArguments("y", "D3").WithLocation(29, 25),
+                // (30,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D4'.
+                //         var d4 = new D4(delegate(ref R x, scoped ref R y) { return ref x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, scoped ref R y) { return ref x; }").WithArguments("y", "D4").WithLocation(30, 25),
+                // (31,25): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
+                //         var d5 = new D5(delegate(ref R x, ref R y) { return ref x; });
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref R y) { return ref x; }").WithArguments("y", "D5").WithLocation(31, 25));
+        }
+
+        [Fact]
+        public void DelegateConversions_06()
+        {
+            var source =
+@"using System.Linq.Expressions;
+ref struct R { }
+delegate R D1(R x, R y);
+delegate R D2(R x, scoped R y);
+delegate ref int D3(ref int x, ref int y);
+delegate ref int D4(ref int x, scoped ref int y);
+class Program
+{
+    static void Implicit()
+    {
+        Expression<D1> e1 = (R x, scoped R y) => x;
+        Expression<D2> e2 = (R x, R y) => x;
+        Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
+        Expression<D4> e4 = (ref int x, ref int y) => ref x;
+    }
+    static void Explicit()
+    {
+        var e1 = (Expression<D1>)((R x, scoped R y) => x);
+        var e2 = (Expression<D2>)((R x, R y) => x);
+        var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
+        var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,29): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D1>'.
+                //         Expression<D1> e1 = (R x, scoped R y) => x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, scoped R y) => x").WithArguments("y", "System.Linq.Expressions.Expression<D1>").WithLocation(11, 29),
+                // (11,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         Expression<D1> e1 = (R x, scoped R y) => x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(11, 32),
+                // (11,44): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         Expression<D1> e1 = (R x, scoped R y) => x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "y").WithArguments("R").WithLocation(11, 44),
+                // (11,50): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         Expression<D1> e1 = (R x, scoped R y) => x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(11, 50),
+                // (12,29): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D2>'.
+                //         Expression<D2> e2 = (R x, R y) => x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "System.Linq.Expressions.Expression<D2>").WithLocation(12, 29),
+                // (12,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         Expression<D2> e2 = (R x, R y) => x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(12, 32),
+                // (12,37): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         Expression<D2> e2 = (R x, R y) => x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "y").WithArguments("R").WithLocation(12, 37),
+                // (12,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         Expression<D2> e2 = (R x, R y) => x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(12, 43),
+                // (13,29): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D3>'.
+                //         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, scoped ref int y) => ref x").WithArguments("y", "System.Linq.Expressions.Expression<D3>").WithLocation(13, 29),
+                // (13,29): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, scoped ref int y) => ref x").WithLocation(13, 29),
+                // (13,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(13, 38),
+                // (13,56): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         Expression<D3> e3 = (ref int x, scoped ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "y").WithLocation(13, 56),
+                // (14,29): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D4>'.
+                //         Expression<D4> e4 = (ref int x, ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref int x, ref int y) => ref x").WithArguments("y", "System.Linq.Expressions.Expression<D4>").WithLocation(14, 29),
+                // (14,29): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<D4> e4 = (ref int x, ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, ref int y) => ref x").WithLocation(14, 29),
+                // (14,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         Expression<D4> e4 = (ref int x, ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(14, 38),
+                // (14,49): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         Expression<D4> e4 = (ref int x, ref int y) => ref x;
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "y").WithLocation(14, 49),
+                // (18,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D1>'.
+                //         var e1 = (Expression<D1>)((R x, scoped R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D1>)((R x, scoped R y) => x)").WithArguments("y", "System.Linq.Expressions.Expression<D1>").WithLocation(18, 18),
+                // (18,38): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         var e1 = (Expression<D1>)((R x, scoped R y) => x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(18, 38),
+                // (18,50): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         var e1 = (Expression<D1>)((R x, scoped R y) => x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "y").WithArguments("R").WithLocation(18, 50),
+                // (18,56): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         var e1 = (Expression<D1>)((R x, scoped R y) => x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(18, 56),
+                // (19,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D2>'.
+                //         var e2 = (Expression<D2>)((R x, R y) => x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D2>)((R x, R y) => x)").WithArguments("y", "System.Linq.Expressions.Expression<D2>").WithLocation(19, 18),
+                // (19,38): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         var e2 = (Expression<D2>)((R x, R y) => x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(19, 38),
+                // (19,43): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         var e2 = (Expression<D2>)((R x, R y) => x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "y").WithArguments("R").WithLocation(19, 43),
+                // (19,49): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'R'.
+                //         var e2 = (Expression<D2>)((R x, R y) => x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("R").WithLocation(19, 49),
+                // (20,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D3>'.
+                //         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D3>)((ref int x, scoped ref int y) => ref x)").WithArguments("y", "System.Linq.Expressions.Expression<D3>").WithLocation(20, 18),
+                // (20,35): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, scoped ref int y) => ref x").WithLocation(20, 35),
+                // (20,44): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(20, 44),
+                // (20,62): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         var e3 = (Expression<D3>)((ref int x, scoped ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "y").WithLocation(20, 62),
+                // (21,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'Expression<D4>'.
+                //         var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(Expression<D4>)((ref int x, ref int y) => ref x)").WithArguments("y", "System.Linq.Expressions.Expression<D4>").WithLocation(21, 18),
+                // (21,35): error CS8155: Lambda expressions that return by reference cannot be converted to expression trees
+                //         var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(ref int x, ref int y) => ref x").WithLocation(21, 35),
+                // (21,44): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(21, 44),
+                // (21,55): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         var e4 = (Expression<D4>)((ref int x, ref int y) => ref x);
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "y").WithLocation(21, 55));
+        }
+
+        [Fact]
+        public void FunctionPointerConversions()
+        {
+            var source =
+@"ref struct R { }
+unsafe class Program
+{
+    static R F1(R x, scoped R y) => x;
+    static ref R F2(ref R x, ref scoped R y) => ref x;
+    static ref readonly int F3(in int x, scoped in int y) => ref x;
+    static void Implicit()
+    {
+        delegate*<R, R, R> d1 = &F1;
+        delegate*<ref R, ref R, ref R> d2 = &F2;
+        delegate*<in int, in int, ref readonly int> d3 = &F3;
+    }
+    static void Explicit()
+    {
+        var d1 = (delegate*<R, R, R>)&F1;
+        var d2 = (delegate*<ref R, ref R, ref R>)&F2;
+        var d3 = (delegate*<in int, in int, ref readonly int>)&F3;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (9,33): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<R, R, R>'.
+                //         delegate*<R, R, R> d1 = &F1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F1").WithArguments("y", "delegate*<R, R, R>").WithLocation(9, 33),
+                // (10,45): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref R, ref R>'.
+                //         delegate*<ref R, ref R, ref R> d2 = &F2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F2").WithArguments("y", "delegate*<ref R, ref R, ref R>").WithLocation(10, 45),
+                // (11,58): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<in int, in int, ref readonly int>'.
+                //         delegate*<in int, in int, ref readonly int> d3 = &F3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "&F3").WithArguments("y", "delegate*<in int, in int, ref readonly int>").WithLocation(11, 58),
+                // (15,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<R, R, R>'.
+                //         var d1 = (delegate*<R, R, R>)&F1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<R, R, R>)&F1").WithArguments("y", "delegate*<R, R, R>").WithLocation(15, 18),
+                // (16,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<ref R, ref R, ref R>'.
+                //         var d2 = (delegate*<ref R, ref R, ref R>)&F2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<ref R, ref R, ref R>)&F2").WithArguments("y", "delegate*<ref R, ref R, ref R>").WithLocation(16, 18),
+                // (17,18): error CS8989: The 'scoped' modifier of parameter 'y' doesn't match target 'delegate*<in int, in int, ref readonly int>'.
+                //         var d3 = (delegate*<in int, in int, ref readonly int>)&F3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(delegate*<in int, in int, ref readonly int>)&F3").WithArguments("y", "delegate*<in int, in int, ref readonly int>").WithLocation(17, 18));
+        }
+
+        [Fact]
+        public void DuplicateMethodSignatures()
+        {
+            var source =
+@"ref struct R<T> { }
+class C<T>
+{
+    static void M1(R<T> r) { }
+    void M2(scoped R<T> r) { }
+    static void M3(ref scoped R<T> r) { }
+    void M4(scoped ref R<T> r) { }
+    object this[R<T> r] => null;
+    static void M1(scoped R<T> r) { } // 1
+    void M2(R<T> r) { } // 2 
+    static void M3(scoped ref R<T> r) { } // 3
+    void M4(ref scoped R<T> r) { } // 4
+    object this[scoped R<T> r] => null; // 5
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0111: Type 'C<T>' already defines a member called 'M1' with the same parameter types
+                //     static void M1(scoped R<T> r) { } // 1
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C<T>").WithLocation(9, 17),
+                // (10,10): error CS0111: Type 'C<T>' already defines a member called 'M2' with the same parameter types
+                //     void M2(R<T> r) { } // 2 
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C<T>").WithLocation(10, 10),
+                // (11,17): error CS0111: Type 'C<T>' already defines a member called 'M3' with the same parameter types
+                //     static void M3(scoped ref R<T> r) { } // 3
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "C<T>").WithLocation(11, 17),
+                // (12,10): error CS0111: Type 'C<T>' already defines a member called 'M4' with the same parameter types
+                //     void M4(ref scoped R<T> r) { } // 4
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C<T>").WithLocation(12, 10),
+                // (13,12): error CS0111: Type 'C<T>' already defines a member called 'this' with the same parameter types
+                //     object this[scoped R<T> r] => null; // 5
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C<T>").WithLocation(13, 12));
+        }
+
+        [Fact]
+        public void PartialMethods()
+        {
+            var sourceA =
+@"ref struct R<T> { }
+partial class C
+{
+    static partial void M1(R<int> r);
+    static partial void M2(scoped R<int> r);
+    static partial void M3(ref R<int> r);
+    static partial void M4(ref scoped R<int> r);
+    static partial void M5(scoped ref R<int> r);
+}";
+            var sourceB1 =
+@"partial class C
+{
+    static partial void M1(R<int> r) { }
+    static partial void M2(scoped R<int> r) { }
+    static partial void M3(ref R<int> r) { }
+    static partial void M4(ref scoped R<int> r) { }
+    static partial void M5(scoped ref R<int> r) { }
+}";
+            var sourceB2 =
+@"partial class C
+{
+    static partial void M1(scoped R<int> r) { } // 1
+    static partial void M2(R<int> r) { } // 2
+    static partial void M3(ref scoped R<int> r) { } // 3
+    static partial void M4(scoped ref R<int> r) { } // 4
+    static partial void M5(ref R<int> r) { } // 5
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 });
+            comp.VerifyEmitDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M1(scoped R<int> r) { } // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M1").WithArguments("r").WithLocation(3, 25),
+                // (4,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M2(R<int> r) { } // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M2").WithArguments("r").WithLocation(4, 25),
+                // (5,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M3(ref scoped R<int> r) { } // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M3").WithArguments("r").WithLocation(5, 25),
+                // (6,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M4(scoped ref R<int> r) { } // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M4").WithArguments("r").WithLocation(6, 25),
+                // (7,25): error CS8988: The 'scoped' modifier of parameter 'r' doesn't match partial method declaration.
+                //     static partial void M5(ref R<int> r) { } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M5").WithArguments("r").WithLocation(7, 25)
+            };
+
+            comp = CreateCompilation(new[] { sourceA, sourceB2 });
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { sourceB2, sourceA });
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void Hiding(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T> { }
+public class A<T>
+{
+    public void M1(R<T> r) { }
+    public void M2(scoped R<T> r) { }
+    public void M3(ref scoped R<T> r) { }
+    public void M4(scoped ref R<T> r) { }
+    public object this[R<T> r] { get { return null; } set { } }
+    public object this[int x, scoped R<T> y] => null;
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B1 : A<int>
+{
+    public new void M1(scoped R<int> r) { }
+    public new void M2(R<int> r) { }
+    public new void M3(scoped ref R<int> r) { }
+    public new void M4(ref scoped R<int> r) { }
+    public new object this[scoped R<int> r] { get { return null; } set { } }
+    public new object this[int x, R<int> y] => null;
+}
+class B2 : A<string>
+{
+    public void M1(scoped R<string> r) { } // 1
+    public void M2(R<string> r) { } // 2
+    public void M3(scoped ref R<string> r) { } // 3
+    public void M4(ref scoped R<string> r) { } // 4
+    public object this[scoped R<string> r] { get { return null; } set { } } // 5
+    public object this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M1(scoped R<string> r) { } // 1
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(12, 17),
+                // (13,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M2(R<string> r) { } // 2
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(13, 17),
+                // (14,17): warning CS0108: 'B2.M3(ref R<string>)' hides inherited member 'A<string>.M3(ref R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M3(scoped ref R<string> r) { } // 3
+                Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(14, 17),
+                // (15,17): warning CS0108: 'B2.M4(ref R<string>)' hides inherited member 'A<string>.M4(ref R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M4(ref scoped R<string> r) { } // 4
+                Diagnostic(ErrorCode.WRN_NewRequired, "M4").WithArguments("B2.M4(ref R<string>)", "A<string>.M4(ref R<string>)").WithLocation(15, 17),
+                // (16,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(16, 19),
+                // (17,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
+                //     public object this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(17, 19));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void Overrides(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T> { }
+public abstract class A<T>
+{
+    public abstract R<T> F1(R<T> r);
+    public abstract R<T> F2(scoped R<T> r);
+    public abstract R<T> F3(ref scoped R<T> r);
+    public abstract R<T> F4(scoped ref R<T> r);
+    public abstract object this[R<T> r] { get; set; }
+    public abstract object this[int x, scoped R<T> y] { get; }
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class B1 : A<int>
+{
+    public override R<int> F1(R<int> r) => default;
+    public override R<int> F2(scoped R<int> r) => default;
+    public override R<int> F3(ref scoped R<int> r) => default;
+    public override R<int> F4(scoped ref R<int> r) => default;
+    public override object this[R<int> r] { get { return null; } set { } }
+    public override object this[int x, scoped R<int> y] => null;
+}
+class B2 : A<string>
+{
+    public override R<string> F1(scoped R<string> r) => default; // 1
+    public override R<string> F2(R<string> r) => default; // 2
+    public override R<string> F3(scoped ref R<string> r) => default; // 3
+    public override R<string> F4(ref scoped R<string> r) => default; // 4
+    public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+    public override object this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 31),
+                // (13,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 31),
+                // (14,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 31),
+                // (15,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 31),
+                // (16,76): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 76),
+                // (17,56): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     public override object this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void InterfaceImplementations(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R<T> { }
+public interface I<T>
+{
+    R<T> F1(R<T> r);
+    R<T> F2(scoped R<T> r);
+    R<T> F3(ref scoped R<T> r);
+    R<T> F4(scoped ref R<T> r);
+    object this[R<T> r] { get; set; }
+    object this[int x, scoped R<T> y] { get; }
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB1 =
+@"class C1 : I<int>
+{
+    public R<int> F1(R<int> r) => default;
+    public R<int> F2(scoped R<int> r) => default;
+    public R<int> F3(ref scoped R<int> r) => default;
+    public R<int> F4(scoped ref R<int> r) => default;
+    public object this[R<int> r] { get { return null; } set { } }
+    public object this[int x, scoped R<int> y] => null;
+}
+class C2 : I<string>
+{
+    public R<string> F1(scoped R<string> r) => default; // 1
+    public R<string> F2(R<string> r) => default; // 2
+    public R<string> F3(scoped ref R<string> r) => default; // 3
+    public R<string> F4(ref scoped R<string> r) => default; // 4
+    public object this[scoped R<string> r] { get { return null; } set { } } // 5
+    public object this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB1, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 22),
+                // (13,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 22),
+                // (14,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 22),
+                // (15,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 22),
+                // (16,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 67),
+                // (17,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     public object this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 47));
+
+            var sourceB2 =
+@"class C3 : I<int>
+{
+    R<int> I<int>.F1(R<int> r) => default;
+    R<int> I<int>.F2(scoped R<int> r) => default;
+    R<int> I<int>.F3(ref scoped R<int> r) => default;
+    R<int> I<int>.F4(scoped ref R<int> r) => default;
+    object I<int>.this[R<int> r] { get { return null; } set { } }
+    object I<int>.this[int x, scoped R<int> y] => null;
+}
+class C4 : I<string>
+{
+    R<string> I<string>.F1(scoped R<string> r) => default; // 1
+    R<string> I<string>.F2(R<string> r) => default; // 2
+    R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
+    R<string> I<string>.F4(ref scoped R<string> r) => default; // 4
+    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 5
+    object I<string>.this[int x, R<string> y] => null; // 6
+}";
+            comp = CreateCompilation(sourceB2, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (12,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 25),
+                // (13,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 25),
+                // (14,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 25),
+                // (15,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 25),
+                // (16,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 70),
+                // (17,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     object I<string>.this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 50));
+        }
+
+        [Fact]
+        public void Overrides_Example()
+        {
+            var source =
+@"ref struct R
+{
+    public ref int F;
+    public R(ref int i) { F = ref i; }
+}
+abstract class A
+{
+    public abstract R F1(scoped R r);
+    public abstract R F2(R r);
+}
+class B : A
+{
+    public override R F1(R r) => r;
+    public override R F2(scoped R r) => default;
+}
+class Program
+{
+    static R F1(A a)
+    {
+        int i = 0;
+        return a.F1(new R(ref i));
+    }
+    static R F2(B b)
+    {
+        int i = 0;
+        return b.F2(new R(ref i)); // unsafe
+    }
+    static void Main()
+    {
+        R r1 = F1(new B()); // unsafe
+        R r2 = F2(new B());
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,23): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R F1(R r) => r;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(13, 23),
+                // (14,23): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R F2(scoped R r) => default;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(14, 23));
         }
 
         [Fact]
