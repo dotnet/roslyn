@@ -8031,7 +8031,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Report error on call to F1.
             comp.VerifyEmitDiagnostics(
                 // (18,16): error CS8347: Cannot use a result of 'D2.Invoke(R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return d2(new R(ref i));
@@ -8041,7 +8040,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i)").WithArguments("R.R(ref int)", "i").WithLocation(18, 19),
                 // (18,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return d2(new R(ref i));
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 29));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 29),
+                // (22,19): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D1'.
+                //         R r1 = F1((R x) => x); // unsafe
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x) => x").WithArguments("x", "D1").WithLocation(22, 19),
+                // (23,19): error CS8989: The 'scoped' modifier of parameter 'x' doesn't match target 'D2'.
+                //         R r2 = F2((scoped R x) => default);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(scoped R x) => default").WithArguments("x", "D2").WithLocation(23, 19));
         }
 
         [Fact]
@@ -8129,8 +8134,19 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Report errors.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0826: No best type found for implicitly-typed array
+                //         var f1 = new[] { (R r) => { }, (scoped R r) => { } }[0]; // 1
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (R r) => { }, (scoped R r) => { } }").WithLocation(6, 18),
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0]; // 2 
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (ref R r) => { }, (scoped ref R r) => { } }").WithLocation(8, 18),
+                // (10,18): error CS0826: No best type found for implicitly-typed array
+                //         var f5 = new[] { (scoped in R r) => { }, (in scoped R r) => { } }[0]; // 3
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (scoped in R r) => { }, (in scoped R r) => { } }").WithLocation(10, 18),
+                // (12,18): error CS0826: No best type found for implicitly-typed array
+                //         var f7 = new[] { (out scoped R r) => { r = default; }, (out R r) => { r = default; } }[0]; // 4
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (out scoped R r) => { r = default; }, (out R r) => { r = default; } }").WithLocation(12, 18));
         }
 
         [Fact]
@@ -8163,43 +8179,28 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Inferred delegate types should include 'scoped', and as a result
-            // we should not report errors for f(x1, y1) or f(x2, y2).
             comp.VerifyDiagnostics(
-                // (8,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(R, R)' in this context because it may expose variables referenced by parameter '1' outside of their declaration scope
-                //         z = f(x1, y1);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "f(x1, y1)").WithArguments("<anonymous delegate>.Invoke(R, R)", "1").WithLocation(8, 13),
-                // (8,19): error CS8352: Cannot use local 'R' in this context because it may expose referenced variables outside of their declaration scope
-                //         z = f(x1, y1);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "y1").WithArguments("R").WithLocation(8, 19),
                 // (9,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(R, R)' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         z = f(y1, x1); // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "f(y1, x1)").WithArguments("<anonymous delegate>.Invoke(R, R)", "0").WithLocation(9, 13),
                 // (9,15): error CS8352: Cannot use local 'R' in this context because it may expose referenced variables outside of their declaration scope
                 //         z = f(y1, x1); // 1
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y1").WithArguments("R").WithLocation(9, 15),
-                // (15,13): error CS8350: This combination of arguments to '<anonymous delegate>.Invoke(ref R, ref R)' is disallowed because it may expose variables referenced by parameter '' outside of their declaration scope
-                //         z = f(ref x2, ref y2);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "f(ref x2, ref y2)").WithArguments("<anonymous delegate>.Invoke(ref R, ref R)", "").WithLocation(15, 13),
-                // (15,27): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
-                //         z = f(ref x2, ref y2);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "y2").WithArguments("ref R").WithLocation(15, 27),
-                // (16,13): error CS8350: This combination of arguments to '<anonymous delegate>.Invoke(ref R, ref R)' is disallowed because it may expose variables referenced by parameter '' outside of their declaration scope
+                // (16,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(ref R, ref R)' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         z = f(ref y2, ref x2); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "f(ref y2, ref x2)").WithArguments("<anonymous delegate>.Invoke(ref R, ref R)", "").WithLocation(16, 13),
-                // (16,19): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeCall, "f(ref y2, ref x2)").WithArguments("<anonymous delegate>.Invoke(ref R, ref R)", "0").WithLocation(16, 13),
+                // (16,19): error CS8166: Cannot return a parameter by reference 'y2' because it is not a ref or out parameter
                 //         z = f(ref y2, ref x2); // 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "y2").WithArguments("ref R").WithLocation(16, 19));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y2").WithArguments("y2").WithLocation(16, 19));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "f").ToArray();
             var delegateInvokeMethods = decls.Select(d => ((ILocalSymbol)model.GetDeclaredSymbol(d)).Type.GetSymbol<NamedTypeSymbol>().DelegateInvokeMethod).ToArray();
 
-            // PROTOTYPE: Inferred delegate types should include 'scoped' in each case.
-            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "R", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(delegateInvokeMethods[2].Parameters[1], "ref System.Int32", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(delegateInvokeMethods[0].Parameters[1], "scoped R", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(delegateInvokeMethods[1].Parameters[1], "ref scoped R", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(delegateInvokeMethods[2].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
         [Fact]
