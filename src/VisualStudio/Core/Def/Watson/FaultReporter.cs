@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             try
             {
-                if (exception is OperationCanceledException { InnerException: not null } operationCanceled)
+                if (exception is OperationCanceledException { InnerException: { } innerException })
                 {
-                    ReportFault(operationCanceled.InnerException, severity, forceDump);
+                    ReportFault(innerException, severity, forceDump);
                     return;
                 }
 
