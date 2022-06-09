@@ -455,15 +455,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 completionList.SuggestionModeItem.Properties.TryGetValue(CommonCompletionItem.DescriptionProperty, out var description) ? description : string.Empty);
 
             return (new(completionItemList, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters, isIncomplete: false, null), completionList);
-
-            IEnumerable<VSCompletionItem> ConvertItems()
-            {
-                foreach (var roslynItem in completionList.ItemsList)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    yield return Convert(document, roslynItem, filterSet, triggerLocation);
-                }
-            }
         }
 
         private static void UpdateSessionData(IAsyncCompletionSession session, CompletionSessionData sessionData, CompletionList completionList, SnapshotPoint triggerLocation)
