@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             // determine the visibility of this buffer.  While unlikely to happen, this is possible with VS's
             // extensibility model, which allows for a plugin to host an ITextBuffer in their own impl of an ITextView.
             // For those cases, just assume these buffers are visible.
-            if (views.Any(v => v is not IWpfTextView))
+            if (views.Any(static v => v is not IWpfTextView))
                 return true;
 
             return views.OfType<IWpfTextView>().Any(v => v.VisualElement.IsVisible);

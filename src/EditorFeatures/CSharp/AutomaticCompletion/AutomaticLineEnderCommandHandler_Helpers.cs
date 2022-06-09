@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     if (!otherAccessors.IsEmpty)
                     {
                         return !otherAccessors.Any(
-                            accessor => accessor.Body == null
+                            static accessor => accessor.Body == null
                                         && accessor.ExpressionBody == null
                                         && !accessor.SemicolonToken.IsMissing);
                     }

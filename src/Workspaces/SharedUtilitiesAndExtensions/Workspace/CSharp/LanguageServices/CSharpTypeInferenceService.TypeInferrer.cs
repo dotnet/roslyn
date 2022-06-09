@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the method has already been constructed poorly (i.e. with error types for type 
                 // arguments), then unconstruct it.
-                if (method.TypeArguments.Any(t => t.Kind == SymbolKind.ErrorType))
+                if (method.TypeArguments.Any(static t => t.Kind == SymbolKind.ErrorType))
                 {
                     method = method.ConstructedFrom;
                 }
@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // is the case where the other side was also unknown.  So we walk one higher and if
                     // we get a delegate or a string type, then use that type here.
                     var parentTypes = InferTypes(binop);
-                    if (parentTypes.Any(parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate))
+                    if (parentTypes.Any(static parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate))
                     {
                         return parentTypes.Where(parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate);
                     }

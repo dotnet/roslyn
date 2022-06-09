@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
@@ -14,16 +13,9 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public string FileName { get; }
 
-        public bool IsNewType { get; }
+        public string TypeName { get; }
 
-        // only has value when IsNewType is false
-        public INamedTypeSymbol? Destination { get; }
-
-        // only has value when IsNewType is true
-        public string? TypeName { get; }
-
-        // only has value when IsNewType is true
-        public string? NamespaceDisplay { get; }
+        public string NamespaceDisplay { get; }
 
         public ImmutableArray<ISymbol> SelectedMembers { get; }
 
@@ -34,23 +26,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             isCancelled: true);
 
         public MoveStaticMembersOptions(
-            INamedTypeSymbol destination,
-            ImmutableArray<ISymbol> selectedMembers,
-            bool isCancelled = false)
-        {
-            var sourceLocation = destination.DeclaringSyntaxReferences.First();
-            RoslynDebug.AssertNotNull(sourceLocation.SyntaxTree);
-
-            IsCancelled = isCancelled;
-            FileName = sourceLocation.SyntaxTree.FilePath;
-            IsNewType = false;
-            Destination = destination;
-            TypeName = null;
-            NamespaceDisplay = null;
-            SelectedMembers = selectedMembers;
-        }
-
-        public MoveStaticMembersOptions(
             string fileName,
             string fullTypeName,
             ImmutableArray<ISymbol> selectedMembers,
@@ -58,8 +33,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         {
             IsCancelled = isCancelled;
             FileName = fileName;
-            IsNewType = true;
-            Destination = null;
             var namespacesAndType = fullTypeName.Split(separator: '.');
             TypeName = namespacesAndType.Last();
             NamespaceDisplay = string.Join(separator: ".", namespacesAndType.Take(namespacesAndType.Length - 1));

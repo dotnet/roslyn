@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                ev.RaiseEvent(handler => handler(source, args));
+                ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.args), (source, args));
             }, CancellationToken.None);
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // listener should have already created since all events are done in the serialized queue
                 foreach (var args in removed)
                 {
-                    ev.RaiseEvent(handler => handler(source, args));
+                    ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.args), (source, args));
                 }
             }, CancellationToken.None);
         }

@@ -5564,5 +5564,42 @@ int m(Delegate d) { }",
                     Method("m"),
                     Method("m"));
         }
+
+        /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
+        /// <seealso cref="TotalClassifierTests.LocalFunctionDeclarationAndUse"/>
+        [Theory]
+        [CombinatorialData]
+        public async Task LocalFunctionUse(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(Action action)
+                    {
+                        [|localFunction();
+                        staticLocalFunction();
+
+                        M(localFunction);
+                        M(staticLocalFunction);
+
+                        void localFunction() { }
+                        static void staticLocalFunction() { }|]
+                    }
+                }
+
+                """,
+                testHost,
+                Method("localFunction"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"),
+                Method("M"),
+                Method("localFunction"),
+                Method("M"),
+                Method("staticLocalFunction"),
+                Static("staticLocalFunction"));
+        }
     }
 }
