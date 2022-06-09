@@ -249,13 +249,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (_changes.TryGetValue(symbol, out var change))
             {
-                if (change is SymbolChange.Added &&
-                    GetISymbolInternalOrNull(symbol) is { } internalSymbol &&
-                    DefinitionExistsInPreviousGeneration(internalSymbol))
-                {
-                    return SymbolChange.Updated;
-                }
-
                 return change;
             }
 
