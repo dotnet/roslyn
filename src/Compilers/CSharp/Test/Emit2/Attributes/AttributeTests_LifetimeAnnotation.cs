@@ -307,8 +307,7 @@ void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.In
         public void EmitAttribute_LambdaParameters()
         {
             var source =
-@"using System;
-delegate void D(scoped in int i);
+@"delegate void D(scoped in int i);
 class Program
 {
     static void Main()
@@ -318,7 +317,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Lambda method is not reported.
             var expected =
 @"void D.Invoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i)
     [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
@@ -329,6 +327,9 @@ System.IAsyncResult D.BeginInvoke(in modreq(System.Runtime.InteropServices.InAtt
 void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i, System.IAsyncResult result)
     [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
     System.IAsyncResult result
+void Program.<>c.<Main>b__0_0(in System.Int32 i)
+    [LifetimeAnnotation(True, False)] in System.Int32 i
+
 ";
             CompileAndVerify(
                 source,
@@ -354,14 +355,52 @@ void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.In
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"";
+@"void Program.<M>g__L|0_0(in System.Int32 i)
+    [LifetimeAnnotation(True, False)] in System.Int32 i
+";
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
-                    // PROTOTYPE: Attributes are not being emitted for local function.
-                    Assert.Null(GetLifetimeAnnotationType(module));
+                    Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                    AssertLifetimeAnnotationAttributes(module, expected);
+                });
+        }
+
+        [Fact]
+        public void EmitAttribute_InferredDelegateParameters()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        var d1 = (scoped in int i) => { };
+        d1(0);
+        var d2 = (scoped R r) => new R();
+        d2(new R());
+    }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"void <>f__AnonymousDelegate0.Invoke(in System.Int32 value)
+    [LifetimeAnnotation(True, False)] in System.Int32 value
+R <>f__AnonymousDelegate1.Invoke(R value)
+    [LifetimeAnnotation(False, True)] R value
+void Program.<>c.<Main>b__0_0(in System.Int32 i)
+    [LifetimeAnnotation(True, False)] in System.Int32 i
+R Program.<>c.<Main>b__0_1(R r)
+    [LifetimeAnnotation(False, True)] R r
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                verify: Verification.Skipped,
+                symbolValidator: module =>
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
                     AssertLifetimeAnnotationAttributes(module, expected);
                 });
         }

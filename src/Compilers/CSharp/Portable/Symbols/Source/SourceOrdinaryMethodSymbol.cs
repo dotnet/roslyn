@@ -699,6 +699,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
+            if (SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                constructedDefinition,
+                implementation,
+                diagnostics,
+                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                {
+                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                },
+                extraArgument: (object)null))
+            {
+                hasTypeDifferences = true;
+            }
+
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 implementation.DeclaringCompilation,
                 constructedDefinition,
