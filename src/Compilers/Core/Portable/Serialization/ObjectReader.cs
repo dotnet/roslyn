@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
@@ -100,10 +101,24 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            if (stream.ReadByte() != VersionByte1 ||
-                stream.ReadByte() != VersionByte2)
+            try
             {
-                return null;
+                if (stream.ReadByte() != VersionByte1 ||
+                    stream.ReadByte() != VersionByte2)
+                {
+                    return null;
+                }
+            }
+            catch (AggregateException ex) when (ex.InnerException is not null)
+            {
+                // PipeReaderStream wraps any exception it throws in an AggregateException, which is not expected by
+                // callers treating it as a normal stream. Unwrap and rethrow the inner exception for clarity.
+                // https://github.com/dotnet/runtime/issues/70206
+#if NETCOREAPP
+                ExceptionDispatchInfo.Throw(ex.InnerException);
+#else
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+#endif
             }
 
             return new ObjectReader(stream, leaveOpen, cancellationToken);

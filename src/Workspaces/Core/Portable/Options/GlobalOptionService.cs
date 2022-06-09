@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableArray<Workspace> _registeredWorkspaces;
 
         private readonly object _gate = new();
+        private readonly Func<OptionKey, object?> _getOption;
 
         #region Guarded by _gate
 
@@ -61,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Options
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters)
         {
+            _getOption = GetOption;
+
             _workspaceThreadingService = workspaceThreadingService;
             _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
             _optionPersisterProviders = optionPersisters.ToImmutableArray();
@@ -314,16 +317,16 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public T GetOption<T>(Option<T> option)
-            => OptionsHelpers.GetOption(option, GetOption);
+            => OptionsHelpers.GetOption(option, _getOption);
 
         public T GetOption<T>(Option2<T> option)
-            => OptionsHelpers.GetOption(option, GetOption);
+            => OptionsHelpers.GetOption(option, _getOption);
 
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, GetOption);
+            => OptionsHelpers.GetOption(option, language, _getOption);
 
         public T GetOption<T>(PerLanguageOption2<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, GetOption);
+            => OptionsHelpers.GetOption(option, language, _getOption);
 
         public object? GetOption(OptionKey optionKey)
         {

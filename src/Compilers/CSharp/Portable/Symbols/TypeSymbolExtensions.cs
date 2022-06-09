@@ -2035,6 +2035,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsCompilerServicesTopLevelType(this TypeSymbol typeSymbol)
             => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
 
+        internal static bool IsWellKnownSetsRequiredMembersAttribute(this TypeSymbol type)
+            => type.Name == "SetsRequiredMembersAttribute" && type.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
+
+        private static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
+            => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Diagnostics", "CodeAnalysis");
+
         private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
         {
             var innerNamespace = typeSymbol.ContainingNamespace;

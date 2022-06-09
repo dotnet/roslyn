@@ -39,6 +39,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Full_Solution_Tag
             => BackgroundAnalysisScope.FullSolution;
 
+        public static string Option_Show_compiler_errors_and_warnings_for
+            => ServicesVSResources.Show_compiler_errors_and_warnings_for_colon;
+
+        public static string Option_Compiler_Diagnostics_Scope_None
+            => ServicesVSResources.None;
+
+        public static string Option_Compiler_Diagnostics_Scope_Visible_Files
+            => ServicesVSResources.Current_document; // We show "Current document" to users for consistency with term used elsewhere.
+
+        public static string Option_Compiler_Diagnostics_Scope_Open_Files
+            => ServicesVSResources.Open_documents;
+
+        public static string Option_Compiler_Diagnostics_Scope_Full_Solution
+            => ServicesVSResources.Entire_solution;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_None_Tag
+            => CompilerDiagnosticsScope.None;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
+            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
+            => CompilerDiagnosticsScope.OpenFiles;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Full_Solution_Tag
+            => CompilerDiagnosticsScope.FullSolution;
+
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
@@ -350,5 +377,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Navigate_asynchronously_exerimental
             => ServicesVSResources.Navigate_asynchronously_exerimental;
+
+        public static string Option_Rename
+            => ServicesVSResources.Rename;
+
+        public static string Option_Rename_asynchronously_experimental
+            => ServicesVSResources.Rename_asynchronously_experimental;
     }
 }

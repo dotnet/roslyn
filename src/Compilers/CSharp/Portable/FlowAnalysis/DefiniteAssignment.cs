@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
             {
-                var foundAwait = result.Any(pending => HasAwait(pending));
+                var foundAwait = result.Any(static pending => HasAwait(pending));
                 if (!foundAwait)
                 {
                     // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be

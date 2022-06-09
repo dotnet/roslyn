@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -31,14 +32,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     [UseExportProvider]
     public partial class WorkspaceTests : TestBase
     {
-        private static TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true, bool shareGlobalOptions = false)
+        private static TestWorkspace CreateWorkspace(
+            string workspaceKind = null,
+            bool disablePartialSolutions = true,
+            TestComposition composition = null)
         {
-            var composition = EditorTestCompositions.EditorFeatures;
-            if (shareGlobalOptions)
-            {
-                composition = composition.AddParts(typeof(TestOptionsServiceWithSharedGlobalOptionsServiceFactory));
-            }
-
+            composition ??= EditorTestCompositions.EditorFeatures;
             return new TestWorkspace(exportProvider: null, composition, workspaceKind, disablePartialSolutions: disablePartialSolutions);
         }
 
@@ -562,7 +561,10 @@ class D { }
         [WpfFact]
         public async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
         {
-            using var workspace = CreateWorkspace(disablePartialSolutions: false);
+            var composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService));
+
+            using var workspace = CreateWorkspace(disablePartialSolutions: false, composition: composition);
+            var trackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var solutionX = workspace.CurrentSolution;
 
             var document1 = new TestHostDocument(@"public class C { }");
@@ -584,7 +586,9 @@ class D { }
             var classCy = classDy.BaseType;
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
 
-            // open both documents so background compiler works on their compilations
+            // Make the second document active so that the background compiler processes its project automatically.
+            trackingService.SetActiveDocument(document2.Id);
+
             workspace.OpenDocument(document1.Id);
             workspace.OpenDocument(document2.Id);
 
@@ -1298,9 +1302,8 @@ class D { }
         [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
         public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
         {
-            // Create workspaces with shared global options to replicate the true global options service shared between workspaces.
-            using var primaryWorkspace = CreateWorkspace(shareGlobalOptions: true);
-            using var secondaryWorkspace = CreateWorkspace(shareGlobalOptions: true);
+            using var primaryWorkspace = CreateWorkspace();
+            using var secondaryWorkspace = CreateWorkspace();
 
             var document = new TestHostDocument("class C { }");
 
@@ -1317,8 +1320,7 @@ class D { }
             Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
-            var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
-            optionService.OptionChanged += OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.OptionChanged += OptionService_OptionChanged;
 
             // Change workspace options through primary workspace
             if (testDeprecatedOptionsSetter)
@@ -1336,7 +1338,7 @@ class D { }
             VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
             VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
 
-            optionService.OptionChanged -= OptionService_OptionChanged;
+            primaryWorkspace.GlobalOptions.OptionChanged -= OptionService_OptionChanged;
             return;
 
             void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)

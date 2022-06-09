@@ -244,12 +244,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value); }
         }
 
-        public string Style_PreferParameterNullChecking
-        {
-            get { return GetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking); }
-            set { SetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking, value); }
-        }
-
         public string Style_PreferNullCheckOverTypeCheck
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck); }
@@ -380,12 +374,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap, value); }
-        }
-
-        public string Style_PreferUTF8StringLiterals
-        {
-            get { return GetXmlOption(CSharpCodeStyleOptions.PreferUtf8StringLiterals); }
-            set { SetXmlOption(CSharpCodeStyleOptions.PreferUtf8StringLiterals, value); }
         }
 
         public string Style_PreferredUsingDirectivePlacement

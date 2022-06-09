@@ -295,12 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_null_check_over_type_check",
             "TextEditor.CSharp.Specific.PreferNullCheckOverTypeCheck");
 
-        internal static readonly Option2<CodeStyleOption2<bool>> PreferParameterNullChecking = CreateOption(
-            CSharpCodeStyleOptionGroups.NullCheckingPreferences, nameof(PreferParameterNullChecking),
-            CSharpSimplifierOptions.Default.PreferParameterNullChecking,
-            "csharp_style_prefer_parameter_null_checking",
-            "TextEditor.CSharp.Specific.PreferParameterNullChecking");
-
         public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowEmbeddedStatementsOnSameLine),
             CSharpSimplifierOptions.Default.AllowEmbeddedStatementsOnSameLine,
