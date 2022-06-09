@@ -60,11 +60,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Unit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis", "src\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler.UnitTests", "src\Compilers\Server\VBCSCompilerTests\VBCSCompiler.UnitTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csc", "src\Compilers\CSharp\csc\csc.csproj", "{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csc", "src\Compilers\CSharp\csc\AnyCpu\csc.csproj", "{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp", "src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj", "{B501A547-C911-4A05-AC6E-274A50DFF30E}"
 EndProject
@@ -230,7 +230,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ResultProvider", "src\Expre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ResultProvider", "src\ExpressionEvaluator\Core\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.ResultProvider.csproj", "{FA0E905D-EC46-466D-B7B2-3B5557F9428C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc", "src\Compilers\VisualBasic\vbc\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc", "src\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests", "src\Scripting\CoreTest.Desktop\Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests.csproj", "{6FD1CC3E-6A99-4736-9B8D-757992DDE75D}"
 EndProject
@@ -485,17 +485,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 		{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC} = {201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}
 	EndProjectSection
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CscCommandLine", "src\Compilers\CSharp\CommandLine\CscCommandLine.shproj", "{B021CCBC-B2AF-4560-AF28-ED055F0ED696}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CscCommandLine", "src\Compilers\CSharp\csc\CscCommandLine.shproj", "{B021CCBC-B2AF-4560-AF28-ED055F0ED696}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csc-arm64", "src\Compilers\CSharp\csc-arm64\csc-arm64.csproj", "{0161E25C-918A-4DC8-9648-30FDCC8E31E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csc-arm64", "src\Compilers\CSharp\csc\arm64\csc-arm64.csproj", "{0161E25C-918A-4DC8-9648-30FDCC8E31E9}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VbcCommandLine", "src\Compilers\VisualBasic\CommandLine\VbcCommandLine.shproj", "{810B02AD-2EA5-4422-88AC-B71B8AB0DF0B}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VbcCommandLine", "src\Compilers\VisualBasic\vbc\VbcCommandLine.shproj", "{810B02AD-2EA5-4422-88AC-B71B8AB0DF0B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc-arm64", "src\Compilers\VisualBasic\vbc-arm64\vbc-arm64.csproj", "{975CD834-45F4-4EA0-A395-CB60DBD0E214}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vbc-arm64", "src\Compilers\VisualBasic\vbc\arm64\vbc-arm64.csproj", "{975CD834-45F4-4EA0-A395-CB60DBD0E214}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VBCSCompilerCommandLine", "src\Compilers\Server\CommandLine\VBCSCompilerCommandLine.shproj", "{D8EF0777-9D65-4849-A7D6-AC81E58E2317}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "VBCSCompilerCommandLine", "src\Compilers\Server\VBCSCompiler\VBCSCompilerCommandLine.shproj", "{D8EF0777-9D65-4849-A7D6-AC81E58E2317}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler-arm64", "src\Compilers\Server\VBCSCompiler-arm64\VBCSCompiler-arm64.csproj", "{DC8C78CC-B6FE-47BF-93B1-B65A1C67C08D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VBCSCompiler-arm64", "src\Compilers\Server\VBCSCompiler\arm64\VBCSCompiler-arm64.csproj", "{DC8C78CC-B6FE-47BF-93B1-B65A1C67C08D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore", "src\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj", "{8C21FF08-8BB5-43E4-AC10-74BD2CBEBC24}"
 EndProject
