@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.VisualStudio.Text.SpellChecker;
 
 namespace Microsoft.CodeAnalysis.SpellCheck
 {
