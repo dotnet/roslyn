@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     return false;
                 }
 
-                return true;
+                // Log unexpected state where a cancellation exception occurs without being requested.
+                return FatalError.ReportAndCatch(exception);
             }
 
             // When a connection is dropped we can see ConnectionLostException even though CancelLocallyInvokedMethodsWhenConnectionIsClosed is set.
