@@ -127,10 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string StackTraceExplorerCommandIdString = "FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA";
         public static readonly Guid StackTraceExplorerCommandId = new(StackTraceExplorerCommandIdString);
 
-        // Create new guids and have them be available as static strings
-        public const string SampleToolWindowIdString = "F85D2A49-72B5-4B38-ABED-6F177D88F81D";
-        public static readonly Guid SampleToolWindowId = new(SampleToolWindowIdString);
-
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids
         public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";

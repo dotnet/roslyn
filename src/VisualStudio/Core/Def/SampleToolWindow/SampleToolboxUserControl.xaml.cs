@@ -54,11 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal partial class SampleToolboxUserControl : UserControl, IOleCommandTarget
     {
-        public SampleToolboxUserControl()
-        {
-            InitializeComponent();
-        }
-
         public SampleToolboxUserControl(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
         {
             InitializeComponent();
@@ -70,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private List<DocSymbol>? originalTree { get; set; }
         private ITextSnapshot? snapshot { get; set; }
 
-        public void InitializeIfNeeded(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
+        private void InitializeIfNeeded(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
         {
             this.workspace = workspace;
             documentTrackingService.ActiveDocumentChanged += DocumentTrackingService_ActiveDocumentChanged;

@@ -233,22 +233,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             private ElementHost? _outlineControlHost;
+            private SampleToolboxUserControl? _outlineControl;
 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget ppCmdTarget)
             {
-                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
-                var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
-                var workspace = _languageService.Workspace;
-                var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                var outlineControl = new SampleToolboxUserControl(workspace, documentTrackingService, languageServiceBroker, threadingContext);
-                _outlineControlHost = new ElementHost
+                if (_outlineControl is null)
                 {
-                    Dock = DockStyle.Fill,
-                    Child = outlineControl
-                };
+                    var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
+                    var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                    var workspace = _languageService.Workspace;
+                    var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                    _outlineControl = new SampleToolboxUserControl(workspace, documentTrackingService, languageServiceBroker, threadingContext);
+                }
+
+                if (_outlineControlHost is null)
+                {
+                    _outlineControlHost = new ElementHost
+                    {
+                        Dock = DockStyle.Fill,
+                        Child = _outlineControl
+                    };
+                }
 
                 phwnd = _outlineControlHost.Handle;
-                ppCmdTarget = outlineControl;
+                ppCmdTarget = _outlineControl;
 
                 return VSConstants.S_OK;
             }
