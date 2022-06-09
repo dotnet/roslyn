@@ -6,16 +6,23 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -24,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents
+        internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider, IVsDocOutlineProvider2
         {
             private readonly TLanguageService _languageService;
             private readonly IVsCodeWindow _codeWindow;
@@ -222,6 +229,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     RemoveDropdownBar(dropdownManager);
                 }
 
+                return VSConstants.S_OK;
+            }
+
+            private ElementHost? _outlineControlHost;
+
+            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget ppCmdTarget)
+            {
+                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
+                var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                var workspace = _languageService.Workspace;
+                var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                var outlineControl = new SampleToolboxUserControl(workspace, documentTrackingService, languageServiceBroker, threadingContext);
+                _outlineControlHost = new ElementHost
+                {
+                    Dock = DockStyle.Fill,
+                    Child = outlineControl
+                };
+
+                phwnd = _outlineControlHost.Handle;
+                ppCmdTarget = outlineControl;
+
+                return VSConstants.S_OK;
+            }
+
+            int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
+            {
+                _outlineControlHost?.Dispose();
+                _outlineControlHost = null;
+
+                return VSConstants.S_OK;
+            }
+
+            int IVsDocOutlineProvider.GetOutlineCaption(VSOUTLINECAPTION nCaptionType, out string pbstrCaption)
+            {
+                // TODO, ask the control for the text of the currently selected item
+                pbstrCaption = "";
+                return VSConstants.S_OK;
+            }
+
+            int IVsDocOutlineProvider.OnOutlineStateChange(uint dwMask, uint dwState)
+            {
+                return VSConstants.S_OK;
+            }
+
+            int IVsDocOutlineProvider2.TranslateAccelerator(MSG[] lpMsg)
+            {
+                // We shouldn't need to do any translation here
                 return VSConstants.S_OK;
             }
         }

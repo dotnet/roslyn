@@ -39,6 +39,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Setup;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -55,11 +56,17 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// <summary>
     /// Interaction logic for SampleToolboxUserControl.xaml
     /// </summary>
-    internal partial class SampleToolboxUserControl : UserControl
+    internal partial class SampleToolboxUserControl : UserControl, IOleCommandTarget
     {
         public SampleToolboxUserControl()
         {
             InitializeComponent();
+        }
+
+        public SampleToolboxUserControl(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
+        {
+            InitializeComponent();
+            InitializeIfNeeded(workspace, documentTrackingService, languageServiceBroker, threadingContext)
         }
 
         private Workspace? workspace { get; set; }
@@ -455,6 +462,19 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return null;
+        }
+
+        internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100)
+
+        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            // we don't support any commands like rename/undo in this view yet
+            return OLECMDERR_E_NOTSUPPORTED;
+        }
+
+        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            return VSConstants.S_OK;
         }
     }
 

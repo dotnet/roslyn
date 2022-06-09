@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool Initialized { get; set; }
 
         private RoslynPackage? Package { get; set; }
-        private IThreadingContext ThreadingContext { get; }
+        private IThreadingContext _threadingContext { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             _workspace = workspace;
             _languageServiceBroker = languageServiceBroker;
             _serializer = new JsonSerializer();
-            ThreadingContext = threadingContext;
+            _threadingContext = threadingContext;
         }
 
         public void Initialize(RoslynPackage package)
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public void TextViewCreated(IWpfTextView textView)
         {
-            ThreadingContext.JoinableTaskFactory.RunAsync(() => ShowSampleToolWindowAsync(CancellationToken.None)).FileAndForget("Opening Sample Tool Window");
+            _threadingContext.JoinableTaskFactory.RunAsync(() => ShowSampleToolWindowAsync(CancellationToken.None)).FileAndForget("Opening Sample Tool Window");
         }
 
         public async Task ShowSampleToolWindowAsync(CancellationToken cancellationToken)
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new NotSupportedException("Tool window not initialized");
             }
 
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var window = GetOrInitializeWindow();
             var windowFrame = (IVsWindowFrame)window.Frame;
             ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 var service = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-                window.InitializeIfNeeded(_workspace, service, _languageServiceBroker, ThreadingContext);
+                window.InitializeIfNeeded(_workspace, service, _languageServiceBroker, _threadingContext);
 
                 return window;
             }
