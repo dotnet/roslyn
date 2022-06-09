@@ -28,7 +28,7 @@
     <VisualStudioEditorPackagesVersion>17.3.122-preview</VisualStudioEditorPackagesVersion>
     <!-- This should generally be set to $(VisualStudioEditorPackagesVersion),
          but sometimes EditorFeatures.Cocoa specifically requires a newer editor build. -->
-    <VisualStudioMacEditorPackagesVersion>17.3.68-preview</VisualStudioMacEditorPackagesVersion>
+    <VisualStudioMacEditorPackagesVersion>$(VisualStudioEditorPackagesVersion)</VisualStudioMacEditorPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.3.2062-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
