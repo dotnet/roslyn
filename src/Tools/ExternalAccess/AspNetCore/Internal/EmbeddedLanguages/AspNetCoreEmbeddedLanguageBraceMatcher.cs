@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
 
             foreach (var braceMatcher in braceMatchers)
             {
-                var result = braceMatcher.FindBraces(semanticModel, token, position, cancellationToken);
+                var result = braceMatcher.FindBraces(semanticModel, token, position, cancellationToken)?.ToBraceMatchingResult();
                 if (result != null)
                     return result;
             }
