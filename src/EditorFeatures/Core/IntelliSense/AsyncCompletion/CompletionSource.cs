@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var filterSet = new FilterSet();
             var completionItemList = session.CreateCompletionList(
-                completionList.ItemsList.Select(i => Convert(document, i, filterSet, triggerLocation, cancellationToken));
+                completionList.ItemsList.Select(i => Convert(document, i, filterSet, triggerLocation, cancellationToken)));
 
             var filters = filterSet.GetFilterStatesInSet();
 
@@ -549,10 +549,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             Document document,
             RoslynCompletionItem roslynItem,
             FilterSet filterSet,
-            SnapshotPoint initialTriggerLocation)
+            SnapshotPoint initialTriggerLocation,
+            CancellationToken cancellationToken)
         {
-            VSCompletionItemData itemData;
+            cancellationToken.ThrowIfCancellationRequested();
 
+            VSCompletionItemData itemData;
             if (roslynItem.Flags.IsCached() && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var boxedItemData))
             {
                 itemData = boxedItemData.Value;
