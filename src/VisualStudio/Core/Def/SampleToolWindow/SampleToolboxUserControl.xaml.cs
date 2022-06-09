@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Composition;
 using System.Linq;
@@ -32,8 +31,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -50,7 +47,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
-    using SymbolKind = LanguageServer.Protocol.SymbolKind;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     /// <summary>
@@ -66,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public SampleToolboxUserControl(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
         {
             InitializeComponent();
-            InitializeIfNeeded(workspace, documentTrackingService, languageServiceBroker, threadingContext)
+            InitializeIfNeeded(workspace, documentTrackingService, languageServiceBroker, threadingContext);
         }
 
         private Workspace? workspace { get; set; }
@@ -146,77 +142,16 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 if (response is not null && response.Response is not null)
                 {
-                    var body = response.Response.ToObject<DocumentSymbol[]>();
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    var documentSymbols = new List<DocSymbol>();
-
-                    if (body is not null && body.Length > 0)
-                    {
-                        for (var i = 0; i < body.Length; i++)
-                        {
-                            var documentSymbol = body[i];
-                            var ds = new DocSymbol(
-                                documentSymbol.Name,
-                                documentSymbol.Kind,
-                                documentSymbol.Range.Start.Line,
-                                documentSymbol.Range.Start.Character,
-                                documentSymbol.Range.End.Line,
-                                documentSymbol.Range.End.Character);
-                            var children = documentSymbol.Children;
-                            if (children is not null)
-                            {
-                                ds = AddNodes(ds, children);
-                            }
-
-                            documentSymbols.Add(ds);
-                        }
-                    }
-
-                    this.originalTree = documentSymbols;
-                    documentSymbols = documentSymbols.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
-                    for (var i = 0; i < documentSymbols.Count; i++)
-                    {
-                        documentSymbols[i].Children = Sort(documentSymbols[i].Children, SortOption.Order);
-                    }
-
-                    symbolTree.ItemsSource = documentSymbols;
+                    var body = response.Response.ToObject<DocumentSymbol[]>();
+                    var docSymbols = DocumentOutlineHelper.GetDocumentSymbols(body);
+                    this.originalTree = docSymbols;
+                    symbolTree.ItemsSource = docSymbols;
                 }
                 else
                 {
                     symbolTree.ItemsSource = new List<DocSymbol>();
                 }
-            }
-        }
-
-        private DocSymbol AddNodes(DocSymbol newNode, DocumentSymbol[] children)
-        {
-            var newChildren = new ObservableCollection<DocSymbol>();
-
-            if (children is null || children.Length == 0)
-            {
-                return newNode;
-            }
-            else
-            {
-                for (var i = 0; i < children.Length; i++)
-                {
-                    var child = children[i];
-                    var newChild = new DocSymbol(
-                        child.Name,
-                        child.Kind,
-                        child.Range.Start.Line,
-                        child.Range.Start.Character,
-                        child.Range.End.Line,
-                        child.Range.End.Character);
-                    if (child.Children is not null)
-                    {
-                        newChild = AddNodes(newChild, child.Children);
-                        newChildren.Add(newChild);
-                    }
-                }
-
-                newNode.Children = newChildren;
-                return newNode;
             }
         }
 
@@ -297,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     var items = this.originalTree;
                     for (var i = 0; i < items.Count; i++)
                     {
-                        if (SearchNodeTree(items[i], searchBox.Text))
+                        if (DocumentOutlineHelper.SearchNodeTree(items[i], searchBox.Text))
                         {
                             documentSymbols.Add(items[i]);
                         }
@@ -308,67 +243,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        private bool SearchNodeTree(DocSymbol tree, string search)
-        {
-            if (tree.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return true;
-            }
-            else
-            {
-                var found = false;
-                foreach (var childItem in tree.Children)
-                {
-                    found = found || SearchNodeTree(childItem, search);
-                }
-
-                return found;
-            }
-        }
-
-        private enum SortOption
-        {
-            Name,
-            Order,
-            Type
-        }
-
-        private ObservableCollection<DocSymbol> Sort(ObservableCollection<DocSymbol> docSymbols, SortOption sortOption)
-        {
-            if (docSymbols.Count == 0)
-            {
-                return docSymbols;
-            }
-
-            var result = new List<DocSymbol>();
-            switch (sortOption)
-            {
-                case SortOption.Name:
-                    result = docSymbols.OrderBy(x => x.Name).ToList();
-                    break;
-                case SortOption.Order:
-                    result = docSymbols.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
-                    break;
-                case SortOption.Type:
-                    result = docSymbols.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name).ToList();
-                    break;
-            }
-
-            for (var i = 0; i < result.Count; i++)
-            {
-                result[i].Children = Sort(result[i].Children, sortOption);
-            }
-
-            return new ObservableCollection<DocSymbol>(result);
-        }
-
         private void SortByName(object sender, EventArgs e)
         {
             var items = this.originalTree;
             var documentSymbols = items.OrderBy(x => x.Name).ToList();
             for (var i = 0; i < documentSymbols.Count; i++)
             {
-                documentSymbols[i].Children = Sort(documentSymbols[i].Children, SortOption.Name);
+                documentSymbols[i].Children = DocumentOutlineHelper.Sort(documentSymbols[i].Children, SortOption.Name);
             }
 
             symbolTree.ItemsSource = documentSymbols;
@@ -380,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var documentSymbols = items.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
             for (var i = 0; i < documentSymbols.Count; i++)
             {
-                documentSymbols[i].Children = Sort(documentSymbols[i].Children, SortOption.Order);
+                documentSymbols[i].Children = DocumentOutlineHelper.Sort(documentSymbols[i].Children, SortOption.Order);
             }
 
             symbolTree.ItemsSource = documentSymbols;
@@ -392,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var documentSymbols = items.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name).ToList();
             for (var i = 0; i < documentSymbols.Count; i++)
             {
-                documentSymbols[i].Children = Sort(documentSymbols[i].Children, SortOption.Type);
+                documentSymbols[i].Children = DocumentOutlineHelper.Sort(documentSymbols[i].Children, SortOption.Type);
             }
 
             symbolTree.ItemsSource = documentSymbols;
@@ -464,7 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             return null;
         }
 
-        internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100)
+        internal const int OLECMDERR_E_NOTSUPPORTED = unchecked((int)0x80040100);
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
@@ -476,76 +357,5 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             return VSConstants.S_OK;
         }
-    }
-
-    internal class DocSymbol
-    {
-        private static ImageMoniker GetImageMoniker(SymbolKind symbolKind)
-        {
-            return symbolKind switch
-            {
-                SymbolKind.File => KnownMonikers.IconFile,
-                SymbolKind.Module => KnownMonikers.Module,
-                SymbolKind.Namespace => KnownMonikers.Namespace,
-                SymbolKind.Class => KnownMonikers.Class,
-                SymbolKind.Package => KnownMonikers.Package,
-                SymbolKind.Method => KnownMonikers.Method,
-                SymbolKind.Property => KnownMonikers.Property,
-                SymbolKind.Field => KnownMonikers.Field,
-                SymbolKind.Constructor => KnownMonikers.Method,
-                SymbolKind.Enum => KnownMonikers.Enumeration,
-                SymbolKind.Interface => KnownMonikers.Interface,
-                SymbolKind.Function => KnownMonikers.Method,
-                SymbolKind.Variable => KnownMonikers.LocalVariable,
-                SymbolKind.Constant => KnownMonikers.Constant,
-                SymbolKind.String => KnownMonikers.String,
-                SymbolKind.Number => KnownMonikers.Numeric,
-                SymbolKind.Boolean => KnownMonikers.BooleanData,
-                SymbolKind.Array => KnownMonikers.Field,
-                SymbolKind.Object => KnownMonikers.SelectObject,
-                SymbolKind.Key => KnownMonikers.Key,
-                SymbolKind.Null => KnownMonikers.SelectObject,
-                SymbolKind.EnumMember => KnownMonikers.EnumerationItemPublic,
-                SymbolKind.Struct => KnownMonikers.Structure,
-                SymbolKind.Event => KnownMonikers.Event,
-                SymbolKind.Operator => KnownMonikers.Operator,
-                SymbolKind.TypeParameter => KnownMonikers.Type,
-                _ => KnownMonikers.SelectObject,
-            };
-        }
-
-        public DocSymbol(string name, SymbolKind symbolKind, int startLine, int startChar, int endLine, int endChar)
-        {
-            this.Name = name;
-            this.Children = new ObservableCollection<DocSymbol>();
-            this.SymbolKind = symbolKind;
-            this.ImgMoniker = GetImageMoniker(symbolKind);
-            this.IsExpanded = true;
-            this.IsSelected = false;
-            this.StartLine = startLine;
-            this.StartChar = startChar;
-            this.EndLine = endLine;
-            this.EndChar = endChar;
-        }
-
-        public string Name { get; set; }
-
-        public ObservableCollection<DocSymbol> Children { get; set; }
-
-        public SymbolKind SymbolKind { get; set; }
-
-        public ImageMoniker ImgMoniker { get; set; }
-
-        public bool IsExpanded { get; set; }
-
-        public bool IsSelected { get; set; }
-
-        public int StartLine { get; set; }
-
-        public int StartChar { get; set; }
-
-        public int EndLine { get; set; }
-
-        public int EndChar { get; set; }
     }
 }
