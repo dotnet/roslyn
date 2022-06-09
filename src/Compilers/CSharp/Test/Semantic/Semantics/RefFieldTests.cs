@@ -2257,12 +2257,12 @@ class Program
 }
 class Program
 {
-    static void F0(ref R x, ref R y) => throw null;
-    static void F1(ref R x, ref scoped R y) => throw null;
-    static void F2(ref R x, scoped ref R y) => throw null;
-    static void F3(ref scoped R x, ref scoped R y) => throw null;
-    static void F4(ref scoped R x, scoped ref R y) => throw null;
-    static void F5(scoped ref R x, scoped ref R y) => throw null;
+    static void F0(ref R a, ref R b) => throw null;
+    static void F1(ref R a, ref scoped R b) => throw null;
+    static void F2(ref R a, scoped ref R b) => throw null;
+    static void F3(ref scoped R a, ref scoped R b) => throw null;
+    static void F4(ref scoped R a, scoped ref R b) => throw null;
+    static void F5(scoped ref R a, scoped ref R b) => throw null;
 
     static void F00(ref R x, ref R y) { F0(ref x, ref y); }
     static void F01(ref R x, ref R y) { F1(ref x, ref y); }
@@ -2308,39 +2308,39 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (20,48): error CS8350: This combination of arguments to 'Program.F0(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                // (20,48): error CS8350: This combination of arguments to 'Program.F0(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //     static void F10(ref R x, ref scoped R y) { F0(ref x, ref y); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0(ref R, ref R)", "y").WithLocation(20, 48),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0(ref R, ref R)", "b").WithLocation(20, 48),
                 // (20,62): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static void F10(ref R x, ref scoped R y) { F0(ref x, ref y); } // 1
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("ref R").WithLocation(20, 62),
-                // (22,48): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                // (22,48): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //     static void F12(ref R x, ref scoped R y) { F2(ref x, ref y); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2(ref R, ref R)", "y").WithLocation(22, 48),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2(ref R, ref R)", "b").WithLocation(22, 48),
                 // (22,62): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static void F12(ref R x, ref scoped R y) { F2(ref x, ref y); } // 2
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("ref R").WithLocation(22, 62),
-                // (25,48): error CS8350: This combination of arguments to 'Program.F5(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                // (25,48): error CS8350: This combination of arguments to 'Program.F5(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //     static void F15(ref R x, ref scoped R y) { F5(ref x, ref y); } // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5(ref R, ref R)", "y").WithLocation(25, 48),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5(ref R, ref R)", "b").WithLocation(25, 48),
                 // (25,62): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static void F15(ref R x, ref scoped R y) { F5(ref x, ref y); } // 3
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("ref R").WithLocation(25, 62),
-                // (41,55): error CS8350: This combination of arguments to 'Program.F0(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (41,55): error CS8350: This combination of arguments to 'Program.F0(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //     static void F40(ref scoped R x, scoped ref R y) { F0(ref x, ref y); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0(ref R, ref R)", "x").WithLocation(41, 55),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0(ref R, ref R)", "a").WithLocation(41, 55),
                 // (41,62): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static void F40(ref scoped R x, scoped ref R y) { F0(ref x, ref y); } // 4
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("ref R").WithLocation(41, 62),
-                // (43,55): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (43,55): error CS8350: This combination of arguments to 'Program.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //     static void F42(ref scoped R x, scoped ref R y) { F2(ref x, ref y); } // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2(ref R, ref R)", "x").WithLocation(43, 55),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2(ref R, ref R)", "a").WithLocation(43, 55),
                 // (43,62): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static void F42(ref scoped R x, scoped ref R y) { F2(ref x, ref y); } // 5
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("ref R").WithLocation(43, 62),
-                // (46,55): error CS8350: This combination of arguments to 'Program.F5(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (46,55): error CS8350: This combination of arguments to 'Program.F5(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //     static void F45(ref scoped R x, scoped ref R y) { F5(ref x, ref y); } // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5(ref R, ref R)", "x").WithLocation(46, 55),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5(ref R, ref R)", "a").WithLocation(46, 55),
                 // (46,62): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static void F45(ref scoped R x, scoped ref R y) { F5(ref x, ref y); } // 6
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("ref R").WithLocation(46, 62));
@@ -2356,12 +2356,12 @@ class Program
 }
 class Program
 {
-    static void F0<T>(ref R<T> x, ref R<T> y) => throw null;
-    static void F1<T>(ref R<T> x, ref scoped R<T> y) => throw null;
-    static void F2<T>(ref R<T> x, scoped ref R<T> y) => throw null;
-    static void F3<T>(ref scoped R<T> x, ref scoped R<T> y) => throw null;
-    static void F4<T>(ref scoped R<T> x, scoped ref R<T> y) => throw null;
-    static void F5<T>(scoped ref R<T> x, scoped ref R<T> y) => throw null;
+    static void F0<T>(ref R<T> a, ref R<T> b) => throw null;
+    static void F1<T>(ref R<T> a, ref scoped R<T> b) => throw null;
+    static void F2<T>(ref R<T> a, scoped ref R<T> b) => throw null;
+    static void F3<T>(ref scoped R<T> a, ref scoped R<T> b) => throw null;
+    static void F4<T>(ref scoped R<T> a, scoped ref R<T> b) => throw null;
+    static void F5<T>(scoped ref R<T> a, scoped ref R<T> b) => throw null;
 
     static void F<T>(ref R<T> x)
     {
@@ -2399,39 +2399,39 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (26,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                // (26,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F0(ref x, ref y); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "y").WithLocation(26, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "b").WithLocation(26, 9),
                 // (26,23): error CS8352: Cannot use local 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F0(ref x, ref y); // 1
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(26, 23),
-                // (28,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                // (28,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F2(ref x, ref y); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "y").WithLocation(28, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "b").WithLocation(28, 9),
                 // (28,23): error CS8352: Cannot use local 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F2(ref x, ref y); // 2
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(28, 23),
-                // (31,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                // (31,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F5(ref x, ref y); // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "y").WithLocation(31, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "b").WithLocation(31, 9),
                 // (31,23): error CS8352: Cannot use local 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F5(ref x, ref y); // 3
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(31, 23),
-                // (33,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (33,9): error CS8350: This combination of arguments to 'Program.F0<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F0(ref y, ref x); // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref y, ref x)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "x").WithLocation(33, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref y, ref x)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "a").WithLocation(33, 9),
                 // (33,16): error CS8352: Cannot use local 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F0(ref y, ref x); // 4
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(33, 16),
-                // (35,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (35,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F2(ref y, ref x); // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y, ref x)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(35, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y, ref x)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "a").WithLocation(35, 9),
                 // (35,16): error CS8352: Cannot use local 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F2(ref y, ref x); // 5
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(35, 16),
-                // (38,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (38,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F5(ref y, ref x); // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref y, ref x)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "x").WithLocation(38, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref y, ref x)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "a").WithLocation(38, 9),
                 // (38,16): error CS8352: Cannot use local 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F5(ref y, ref x); // 6
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(38, 16));
@@ -5849,6 +5849,74 @@ class Program
         }
 
         [Fact]
+        public void ReturnRefToByValueParameter_01()
+        {
+            var source =
+@"ref struct S<T>
+{
+}
+class Program
+{
+    static ref S<T> F1<T>(ref S<T> x1)
+    {
+        return ref x1;
+    }
+    static void F2<T>(S<T> x2)
+    {
+        var y2 = F1(ref x2);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ReturnRefToByValueParameter_02()
+        {
+            var source =
+@"ref struct S<T>
+{
+}
+class Program
+{
+    static ref S<T> F1<T>(ref S<T> x1, ref S<T> y1)
+    {
+        return ref x1;
+    }
+    static void F2<T>(S<T> x2, S<T> y2)
+    {
+        var z1 = F1(ref x2, ref y2);
+    }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Should report 'x2' might escape.
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefToContainingType()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public ref R<T> F;
+}
+class Program
+{
+    static void F<T>(ref R<T> r)
+    {
+        r.F = ref r;
+    }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Should support ref field of containing type.
+            comp.VerifyEmitDiagnostics(
+                // (3,21): error CS0523: Struct member 'R<T>.F' of type 'R<T>' causes a cycle in the struct layout
+                //     public ref R<T> F;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "F").WithArguments("R<T>.F", "R<T>").WithLocation(3, 21));
+        }
+
+        [Fact]
         public void RefAutoProperty()
         {
             var source =
@@ -7675,6 +7743,43 @@ class C<T>
         }
 
         [Fact]
+        public void Overloads()
+        {
+            var source =
+@"ref struct R<T> { }
+class C
+{
+    static void M1(R<int> r) { }
+    static void M2(scoped R<int> r) { }
+    static void M3(ref R<int> r) { }
+    static void M4(ref scoped R<int> r) { }
+    static void M5(scoped ref R<int> r) { }
+    static void M1(scoped R<int> r) { } // 1
+    static void M2(R<int> r) { } // 2
+    static void M3(ref scoped R<int> r) { } // 3
+    static void M4(scoped ref R<int> r) { } // 4
+    static void M5(ref R<int> r) { } // 5
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS0111: Type 'C' already defines a member called 'M1' with the same parameter types
+                //     static void M1(scoped R<int> r) { } // 1
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C").WithLocation(9, 17),
+                // (10,17): error CS0111: Type 'C' already defines a member called 'M2' with the same parameter types
+                //     static void M2(R<int> r) { } // 2
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C").WithLocation(10, 17),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'M3' with the same parameter types
+                //     static void M3(ref scoped R<int> r) { } // 3
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "C").WithLocation(11, 17),
+                // (12,17): error CS0111: Type 'C' already defines a member called 'M4' with the same parameter types
+                //     static void M4(scoped ref R<int> r) { } // 4
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C").WithLocation(12, 17),
+                // (13,17): error CS0111: Type 'C' already defines a member called 'M5' with the same parameter types
+                //     static void M5(ref R<int> r) { } // 5
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "C").WithLocation(13, 17));
+        }
+
+        [Fact]
         public void PartialMethods()
         {
             var sourceA =
@@ -8234,7 +8339,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // PROTOTYPE: [New] Should we also report ERR_CannotInferDelegateType?
+            // PROTOTYPE: Should we also report ERR_CannotInferDelegateType?
             comp.VerifyDiagnostics(
                 // (21,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F1(object, R)' and 'E2.F1(object, R)'
                 //         var d1 = o.F1;

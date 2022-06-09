@@ -968,14 +968,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (UseUpdatedEscapeRules)
             {
-                // SPEC: If `F` is a ref field and `e` is `this`, it is ref-safe-to-escape from the enclosing method.
-                // SPEC: Else if `F` is a ref field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
+                // SPEC: If `F` is a `ref` field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
                 if (fieldSymbol.RefKind != RefKind.None)
                 {
-                    if (fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference)
-                    {
-                        return Binder.ExternalScope;
-                    }
                     return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
                 }
             }
@@ -997,14 +992,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (UseUpdatedEscapeRules)
             {
-                // SPEC: If `F` is a ref field and `e` is `this`, it is ref-safe-to-escape from the enclosing method.
-                // SPEC: Else if `F` is a ref field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
+                // SPEC: If `F` is a `ref` field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
                 if (fieldSymbol.RefKind != RefKind.None)
                 {
-                    if (fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference)
-                    {
-                        return true;
-                    }
                     return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics);
                 }
             }
@@ -1831,6 +1821,9 @@ moreArguments:
             {
                 if (UseUpdatedEscapeRules)
                 {
+                    // SPEC: For a given argument `a` that is passed to parameter `p`:
+                    // SPEC:  1. ...
+                    // SPEC: 2. If `p` is `scoped` or `ref scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
                     if (parameter is null)
                     {
                         return true;
