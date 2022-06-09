@@ -4353,7 +4353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = !conversion.IsImplicit;
                 if (!hasErrors)
                 {
-                    hasErrors = CheckValidScopedMethodConversion(unboundLambda.Syntax, boundLambda.Symbol, type, invokedAsExtensionMethod: false, diagnostics);
+                    CheckValidScopedMethodConversion(unboundLambda.Syntax, boundLambda.Symbol, type, invokedAsExtensionMethod: false, diagnostics);
                 }
 
                 // Just stuff the bound lambda into the delegate creation expression. When we lower the lambda to

@@ -6781,8 +6781,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
   </data>
-  <data name="ERR_ScopedMismatchInParameterOfTargetDelegate" xml:space="preserve">
-    <value>The 'scoped' modifier of parameter '{0}' doesn't match target delegate '{1}'.</value>
+  <data name="ERR_ScopedMismatchInParameterOfTarget" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>

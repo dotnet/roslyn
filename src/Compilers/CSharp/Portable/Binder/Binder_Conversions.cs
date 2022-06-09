@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
             diagnostics.AddRange(boundLambda.Diagnostics);
 
-            bool hasErrors = CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
+            CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -718,8 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: isCast,
                 conversionGroup,
                 constantValueOpt: ConstantValue.NotAvailable,
-                type: destination,
-                hasErrors: hasErrors)
+                type: destination)
             { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
@@ -763,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 static (diagnostics, _, _, parameter, _, typeAndLocation) =>
                     diagnostics.Add(
-                        ErrorCode.ERR_ScopedMismatchInParameterOfTargetDelegate,
+                        ErrorCode.ERR_ScopedMismatchInParameterOfTarget,
                         typeAndLocation.Location,
                         new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                         typeAndLocation.Type),
@@ -1383,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            bool result = CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
+            CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
             if (!isAddressOf)
             {
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);
@@ -1395,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that chose selectedMethod.
             Debug.Assert(!selectedMethod.HasUseSiteError, "Shouldn't have reached this point if there were use site errors.");
 
-            return result;
+            return false;
         }
 
         /// <summary>

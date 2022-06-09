@@ -1227,9 +1227,9 @@
         <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ScopedMismatchInParameterOfTargetDelegate">
-        <source>The 'scoped' modifier of parameter '{0}' doesn't match target delegate '{1}'.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target delegate '{1}'.</target>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
