@@ -2854,7 +2854,7 @@ top:
             while (true)
             {
                 var ch = this.TextWindow.PeekChar();
-                if (ch is '\r' or '\n' || SyntaxFacts.IsNewLine(ch))
+                if (SyntaxFacts.IsNewLine(ch))
                 {
                     // don't consume EOL characters here
                     break;
