@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _oldParameter.GetAttributes(context);
+            return _oldParameter.GetAttributes(context).Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
         }
 
         public MetadataConstant? GetDefaultValue(EmitContext context)

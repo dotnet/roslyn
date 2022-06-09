@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
 
+        private readonly Dictionary<ITypeDefinition, List<DeletedMethodDefinition>> _deletedTypeMembers;
+
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
         private readonly DefinitionIndex<IEventDefinition> _eventDefs;
         private readonly DefinitionIndex<IFieldDefinition> _fieldDefs;
@@ -101,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             _changedTypeDefs = new List<ITypeDefinition>();
             _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedTypeDefinition>(ReferenceEqualityComparer.Instance);
+            _deletedTypeMembers = new Dictionary<ITypeDefinition, List<DeletedMethodDefinition>>(ReferenceEqualityComparer.Instance);
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -566,12 +569,18 @@ namespace Microsoft.CodeAnalysis.Emit
                 CreateIndicesForMethod(methodDef, methodChange);
             }
 
+            var deletedTypeMembers = new List<DeletedMethodDefinition>();
             foreach (var methodDef in _changes.GetDeletedMethods(typeDef))
             {
                 var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                var newMethodDef = new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers);
-                _methodDefs.AddUpdated(newMethodDef);
+                deletedTypeMembers.Add(new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
+            }
+            // Save for later, when processing references
+            _deletedTypeMembers.Add(typeDef, deletedTypeMembers);
 
+            foreach (var newMethodDef in deletedTypeMembers)
+            {
+                _methodDefs.AddUpdated(newMethodDef);
                 CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
             }
 
@@ -1696,11 +1705,13 @@ namespace Microsoft.CodeAnalysis.Emit
         private sealed class DeltaReferenceIndexer : ReferenceIndexer
         {
             private readonly SymbolChanges _changes;
+            private readonly Dictionary<ITypeDefinition, List<DeletedMethodDefinition>> _deletedTypeMembers;
 
             public DeltaReferenceIndexer(DeltaMetadataWriter writer)
                 : base(writer)
             {
                 _changes = writer._changes;
+                _deletedTypeMembers = writer._deletedTypeMembers;
             }
 
             public override void Visit(CommonPEModuleBuilder module)
@@ -1770,6 +1781,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (this.ShouldVisit(typeDefinition))
                 {
                     base.Visit(typeDefinition);
+
+                    // We need to visit deleted members to ensure attribute method references are recorded
+                    if (_deletedTypeMembers.TryGetValue(typeDefinition, out var deletedMembers))
+                    {
+                        foreach (var methodDef in deletedMembers)
+                        {
+                            // we call the base method here, to avoid the ShouldVisit call, which will fail
+                            this.Visit((IMethodDefinition)methodDef);
+                        }
+                    }
                 }
             }
 
@@ -1783,7 +1804,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             private bool ShouldVisit(IDefinition def)
             {
-                return _changes.GetChange(def) != SymbolChange.None;
+                return def is DeletedMethodDefinition ||
+                    _changes.GetChange(def) != SymbolChange.None;
             }
         }
     }

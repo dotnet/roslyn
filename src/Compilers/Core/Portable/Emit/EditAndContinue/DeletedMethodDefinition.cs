@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _oldMethod.GetAttributes(context);
+            return _oldMethod.GetAttributes(context).Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
         }
 
         public IMethodBody GetBody(EmitContext context)
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IEnumerable<ICustomAttribute> GetReturnValueAttributes(EmitContext context)
         {
-            return _oldMethod.GetReturnValueAttributes(context);
+            return _oldMethod.GetReturnValueAttributes(context).Select(a => new DeletedCustomAttribute(a, _typesUsedByDeletedMembers));
         }
 
         public ITypeReference GetType(EmitContext context)

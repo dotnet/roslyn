@@ -13429,6 +13429,144 @@ class C
         }
 
         [Fact]
+        public void Method_DeleteThenAdd_WithAttributes()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class A : System.Attribute { }
+                        class B : System.Attribute { }
+
+                        class C
+                        {
+                            [A]
+                            [return: A]
+                            void M1([A]int x) { }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "A", "B", "C");
+                        g.VerifyMethodDefNames(".ctor", ".ctor", "M1", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class A : System.Attribute { }
+                        class B : System.Attribute { }
+                        
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c=>c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M1");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute)
+                        });
+                        g.VerifyCustomAttributes(new[]
+{
+                            new CustomAttributeRow(Handle(1, TableIndex.Param), Handle(6, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(2, TableIndex.Param), Handle(6, TableIndex.MemberRef)),
+                            new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(6, TableIndex.MemberRef))
+                        });
+
+                        // TODO: This should be throwing MissingMethodException
+                        var expectedIL = """
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  ldnull
+                              IL_0001:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class A : System.Attribute { }
+                        class B : System.Attribute { }
+                        
+                        class C
+                        {
+                            [B]
+                            [return: B]
+                            void M1([B]int x) { }
+                        
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M1")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M1");
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute)
+                        });
+                        g.VerifyCustomAttributes(new[]
+                        {
+                            new CustomAttributeRow(Handle(1, TableIndex.Param), Handle(2, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(2, TableIndex.Param), Handle(2, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef))
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        2 (0x2)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
         public void Method_AddThenDeleteThenAdd()
         {
             using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
@@ -13537,7 +13675,7 @@ class C
                         class C
                         {
                             void Goo() { }
-                            C M1(C c) { System.Console.Write(1); return default; }
+                            C M1(C b) { System.Console.Write(1); return default; }
                         }
                         """,
                     edits: new[] {
