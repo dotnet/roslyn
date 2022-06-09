@@ -292,6 +292,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!isInterface)
                 {
                     allowedModifiers |= DeclarationModifiers.Override;
+
+                    if (!isIndexer)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Required;
+                    }
                 }
                 else
                 {
@@ -350,6 +355,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isIndexer)
             {
                 mods |= DeclarationModifiers.Indexer;
+            }
+
+            if ((mods & DeclarationModifiers.Static) != 0 && (mods & DeclarationModifiers.Required) != 0)
+            {
+                // The modifier 'required' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                mods &= ~DeclarationModifiers.Required;
             }
 
             return mods;

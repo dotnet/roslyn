@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract bool PrefersThrowExpression(TSimplifierOptions options);
         protected abstract string EscapeResourceString(string input);
         protected abstract TStatementSyntax CreateParameterCheckIfStatement(TExpressionSyntax condition, TStatementSyntax ifTrueStatement, TSimplifierOptions options);
-        protected abstract Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, TParameterSyntax parameterSyntax, TSimplifierOptions options, CancellationToken cancellationToken);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document,
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             using var result = TemporaryArray<CodeAction>.Empty;
             result.Add(CodeAction.Create(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameterSyntax, parameter, funcOrRecord, methodSymbol, blockStatementOpt, simplifierOptions, c),
+                c => AddNullCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, simplifierOptions, c),
                 nameof(FeaturesResources.Add_null_check)));
 
             // Also, if this was a string, offer to add the special checks to string.IsNullOrEmpty and
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 }
 
                 // For all other parameters, add null check - updates document
-                document = await AddNullCheckAsync(document, parameterSyntax, parameter, funcOrRecord,
+                document = await AddNullCheckAsync(document, parameter, funcOrRecord,
                     (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
             }
 
@@ -276,11 +275,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return false;
             }
 
-            if (document.GetRequiredLanguageService<ISemanticFactsService>().IsNullChecked(parameter, cancellationToken))
-            {
-                return false;
-            }
-
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Look for an existing "if (p == null)" statement, or "p ?? throw" check.  If we already
@@ -336,7 +330,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private async Task<Document> AddNullCheckAsync(
             Document document,
-            TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol method,
@@ -344,15 +337,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             TSimplifierOptions options,
             CancellationToken cancellationToken)
         {
-            // First see if we can adopt the '!!' parameter null checking syntax.
-            var modifiedDocument = await TryAddNullCheckToParameterDeclarationAsync(document, parameterSyntax, options, cancellationToken).ConfigureAwait(false);
-            if (modifiedDocument != null)
-            {
-                return modifiedDocument;
-            }
-
-            // Then see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
-            modifiedDocument = await TryAddNullCheckToAssignmentAsync(
+            // First see if we can convert a statement of the form "this.s = s" into "this.s = s ?? throw ...".
+            var modifiedDocument = await TryAddNullCheckToAssignmentAsync(
                 document, parameter, blockStatementOpt, options, cancellationToken).ConfigureAwait(false);
 
             if (modifiedDocument != null)

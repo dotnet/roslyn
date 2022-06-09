@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (state == null)
             {
                 var externalSyntaxTrees = this.ExternalSyntaxTrees;
-                return externalSyntaxTrees.Any(t => t.HasReferenceOrLoadDirectives());
+                return externalSyntaxTrees.Any(static t => t.HasReferenceOrLoadDirectives());
             }
 
             return state.DeclarationTable.ReferenceDirectives.Any();

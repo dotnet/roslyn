@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     => ShouldBeFilteredOutOfCompletionList(item) || ShouldBeFilteredOutOfExpandedCompletionList(item);
 
                 private bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item)
-                    => _needToFilter && !item.Filters.Any(filter => _selectedNonExpanderFilters.Contains(filter));
+                    => _needToFilter && !item.Filters.Any(static (filter, self) => self._selectedNonExpanderFilters.Contains(filter), this);
 
                 private bool ShouldBeFilteredOutOfExpandedCompletionList(VSCompletionItem item)
                 {
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
                         if (_needToFilter &&
                             !sessionData.TargetTypeFilterSelected &&
-                            _selectedNonExpanderFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                            _selectedNonExpanderFilters.Any(static f => f.DisplayText == FeaturesResources.Target_type_matches))
                         {
                             AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
 

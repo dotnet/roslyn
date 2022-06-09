@@ -282,15 +282,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.CompilationState.ModuleBuilderOpt is { } moduleBuilder)
             {
                 var typeParameters = localFunction.TypeParameters;
-                if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+                if (typeParameters.Any(static typeParameter => typeParameter.HasUnmanagedTypeConstraint))
                 {
                     moduleBuilder.EnsureIsUnmanagedAttributeExists();
                 }
 
                 if (_compilation.ShouldEmitNativeIntegerAttributes())
                 {
-                    if (hasReturnTypeOrParameter(localFunction, t => t.ContainsNativeIntegerWrapperType()) ||
-                        typeParameters.Any(t => t.ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeIntegerWrapperType())))
+                    if (hasReturnTypeOrParameter(localFunction, static t => t.ContainsNativeIntegerWrapperType()) ||
+                        typeParameters.Any(static t => t.ConstraintTypesNoUseSiteDiagnostics.Any(static t => t.ContainsNativeIntegerWrapperType())))
                     {
                         moduleBuilder.EnsureNativeIntegerAttributeExists();
                     }
@@ -299,9 +299,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_factory.CompilationState.Compilation.ShouldEmitNullableAttributes(localFunction))
                 {
                     bool constraintsNeedNullableAttribute = typeParameters.Any(
-                       typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
+                       static typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
 
-                    if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, t => t.NeedsNullableAttribute()))
+                    if (constraintsNeedNullableAttribute || hasReturnTypeOrParameter(localFunction, static t => t.NeedsNullableAttribute()))
                     {
                         moduleBuilder.EnsureNullableAttributeExists();
                     }
@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckRefReadOnlySymbols(MethodSymbol symbol)
         {
             if (symbol.ReturnsByRefReadonly ||
-                symbol.Parameters.Any(p => p.RefKind == RefKind.In))
+                symbol.Parameters.Any(static p => p.RefKind == RefKind.In))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }

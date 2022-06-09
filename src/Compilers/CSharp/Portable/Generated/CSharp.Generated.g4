@@ -109,6 +109,7 @@ modifier
   | 'public'
   | 'readonly'
   | 'ref'
+  | 'required'
   | 'sealed'
   | 'static'
   | 'unsafe'
@@ -157,7 +158,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? (identifier_token | '__arglist') '!!'? equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
   ;
 
 constructor_initializer

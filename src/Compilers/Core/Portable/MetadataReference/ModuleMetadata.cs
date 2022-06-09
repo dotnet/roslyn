@@ -19,14 +19,33 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
     public sealed partial class ModuleMetadata : Metadata
     {
-        private bool _isDisposed;
-
         private readonly PEModule _module;
 
-        private ModuleMetadata(PEReader peReader)
+        /// <summary>
+        /// Optional data that should be kept alive as long as this <see cref="ModuleMetadata"/> is alive.  This can be
+        /// useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
+        /// doesn't get garbage collected.
+        /// </summary>
+        private readonly IDisposable? _owner;
+
+        /// <summary>
+        /// Whether or not <see cref="_owner"/> should be <see cref="IDisposable.Dispose"/>'d when this object is
+        /// Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="CreateFromStream(Stream, bool)"/>, or
+        /// the <see cref="PEStreamOptions.LeaveOpen"/> flag in <see cref="CreateFromStream(Stream, PEStreamOptions)"/>.
+        /// </summary>
+        private readonly bool _disposeOwner;
+
+        private bool _isDisposed;
+
+        private ModuleMetadata(PEReader peReader, IDisposable? owner, bool disposeOwner)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
+            // If we've been asked to dispose the owner, then we better have an owner to dispose.
+            Debug.Assert(!disposeOwner || owner is not null);
+
             _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
+            _owner = owner;
+            _disposeOwner = disposeOwner;
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
@@ -40,6 +59,10 @@ namespace Microsoft.CodeAnalysis
             : base(isImageOwner: false, id: metadata.Id)
         {
             _module = metadata.Module;
+            // ensure that we keep the owner rooted so that it can't get GC'ed why we're alive.
+            _owner = metadata._owner;
+            // however, as we're not the image owner, we will never dispose the owner.  Only the single image owner can be responsible for that.
+            _disposeOwner = false;
         }
 
         /// <summary>
@@ -80,8 +103,11 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         public static unsafe ModuleMetadata CreateFromImage(IntPtr peImage, int size)
+            => CreateFromImage((byte*)peImage, size, owner: null, disposeOwner: false);
+
+        private static unsafe ModuleMetadata CreateFromImage(byte* peImage, int size, IDisposable? owner, bool disposeOwner)
         {
-            if (peImage == IntPtr.Zero)
+            if (peImage == null)
             {
                 throw new ArgumentNullException(nameof(peImage));
             }
@@ -91,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(new PEReader((byte*)peImage, size));
+            return new ModuleMetadata(new PEReader(peImage, size), owner, disposeOwner);
         }
 
         /// <summary>
@@ -121,7 +147,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peImage));
             }
 
-            return new ModuleMetadata(new PEReader(peImage));
+            return new ModuleMetadata(new PEReader(peImage), owner: null, disposeOwner: false);
         }
 
         /// <summary>
@@ -169,6 +195,26 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
             }
 
+            var prefetch = (options & (PEStreamOptions.PrefetchEntireImage | PEStreamOptions.PrefetchMetadata)) != 0;
+
+            // If this stream is an UnmanagedMemoryStream, we can heavily optimize creating the metadata by directly
+            // accessing the underlying memory. Note: we can only do this if the caller asked us not to prefetch the
+            // metadata from the stream.  In that case, we want to fall through below and have the PEReader read
+            // everything into a copy immediately.  If, however, we are allowed to be lazy, we can create an efficient
+            // metadata that is backed directly by the memory that is backed in, and which will release that memory (if
+            // requested) once it is done with it.
+            if (!prefetch && peStream is UnmanagedMemoryStream unmanagedMemoryStream)
+            {
+                unsafe
+                {
+                    return CreateFromImage(
+                        unmanagedMemoryStream.PositionPointer,
+                        (int)Math.Min(unmanagedMemoryStream.Length, int.MaxValue),
+                        owner: unmanagedMemoryStream,
+                        disposeOwner: !options.HasFlag(PEStreamOptions.LeaveOpen));
+                }
+            }
+
             // Workaround of issue https://github.com/dotnet/corefx/issues/1815: 
             if (peStream.Length == 0 && (options & PEStreamOptions.PrefetchEntireImage) != 0 && (options & PEStreamOptions.PrefetchMetadata) != 0)
             {
@@ -177,7 +223,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // ownership of the stream is passed on PEReader:
-            return new ModuleMetadata(new PEReader(peStream, options));
+            return new ModuleMetadata(new PEReader(peStream, options), owner: null, disposeOwner: false);
         }
 
         /// <summary>
@@ -228,6 +274,9 @@ namespace Microsoft.CodeAnalysis
             if (IsImageOwner)
             {
                 _module.Dispose();
+
+                if (_disposeOwner)
+                    _owner!.Dispose();
             }
         }
 

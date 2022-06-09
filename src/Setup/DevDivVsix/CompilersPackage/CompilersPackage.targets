@@ -127,7 +127,7 @@
 
 package name=$(VisualStudioInsertionComponent)
         version=$(VsixVersion)
-        vs.package.machineArch=$(RoslynPackageArch)
+        vs.package.productArch=$(RoslynPackageArch)
 
 vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler"

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // If this is a reference assembly then we won't have the right information available, so try to find
             // a better DLL, or bail out
-            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
+            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
             if (isReferenceAssembly &&
                 !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(dllPath, out dllPath))

@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => _metadataCache.ClearCache();
 
         private bool VsSmartScopeCandidate(string fullPath)
-            => _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
+            => _runtimeDirectories.Any(static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), fullPath);
 
         internal static IEnumerable<string> GetReferencePaths()
         {

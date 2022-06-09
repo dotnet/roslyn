@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Host
         [property: DataMember(Order = 0)] StorageDatabase CacheStorage = StorageDatabase.SQLite,
         [property: DataMember(Order = 1)] bool DisableRecoverableTrees = false,
         [property: DataMember(Order = 2)] bool DisableProjectCacheService = false,
-        [property: DataMember(Order = 3)] bool EnableOpeningSourceGeneratedFiles = false)
+        [property: DataMember(Order = 3)] bool EnableOpeningSourceGeneratedFiles = false,
+        [property: DataMember(Order = 4)] bool DisableCloneWhenProducingSkeletonReferences = false)
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Host
             CacheStorage: StorageDatabase.None,
             DisableRecoverableTrees: false,
             DisableProjectCacheService: false,
-            EnableOpeningSourceGeneratedFiles: false);
+            EnableOpeningSourceGeneratedFiles: false,
+            DisableCloneWhenProducingSkeletonReferences: false);
     }
 }

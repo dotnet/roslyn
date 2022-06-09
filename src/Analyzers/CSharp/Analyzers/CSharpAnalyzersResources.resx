@@ -346,9 +346,6 @@
   <data name="Use_tuple_to_swap_values" xml:space="preserve">
     <value>Use tuple to swap values</value>
   </data>
-  <data name="Use_parameter_null_checking" xml:space="preserve">
-    <value>Use parameter null checking</value>
-  </data>
   <data name="Lambda_expression_can_be_removed" xml:space="preserve">
     <value>Lambda expression can be removed</value>
   </data>
@@ -370,9 +367,6 @@
   </data>
   <data name="Convert_to_top_level_statements" xml:space="preserve">
     <value>Convert to top-level statements</value>
-  </data>
-  <data name="Convert_to_UTF8_string_literal" xml:space="preserve">
-    <value>Convert to UTF-8 string literal</value>
   </data>
   <data name="Use_UTF8_string_literal" xml:space="preserve">
     <value>Use UTF-8 string literal</value>
