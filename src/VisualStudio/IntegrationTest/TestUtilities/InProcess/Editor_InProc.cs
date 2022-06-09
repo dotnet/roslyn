@@ -362,8 +362,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             IWpfTextView view,
             IViewClassifierAggregatorService viewClassifierAggregator)
         {
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(true);
+
             var bufferType = view.TextBuffer.ContentType.DisplayName;
-            if (!await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(true))
+            if (!broker.IsLightBulbSessionActive(view))
             {
                 throw new Exception(string.Format("No Active Smart Tags in View!  Buffer content type={0}", bufferType));
             }
@@ -376,7 +378,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (!string.IsNullOrEmpty(menuText))
             {
-                var actionSets = await LightBulbHelper.WaitForItemsAsync(broker, view).ConfigureAwait(false);
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+                {
+                    actionSets = Array.Empty<SuggestedActionSet>();
+                }
+#pragma warning restore CS0618 // Type or member is obsolete
+
                 var set = actionSets.SelectMany(s => s.Actions).FirstOrDefault(a => a.DisplayText == menuText);
                 if (set == null)
                 {
