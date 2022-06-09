@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             => _info = info;
 
         public BraceMatchingResult? FindBraces(
+            Project project,
             SemanticModel semanticModel,
             SyntaxToken token,
             int position,
