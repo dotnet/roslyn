@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote
     /// Wraps calls from a remote brokered service back to the client or to an in-proc brokered service.
     /// The purpose of this type is to handle exceptions thrown by the underlying remoting infrastructure
     /// in manner that's compatible with our exception handling policies.
-    /// 
-    /// TODO: This wrapper might not be needed once https://github.com/microsoft/vs-streamjsonrpc/issues/246 is fixed.
     /// </summary>
     internal readonly struct RemoteCallback<T>
         where T : class
@@ -96,16 +94,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     return false;
                 }
 
-                // Log unexpected state where a cancellation exception occurs without being requested.
-                return FatalError.ReportAndCatch(exception);
+                return true;
             }
 
-            // When a connection is dropped and CancelLocallyInvokedMethodsWhenConnectionIsClosed is
-            // set ConnectionLostException should not be thrown. Instead the cancellation token should be
-            // signaled and OperationCancelledException should be thrown.
-            // Seems to not work in all cases currently, so we need to cancel ourselves (bug https://github.com/microsoft/vs-streamjsonrpc/issues/551).
-            // Once this issue is fixed we can remov this if statement and fall back to reporting NFW
-            // as any observation of ConnectionLostException indicates a bug (e.g. https://github.com/microsoft/vs-streamjsonrpc/issues/549).
+            // When a connection is dropped we can see ConnectionLostException even though CancelLocallyInvokedMethodsWhenConnectionIsClosed is set.
+            // That's because there might be a delay between the JsonRpc detecting the disconnect and the call attempting to send a message.
+            // Catch the ConnectionLostException exception here and convert it to OperationCanceledException.
             if (exception is ConnectionLostException)
             {
                 return true;
@@ -121,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (exception is ConnectionLostException)
             {
-                throw new OperationCanceledException(exception.Message, exception);
+                throw new OperationCanceledNotMachingCancellationTokenException(exception);
             }
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token,

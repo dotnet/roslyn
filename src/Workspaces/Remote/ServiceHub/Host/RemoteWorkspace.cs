@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <paramref name="solutionChecksum"/>.
         /// </para>
         /// </summary>
-
         public ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
@@ -285,13 +284,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution, cancellationToken);
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution);
 
                 // check whether solution is update to the given base solution
-                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
                 {
                     // create updated solution off the baseSolution
-                    return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+                    return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
                 }
 
                 // we need new solution. bulk sync all asset for the solution first.
