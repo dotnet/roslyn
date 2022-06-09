@@ -62,7 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var semanticEdits = GetSemanticEdits(edits, prevGeneration.Compilation, compilation);
 
-            var diff = compilation.EmitDifference(prevGeneration.Baseline, semanticEdits);
+            CompilationDifference diff;
+            try
+            {
+                diff = compilation.EmitDifference(prevGeneration.Baseline, semanticEdits);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Exception during generation #{_generations.Count}. See inner stack trace for details.", ex);
+            }
 
             var md = diff.GetMetadata();
             _disposables.Add(md);
