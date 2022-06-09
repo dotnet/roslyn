@@ -9703,6 +9703,201 @@ class Program
         }
 
         [Fact]
+        public void PropertyReturnValue_01()
+        {
+            var source =
+@"ref struct R
+{
+    private ref int _i;
+    public R(ref int i) { _i = ref i; }
+}
+class C
+{
+    R this[R x, R y] => x;
+    R F1(R x1, R y1)
+    {
+        return this[x1, y1];
+    }
+    R F2(R x2)
+    {
+        int i2 = 0;
+        return this[x2, new R(ref i2)]; // 1
+    }
+    static R F3(C c, R x3, R y3)
+    {
+        return c[x3, y3];
+    }
+    static R F4(C c, R y4)
+    {
+        int i4 = 0;
+        return c[new R(ref i4), y4]; // 2
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,16): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return this[x2, new R(ref i2)]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[x2, new R(ref i2)]").WithArguments("C.this[R, R]", "y").WithLocation(16, 16),
+                // (16,25): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return this[x2, new R(ref i2)]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i2)").WithArguments("R.R(ref int)", "i").WithLocation(16, 25),
+                // (16,35): error CS8168: Cannot return local 'i2' by reference because it is not a ref local
+                //         return this[x2, new R(ref i2)]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i2").WithArguments("i2").WithLocation(16, 35),
+                // (25,16): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return c[new R(ref i4), y4]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[new R(ref i4), y4]").WithArguments("C.this[R, R]", "x").WithLocation(25, 16),
+                // (25,18): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return c[new R(ref i4), y4]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i4)").WithArguments("R.R(ref int)", "i").WithLocation(25, 18),
+                // (25,28): error CS8168: Cannot return local 'i4' by reference because it is not a ref local
+                //         return c[new R(ref i4), y4]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i4").WithArguments("i4").WithLocation(25, 28));
+        }
+
+        [Fact]
+        public void PropertyReturnValue_02()
+        {
+            var source =
+@"ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class C
+{
+    R this[in int x, in int y] => new R(x);
+    R F1(in int x1, in int y1)
+    {
+        return this[x1, y1];
+    }
+    R F2(in int x2)
+    {
+        int y2 = 0;
+        return this[x2, y2]; // 1
+    }
+    static R F3(C c, in int x3, in int y3)
+    {
+        return c[x3, y3];
+    }
+    static R F4(C c, in int y4)
+    {
+        int x4 = 0;
+        return c[x4, y4]; // 2
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,16): error CS8347: Cannot use a result of 'C.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return this[x2, y2]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[x2, y2]").WithArguments("C.this[in int, in int]", "y").WithLocation(16, 16),
+                // (16,25): error CS8168: Cannot return local 'y2' by reference because it is not a ref local
+                //         return this[x2, y2]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y2").WithArguments("y2").WithLocation(16, 25),
+                // (25,16): error CS8347: Cannot use a result of 'C.this[in int, in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return c[x4, y4]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[x4, y4]").WithArguments("C.this[in int, in int]", "x").WithLocation(25, 16),
+                // (25,18): error CS8168: Cannot return local 'x4' by reference because it is not a ref local
+                //         return c[x4, y4]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x4").WithArguments("x4").WithLocation(25, 18));
+        }
+
+        [Fact]
+        public void PropertyReturnValue_03()
+        {
+            var source =
+@"ref struct R
+{
+    public ref int _i;
+    public R(ref int i) { _i = ref i; }
+}
+class C
+{
+    ref int this[R x, R y] => ref x._i;
+    ref int F1(R x1, R y1)
+    {
+        return ref this[x1, y1];
+    }
+    ref int F2(R x2)
+    {
+        int i2 = 0;
+        return ref this[x2, new R(ref i2)]; // 1
+    }
+    static ref int F3(C c, R x3, R y3)
+    {
+        return ref c[x3, y3];
+    }
+    static ref int F4(C c, R y4)
+    {
+        int i4 = 0;
+        return ref c[new R(ref i4), y4]; // 2
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,20): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref this[x2, new R(ref i2)]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[x2, new R(ref i2)]").WithArguments("C.this[R, R]", "y").WithLocation(16, 20),
+                // (16,29): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return ref this[x2, new R(ref i2)]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i2)").WithArguments("R.R(ref int)", "i").WithLocation(16, 29),
+                // (16,39): error CS8168: Cannot return local 'i2' by reference because it is not a ref local
+                //         return ref this[x2, new R(ref i2)]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i2").WithArguments("i2").WithLocation(16, 39),
+                // (25,20): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref c[new R(ref i4), y4]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[new R(ref i4), y4]").WithArguments("C.this[R, R]", "x").WithLocation(25, 20),
+                // (25,22): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return ref c[new R(ref i4), y4]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref i4)").WithArguments("R.R(ref int)", "i").WithLocation(25, 22),
+                // (25,32): error CS8168: Cannot return local 'i4' by reference because it is not a ref local
+                //         return ref c[new R(ref i4), y4]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i4").WithArguments("i4").WithLocation(25, 32));
+        }
+
+        [Fact]
+        public void PropertyReturnValue_04()
+        {
+            var source =
+@"class C
+{
+    ref readonly int this[in int x, in int y] => ref x;
+    ref readonly int F1(in int x1, in int y1)
+    {
+        return ref this[x1, y1];
+    }
+    ref readonly int F2(in int x2)
+    {
+        int y2 = 0;
+        return ref this[x2, y2]; // 1
+    }
+    static ref readonly int F3(C c, in int x3, in int y3)
+    {
+        return ref c[x3, y3];
+    }
+    static ref readonly int F4(C c, in int y4)
+    {
+        int x4 = 0;
+        return ref c[x4, y4]; // 2
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,20): error CS8347: Cannot use a result of 'C.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref this[x2, y2]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[x2, y2]").WithArguments("C.this[in int, in int]", "y").WithLocation(11, 20),
+                // (11,29): error CS8168: Cannot return local 'y2' by reference because it is not a ref local
+                //         return ref this[x2, y2]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y2").WithArguments("y2").WithLocation(11, 29),
+                // (20,20): error CS8347: Cannot use a result of 'C.this[in int, in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref c[x4, y4]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[x4, y4]").WithArguments("C.this[in int, in int]", "x").WithLocation(20, 20),
+                // (20,22): error CS8168: Cannot return local 'x4' by reference because it is not a ref local
+                //         return ref c[x4, y4]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x4").WithArguments("x4").WithLocation(20, 22));
+        }
+
+        [Fact]
         public void RefStructLocal_FromLocal_01()
         {
             var source =

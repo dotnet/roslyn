@@ -1403,22 +1403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private static bool HasRefStructReturnValue(Symbol symbol)
-        {
-            switch (symbol)
-            {
-                case MethodSymbol method:
-                    return method.MethodKind == MethodKind.Constructor ?
-                        method.ContainingType.IsRefLikeType :
-                        method.ReturnType.IsRefLikeType;
-                case PropertySymbol property:
-                    // PROTOTYPE: Test this case.
-                    return property.ContainingType.IsRefLikeType;
-                default:
-                    return false;
-            }
-        }
-
         private bool? UseRefEscapeOfInvocationArgument(Symbol symbol, RefKind effectiveRefKind, bool isRefEscape, DeclarationScope scope)
         {
             if (!UseUpdatedEscapeRules)
@@ -1432,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: This deviates from the spec which mentions ref parameters only
                 // ("[w]hen the return is a ref struct then ref-safe-to-escape of all ref arguments").
                 // Fix this or fix the spec.
-                RefKind.Ref or RefKind.In => isRefEscape || HasRefStructReturnValue(symbol),
+                RefKind.Ref or RefKind.In => isRefEscape || hasRefStructType(symbol),
                 _ => throw ExceptionUtilities.UnexpectedValue(effectiveRefKind),
             };
 
@@ -1447,6 +1431,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return useRefEscape;
+
+            static bool hasRefStructType(Symbol symbol)
+            {
+                switch (symbol)
+                {
+                    case MethodSymbol method:
+                        return method.MethodKind == MethodKind.Constructor ?
+                            method.ContainingType.IsRefLikeType :
+                            method.ReturnType.IsRefLikeType;
+                    case PropertySymbol property:
+                        return property.Type.IsRefLikeType;
+                    default:
+                        return false;
+                }
+            }
         }
 
         /// <summary>
