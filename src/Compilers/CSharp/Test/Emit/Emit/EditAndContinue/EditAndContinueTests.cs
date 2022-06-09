@@ -13233,7 +13233,6 @@ class C
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
                 .Verify();
@@ -13292,7 +13291,6 @@ class C
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
 
@@ -13330,7 +13328,6 @@ class C
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
                 .Verify();
@@ -13387,7 +13384,6 @@ class C
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
 
@@ -13427,7 +13423,6 @@ class C
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
                 .Verify();
@@ -13456,7 +13451,7 @@ class C
                         class C
                         {
                             void Goo() { }
-                            void M1(C c) { }
+                            C M1(C c) { return default; }
                         }
                         """,
                     edits: new[] {
@@ -13468,6 +13463,7 @@ class C
                         g.VerifyMethodDefNames("M1");
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
@@ -13477,19 +13473,23 @@ class C
                         {
                             Handle(3, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
                         var expectedIL = """
                             {
-                              // Code size        2 (0x2)
-                              .maxstack  8
+                              // Code size        7 (0x7)
+                              .maxstack  1
                               IL_0000:  nop
-                              IL_0001:  ret
+                              IL_0001:  ldnull
+                              IL_0002:  stloc.0
+                              IL_0003:  br.s       IL_0005
+                              IL_0005:  ldloc.0
+                              IL_0006:  ret
                             }
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
 
@@ -13529,7 +13529,6 @@ class C
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
 
@@ -13538,7 +13537,7 @@ class C
                         class C
                         {
                             void Goo() { }
-                            void M1(C c) { System.Console.Write(1); }
+                            C M1(C c) { System.Console.Write(1); return default; }
                         }
                         """,
                     edits: new[] {
@@ -13550,29 +13549,34 @@ class C
                         g.VerifyMethodDefNames("M1");
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(3, TableIndex.MethodDef),
-                            Handle(1, TableIndex.Param)
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.StandAloneSig)
                         });
 
                         var expectedIL = """
                             {
-                              // Code size        9 (0x9)
-                              .maxstack  8
+                              // Code size       14 (0xe)
+                              .maxstack  1
                               IL_0000:  nop
                               IL_0001:  ldc.i4.1
                               IL_0002:  call       0x0A000005
                               IL_0007:  nop
-                              IL_0008:  ret
+                              IL_0008:  ldnull
+                              IL_0009:  stloc.0
+                              IL_000a:  br.s       IL_000c
+                              IL_000c:  ldloc.0
+                              IL_000d:  ret
                             }
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        // TODO: This should probably output more than just one method worth of IL, right?
                         g.VerifyIL(expectedIL);
                     })
                 .Verify();

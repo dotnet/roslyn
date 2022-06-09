@@ -800,7 +800,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 method = SubstituteTypeParameters(method);
                 other = SubstituteTypeParameters(other);
 
-                return _comparer.Equals(method.ReturnType, other.ReturnType) &&
+                // When deleting a method, the return type of method and other will be the same symbol
+                // which fails the SymbolComparer check (to avoid cycles) but are obviously still equal.
+                return (_comparer.Equals(method.ReturnType, other.ReturnType) || ReferenceEquals(method.ReturnType, other.ReturnType)) &&
                     method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
@@ -822,7 +824,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool AreNamedTypesEqual(NamedTypeSymbol type, NamedTypeSymbol other)
             {
-                Debug.Assert(StringOrdinalComparer.Equals(type.MetadataName, other.MetadataName));
+                if (!StringOrdinalComparer.Equals(type.MetadataName, other.MetadataName))
+                {
+                    return false;
+                }
 
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
