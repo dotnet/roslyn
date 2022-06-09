@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -244,10 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     var workspace = _languageService.Workspace;
                     var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     _outlineControl = new SampleToolboxUserControl(workspace, documentTrackingService, languageServiceBroker, threadingContext);
-                }
 
-                if (_outlineControlHost is null)
-                {
                     _outlineControlHost = new ElementHost
                     {
                         Dock = DockStyle.Fill,
@@ -255,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     };
                 }
 
-                phwnd = _outlineControlHost.Handle;
+                phwnd = _outlineControlHost!.Handle;
                 ppCmdTarget = _outlineControl;
 
                 return VSConstants.S_OK;
@@ -263,16 +261,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
             {
-                _outlineControlHost?.Dispose();
-                _outlineControlHost = null;
-
                 return VSConstants.S_OK;
             }
 
             int IVsDocOutlineProvider.GetOutlineCaption(VSOUTLINECAPTION nCaptionType, out string pbstrCaption)
             {
                 // TODO, ask the control for the text of the currently selected item
-                pbstrCaption = "";
+                pbstrCaption = "Document Outline";
                 return VSConstants.S_OK;
             }
 
