@@ -158,6 +158,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SyntaxToken token, SemanticModel semanticModel,
                 CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
+                // Incomplete statements like "SomeSymbol " or "SomeEvent " are syntactically equal.
+                // However you cannot declare a variable or local function with event being a return type,
+                // so we need to filter this case here
+                if (semanticModel.GetSymbolInfo(token).Symbol is IEventSymbol)
+                {
+                    result = default;
+                    return false;
+                }
+
                 result = IsLastTokenOfType<ExpressionStatementSyntax>(
                     token, semanticModel,
                     e => e.Expression,

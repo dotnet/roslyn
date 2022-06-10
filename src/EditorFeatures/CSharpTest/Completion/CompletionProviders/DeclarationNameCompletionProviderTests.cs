@@ -2900,6 +2900,23 @@ public class MyClass
             await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local, options: options);
         }
 
+        [WorkItem(61747, "https://github.com/dotnet/roslyn/issues/61747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterEventName()
+        {
+            var markup = @"
+public class MyClass
+{
+    private event System.EventHandler Test;
+
+    void M()
+    {
+        Test $$
+    }
+}";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
         {
             var styles = new[]
