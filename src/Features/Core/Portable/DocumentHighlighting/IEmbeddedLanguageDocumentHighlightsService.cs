@@ -8,8 +8,10 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
+    /// <inheritdoc cref="IDocumentHighlightsService"/>
     internal interface IEmbeddedLanguageDocumentHighlightsService : IEmbeddedLanguageFeatureService
     {
+        /// <inheritdoc cref="IDocumentHighlightsService.GetDocumentHighlightsAsync"/>
         ImmutableArray<DocumentHighlights> GetDocumentHighlights(
             Document document,
             SemanticModel semanticModel,
