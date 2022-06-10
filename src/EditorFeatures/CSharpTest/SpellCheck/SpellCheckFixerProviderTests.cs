@@ -69,11 +69,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck
                 """
                 class {|Bo()gus:Orginal|}
                 {
+                    public Orginal() { }
                 }
                 """,
                 """
                 class Bo()gus
                 {
+                    public Orginal() { }
+                }
+                """);
+        }
+
+        [WpfFact]
+        public async Task TestReplacementSpanLargerThanToken()
+        {
+            // Replacement span is larger than the lang token to rename.
+            await TestFailureAsync(
+                """
+                class {|Replacement:Class |}
+                {
+                    public Class() { }
+                }
+                """,
+                """
+                class Replacement 
+                {
+                    public Class() { }
                 }
                 """);
         }
