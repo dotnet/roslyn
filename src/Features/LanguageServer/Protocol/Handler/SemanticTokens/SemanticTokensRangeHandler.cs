@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
         {
-            if (e.DocumentId is not null &&
-                (e.Kind is WorkspaceChangeKind.DocumentChanged || e.Kind is WorkspaceChangeKind.DocumentAdded))
+            if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
             {
                 var document = e.NewSolution.GetRequiredDocument(e.DocumentId);
                 var documentUri = document.GetURI();
