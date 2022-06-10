@@ -5512,13 +5512,18 @@ End Class
         Public Sub Method_Delete()
 
             Dim source0 = MarkedSource("
+Imports System.ComponentModel
+
 Class C
+    <Description(""C.M"")>
     Function M(c as C) As C
         Return Nothing
     End Function
 End Class
 ")
             Dim source1 = MarkedSource("
+Imports System.ComponentModel
+
 Class C
 End Class
 ")
@@ -5550,11 +5555,13 @@ End Class
 
                 CheckEncLogDefinitions(reader1,
                     Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.Param, EditAndContinueOperation.Default))
+                    Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
                 CheckEncMapDefinitions(reader1,
                     Handle(2, TableIndex.MethodDef),
-                    Handle(1, TableIndex.Param))
+                    Handle(1, TableIndex.Param),
+                    Handle(4, TableIndex.CustomAttribute))
             End Using
         End Sub
 

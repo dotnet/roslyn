@@ -1785,11 +1785,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     // We need to visit deleted members to ensure attribute method references are recorded
                     if (_deletedTypeMembers.TryGetValue(typeDefinition, out var deletedMembers))
                     {
-                        foreach (var methodDef in deletedMembers)
-                        {
-                            // we call the base method here, to avoid the ShouldVisit call, which will fail
-                            this.Visit((IMethodDefinition)methodDef);
-                        }
+                        this.Visit(deletedMembers);
                     }
                 }
             }
