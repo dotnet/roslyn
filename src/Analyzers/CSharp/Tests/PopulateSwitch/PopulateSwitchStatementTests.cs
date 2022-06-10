@@ -1223,5 +1223,18 @@ enum MyEnum
     Value1, Value2
 }");
         }
+
+        [Fact, WorkItem(61281, "https://github.com/dotnet/roslyn/issues/61281")]
+        public async Task TestNotInSwitchWithUnknownType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch[||]
+    }
+}");
+        }
     }
 }
