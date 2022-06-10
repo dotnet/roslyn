@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 {
     /// <inheritdoc cref="BraceMatchingResult"/>
-    internal readonly record struct AspNetBraceMatchingResult(
+    internal readonly record struct AspNetCoreBraceMatchingResult(
         TextSpan LeftSpan,
         TextSpan RightSpan)
     {
