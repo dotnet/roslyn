@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             foreach (var service in embeddedHighlightsServices)
             {
                 var result = service.Value.GetDocumentHighlights(
-                    document.Project, semanticModel, token, position, options, cancellationToken);
+                    document, semanticModel, token, position, options, cancellationToken);
                 if (!result.IsDefaultOrEmpty)
                     return result;
             }

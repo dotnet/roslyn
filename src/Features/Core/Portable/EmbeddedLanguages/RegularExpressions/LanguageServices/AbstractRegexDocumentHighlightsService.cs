@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -113,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 _ => throw new InvalidOperationException(),
             };
 
-        private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
+        private RegexEscapeNode? FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
             if (node.Kind is RegexKind.BackreferenceEscape or
                 RegexKind.CaptureEscape or

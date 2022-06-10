@@ -6,21 +6,18 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
-    // Order regex classification before json classification.  Json lights up on probable-json strings, but we don't
-    // want that to happen for APIs that are certain to be another language like Regex.
-    [ExtensionOrder(Before = PredefinedEmbeddedLanguageClassifierNames.Json)]
     [ExportEmbeddedLanguageClassifierInternal(
-        PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
-    internal class CSharpRegexEmbeddedLanguageClassifier : AbstractRegexEmbeddedLanguageClassifier
+        PredefinedEmbeddedLanguageNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
+    internal class CSharpJsonClassifier : AbstractJsonClassifier
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRegexEmbeddedLanguageClassifier()
+        public CSharpJsonClassifier()
             : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }
