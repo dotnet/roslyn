@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -17,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
     internal abstract class AbstractRegexDocumentHighlightsService : IEmbeddedLanguageDocumentHighlightsService
     {
-        private readonly RegexEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        protected AbstractRegexDocumentHighlightsService(RegexEmbeddedLanguage language)
-            => _language = language;
+        protected AbstractRegexDocumentHighlightsService(EmbeddedLanguageInfo info)
+            => _info = info;
 
         public ImmutableArray<DocumentHighlights> GetDocumentHighlights(
             Document document, SemanticModel semanticModel, SyntaxToken token, int position, HighlightingOptions options, CancellationToken cancellationToken)
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
                 return default;
 
-            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _language.Info);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
 
             return tree == null

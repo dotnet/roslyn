@@ -12,13 +12,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
 {
     [ExportEmbeddedLanguageBraceMatcherInternal(
-        PredefinedEmbeddedLanguageBraceMatcherNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
-    internal sealed class CSharpJsonEmbeddedLanguageBraceMatcher :
-        AbstractJsonEmbeddedLanguageBraceMatcher
+        PredefinedEmbeddedLanguageNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
+    internal sealed class CSharpJsonBraceMatcher : AbstractJsonBraceMatcher
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpJsonEmbeddedLanguageBraceMatcher()
+        public CSharpJsonBraceMatcher()
             : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }

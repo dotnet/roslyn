@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     <ExtensionOrder(Before:=PredefinedEmbeddedLanguageNames.Json)>
     <ExportEmbeddedLanguageDocumentHighlightsServiceInternal(
         PredefinedEmbeddedLanguageNames.Regex, LanguageNames.VisualBasic, True, "Regex", "Regexp"), [Shared]>
-    Friend Class VisualBasicRegexEmbeddedLanguageDocumentHighlightsService
-        Inherits AbstractRegexEmbeddedLanguageDocumentHighlightsService
+    Friend Class VisualBasicRegexDocumentHighlightsService
+        Inherits AbstractRegexDocumentHighlightsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
