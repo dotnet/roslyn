@@ -569,19 +569,23 @@ namespace Microsoft.CodeAnalysis.Emit
                 CreateIndicesForMethod(methodDef, methodChange);
             }
 
-            var deletedTypeMembers = new List<DeletedMethodDefinition>();
-            foreach (var methodDef in _changes.GetDeletedMethods(typeDef))
+            var deletedMethods = _changes.GetDeletedMethods(typeDef);
+            if (deletedMethods.Length > 0)
             {
-                var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                deletedTypeMembers.Add(new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
-            }
-            // Save for later, when processing references
-            _deletedTypeMembers.Add(typeDef, deletedTypeMembers);
+                var deletedTypeMembers = new List<DeletedMethodDefinition>();
+                foreach (var methodDef in deletedMethods)
+                {
+                    var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
+                    deletedTypeMembers.Add(new DeletedMethodDefinition(oldMethodDef, typeDef, _typesUsedByDeletedMembers));
+                }
+                // Save for later, when processing references
+                _deletedTypeMembers.Add(typeDef, deletedTypeMembers);
 
-            foreach (var newMethodDef in deletedTypeMembers)
-            {
-                _methodDefs.AddUpdated(newMethodDef);
-                CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
+                foreach (var newMethodDef in deletedTypeMembers)
+                {
+                    _methodDefs.AddUpdated(newMethodDef);
+                    CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
+                }
             }
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))

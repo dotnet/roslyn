@@ -13225,10 +13225,10 @@ class C
                         // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
-                              // Code size        2 (0x2)
+                              // Code size        6 (0x6)
                               .maxstack  8
-                              IL_0000:  ldnull
-                              IL_0001:  throw
+                              IL_0000:  newobj     0x0A000005
+                              IL_0005:  throw
                             }
                             """;
 
@@ -13320,10 +13320,10 @@ class C
                         // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
-                              // Code size        2 (0x2)
+                              // Code size        6 (0x6)
                               .maxstack  8
-                              IL_0000:  ldnull
-                              IL_0001:  throw
+                              IL_0000:  newobj     0x0A000005
+                              IL_0005:  throw
                             }
                             """;
 
@@ -13376,10 +13376,10 @@ class C
                         // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
-                              // Code size        2 (0x2)
+                              // Code size        6 (0x6)
                               .maxstack  8
-                              IL_0000:  ldnull
-                              IL_0001:  throw
+                              IL_0000:  newobj     0x0A000005
+                              IL_0005:  throw
                             }
                             """;
 
@@ -13416,7 +13416,7 @@ class C
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ldc.i4.1
-                              IL_0002:  call       0x0A000005
+                              IL_0002:  call       0x0A000006
                               IL_0007:  nop
                               IL_0008:  ret
                             }
@@ -13495,10 +13495,10 @@ class C
                         // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
-                              // Code size        2 (0x2)
+                              // Code size        6 (0x6)
                               .maxstack  8
-                              IL_0000:  ldnull
-                              IL_0001:  throw
+                              IL_0000:  newobj     0x0A000007
+                              IL_0005:  throw
                             }
                             """;
 
@@ -13656,18 +13656,18 @@ class C
                             Handle(1, TableIndex.Param),
                         });
 
-                        // TODO: This should be throwing MissingMethodException
                         var expectedIL = """
                             {
-                              // Code size        2 (0x2)
+                              // Code size        6 (0x6)
                               .maxstack  8
-                              IL_0000:  ldnull
-                              IL_0001:  throw
+                              IL_0000:  newobj     0x0A000005
+                              IL_0005:  throw
                             }
                             """;
 
                         // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
                         g.VerifyIL(expectedIL);
+
                     })
 
                 .AddGeneration(
@@ -13704,7 +13704,7 @@ class C
                               .maxstack  1
                               IL_0000:  nop
                               IL_0001:  ldc.i4.1
-                              IL_0002:  call       0x0A000005
+                              IL_0002:  call       0x0A000006
                               IL_0007:  nop
                               IL_0008:  ldnull
                               IL_0009:  stloc.0

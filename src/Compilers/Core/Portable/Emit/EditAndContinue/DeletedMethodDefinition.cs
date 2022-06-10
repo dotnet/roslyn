@@ -2,24 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed partial class DeletedMethodDefinition : IMethodDefinition
+    internal sealed class DeletedMethodDefinition : IMethodDefinition
     {
+        private readonly IMethodDefinition _oldMethod;
         private readonly ITypeDefinition _containingTypeDef;
         private readonly Dictionary<ITypeDefinition, DeletedTypeDefinition> _typesUsedByDeletedMembers;
-        private readonly IMethodDefinition _oldMethod;
         private readonly ImmutableArray<DeletedParameterDefinition> _parameters;
+        private DeletedMethodBody? _body;
 
         public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
         {
@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<IParameterTypeInformation> ExtraParameters => _oldMethod.ExtraParameters;
 
-        public IGenericMethodInstanceReference AsGenericMethodInstanceReference => _oldMethod.AsGenericMethodInstanceReference;
+        public IGenericMethodInstanceReference? AsGenericMethodInstanceReference => _oldMethod.AsGenericMethodInstanceReference;
 
-        public ISpecializedMethodReference AsSpecializedMethodReference => _oldMethod.AsSpecializedMethodReference;
+        public ISpecializedMethodReference? AsSpecializedMethodReference => _oldMethod.AsSpecializedMethodReference;
 
         public CallingConvention CallingConvention => _oldMethod.CallingConvention;
 
@@ -100,16 +100,16 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool ReturnValueIsByRef => _oldMethod.ReturnValueIsByRef;
 
-        public string Name => _oldMethod.Name;
+        public string? Name => _oldMethod.Name;
 
-        public IDefinition AsDefinition(EmitContext context)
+        public IDefinition? AsDefinition(EmitContext context)
         {
             return _oldMethod.AsDefinition(context);
         }
 
         public void Dispatch(MetadataVisitor visitor)
         {
-            _oldMethod.Dispatch(visitor);
+            visitor.Visit(this);
         }
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IMethodBody GetBody(EmitContext context)
         {
-            return this;
+            _body ??= new DeletedMethodBody(this, context);
+            return _body;
         }
 
         public ITypeReference GetContainingType(EmitContext context)
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             return _oldMethod.GetImplementationAttributes(context);
         }
 
-        public ISymbolInternal GetInternalSymbol()
+        public ISymbolInternal? GetInternalSymbol()
         {
             return _oldMethod.GetInternalSymbol();
         }
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             return DeletedTypeDefinition.TryCreate(_oldMethod.GetType(context), _typesUsedByDeletedMembers);
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
             throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
@@ -168,6 +169,5 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
             throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
-
     }
 }

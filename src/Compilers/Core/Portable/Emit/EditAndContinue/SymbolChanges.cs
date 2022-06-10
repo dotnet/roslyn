@@ -65,26 +65,20 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
-        public IEnumerable<IMethodSymbolInternal> GetDeletedMethods(IDefinition containingType)
+        public ImmutableArray<ISymbolInternal> GetDeletedMethods(IDefinition containingType)
         {
             var containingSymbol = containingType.GetInternalSymbol()?.GetISymbol();
             if (containingSymbol is null)
             {
-                yield break;
+                return ImmutableArray<ISymbolInternal>.Empty;
             }
 
             if (!_deletedMembers.TryGetValue(containingSymbol, out var deleted))
             {
-                yield break;
+                return ImmutableArray<ISymbolInternal>.Empty;
             }
 
-            foreach (var symbol in deleted)
-            {
-                if (GetISymbolInternalOrNull(symbol) is IMethodSymbolInternal method)
-                {
-                    yield return method;
-                }
-            }
+            return deleted.Select(GetISymbolInternalOrNull).WhereNotNull().ToImmutableArray();
         }
 
         public bool IsReplaced(IDefinition definition)
