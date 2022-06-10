@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal sealed class ValueTrackingTreeViewModel : INotifyPropertyChanged
+    internal sealed class ValueTrackingTreeViewModel : INotifyPropertyChanged, IDisposable
     {
         private Brush? _highlightBrush;
         public Brush? HighlightBrush
@@ -58,6 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         }
 
         private int _loadingCount;
+        private readonly SolutionEventMonitor _solutionEventMonitor;
+
         public int LoadingCount
         {
             get => _loadingCount;
@@ -68,12 +70,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public ValueTrackingTreeViewModel(IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap, IEditorFormatMapService formatMapService)
+        public ValueTrackingTreeViewModel(
+            IClassificationFormatMap classificationFormatMap,
+            ClassificationTypeMap classificationTypeMap,
+            IEditorFormatMapService formatMapService,
+            SolutionEventMonitor solutionEventMonitor)
         {
             ClassificationFormatMap = classificationFormatMap;
             ClassificationTypeMap = classificationTypeMap;
             FormatMapService = formatMapService;
-
+            _solutionEventMonitor = solutionEventMonitor;
             var editorMap = FormatMapService.GetEditorFormatMap("text");
             SetHighlightBrush(editorMap);
 
@@ -83,6 +89,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             };
 
             PropertyChanged += Self_PropertyChanged;
+            _solutionEventMonitor.SolutionClosed += OnSolutionClosed;
+        }
+
+        public void Dispose()
+        {
+            _solutionEventMonitor.SolutionClosed -= OnSolutionClosed;
+        }
+
+        private void OnSolutionClosed(object sender, EventArgs e)
+        {
+            Roots.Clear();
         }
 
         private void SetHighlightBrush(IEditorFormatMap editorMap)

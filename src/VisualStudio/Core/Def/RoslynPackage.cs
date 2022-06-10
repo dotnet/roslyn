@@ -63,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private VisualStudioWorkspace? _workspace;
         private RuleSetEventHandler? _ruleSetEventHandler;
         private ColorSchemeApplier? _colorSchemeApplier;
-        private IDisposable? _solutionEventMonitor;
 
         private BackgroundAnalysisScope? _analysisScope;
 
@@ -72,6 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
             AddOptionKey(BackgroundAnalysisScopeOptionKey);
         }
+
+        public SolutionEventMonitor? SolutionEventMonitor { get; private set; }
 
         public BackgroundAnalysisScope? AnalysisScope
         {
@@ -159,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
-            _solutionEventMonitor = new SolutionEventMonitor(_workspace);
+            SolutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
 
@@ -302,10 +303,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             ReportSessionWideTelemetry();
 
-            if (_solutionEventMonitor != null)
+            if (SolutionEventMonitor != null)
             {
-                _solutionEventMonitor.Dispose();
-                _solutionEventMonitor = null;
+                SolutionEventMonitor.Dispose();
+                SolutionEventMonitor = null;
             }
 
             base.Dispose(disposing);

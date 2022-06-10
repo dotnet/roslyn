@@ -183,13 +183,19 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return null;
             }
 
+            RoslynDebug.AssertNotNull(roslynPackage.SolutionEventMonitor);
+
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (ValueTrackingToolWindow.Instance is null)
             {
                 var factory = roslynPackage.GetAsyncToolWindowFactory(Guids.ValueTrackingToolWindowId);
 
-                var viewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
+                var viewModel = new ValueTrackingTreeViewModel(
+                    _classificationFormatMapService.GetClassificationFormatMap(textView),
+                    _typeMap,
+                    _formatMapService,
+                    roslynPackage.SolutionEventMonitor);
 
                 factory.CreateToolWindow(Guids.ValueTrackingToolWindowId, 0, viewModel);
                 await factory.InitializeToolWindowAsync(Guids.ValueTrackingToolWindowId, 0);
@@ -206,7 +212,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             // still needs to be initialized but had no necessary context. Provide that context now in the command handler.
             if (ValueTrackingToolWindow.Instance.ViewModel is null)
             {
-                ValueTrackingToolWindow.Instance.ViewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
+                ValueTrackingToolWindow.Instance.ViewModel = new ValueTrackingTreeViewModel(
+                    _classificationFormatMapService.GetClassificationFormatMap(textView),
+                    _typeMap,
+                    _formatMapService,
+                    roslynPackage.SolutionEventMonitor);
             }
 
             return ValueTrackingToolWindow.Instance;
