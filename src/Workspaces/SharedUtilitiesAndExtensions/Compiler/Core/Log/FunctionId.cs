@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SpellCheckFixer_LanguageDoesNotSupportRename = 581,
         SpellCheckFixer_LanguageCouldNotGetRenameInfo = 582,
         SpellCheckFixer_RenameSpanNotWithinTokenSpan = 583,
-        SpellCheckFixer_CouldNotFindDocument = 580,
-        SpellCheckFixer_CouldNotFindDocument = 580,
+        SpellCheckFixer_ReplacementTextInvalid = 584,
+        SpellCheckFixer_TryApplyChangesFailure = 585,
     }
 }
