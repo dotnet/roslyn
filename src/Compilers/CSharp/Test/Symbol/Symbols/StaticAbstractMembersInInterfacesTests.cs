@@ -8442,11 +8442,8 @@ class Test
 
             Assert.Equal("T.M01()", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IInvocationOperation (virtual void I1.M01()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'T.M01()')
+IInvocationOperation (virtual void I1.M01() ConstrainedToType: T) (OperationKind.Invocation, Type: System.Void) (Syntax: 'T.M01()')
   Instance Receiver: 
     null
   Arguments(0)
@@ -9040,11 +9037,8 @@ class Test
                     case ("", "++"):
                     case ("", "--"):
                         VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IIncrementOrDecrementOperation (" + (prefixOp != "" ? "Prefix" : "Postfix") + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x)) (OperationKind." + opKind + @", Type: T) (Syntax: '" + prefixOp + "x" + postfixOp + @"')
+IIncrementOrDecrementOperation (" + (prefixOp != "" ? "Prefix" : "Postfix") + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x) ConstrainedToType: T) (OperationKind." + opKind + @", Type: T) (Syntax: '" + prefixOp + "x" + postfixOp + @"')
   Target: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
 ");
@@ -9052,11 +9046,8 @@ IIncrementOrDecrementOperation (" + (prefixOp != "" ? "Prefix" : "Postfix") + (i
 
                     default:
                         VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IUnaryOperation (UnaryOperatorKind." + opKind + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x)) (OperationKind.Unary, Type: T) (Syntax: '" + prefixOp + "x" + postfixOp + @"')
+IUnaryOperation (UnaryOperatorKind." + opKind + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x) ConstrainedToType: T) (OperationKind.Unary, Type: T) (Syntax: '" + prefixOp + "x" + postfixOp + @"')
   Operand: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
 ");
@@ -9354,13 +9345,10 @@ class Test
 
             Assert.Equal("x ? true : false", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
 IConditionalOperation (OperationKind.Conditional, Type: System.Boolean) (Syntax: 'x ? true : false')
   Condition: 
-    IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean I1<T>.op_True(T x)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+    IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean I1<T>.op_True(T x) ConstrainedToType: T) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'x')
       Operand: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
   WhenTrue: 
@@ -10754,11 +10742,8 @@ partial class Test
 
             Assert.Equal("x " + op + " 1", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + @" 1')
+IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a) ConstrainedToType: T) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + @" 1')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
   Right: 
@@ -10950,11 +10935,8 @@ public partial interface I1<T0>
 
             Assert.Equal("x " + op + " 1", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @") (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" 1')
+IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @") (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, System.Int32 a) ConstrainedToType: T) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" 1')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
   Right: 
@@ -11143,11 +11125,8 @@ public partial interface I1<T0>
 
             Assert.Equal("x " + op + " y", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @", IsLifted) (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, T a)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" y')
+IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @", IsLifted) (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, T a) ConstrainedToType: T) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T?) (Syntax: 'x')
   Right: 
@@ -11341,11 +11320,8 @@ class Test
                 Assert.Equal("x " + op + op + " y", node1.ToString());
 
                 VerifyOperationTreeForNode(compilation1, model, node1,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: T I1<T>." + binaryMetadataName + @"(T a, T x)) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + op + @" y')
+IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: T I1<T>." + binaryMetadataName + @"(T a, T x) ConstrainedToType: T) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + op + @" y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
   Right: 
@@ -11598,11 +11574,8 @@ class Test
                 Assert.Equal("x " + op + op + " y", node1.ToString());
 
                 VerifyOperationTreeForNode(compilation1, model, node1,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." + binaryMetadataName + @"(I1 a, I1 x)) (OperationKind.Binary, Type: I1) (Syntax: 'x " + op + op + @" y')
+IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." + binaryMetadataName + @"(I1 a, I1 x) ConstrainedToType: T) (OperationKind.Binary, Type: I1) (Syntax: 'x " + op + op + @" y')
   Left: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: I1, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11977,11 +11950,8 @@ class Test
 
             Assert.Equal("x " + op + "= 1", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
 @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'x " + op + @"= 1')
+ICompoundAssignmentOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a) ConstrainedToType: T) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'x " + op + @"= 1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left: 
@@ -13213,11 +13183,8 @@ class Test
 
             Assert.Equal("T.P01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
+IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (ConstrainedToType: T) (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
   Instance Receiver: 
     null
 ");
@@ -13302,11 +13269,8 @@ class Test
 
             Assert.Equal("T.P01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
+IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (ConstrainedToType: T) (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
   Instance Receiver: 
     null
 ");
@@ -13427,11 +13391,8 @@ class Test
 
             Assert.Equal("T.P01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
+IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (ConstrainedToType: T) (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
   Instance Receiver: 
     null
 ");
@@ -14143,11 +14104,17 @@ class Test
 
             Assert.Equal("T.E01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IEventReferenceOperation: event System.Action I1.E01 (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'T.E01')
+IEventReferenceOperation: event System.Action I1.E01 (ConstrainedToType: T) (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'T.E01')
+  Instance Receiver: 
+    null
+");
+            node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().ArgumentList.Arguments[0].Expression;
+
+            Assert.Equal("T.E01", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+@"
+IEventReferenceOperation: event System.Action I1.E01 (ConstrainedToType: T) (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'T.E01')
   Instance Receiver: 
     null
 ");
@@ -14762,11 +14729,8 @@ class Test
 
             Assert.Equal("T.M01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
+IMethodReferenceOperation: void I1.M01() (ConstrainedToType: T) (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
   Instance Receiver: 
     null
 ");
@@ -15178,11 +15142,8 @@ class Test
 
             Assert.Equal("T.M01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
+IMethodReferenceOperation: void I1.M01() (ConstrainedToType: T) (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
   Instance Receiver: 
     null
 ");
@@ -15449,11 +15410,8 @@ unsafe class Test
 
             Assert.Equal("T.M01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
-IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
+IMethodReferenceOperation: void I1.M01() (ConstrainedToType: T) (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
   Instance Receiver: 
     null
 ");
@@ -30351,13 +30309,10 @@ class Test
             Assert.Equal("return " + (needCast ? "(int)" : "") + @"x;", node.ToString());
 
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                                to expose this information? 
 @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return " + (needCast ? "(int)" : "") + @"x;')
   ReturnedValue: 
-    IConversionOperation (TryCast: False, " + (isCheckedOperator && isCheckedContext ? "Checked" : "Unchecked") + @") (OperatorMethod: System.Int32 I1<T>." + metadataName + @"(T x)) (OperationKind.Conversion, Type: System.Int32" + (needCast ? "" : ", IsImplicit") + @") (Syntax: '" + (needCast ? "(int)" : "") + @"x')
+    IConversionOperation (TryCast: False, " + (isCheckedOperator && isCheckedContext ? "Checked" : "Unchecked") + @") (OperatorMethod: System.Int32 I1<T>." + metadataName + @"(T x) ConstrainedToType: T) (OperationKind.Conversion, Type: System.Int32" + (needCast ? "" : ", IsImplicit") + @") (Syntax: '" + (needCast ? "(int)" : "") + @"x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 I1<T>." + metadataName + @"(T x))
       Operand: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
@@ -31012,13 +30967,10 @@ class Test
             Assert.Equal("return " + (needCast ? "(T)" : "") + @"x;", node.ToString());
 
             VerifyOperationTreeForNode(compilation1, model, node,
-// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
 @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return " + (needCast ? "(T)" : "") + @"x;')
   ReturnedValue: 
-    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: T I1<T>." + metadataName + @"(System.Int32 x)) (OperationKind.Conversion, Type: T" + (needCast ? "" : ", IsImplicit") + @") (Syntax: '" + (needCast ? "(T)" : "") + @"x')
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: T I1<T>." + metadataName + @"(System.Int32 x) ConstrainedToType: T) (OperationKind.Conversion, Type: T" + (needCast ? "" : ", IsImplicit") + @") (Syntax: '" + (needCast ? "(T)" : "") + @"x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: T I1<T>." + metadataName + @"(System.Int32 x))
       Operand: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')

@@ -616,6 +616,14 @@
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" SkipGeneration="true">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
+      </Comments>
+    </Property>
     <Property Name="Conversion" Type="CommonConversion">
       <Comments>
         <summary>Gets the underlying common conversion information.</summary>
@@ -661,6 +669,14 @@
     <Property Name="TargetMethod" Type="IMethodSymbol">
       <Comments>
         <summary>Method to be invoked.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="TargetMethod" />.
+          Null if <see cref="TargetMethod" /> is resolved statically, or is an instance method.
+        </summary>
       </Comments>
     </Property>
     <Property Name="Instance" Type="IOperation?">
@@ -768,6 +784,14 @@
         <summary>Referenced member.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" SkipGeneration="true">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Member" />.
+          Null if <see cref="Member" /> is resolved statically, or is an instance member.
+        </summary>
+      </Comments>
+    </Property>
   </AbstractNode>
   <Node Name="IFieldReferenceOperation" Base="IMemberReferenceOperation" HasType="true" HasConstantValue="true">
     <Comments>
@@ -811,6 +835,14 @@
         <summary>Referenced method.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Internal="true">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Method" />.
+          Null if <see cref="Method" /> is resolved statically, or is an instance method.
+        </summary>
+      </Comments>
+    </Property>
     <Property Name="IsVirtual" Type="bool">
       <Comments>
         <summary>Indicates whether the reference uses virtual semantics.</summary>
@@ -831,6 +863,14 @@
     <Property Name="Property" Type="IPropertySymbol">
       <Comments>
         <summary>Referenced property.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Internal="true">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Property" />.
+          Null if <see cref="Property" /> is resolved statically, or is an instance property.
+        </summary>
       </Comments>
     </Property>
     <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
@@ -857,6 +897,14 @@
     <Property Name="Event" Type="IEventSymbol">
       <Comments>
         <summary>Referenced event.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Internal="true">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Event" />.
+          Null if <see cref="Event" /> is resolved statically, or is an instance event.
+        </summary>
       </Comments>
     </Property>
   </Node>
@@ -905,6 +953,14 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
       </Comments>
     </Property>
   </Node>
@@ -965,6 +1021,15 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />
+          or corresponding true/false operator, if any.
+          Null if operators are resolved statically, or are not used.
+        </summary>
       </Comments>
     </Property>
     <Property Name="UnaryOperatorMethod" Type="IMethodSymbol?" Internal="true">
@@ -1302,6 +1367,14 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
       </Comments>
     </Property>
   </Node>
@@ -1804,6 +1877,14 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
       </Comments>
     </Property>
   </Node>

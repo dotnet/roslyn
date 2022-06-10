@@ -56,6 +56,14 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 Microsoft.CodeAnalysis.IPropertySymbol.IsRequired.get -> bool
+Microsoft.CodeAnalysis.Operations.CommonConversion.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IBinaryOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IConversionOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IIncrementOrDecrementOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IInvocationOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.Operations.IUnaryOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IImportScope!>
 Microsoft.CodeAnalysis.ISymbol.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>

@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal partial class ConversionOperation
     {
         public IMethodSymbol? OperatorMethod => Conversion.MethodSymbol;
+        public ITypeSymbol? ConstrainedToType => Conversion.ConstrainedToType;
     }
 
     internal sealed partial class InvalidOperation : Operation, IInvalidOperation
@@ -182,26 +183,34 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class BaseMemberReferenceOperation : IMemberReferenceOperation
     {
         public abstract ISymbol Member { get; }
+
+        ITypeSymbol? IMemberReferenceOperation.ConstrainedToType => ConstrainedToTypeImpl;
+
+        protected abstract ITypeSymbol? ConstrainedToTypeImpl { get; }
     }
 
     internal sealed partial class MethodReferenceOperation
     {
         public override ISymbol Member => Method;
+        protected override ITypeSymbol? ConstrainedToTypeImpl => ConstrainedToType;
     }
 
     internal sealed partial class PropertyReferenceOperation
     {
         public override ISymbol Member => Property;
+        protected override ITypeSymbol? ConstrainedToTypeImpl => ConstrainedToType;
     }
 
     internal sealed partial class EventReferenceOperation
     {
         public override ISymbol Member => Event;
+        protected override ITypeSymbol? ConstrainedToTypeImpl => ConstrainedToType;
     }
 
     internal sealed partial class FieldReferenceOperation
     {
         public override ISymbol Member => Field;
+        protected override ITypeSymbol? ConstrainedToTypeImpl => null;
     }
 
     internal sealed partial class RangeCaseClauseOperation
