@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal interface IEmbeddedLanguageDocumentHighlightsService : IEmbeddedLanguageFeatureService
     {
         ImmutableArray<DocumentHighlights> GetDocumentHighlights(
-            Project project,
+            Document document,
             SemanticModel semanticModel,
             SyntaxToken token,
             int position,

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -18,22 +16,22 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed class RegexDocumentHighlightsService : IEmbeddedLanguageDocumentHighlightsService
+    internal abstract class AbstractRegexDocumentHighlightsService : IEmbeddedLanguageDocumentHighlightsService
     {
         private readonly RegexEmbeddedLanguage _language;
 
-        public RegexDocumentHighlightsService(RegexEmbeddedLanguage language)
+        protected AbstractRegexDocumentHighlightsService(RegexEmbeddedLanguage language)
             => _language = language;
 
-        public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+        public ImmutableArray<DocumentHighlights> GetDocumentHighlights(
+            Document document, SemanticModel semanticModel, SyntaxToken token, int position, HighlightingOptions options, CancellationToken cancellationToken)
         {
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
-            {
                 return default;
-            }
 
-            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _language.Info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
             return tree == null
                 ? default
                 : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(tree, position)));
