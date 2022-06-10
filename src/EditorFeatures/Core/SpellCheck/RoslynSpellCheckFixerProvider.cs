@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -43,11 +44,17 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             var cancellationToken = operationContext.UserCancellationToken;
 
-            var success = await TryRenameWordAsync(span, replacement, cancellationToken).ConfigureAwait(false);
-            if (success)
+            var result = await TryRenameAsync(span, replacement, cancellationToken).ConfigureAwait(false);
+
+            // If we succeeded at renaming then nothing more to do.
+            if (result == null)
                 return;
 
-            // failure path, just apply the text change directly.
+            // Record why we failed so we can determine what issues may be arising in the wild.
+            var (functionId, message) = result.Value;
+            Logger.Log(functionId, message);
+
+            // Then just apply the text change directly.
             await ApplySimpleChangeAsync(span, replacement, cancellationToken).ConfigureAwait(false);
         }
 
@@ -62,42 +69,45 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             edit.Apply();
         }
 
-        private async Task<bool> TryRenameWordAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
+        private async Task<(FunctionId functionId, string? message)?> TryRenameAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
         {
             // See if we can map this to a roslyn document.
             var snapshot = span.Snapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document is null)
-                return false;
+                return (FunctionId.SpellCheckFixer_CouldNotFindDocument, null);
 
             // If so, see if the language supports smart rename capabilities.
             var renameService = document.GetLanguageService<IEditorInlineRenameService>();
             if (renameService is null)
-                return false;
+                return (FunctionId.SpellCheckFixer_LanguageDoesNotSupportRename, null);
 
             // Attempt to figure out what the language would rename here given the position of the misspelled word in
             // the full token.
             var info = await renameService.GetRenameInfoAsync(document, span.Span.Start, cancellationToken).ConfigureAwait(false);
             if (!info.CanRename)
-                return false;
+                return (FunctionId.SpellCheckFixer_LanguageCouldNotGetRenameInfo, null);
 
             // The subspan we're being asked to rename better fall entirely within the span of the token we're renaming.
             var fullTokenSpan = info.TriggerSpan;
             var subSpanBeingRenamed = span.Span.ToTextSpan();
             if (!fullTokenSpan.Contains(subSpanBeingRenamed))
-                return false;
+                return (FunctionId.SpellCheckFixer_RenameSpanNotWithinTokenSpan, null);
 
             // Now attempt to call into the language to actually perform the rename.
             var options = new SymbolRenameOptions();
             var renameLocations = await info.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
             var replacements = await renameLocations.GetReplacementsAsync(replacement, options, cancellationToken).ConfigureAwait(false);
             if (!replacements.ReplacementTextValid)
-                return false;
+                return (FunctionId.SpellCheckFixer_ReplacementTextInvalid, $"Renaming: '{span.GetText()}' to '{replacement}'");
 
             // Finally, apply the rename to the solution.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var workspace = document.Project.Solution.Workspace;
-            return workspace.TryApplyChanges(replacements.NewSolution);
+            if (!workspace.TryApplyChanges(replacements.NewSolution))
+                return (FunctionId.SpellCheckFixer_TryApplyChangesFailure, null);
+
+            return null;
         }
     }
 }
