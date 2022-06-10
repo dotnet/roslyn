@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed class RegexDocumentHighlightsService : IDocumentHighlightsService
+    internal sealed class RegexDocumentHighlightsService : IEmbeddedLanguageDocumentHighlightsService
     {
         private readonly RegexEmbeddedLanguage _language;
 
