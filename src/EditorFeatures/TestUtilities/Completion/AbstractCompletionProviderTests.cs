@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected readonly Mock<ICompletionSession> MockCompletionSession;
         private ExportProvider _lazyExportProvider;
 
-        protected bool? TargetTypedCompletionFilterFeatureFlag { get; set; }
+        protected bool? ShowTargetTypedCompletionFilter { get; set; }
         protected bool? TypeImportCompletionFeatureFlag { get; set; }
         protected bool? ShowImportCompletionItemsOptionValue { get; set; }
         protected bool? ForceExpandedCompletionIndexCreation { get; set; }
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var options = CompletionOptions.Default;
 
-            if (TargetTypedCompletionFilterFeatureFlag.HasValue)
-                options = options with { TargetTypedCompletionFilter = TargetTypedCompletionFilterFeatureFlag.Value };
+            if (ShowTargetTypedCompletionFilter.HasValue)
+                options = options with { TargetTypedCompletionFilter = ShowTargetTypedCompletionFilter.Value };
 
             if (TypeImportCompletionFeatureFlag.HasValue)
                 options = options with { TypeImportCompletion = TypeImportCompletionFeatureFlag.Value };
