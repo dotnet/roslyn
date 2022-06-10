@@ -554,9 +554,17 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 using var reader = XmlReader.Create(stream, settings);
 
-                var result = XElement.Load(reader);
-                await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
-                return result;
+                try
+                {
+                    var result = XElement.Load(reader);
+                    await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
+                    return result;
+                }
+                catch (XmlException e)
+                {
+                    await LogExceptionAsync(e, "Converting data to XElement failed", cancellationToken).ConfigureAwait(false);
+                    return null;
+                }
             }
 
             private async Task RepeatIOAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
