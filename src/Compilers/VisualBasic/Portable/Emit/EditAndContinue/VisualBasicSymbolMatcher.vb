@@ -563,7 +563,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 method = SubstituteTypeParameters(method)
                 other = SubstituteTypeParameters(other)
 
-                Return Me._comparer.Equals(method.ReturnType, other.ReturnType) AndAlso
+                ' When deleting a method, the return type of method And other will be the same symbol
+                ' which fails the SymbolComparer check (to avoid cycles) but are obviously still equal.
+                Return (_comparer.Equals(method.ReturnType, other.ReturnType) OrElse ReferenceEquals(method.ReturnType, other.ReturnType)) AndAlso
                     method.Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual) AndAlso
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AddressOf Me.AreTypesEqual)
             End Function
