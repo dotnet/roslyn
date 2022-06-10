@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
 
             var parameters = method.Parameters;
             if (argName != null)
-                return parameters.Any(p => p.Name == argName);
+                return parameters.Any(static (p, argName) => p.Name == argName, argName);
 
             var parameter = argIndex < parameters.Length ? parameters[argIndex.Value] : null;
             return parameter?.Name == FormatName;

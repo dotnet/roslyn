@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             TextSpan span,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = solution.GetDocument(documentId);
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             TextSpan span,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionInfo, async solution =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = solution.GetDocument(documentId);
 

@@ -9867,6 +9867,56 @@ class C
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem(58890, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestComparisionOperatorsInPatternMatchingCompletion(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("", ">", ">=", "<", "<=")> comparisonOperator As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document>
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        Prop is <%= comparisonOperator %> $$
+    }
+}</Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem(58890, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/58890")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestComparisionOperatorsInPatternMatchingCompletion_01(
+            showCompletionInArgumentLists As Boolean,
+            <CombinatorialValues("", ">", ">=", "<", "<=")> comparisonOperator As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document>
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        Prop is > 2 and <%= comparisonOperator %> $$
+    }
+}</Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
+            End Using
+        End Function
+
         <ExportCompletionProvider(NameOf(TestProvider), LanguageNames.CSharp)>
         <[Shared]>
         <PartNotDiscoverable>
@@ -9902,5 +9952,45 @@ class C
                 End Get
             End Property
         End Class
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceFromMetadataWithoutVisibleMembersShouldBeExcluded() As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="Project1">
+        <Document FilePath="SourceDocument">
+namespace NS
+{
+    public class C
+    {
+        public void M()
+        {
+            $$
+        }
+    }
+}
+        </Document>
+        <MetadataReferenceFromSource Language="C#" CommonReferences="true" IncludeXmlDocComments="true" DocumentationMode="Diagnose">
+            <Document FilePath="ReferencedDocument">
+namespace ReferencedNamespace1
+{
+    internal class InternalClass {}
+}
+
+namespace ReferencedNamespace2
+{
+    public class PublicClass {}
+}
+            </Document>
+        </MetadataReferenceFromSource>
+    </Project>
+</Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("ReferencedNamespace2", "")
+                Await state.AssertCompletionItemsDoNotContainAny({"ReferencedNamespace1"})
+            End Using
+        End Function
+
     End Class
 End Namespace

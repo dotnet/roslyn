@@ -46,7 +46,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => syntaxKinds.LogicalOrExpression;
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
-            => new MyCodeAction(string.Format(FeaturesResources.Split_into_consecutive_0_statements, ifKeywordText), createChangedDocument);
+            => CodeAction.Create(
+                string.Format(FeaturesResources.Split_into_consecutive_0_statements, ifKeywordText),
+                createChangedDocument,
+                nameof(FeaturesResources.Split_into_consecutive_0_statements) + "_" + ifKeywordText);
 
         protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
             Document document,
@@ -149,14 +152,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var controlFlow = semanticModel.AnalyzeControlFlow(insideStatements[0], insideStatements[insideStatements.Count - 1]);
 
                 return !controlFlow.EndPointIsReachable;
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

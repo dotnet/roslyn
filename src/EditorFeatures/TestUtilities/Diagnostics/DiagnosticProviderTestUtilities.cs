@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             TextSpan span,
             bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics);
             return await testDriver.GetAllDiagnosticsAsync(document, span);
         }
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             TextSpan span,
             bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics);
             return await testDriver.GetDocumentDiagnosticsAsync(document, span);
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Project project,
             bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, project, includeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics);
             return await testDriver.GetProjectDiagnosticsAsync(project);
         }
     }

@@ -370,18 +370,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return inits.Length != 0 && inits[0].Kind == BoundKind.ArrayInitialization;
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace)
+#nullable enable
+
+        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace, BoundExpression? start = null, BoundExpression? length = null)
         {
+            Debug.Assert(start is null == length is null);
+
             ImmutableArray<byte> data = default;
             int elementCount = -1;
-            TypeSymbol elementType = null;
 
             if (!_module.SupportsPrivateImplClass)
             {
                 return false;
             }
 
-            var ctor = ((MethodSymbol)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer));
+            var ctor = ((MethodSymbol?)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer));
             if (ctor == null)
             {
                 return false;
@@ -390,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (wrappedExpression is BoundArrayCreation ac)
             {
                 var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf();
+                TypeSymbol elementType = arrayType.ElementType.EnumUnderlyingTypeOrSelf();
 
                 // NB: we cannot use this approach for element types larger than one byte
                 //     the issue is that metadata stores blobs in little-endian format
@@ -408,6 +411,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (elementCount < 0)
             {
                 return false;
+            }
+
+            if (start is null != length is null)
+            {
+                return false;
+            }
+
+            int lengthForConstructor;
+
+            if (start is not null)
+            {
+                if (start.ConstantValue?.IsDefaultValue != true || start.ConstantValue.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                {
+                    return false;
+                }
+
+                Debug.Assert(length is not null);
+
+                if (length.ConstantValue?.Discriminator != ConstantValueTypeDiscriminator.Int32)
+                {
+                    return false;
+                }
+
+                lengthForConstructor = length.ConstantValue.Int32Value;
+
+                if (lengthForConstructor > elementCount || lengthForConstructor < 0)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                lengthForConstructor = elementCount;
             }
 
             if (!inPlace && !used)
@@ -436,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 _builder.EmitArrayBlockFieldRef(data, wrappedExpression.Syntax, _diagnostics);
-                _builder.EmitIntConstant(elementCount);
+                _builder.EmitIntConstant(lengthForConstructor);
 
                 if (inPlace)
                 {
@@ -455,6 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return true;
         }
 
+#nullable disable
+
         /// <summary>
         ///  Returns a byte blob that matches serialized content of single array initializer.    
         ///  returns -1 if the initializer is null or not an array of literals
@@ -469,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var initializers = initializer.Initializers;
-            if (initializers.Any(init => init.ConstantValue == null))
+            if (initializers.Any(static init => init.ConstantValue == null))
             {
                 return -1;
             }

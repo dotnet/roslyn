@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
 {
@@ -36,12 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
             switch (token.Kind())
             {
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.UTF8StringLiteralToken:
                     // This, in combination with the override of GetExtentOfWordFromToken() below, treats the closing
                     // quote as a separate token.  This maintains behavior with VS2013.
                     return !IsAtClosingQuote(token, position);
 
                 case SyntaxKind.SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                     {
                         // Like with normal string literals, treat the closing quotes as as the end of the string so that
                         // navigation ends there and doesn't go past them.
@@ -66,6 +70,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
             var text = token.ToString();
             var start = 0;
             var end = text.Length;
+
+            if (token.IsKind(SyntaxKind.UTF8MultiLineRawStringLiteralToken, SyntaxKind.UTF8SingleLineRawStringLiteralToken))
+            {
+                // Skip past the u8 suffix
+                end -= "u8".Length;
+            }
+
             while (start < end && text[start] == '"')
                 start++;
 
@@ -76,19 +87,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
         }
 
         private static bool IsAtClosingQuote(SyntaxToken token, int position)
-            => position == token.Span.End - 1 && token.Text[^1] == '"';
+            => token.Kind() switch
+            {
+                SyntaxKind.StringLiteralToken => position == token.Span.End - 1 && token.Text[^1] == '"',
+                SyntaxKind.UTF8StringLiteralToken => position == token.Span.End - 3 && token.Text is [.., '"', 'u' or 'U', '8'],
+                _ => throw ExceptionUtilities.Unreachable
+            };
 
         protected override TextExtent GetExtentOfWordFromToken(SyntaxToken token, SnapshotPoint position)
         {
-            if (token.Kind() == SyntaxKind.StringLiteralToken && IsAtClosingQuote(token, position.Position))
+            if (token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.UTF8StringLiteralToken) && IsAtClosingQuote(token, position.Position))
             {
                 // Special case to treat the closing quote of a string literal as a separate token.  This allows the
                 // cursor to stop during word navigation (Ctrl+LeftArrow, etc.) immediately before AND after the
                 // closing quote, just like it did in VS2013 and like it currently does for interpolated strings.
-                var span = new Span(position.Position, 1);
+                var span = new Span(position.Position, token.Span.End - position.Position);
                 return new TextExtent(new SnapshotSpan(position.Snapshot, span), isSignificant: true);
             }
-            else if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            else if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken,
+                SyntaxKind.MultiLineRawStringLiteralToken,
+                SyntaxKind.UTF8SingleLineRawStringLiteralToken,
+                SyntaxKind.UTF8MultiLineRawStringLiteralToken))
             {
                 var delimiterStart = GetStartOfRawStringLiteralEndDelimiter(token);
                 return new TextExtent(new SnapshotSpan(position.Snapshot, Span.FromBounds(delimiterStart, token.Span.End)), isSignificant: true);

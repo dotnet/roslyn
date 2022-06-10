@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // Static helpers so we can pass delegates around without allocations.
 
-        private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
-        private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
+        private static readonly Func<Location, bool> s_isInMetadata = static loc => loc.IsInMetadata;
+        private static readonly Func<Location, bool> s_isInSource = static loc => loc.IsInSource;
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterface = t => t?.TypeKind == TypeKind.Interface;
         private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Need to find all the possible projects that contain this metadata.
                 var projectsThatReferenceMetadataAssembly =
                     await DependentProjectsFinder.GetDependentProjectsAsync(
-                        solution, type, projects: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, ImmutableArray.Create<ISymbol>(type), solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
 
                 // Now collect all the dependent projects as well.
                 var projectsThatCouldReferenceType =

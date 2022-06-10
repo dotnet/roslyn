@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
             {
-                var foundAwait = result.Any(pending => HasAwait(pending));
+                var foundAwait = result.Any(static pending => HasAwait(pending));
                 if (!foundAwait)
                 {
                     // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
@@ -1224,14 +1224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UseDefViolationThisSupportedVersion, node.Location, thisParameter.Name);
+                    Diagnostics.Add(ErrorCode.WRN_UseDefViolationThisSupportedVersion, node.Location);
                 }
                 else
                 {
                     Diagnostics.Add(
                         ErrorCode.ERR_UseDefViolationThisUnsupportedVersion,
                         node.Location,
-                        thisParameter.Name,
                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAutoDefaultStructs.RequiredVersion()));
                 }
             }

@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     {
         private readonly RoslynPackage _package;
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
         private static StackTraceExplorerCommandHandler? _instance;
         private uint _vsShellBroadcastCookie;
 
@@ -26,11 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             _package = package;
             _threadingContext = package.ComponentModel.GetService<IThreadingContext>();
-            var globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
+            _globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
 
-            globalOptions.OptionChanged += OptionService_OptionChanged;
+            _globalOptions.OptionChanged += GlobalOptionChanged;
 
-            var enabled = globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
+            var enabled = _globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
             if (enabled)
             {
                 AdviseBroadcastMessages();
@@ -74,9 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             UnadviseBroadcastMessages();
 
-            var workspace = _package.ComponentModel.GetService<VisualStudioWorkspace>();
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
-            optionService.OptionChanged -= OptionService_OptionChanged;
+            _globalOptions.OptionChanged -= GlobalOptionChanged;
         }
 
         private void AdviseBroadcastMessages()
@@ -109,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
         }
 
-        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+        private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
             if (e.Option == StackTraceExplorerOptionsMetadata.OpenOnFocus && e.Value is not null)
             {
@@ -163,9 +162,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
 
             _instance = new(package);
-
-            // Initialize the window on startup
-            _instance.GetOrInitializeWindow();
 
             var menuCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0100);
             var menuItem = new MenuCommand(_instance.Execute, menuCommandId);

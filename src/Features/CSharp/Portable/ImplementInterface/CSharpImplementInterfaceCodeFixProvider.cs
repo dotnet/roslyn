@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ImplementInterface;
@@ -50,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
 
             var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()
                                       .Where(_interfaceName)
-                                      .Select(n => service.GetCodeActions(document, context.Options.ImplementTypeOptions, model, n, cancellationToken))
+                                      .Select(n => service.GetCodeActions(document, context.Options.GetImplementTypeGenerationOptions(document.Project.LanguageServices), model, n, cancellationToken))
                                       .FirstOrDefault(a => !a.IsEmpty);
 
             if (actions.IsDefaultOrEmpty)

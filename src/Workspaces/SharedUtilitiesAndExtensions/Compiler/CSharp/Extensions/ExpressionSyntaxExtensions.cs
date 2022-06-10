@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // is some form of member binding expression and they cannot be replaced with an LValue.
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
-                return expression is { Parent: { RawKind: not (int)SyntaxKind.ConditionalAccessExpression } };
+                return expression is { Parent.RawKind: not (int)SyntaxKind.ConditionalAccessExpression };
             }
 
             if (expression.Parent == null)
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         // method (or if it doesn't bind).
 
                         var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-                        return symbolInfo.GetBestOrAllSymbols().Any() && !symbolInfo.GetBestOrAllSymbols().Any(s => s is IMethodSymbol);
+                        return symbolInfo.GetBestOrAllSymbols().Any() && !symbolInfo.GetBestOrAllSymbols().Any(static s => s is IMethodSymbol);
                     }
                     else
                     {

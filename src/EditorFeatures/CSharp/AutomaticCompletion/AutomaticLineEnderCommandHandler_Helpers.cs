@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxNode root,
             SyntaxNode oldNode,
             SyntaxNode newNode,
+            SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
             // 1. Tag the new node so that it could be found later.
@@ -75,13 +76,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
 
             // 4. Format the new node so that the inserted braces/blocks would have correct indentation and formatting.
-            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             var formattedNewRoot = Formatter.Format(
                 newRoot,
                 newNodeAfterInsertion.Span,
                 document.Project.Solution.Workspace.Services,
-                options,
-                cancellationToken: cancellationToken);
+                formattingOptions,
+                cancellationToken);
+
             return formattedNewRoot;
         }
 
@@ -116,7 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     document,
                     root,
                     embeddedStatementOwner,
-                    WithBraces(embeddedStatementOwner, formattingOptions), cancellationToken);
+                    WithBraces(embeddedStatementOwner, formattingOptions),
+                    formattingOptions,
+                    cancellationToken);
+
                 // Locate the open brace token, and move the caret after it.
                 var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
                 return (newRoot, nextCaretPosition);
@@ -211,7 +215,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 root,
                 doStatementNode,
                 AddBlockToEmbeddedStatementOwner(doStatementNode, formattingOptions, innerStatement),
+                formattingOptions,
                 cancellationToken);
+
             var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
             return (newRoot, nextCaretPosition);
         }
@@ -265,7 +271,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 root,
                 ifStatementNode,
                 AddBlockToEmbeddedStatementOwner(ifStatementNode, formattingOptions, innerStatement),
+                formattingOptions,
                 cancellationToken);
+
             var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
             return (newRoot, nextCaretPosition);
         }
@@ -336,6 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 root,
                 elseClauseNode,
                 AddBlockToEmbeddedStatementOwner(elseClauseNode, formattingOptions, innerStatement),
+                formattingOptions,
                 cancellationToken);
 
             var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
@@ -562,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     if (!otherAccessors.IsEmpty)
                     {
                         return !otherAccessors.Any(
-                            accessor => accessor.Body == null
+                            static accessor => accessor.Body == null
                                         && accessor.ExpressionBody == null
                                         && !accessor.SemicolonToken.IsMissing);
                     }
@@ -862,9 +871,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             {
                 BaseTypeDeclarationSyntax baseTypeDeclarationNode => WithBracesForBaseTypeDeclaration(baseTypeDeclarationNode, formattingOptions),
                 BaseObjectCreationExpressionSyntax objectCreationExpressionNode => GetObjectCreationExpressionWithInitializer(objectCreationExpressionNode, formattingOptions),
-                FieldDeclarationSyntax fieldDeclarationNode when fieldDeclarationNode.Declaration.Variables.IsSingle()
-                    => ConvertFieldDeclarationToPropertyDeclaration(fieldDeclarationNode, formattingOptions),
-                EventFieldDeclarationSyntax eventFieldDeclarationNode => ConvertEventFieldDeclarationToEventDeclaration(eventFieldDeclarationNode, formattingOptions),
                 BaseMethodDeclarationSyntax baseMethodDeclarationNode => AddBlockToBaseMethodDeclaration(baseMethodDeclarationNode, formattingOptions),
                 LocalFunctionStatementSyntax localFunctionStatementNode => AddBlockToLocalFunctionDeclaration(localFunctionStatementNode, formattingOptions),
                 AccessorDeclarationSyntax accessorDeclarationNode => AddBlockToAccessorDeclaration(accessorDeclarationNode, formattingOptions),
@@ -888,39 +894,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             BaseObjectCreationExpressionSyntax objectCreationExpressionNode,
             SyntaxFormattingOptions formattingOptions)
             => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(formattingOptions));
-
-        /// <summary>
-        /// Convert <param name="fieldDeclarationNode"/> to a property declarations.
-        /// </summary>
-        private static PropertyDeclarationSyntax ConvertFieldDeclarationToPropertyDeclaration(
-            FieldDeclarationSyntax fieldDeclarationNode,
-            SyntaxFormattingOptions formattingOptions)
-            => SyntaxFactory.PropertyDeclaration(
-                fieldDeclarationNode.AttributeLists,
-                fieldDeclarationNode.Modifiers,
-                fieldDeclarationNode.Declaration.Type,
-                explicitInterfaceSpecifier: null,
-                identifier: fieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(formattingOptions),
-                expressionBody: null,
-                initializer: null,
-                semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(fieldDeclarationNode);
-
-        /// <summary>
-        /// Convert <param name="eventFieldDeclarationNode"/> to an eventDeclaration node.
-        /// </summary>
-        private static EventDeclarationSyntax ConvertEventFieldDeclarationToEventDeclaration(
-            EventFieldDeclarationSyntax eventFieldDeclarationNode,
-            SyntaxFormattingOptions formattingOptions)
-            => SyntaxFactory.EventDeclaration(
-                eventFieldDeclarationNode.AttributeLists,
-                eventFieldDeclarationNode.Modifiers,
-                eventFieldDeclarationNode.EventKeyword,
-                eventFieldDeclarationNode.Declaration.Type,
-                explicitInterfaceSpecifier: null,
-                identifier: eventFieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(formattingOptions),
-                semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(eventFieldDeclarationNode);
 
         /// <summary>
         /// Add an empty block to <param name="baseMethodDeclarationNode"/>.

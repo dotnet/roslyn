@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
             Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var masOptions = _globalOptions.GetMetadataAsSourceOptions();
+            var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.LanguageServices);
 
             var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
 
@@ -141,11 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
                 var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
-
-                // Set the buffer to read only, just in case the file isn't
-                ErrorHandler.ThrowOnFailure(vsTextBuffer.GetStateFlags(out var flags));
-                flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
-                ErrorHandler.ThrowOnFailure(vsTextBuffer.SetStateFlags(flags));
 
                 var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 

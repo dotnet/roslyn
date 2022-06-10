@@ -8,8 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,9 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
     {
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
+        private readonly IGlobalOptionService _globalOptions;
 
-        protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
-            => _refactorNotifyServices = refactorNotifyServices;
+        protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices, IGlobalOptionService globalOptions)
+        {
+            _refactorNotifyServices = refactorNotifyServices;
+            _globalOptions = globalOptions;
+        }
 
         protected abstract bool CheckLanguageSpecificIssues(
             SemanticModel semantic, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
@@ -41,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private async Task<IInlineRenameInfo> GetRenameInfoAsync(
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
+            Document document, SyntaxToken triggerToken,
+            CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsReservedOrContextualKeyword(triggerToken))
@@ -158,10 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var triggerText = sourceText.ToString(triggerToken.Span);
+            var fallbackOptions = _globalOptions.CreateProvider();
 
             return new SymbolInlineRenameInfo(
                 refactorNotifyServices, document, triggerToken.Span, triggerText,
-                symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
+                symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(),
+                fallbackOptions, cancellationToken);
         }
 
         private static async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)

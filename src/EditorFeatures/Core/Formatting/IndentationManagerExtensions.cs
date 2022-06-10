@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -12,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal static class IndentationManagerExtensions
     {
-        public static async Task<SyntaxFormattingOptions> GetInferredFormattingOptionsAsync(this IIndentationManagerService indentationManager, Document document, bool explicitFormat, CancellationToken cancellationToken)
+        public static async Task<SyntaxFormattingOptions> GetInferredFormattingOptionsAsync(this IIndentationManagerService indentationManager, Document document, SyntaxFormattingOptions fallbackOptions, bool explicitFormat, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
 
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             if (snapshot == null)
             {
                 return options;
@@ -25,11 +26,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             indentationManager.GetIndentation(snapshot.TextBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
 
-            return options.With(new LineFormattingOptions(
-                UseTabs: !convertTabsToSpaces,
-                IndentationSize: indentSize,
-                TabSize: tabSize,
-                NewLine: options.NewLine));
+            return options.With(new LineFormattingOptions()
+            {
+                UseTabs = !convertTabsToSpaces,
+                IndentationSize = indentSize,
+                TabSize = tabSize,
+                NewLine = options.NewLine
+            });
         }
     }
 }

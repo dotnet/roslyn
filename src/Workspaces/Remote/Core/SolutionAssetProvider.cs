@@ -31,22 +31,23 @@ namespace Microsoft.CodeAnalysis.Remote
             _services = services;
         }
 
-        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
-            var replicationContext = assetStorage.GetReplicationContext(scopeId);
+            var scope = assetStorage.GetScope(solutionChecksum);
 
             SolutionAsset? singleAsset = null;
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
 
             if (checksums.Length == 1)
             {
-                singleAsset = (await assetStorage.GetAssetAsync(scopeId, checksums[0], cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
+                singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
+                singleAsset ??= SolutionAsset.Null;
             }
             else
             {
-                assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
+                assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
             }
 
             // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
@@ -54,11 +55,13 @@ namespace Microsoft.CodeAnalysis.Remote
             cancellationToken.ThrowIfCancellationRequested();
             var mustNotCancelToken = CancellationToken.None;
 
-            // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC pipe.
-            // Run two tasks - the first synchronously writes to a local pipe and the second asynchronosly transfers the data to the RPC pipe.
+            // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC
+            // pipe. Run two tasks - the first synchronously writes to a local pipe and the second asynchronously
+            // transfers the data to the RPC pipe.
             //
-            // Configure the pipe to never block on write (waiting for the reader to read). This prevents deadlocks but might result in more
-            // (non-contiguous) memory allocated for the underlying buffers. The amount of memory is bounded by the total size of the serialized assets.
+            // Configure the pipe to never block on write (waiting for the reader to read). This prevents deadlocks but
+            // might result in more (non-contiguous) memory allocated for the underlying buffers. The amount of memory
+            // is bounded by the total size of the serialized assets.
             var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
 
             var task1 = Task.Run(() =>
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var stream = localPipe.Writer.AsStream(leaveOpen: false);
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
-                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
+                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scope.ReplicationContext, solutionChecksum, checksums, cancellationToken);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {

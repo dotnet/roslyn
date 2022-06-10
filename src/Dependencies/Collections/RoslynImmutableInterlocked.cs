@@ -486,4 +486,3 @@ namespace Microsoft.CodeAnalysis.Collections
         }
     }
 }
-

@@ -1739,55 +1739,55 @@ struct Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-    // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(out x1);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
-    // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(ref x1);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
-    // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(out x2);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
-    // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(ref x2);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
-    // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
-    //         Goo(ref x3);
-    Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
-    // (15,17): error CS9013: Use of possibly unassigned auto-implemented property 'x1'. Consider updating to language version 'preview' to auto-default the property.
-    //         Goo(out x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x1").WithArguments("x1", "preview").WithLocation(15, 17),
-    // (16,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
-    //         Goo(ref x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("this", "preview").WithLocation(16, 9),
-    // (17,17): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
-    //         Goo(out x2);
-    Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 17),
-    // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
-    //         public int x;
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
+                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(15, 17),
+                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(16, 17),
+                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(17, 17),
+                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(18, 17),
+                // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         Goo(ref x3);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
+                // (15,17): error CS9014: Use of possibly unassigned auto-implemented property 'x1'. Consider updating to language version 'preview' to auto-default the property.
+                //         Goo(out x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x1").WithArguments("x1", "preview").WithLocation(15, 17),
+                // (16,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                //         Goo(ref x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("preview").WithLocation(16, 9),
+                // (17,17): error CS9014: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
+                //         Goo(out x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 17),
+                // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
+                //         public int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
                 );
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
-    // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(out x1);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
-    // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(ref x1);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
-    // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(out x2);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
-    // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-    //         Goo(ref x2);
-    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
-    // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
-    //         Goo(ref x3);
-    Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
-    // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
-    //         public int x;
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
+                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(15, 17),
+                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithLocation(16, 17),
+                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(out x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(17, 17),
+                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         Goo(ref x2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithLocation(18, 17),
+                // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
+                //         Goo(ref x3);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
+                // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
+                //         public int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
                 );
         }
 

@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int? MultiLineDocCommentTrivia { get; }
         int? ShebangDirectiveTrivia { get; }
 
+        int IfDirectiveTrivia { get; }
+
         #endregion
 
         #region keywords
@@ -55,6 +57,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int StringLiteralToken { get; }
         int? SingleLineRawStringLiteralToken { get; }
         int? MultiLineRawStringLiteralToken { get; }
+        int? UTF8StringLiteralToken { get; }
+        int? UTF8SingleLineRawStringLiteralToken { get; }
+        int? UTF8MultiLineRawStringLiteralToken { get; }
 
         #endregion
 
@@ -123,6 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
         int? RangeExpression { get; }
+        int? RefExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
@@ -143,6 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int YieldReturnStatement { get; }
 
         #endregion
 

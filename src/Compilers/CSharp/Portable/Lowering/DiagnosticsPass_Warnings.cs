@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, method);
                     }
-                    else if (method.IsAbstract && method.IsStatic)
+                    else if ((method.IsAbstract || method.IsVirtual) && method.IsStatic)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                     }
@@ -274,6 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLiftedBinOp(node);
             CheckRelationals(node);
             CheckDynamic(node);
+
+            if (_inExpressionLambda && node.OperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift)
+            {
+                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, ">>>");
+            }
         }
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
