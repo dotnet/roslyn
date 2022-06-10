@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck
                 }
                 """,
                 """
-                class Replacement 
+                class Replacement
                 {
                     public Class() { }
                 }
