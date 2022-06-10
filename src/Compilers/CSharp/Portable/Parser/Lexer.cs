@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -2843,6 +2844,41 @@ top:
             var errors = this.GetErrors(leadingTriviaWidth: 0);
             var trailing = this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken);
             return Create(in info, null, trailing, errors);
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        {
+            PooledStringBuilder? builder = null;
+
+            // Skip the rest of the line until we hit a EOL or EOF.  This follows the PP_Message portion of the specification.
+            while (true)
+            {
+                var ch = this.TextWindow.PeekChar();
+                if (SyntaxFacts.IsNewLine(ch))
+                {
+                    // don't consume EOL characters here
+                    break;
+                }
+                else if (ch is SlidingTextWindow.InvalidCharacter && this.TextWindow.IsReallyAtEnd())
+                {
+                    // don't consume EOF characters here
+                    break;
+                }
+
+                builder ??= PooledStringBuilder.GetInstance();
+                builder.Builder.Append(ch);
+                this.TextWindow.AdvanceChar();
+            }
+
+            var leading = builder == null
+                ? null
+                : SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree());
+
+            // now try to consume the EOL if there.
+            var trailing = this.LexDirectiveTrailingTrivia(includeEndOfLine: true)?.ToListNode();
+            var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
+
+            return endOfDirective;
         }
 
         private bool ScanDirectiveToken(ref TokenInfo info)
