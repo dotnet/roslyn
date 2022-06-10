@@ -43,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Sub DoUpdate(presentation As CompletionPresentationViewModel)
             _filters = presentation.Filters
-            _presentedItems = presentation.Items
+            _presentedItems = presentation.ItemList.ToImmutableArray()
             If presentation.SelectSuggestionItem Then
                 ProgrammaticallySelectItem(presentation.SuggestionItem, True)
-            ElseIf Not presentation.Items.IsDefaultOrEmpty Then
-                ProgrammaticallySelectItem(presentation.Items(presentation.SelectedItemIndex).CompletionItem, False)
+            ElseIf Not _presentedItems.IsDefaultOrEmpty Then
+                ProgrammaticallySelectItem(_presentedItems(presentation.SelectedItemIndex).CompletionItem, False)
             Else
                 ProgrammaticallySelectItem(Nothing, False)
             End If
