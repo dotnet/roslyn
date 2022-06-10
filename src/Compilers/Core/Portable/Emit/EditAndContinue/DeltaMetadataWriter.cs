@@ -1319,9 +1319,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // Fails if we are attempting to make a change that should have been reported as rude,
                 // e.g. the corresponding definitions type don't match, etc.
-                if (!containsItem)
-                {
-                }
                 Debug.Assert(containsItem);
                 Debug.Assert(rowId > 0);
 
