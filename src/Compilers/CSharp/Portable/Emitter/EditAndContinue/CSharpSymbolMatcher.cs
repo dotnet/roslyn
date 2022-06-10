@@ -824,10 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool AreNamedTypesEqual(NamedTypeSymbol type, NamedTypeSymbol other)
             {
-                if (!StringOrdinalComparer.Equals(type.MetadataName, other.MetadataName))
-                {
-                    return false;
-                }
+                Debug.Assert(StringOrdinalComparer.Equals(type.MetadataName, other.MetadataName));
 
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
