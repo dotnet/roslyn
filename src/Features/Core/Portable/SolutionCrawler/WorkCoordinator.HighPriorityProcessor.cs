@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-                    private readonly object _gate;
+                    private readonly object _gate = new();
 
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
@@ -35,18 +35,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, backOffTimeSpan, shutdownToken)
                     {
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
-                        _gate = new object();
 
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public ImmutableArray<IIncrementalAnalyzer> Analyzers
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         if (!_processor._documentTracker.SupportsDocumentTracking
-                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace or WorkspaceKind.RemoteTemporaryWorkspace)
+                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace)
                         {
                             Debug.Fail($"Unexpected use of '{nameof(ExportIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.Workspace.Kind}' that cannot support active file tracking.");
                         }

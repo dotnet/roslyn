@@ -15,13 +15,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         ProjectState,
         DocumentState,
 
-        Projects,
-        Documents,
-        TextDocuments,
-        AnalyzerConfigDocuments,
-        ProjectReferences,
-        MetadataReferences,
-        AnalyzerReferences,
+        ChecksumCollection,
 
         SolutionAttributes,
         ProjectAttributes,
@@ -34,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         MetadataReference,
         AnalyzerReference,
         SourceText,
-        OptionSet,
 
         SerializableSourceText,
 

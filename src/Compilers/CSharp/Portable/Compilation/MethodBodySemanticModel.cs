@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly CSharpSyntaxNode Syntax;
             internal readonly BoundNode? Body;
-            internal readonly ExecutableCodeBinder? Binder;
+            internal readonly Binder? Binder;
             internal readonly NullableWalker.SnapshotManager? SnapshotManager;
             internal readonly ImmutableDictionary<Symbol, Symbol>? RemappedSymbols;
 
             internal InitialState(
                 CSharpSyntaxNode syntax,
                 BoundNode? bodyOpt = null,
-                ExecutableCodeBinder? binder = null,
+                Binder? binder = null,
                 NullableWalker.SnapshotManager? snapshotManager = null,
                 ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null)
             {
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol);
+            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol, boundRoot);
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 

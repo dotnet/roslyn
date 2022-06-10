@@ -10,7 +10,10 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,16 +23,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class UnnamedSymbolCompletionProvider
     {
         // Place conversions before operators.
-        private readonly int ConversionSortingGroupIndex = 1;
+        private const int ConversionSortingGroupIndex = 1;
 
         /// <summary>
         /// Tag to let us know we need to rehydrate the conversion from the parameter and return type.
         /// </summary>
         private const string RehydrateName = "Rehydrate";
-        private static readonly ImmutableDictionary<string, string> ConversionProperties =
+        private static readonly ImmutableDictionary<string, string> s_conversionProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, ConversionKindName);
 
-        private void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
+        // We set conversion items' match priority to lower than default so completion selects other symbols over it when user starts typing.
+        // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
+        private static readonly CompletionItemRules s_conversionRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1);
+
+        private static void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
         {
             var (symbols, properties) = GetConversionSymbolsAndProperties(context, conversion);
 
@@ -42,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 sortText: SortText(ConversionSortingGroupIndex, targetTypeName),
                 glyph: Glyph.Operator,
                 symbols: symbols,
-                rules: CompletionItemRules.Default,
+                rules: s_conversionRules,
                 contextPosition: position,
                 properties: properties));
         }
@@ -52,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             // If it's a non-synthesized method, then we can just encode it as is.
             if (conversion is not CodeGenerationSymbol)
-                return (ImmutableArray.Create<ISymbol>(conversion), ConversionProperties);
+                return (ImmutableArray.Create<ISymbol>(conversion), s_conversionProperties);
 
             // Otherwise, encode the constituent parts so we can recover it in GetConversionDescriptionAsync;
-            var properties = ConversionProperties
+            var properties = s_conversionProperties
                 .Add(RehydrateName, RehydrateName)
                 .Add(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? "");
             var symbols = ImmutableArray.Create<ISymbol>(conversion.ContainingType, conversion.Parameters.First().Type, conversion.ReturnType);
@@ -68,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (dotToken, _) = GetDotAndExpressionStart(root, position);
+            var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
 
             var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
                 ? dotToken.GetPreviousToken()
@@ -77,30 +84,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var expression = (ExpressionSyntax)dotToken.GetRequiredParent();
             expression = expression.GetRootConditionalAccessExpression() ?? expression;
 
-            var replacement = questionToken != null
-                ? $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, questionToken.Value.FullSpan.Start))}){questionToken.Value}"
-                : $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart))})";
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
 
-            // If we're at `x.$$.y` then we only want to replace up through the first dot.
+            // First, add the cast prior to the expression.
+            var castText = $"(({item.DisplayText})";
+            builder.Add(new TextChange(new TextSpan(expression.SpanStart, 0), castText));
+
+            // The expression went up to either a `.`, `..`, `?.` or `?..`
+            //
+            // In the case of `expr.` produce `((T)expr)$$`
+            //
+            // In the case of `expr..` produce ((T)expr)$$.
+            //
+            // In the case of `expr?.` produce `((T)expr)?$$`
+            if (questionToken == null)
+            {
+                // Always eat the first dot in `.` or `..` and replace that with the paren.
+                builder.Add(new TextChange(new TextSpan(dotToken.SpanStart, 1), ")"));
+            }
+            else
+            {
+                // Place a paren before the question.
+                builder.Add(new TextChange(new TextSpan(questionToken.Value.SpanStart, 0), ")"));
+                // then remove the first dot that comes after.
+                builder.Add(new TextChange(new TextSpan(dotToken.SpanStart, 1), ""));
+            }
+
+            // If the user partially wrote out the conversion type, delete what they've written.
             var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var fullTextChange = new TextChange(
-                TextSpan.FromBounds(
-                    expression.SpanStart,
-                    tokenOnLeft.Kind() == SyntaxKind.DotDotToken ? tokenOnLeft.SpanStart + 1 : tokenOnLeft.Span.End),
-                replacement);
+            if (CSharpSyntaxFacts.Instance.IsWord(tokenOnLeft))
+                builder.Add(new TextChange(tokenOnLeft.Span, ""));
 
-            var newPosition = expression.SpanStart + replacement.Length;
-            return CompletionChange.Create(fullTextChange, newPosition);
+            var newText = text.WithChanges(builder);
+            var allChanges = builder.ToImmutable();
+
+            // Collapse all text changes down to a single change (for clients that only care about that), but also keep
+            // all the individual changes around for clients that prefer the fine-grained information.
+            return CompletionChange.Create(
+                CodeAnalysis.Completion.Utilities.Collapse(newText, allChanges),
+                allChanges);
         }
 
-        private static async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private static async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             var conversion = await TryRehydrateAsync(document, item, cancellationToken).ConfigureAwait(false);
             if (conversion == null)
                 return null;
 
             return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
-                item, document, ImmutableArray.Create(conversion), cancellationToken).ConfigureAwait(false);
+                item, document, ImmutableArray.Create(conversion), displayOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ISymbol?> TryRehydrateAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

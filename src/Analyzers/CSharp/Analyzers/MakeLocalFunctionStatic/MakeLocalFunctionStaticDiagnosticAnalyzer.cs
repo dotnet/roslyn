@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -30,11 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                // All trees are expected to have the same language version. So make the check only once in compilation start .
-                if (context.Compilation.SyntaxTrees.FirstOrDefault() is SyntaxTree tree && MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(tree))
-                {
+                if (MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(context.Compilation.LanguageVersion()))
                     context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.LocalFunctionStatement);
-                }
             });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
@@ -45,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 return;
             }
 
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, syntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferStaticLocalFunction;
             if (!option.Value)
             {
                 return;

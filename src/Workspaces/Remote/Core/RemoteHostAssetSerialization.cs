@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -21,35 +20,20 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal static readonly PipeOptions PipeOptionsWithUnlimitedWriterBuffer = new(pauseWriterThreshold: long.MaxValue);
 
-        public static async Task WriteDataAsync(ObjectWriter writer, SolutionAssetStorage assetStorage, ISerializerService serializer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            SolutionAsset? singleAsset = null;
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
-
-            if (checksums.Length == 1)
-            {
-                singleAsset = (await assetStorage.GetAssetAsync(scopeId, checksums[0], cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
-            }
-            else
-            {
-                assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
-            }
-
-            var replicationContext = assetStorage.GetReplicationContext(scopeId);
-            WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
-        }
-
         public static void WriteData(
             ObjectWriter writer,
             SolutionAsset? singleAsset,
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
-            int scopeId,
+            Checksum solutionChecksum,
             Checksum[] checksums,
             CancellationToken cancellationToken)
         {
-            writer.WriteInt32(scopeId);
+            // This information is not actually needed on the receiving end.  However, we still send it so that the
+            // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
+            // breaks have occurred.
+            solutionChecksum.WriteTo(writer);
 
             // special case
             if (checksums.Length == 0)
@@ -87,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(PipeReader pipeReader, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(
+            PipeReader pipeReader, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // We can cancel at entry, but once the pipe operations are scheduled we rely on both operations running to
             // avoid deadlocks (the exception handler in 'copyTask' ensures progress is made in the blocking read).
@@ -127,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 using var stream = localPipe.Reader.AsStream(leaveOpen: false);
-                return ReadData(stream, scopeId, checksums, serializerService, mustNotCancelUntilBugFix);
+                return ReadData(stream, solutionChecksum, checksums, serializerService, mustNotCancelUntilBugFix);
             }
             catch (EndOfStreamException) when (IsEndOfStreamExceptionExpected(copyException, cancellationToken))
             {
@@ -166,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             Debug.Assert(!checksums.Contains(Checksum.Null));
 
@@ -174,8 +159,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
-            var responseScopeId = reader.ReadInt32();
-            Contract.ThrowIfFalse(scopeId == responseScopeId);
+            // Ensure that no invariants were broken and that both sides of the communication channel are talking about
+            // the same pinned solution.
+            var responseSolutionChecksum = Checksum.ReadFrom(reader);
+            Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
             var count = reader.ReadInt32();
             Contract.ThrowIfFalse(count == checksums.Count);

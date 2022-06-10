@@ -39,12 +39,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-        public static readonly SymbolEquivalenceComparer Instance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
-        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true);
-        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
+        public static readonly SymbolEquivalenceComparer Instance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true);
+        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true);
+        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true);
 
         private readonly IEqualityComparer<IAssemblySymbol>? _assemblyComparerOpt;
         private readonly bool _tupleNamesMustMatch;
+        private readonly bool _ignoreNullableAnnotations;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
@@ -52,10 +53,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         internal SymbolEquivalenceComparer(
             IEqualityComparer<IAssemblySymbol>? assemblyComparerOpt,
             bool distinguishRefFromOut,
-            bool tupleNamesMustMatch)
+            bool tupleNamesMustMatch,
+            bool ignoreNullableAnnotations)
         {
             _assemblyComparerOpt = assemblyComparerOpt;
             _tupleNamesMustMatch = tupleNamesMustMatch;
+            _ignoreNullableAnnotations = ignoreNullableAnnotations;
 
             this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);

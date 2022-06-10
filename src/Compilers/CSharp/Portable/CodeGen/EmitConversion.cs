@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitNullConstant();
 
-                if (method.IsAbstract)
+                if (method.IsAbstract || method.IsVirtual)
                 {
                     if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
                     {

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             // give out new option service per workspace, but share the global option service
-            return new OptionServiceFactory.OptionService(_globalOptionService, workspaceServices);
+            return new OptionServiceFactory.OptionService(_globalOptionService);
         }
     }
 }

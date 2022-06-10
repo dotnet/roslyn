@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -102,6 +100,14 @@ $$");
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -352,9 +358,16 @@ global using Bar;";
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestNotAfterNestedVirtual([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
+        public async Task TestNotAfterNestedVirtual([CombinatorialValues("class", "struct", "record", "record struct", "record class")] string declarationKind)
         {
             await VerifyAbsenceAsync(declarationKind + @" C {
+    virtual $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedVirtualInInterface()
+        {
+            await VerifyKeywordAsync(@"interface C {
     virtual $$");
         }
 
@@ -364,6 +377,14 @@ global using Bar;";
         {
             await VerifyAbsenceAsync(declarationKind + @" C {
     override $$");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedStatic([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
+        {
+            await VerifyAbsenceAsync(declarationKind + @" C {
+    static $$");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -487,7 +508,7 @@ System.Action x = async $$ (x) => { }"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsyncLambdaParamInAssignment()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(@"
+            await VerifyKeywordAsync(AddInsideMethod(@"
 System.Action x = async async $$ (x) => { }"));
         }
 
@@ -515,21 +536,21 @@ M(param: $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterRef()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(ref $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterIn()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(in $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterOut()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(in $$"));
         }
 

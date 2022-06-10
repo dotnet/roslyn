@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction(GetTitle(forSwitchExpression: false),
+                CodeAction.Create(
+                    GetTitle(forSwitchExpression: false),
                     c => UpdateDocumentAsync(document, target, ifStatement, sections, analyzer.Features, convertToSwitchExpression: false, c),
                     "SwitchStatement"),
                 ifStatement.Span);
@@ -87,7 +88,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 CanConvertToSwitchExpression(analyzer.Supports(Feature.OrPattern), sections))
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(GetTitle(forSwitchExpression: true),
+                    CodeAction.Create(
+                        GetTitle(forSwitchExpression: true),
                         c => UpdateDocumentAsync(document, target, ifStatement, sections, analyzer.Features, convertToSwitchExpression: true, c),
                         "SwitchExpression"),
                     ifStatement.Span);
@@ -98,11 +100,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             bool supportsOrPattern, ImmutableArray<AnalyzedSwitchSection> sections)
         {
             // There must be a default case for an exhaustive switch expression
-            if (!sections.Any(section => section.Labels.IsDefault))
+            if (!sections.Any(static section => section.Labels.IsDefault))
                 return false;
 
             // There must be at least one return statement
-            if (!sections.Any(section => GetSwitchArmKind(section.Body) == OperationKind.Return))
+            if (!sections.Any(static section => GetSwitchArmKind(section.Body) == OperationKind.Return))
                 return false;
 
             if (!sections.All(section => CanConvertSectionForSwitchExpression(supportsOrPattern, section)))
@@ -148,14 +150,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 // If there are two or more labels, we can support this as long as the language supports 'or' patterns
                 // and as long as no label has any guards.
                 return supportsOrPattern && section.Labels.All(label => label.Guards.IsDefaultOrEmpty);
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
             }
         }
     }

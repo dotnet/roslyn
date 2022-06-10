@@ -4,10 +4,10 @@
 
 Imports System.Text
 Imports System.Windows
-Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Interactive
 Imports Microsoft.VisualStudio.InteractiveWindow
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
@@ -236,12 +236,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             If includeRepl Then
                 data.SetData(InteractiveClipboardFormat.Tag, json)
             End If
+
             If isLineCopy Then
                 data.SetData(ClipboardLineBasedCutCopyTag, True)
             End If
+
             If isBoxCopy Then
                 data.SetData(BoxSelectionCutCopyTag, True)
             End If
+
             clipboard.SetDataObject(data)
         End Sub
 

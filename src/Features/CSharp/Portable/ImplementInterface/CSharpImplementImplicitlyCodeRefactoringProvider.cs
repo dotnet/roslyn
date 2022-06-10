@@ -43,17 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var containingTypeInterfaces = member.ContainingType.AllInterfaces;
             if (containingTypeInterfaces.Length == 0)
                 return false;
-            return memberInterfaceImplementations.Any(impl => containingTypeInterfaces.Contains(impl.ContainingType));
+            return memberInterfaceImplementations.Any(static (impl, containingTypeInterfaces) => containingTypeInterfaces.Contains(impl.ContainingType), containingTypeInterfaces);
         }
 
         // When converting to implicit, we don't need to update any references.
         protected override Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _)
+        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _1, ISymbol _2)
             => generator.WithAccessibility(WithoutExplicitImpl(decl), Accessibility.Public);
 
-        private static SyntaxNode? WithoutExplicitImpl(SyntaxNode decl)
+        private static SyntaxNode WithoutExplicitImpl(SyntaxNode decl)
             => decl switch
             {
                 MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),

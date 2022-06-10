@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,12 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
-    {
-        // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
-        // otherwise we would not be able to get correct data from syntax.
-        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
-    }
 
     internal sealed partial class SyntaxTreeIndex
     {
@@ -44,20 +39,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
 
-        private static async Task<SyntaxTreeIndex> CreateIndexAsync(
-            Document document, Checksum checksum, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(document.SupportsSyntaxTree);
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return CreateIndex(document, root, checksum, cancellationToken);
-        }
-
         private static SyntaxTreeIndex CreateIndex(
-            Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
+            Document document, SyntaxNode root, Checksum checksum, CancellationToken _)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var infoFactory = document.GetRequiredLanguageService<IDeclaredSymbolInfoFactoryService>();
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
@@ -66,8 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
-            using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
+            HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             try
             {
@@ -83,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
                 var containsImplicitObjectCreation = false;
-                var containsGlobalAttributes = false;
+                var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
@@ -96,6 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (current.IsNode)
                         {
                             var node = current.AsNode();
+                            Contract.ThrowIfNull(node);
 
                             containsForEachStatement = containsForEachStatement || syntaxFacts.IsForEachStatement(node);
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
@@ -111,8 +96,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
-                            containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
+                            containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
+
+                            TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
                         else
                         {
@@ -174,9 +161,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             }
                         }
                     }
-
-                    infoFactory.AddDeclaredSymbolInfos(
-                        document, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
                 }
 
                 return new SyntaxTreeIndex(
@@ -201,22 +185,66 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsAwait,
                             containsTupleExpressionOrTupleType,
                             containsImplicitObjectCreation,
-                            containsGlobalAttributes,
+                            containsGlobalSuppressMessageAttribute,
                             containsConversion),
-                    new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
-                    new ExtensionMethodInfo(
-                        extensionMethodInfo.ToImmutableDictionary(
-                            static kvp => kvp.Key,
-                            static kvp => kvp.Value.ToImmutable())));
+                    globalAliasInfo);
             }
             finally
             {
                 Free(ignoreCase, identifiers, escapedIdentifiers);
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
+            }
+        }
 
-                foreach (var (_, builder) in extensionMethodInfo)
-                    builder.Free();
+        private static bool IsGlobalSuppressMessageAttribute(ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            if (!syntaxFacts.IsGlobalAttribute(node))
+                return false;
+
+            var name = syntaxFacts.GetNameOfAttribute(node);
+            if (syntaxFacts.IsQualifiedName(name))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(name, out _, out _, out var right);
+                name = right;
+            }
+
+            if (!syntaxFacts.IsIdentifierName(name))
+                return false;
+
+            var identifier = syntaxFacts.GetIdentifierOfIdentifierName(name);
+            var identifierName = identifier.ValueText;
+
+            return
+                syntaxFacts.StringComparer.Equals(identifierName, "SuppressMessage") ||
+                syntaxFacts.StringComparer.Equals(identifierName, nameof(SuppressMessageAttribute));
+        }
+
+        private static void TryAddGlobalAliasInfo(
+            ISyntaxFactsService syntaxFacts,
+            ref HashSet<(string alias, string name, int arity)>? globalAliasInfo,
+            SyntaxNode node)
+        {
+            if (!syntaxFacts.IsUsingAliasDirective(node))
+                return;
+
+            syntaxFacts.GetPartsOfUsingAliasDirective(node, out var globalToken, out var alias, out var usingTarget);
+            if (globalToken.IsMissing)
+                return;
+
+            // if we have `global using X = Y.Z` then walk down the rhs to pull out 'Z'.
+            if (syntaxFacts.IsQualifiedName(usingTarget))
+            {
+                syntaxFacts.GetPartsOfQualifiedName(usingTarget, out _, out _, out var right);
+                usingTarget = right;
+            }
+
+            // We'll have either `= ...X` or `= ...X<A, B, C>` now.  Pull out the name and arity to put in the index.
+            if (syntaxFacts.IsSimpleName(usingTarget))
+            {
+                syntaxFacts.GetNameAndArityOfSimpleName(usingTarget, out var name, out var arity);
+                globalAliasInfo ??= new();
+                globalAliasInfo.Add((alias.ValueText, name, arity));
             }
         }
 

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct SyntaxValueProvider
     {
-        private readonly ArrayBuilder<ISyntaxInputNode> _inputNodes;
+        private readonly ArrayBuilder<SyntaxInputNode> _inputNodes;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
 
-        internal SyntaxValueProvider(ArrayBuilder<ISyntaxInputNode> inputNodes, Action<IIncrementalGeneratorOutputNode> registerOutput)
+        internal SyntaxValueProvider(ArrayBuilder<SyntaxInputNode> inputNodes, Action<IIncrementalGeneratorOutputNode> registerOutput)
         {
             _inputNodes = inputNodes;
             _registerOutput = registerOutput;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, CancellationToken, bool> predicate, Func<GeneratorSyntaxContext, CancellationToken, T> transform)
         {
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValuesProvider<T>(new SyntaxInputNode<T>(predicate.WrapUserFunction(), transform.WrapUserFunction(), RegisterOutputAndDeferredInput));
+            return new IncrementalValuesProvider<T>(new SyntaxInputNode<T>(new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(), transform.WrapUserFunction()), RegisterOutputAndDeferredInput));
         }
 
         /// <summary>
@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal IncrementalValueProvider<ISyntaxContextReceiver?> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
         {
-            var node = new SyntaxReceiverInputNode(creator, _registerOutput);
+            var node = new SyntaxInputNode<ISyntaxContextReceiver?>(new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput), RegisterOutputAndDeferredInput);
             _inputNodes.Add(node);
             return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
         }
 
-        private void RegisterOutputAndDeferredInput(ISyntaxInputNode node, IIncrementalGeneratorOutputNode output)
+        private void RegisterOutputAndDeferredInput(SyntaxInputNode node, IIncrementalGeneratorOutputNode output)
         {
             _registerOutput(output);
             if (!_inputNodes.Contains(node))

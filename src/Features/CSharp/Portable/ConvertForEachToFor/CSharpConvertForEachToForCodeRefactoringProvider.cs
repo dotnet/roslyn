@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var collectionVariable = GetCollectionVariableName(
                 model, generator, foreachInfo, foreachCollectionExpression, cancellationToken);
 
-            var typeSymbol = foreachInfo.RequireExplicitCastInterface
-                ? foreachInfo.ExplicitCastInterface
-                : model.GetTypeInfo(foreachCollectionExpression, cancellationToken).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object);
+            var typeSymbol = foreachInfo.ExplicitCastInterface ??
+                model.GetTypeInfo(foreachCollectionExpression, cancellationToken).Type ??
+                model.Compilation.GetSpecialType(SpecialType.System_Object);
 
             var collectionStatementType = typeSymbol.GenerateTypeSyntax();
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                 // If the block was empty, still put the new variable inside of it. This handles the case where the user
                 // writes the foreach and immediately decides to change it to a for-loop.  Now they'll still have their
                 // variable to use in the body instead of having to write it again.
-                return bodyBlock.AddStatements((StatementSyntax)variableStatement);
+                return bodyBlock.AddStatements(variableStatement);
             }
             else
             {

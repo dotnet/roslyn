@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -22,11 +23,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    [Flags]
     public enum Verification
     {
-        Passes = 0,
-        Fails,
-        Skipped
+        Skipped = 0,
+        Passes = 1 << 1,
+
+        FailsPEVerify = 1 << 2,
+        FailsILVerify = 1 << 3,
+        Fails = FailsPEVerify | FailsILVerify,
     }
 
     /// <summary>
@@ -45,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
@@ -69,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 manifestResources,
                                 expectedSignatures,
                                 expectedOutput,
+                                trimOutput,
                                 expectedReturnCode,
                                 args ?? Array.Empty<string>(),
                                 assemblyValidator,
@@ -141,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
+            bool trimOutput,
             int? expectedReturnCode,
             string[] args,
             Action<PEAssembly> assemblyValidator,
@@ -150,12 +158,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier.Emit(expectedOutput, trimOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             if (assemblyValidator != null || symbolValidator != null)
             {
                 // We're dual-purposing emitters here.  In this context, it
-                // tells the validator the version of Emit that is calling it. 
+                // tells the validator the version of Emit that is calling it.
                 RunValidators(verifier, assemblyValidator, symbolValidator);
             }
 
@@ -339,6 +347,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+            string[] files,
+            VisualBasic.VisualBasicParseOptions parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            string assemblyName = null,
+            IEnumerable<MetadataReference> referencedAssemblies = null)
+        {
+            return CreateVisualBasicCompilation(assemblyName, files, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations: null);
+        }
+
+        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
             string assemblyName,
             string code,
             VisualBasic.VisualBasicParseOptions parseOptions = null,
@@ -347,7 +365,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<Compilation> referencedCompilations = null,
             Encoding encoding = null,
             string sourceFileName = null)
+            => CreateVisualBasicCompilation(assemblyName, new[] { code }, parseOptions, compilationOptions, referencedAssemblies, referencedCompilations, encoding, new[] { sourceFileName });
+
+        protected VisualBasic.VisualBasicCompilation CreateVisualBasicCompilation(
+            string assemblyName,
+            string[] files,
+            VisualBasic.VisualBasicParseOptions parseOptions = null,
+            VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
+            IEnumerable<MetadataReference> referencedAssemblies = null,
+            IEnumerable<Compilation> referencedCompilations = null,
+            Encoding encoding = null,
+            string[] sourceFileNames = null)
         {
+            Debug.Assert(sourceFileNames == null || sourceFileNames.Length == files.Length);
             if (assemblyName == null)
             {
                 assemblyName = GetUniqueName();
@@ -381,9 +411,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions, encoding: encoding, path: sourceFileName);
+            var trees = new SyntaxTree[files.Length];
+            for (int i = 0; i < files.Length; i++)
+            {
+                trees[i] = VisualBasic.VisualBasicSyntaxTree.ParseText(files[i], options: parseOptions, encoding: encoding, path: sourceFileNames?[i]);
+            }
 
-            return VisualBasic.VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
+
+            return VisualBasic.VisualBasicCompilation.Create(assemblyName, trees, references, compilationOptions);
         }
 
         private void AddReferencedCompilations(IEnumerable<Compilation> referencedCompilations, List<MetadataReference> references)
@@ -521,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation> map)
         {
             // walk down to collect all parent operation map for this tree
-            foreach (var child in operation.Children.WhereNotNull())
+            foreach (var child in operation.ChildOperations)
             {
                 map.Add(child, operation);
 
@@ -590,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // all operations from spine should belong to the operation tree set
                 VerifyOperationTreeSpine(semanticModel, set, child.Syntax);
 
-                // operation tree's node must be part of root of semantic model which is 
+                // operation tree's node must be part of root of semantic model which is
                 // owner of operation's lifetime
                 Assert.True(semanticModel.Root.FullSpan.Contains(child.Syntax.FullSpan));
             }

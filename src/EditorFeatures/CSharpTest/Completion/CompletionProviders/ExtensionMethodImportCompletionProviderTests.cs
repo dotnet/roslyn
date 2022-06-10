@@ -8,12 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
@@ -25,29 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        // -1 would disable timebox, whereas 0 means always timeout.
-        private int TimeoutInMilliseconds { get; set; } = -1;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        private bool HideAdvancedMembers { get; set; }
-
-        private bool UsePartialSemantic { get; set; } = false;
-
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        public ExtensionMethodImportCompletionProviderTests()
         {
-            return options
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds)
-                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic);
+            ShowImportCompletionItemsOptionValue = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         internal override Type GetCompletionProviderType()
             => typeof(ExtensionMethodImportCompletionProvider);
@@ -1951,44 +1930,6 @@ namespace BB
             await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTimeBox()
-        {
-            var file1 = @"
-using System;
-
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
-
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
-
-            IsExpandedCompletion = false;
-            TimeoutInMilliseconds = 0; //timeout immediately
-            var markup = GetMarkup(file2, file1, ReferenceType.None);
-
-            await VerifyImportItemIsAbsentAsync(
-                 markup,
-                 "ExtentionMethod",
-                 inlineDescription: "Foo");
-        }
-
         [InlineData("int", true, "int a")]
         [InlineData("int[]", true, "int a, int b")]
         [InlineData("bool", false, null)]
@@ -2019,7 +1960,7 @@ namespace NS1
     }}
 }}";
 
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
             var markup = CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp);
 
             string expectedDescription = null;

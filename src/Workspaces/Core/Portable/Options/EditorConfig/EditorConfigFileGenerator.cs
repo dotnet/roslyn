@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Options
             editorconfig.AppendLine();
 
             foreach (var optionGrouping in options
-                                           .Where(o => o.StorageLocations.Any(l => l is IEditorConfigStorageLocation2))
+                                           .Where(o => o.StorageLocations.Any(static l => l is IEditorConfigStorageLocation2))
                                            .GroupBy(o => (o as IOptionWithGroup)?.Group ?? OptionGroup.Default)
                                            .OrderBy(g => g.Key.Priority))
             {

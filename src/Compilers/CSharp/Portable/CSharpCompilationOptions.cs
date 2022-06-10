@@ -271,6 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<string> GetImports() => Usings;
 
+        internal override DeterministicKeyBuilder CreateDeterministicKeyBuilder() => CSharpDeterministicKeyBuilder.Instance;
+
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)
         {
             if (kind == this.OutputKind)
@@ -703,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(WarningLevel), WarningLevel));
             }
 
-            if (Usings != null && Usings.Any(u => !u.IsValidClrNamespaceName()))
+            if (Usings != null && Usings.Any(static u => !u.IsValidClrNamespaceName()))
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(Usings), Usings.Where(u => !u.IsValidClrNamespaceName()).First() ?? "null"));
             }

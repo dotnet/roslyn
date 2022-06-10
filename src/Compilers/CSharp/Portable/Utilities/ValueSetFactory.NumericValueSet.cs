@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
 #if DEBUG
                 TTC tc = default;
+                Debug.Assert(intervals.Length == 0 || tc.Related(GreaterThanOrEqual, intervals[0].first, tc.MinValue));
                 for (int i = 0, n = intervals.Length; i < n; i++)
                 {
                     Debug.Assert(tc.Related(LessThanOrEqual, intervals[i].first, intervals[i].last));

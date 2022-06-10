@@ -48,6 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return hasErrors;
         }
 
+        public bool ReportMissingOrErroneousSymbolsForDelegates(BindingDiagnosticBag diagnostics)
+        {
+            bool hasErrors = false;
+
+            ReportErrorOnSymbol(System_Object, diagnostics, ref hasErrors);
+            ReportErrorOnSymbol(System_IntPtr, diagnostics, ref hasErrors);
+            ReportErrorOnSymbol(System_MulticastDelegate, diagnostics, ref hasErrors);
+
+            return hasErrors;
+        }
+
         #region Error reporting implementation
 
         private static void ReportErrorOnSymbol(Symbol symbol, BindingDiagnosticBag diagnostics, ref bool hasError)
@@ -118,6 +129,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NamedTypeSymbol System_Int32
         {
             get { return Compilation.GetSpecialType(SpecialType.System_Int32); }
+        }
+
+        public NamedTypeSymbol System_IntPtr
+        {
+            get { return Compilation.GetSpecialType(SpecialType.System_IntPtr); }
+        }
+
+        public NamedTypeSymbol System_MulticastDelegate
+        {
+            get { return Compilation.GetSpecialType(SpecialType.System_MulticastDelegate); }
         }
 
         public NamedTypeSymbol System_Diagnostics_DebuggerBrowsableState

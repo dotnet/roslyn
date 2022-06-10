@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -23,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommandHandlers
     internal class GoToMatchingBraceCommandHandler : VSCommanding.ICommandHandler<GotoBraceCommandArgs>
     {
         private readonly IBraceMatchingService _braceMatchingService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToMatchingBraceCommandHandler(IBraceMatchingService braceMatchingService)
+        public GoToMatchingBraceCommandHandler(IBraceMatchingService braceMatchingService, IGlobalOptionService globalOptions)
         {
-            _braceMatchingService = braceMatchingService ??
-                throw new ArgumentNullException(nameof(braceMatchingService));
+            _braceMatchingService = braceMatchingService;
+            _globalOptions = globalOptions;
         }
 
         public string DisplayName => nameof(GoToMatchingBraceCommandHandler);
@@ -38,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommandHandlers
         {
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var options = _globalOptions.GetBraceMatchingOptions(document.Project.Language);
 
             var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-
-            var task = _braceMatchingService.FindMatchingSpanAsync(document, caretPosition, executionContext.OperationContext.UserCancellationToken);
+            var task = _braceMatchingService.FindMatchingSpanAsync(document, caretPosition, options, executionContext.OperationContext.UserCancellationToken);
             var span = task.WaitAndGetResult(executionContext.OperationContext.UserCancellationToken);
 
             if (!span.HasValue)

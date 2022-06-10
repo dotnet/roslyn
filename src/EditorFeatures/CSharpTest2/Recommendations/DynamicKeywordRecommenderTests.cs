@@ -635,10 +635,12 @@ $$");
 }");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAsync()
-            => await VerifyKeywordAsync(@"class c { async $$ }");
+        public async Task TestNotAfterAsync()
+            => await VerifyAbsenceAsync(@"class c { async $$ }");
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsyncAsType()
             => await VerifyAbsenceAsync(@"class c { async async $$ }");

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
             }
+
             var result = propertyInfo.GetValue(instance, null);
             return result;
         }
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     break;
                 }
+
                 type = type.BaseType;
             }
 
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 throw new FieldAccessException("Field " + fieldName + " was not found on type " + type.ToString());
             }
+
             var result = fieldInfo.GetValue(instance);
             return result; // you can place a breakpoint here (for debugging purposes)
         }

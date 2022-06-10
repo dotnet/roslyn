@@ -15,15 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
     {
         private readonly Workspace _workspace;
         private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
-        private ISettingsProviderFactory<FormattingSetting> _formattingProvider;
+        private ISettingsProviderFactory<WhitespaceSetting> _whitespaceProvider;
+        private ISettingsProviderFactory<NamingStyleSetting> _namingStyleProvider;
         private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
 
         public SettingsAggregator(Workspace workspace)
         {
             _workspace = workspace;
             _workspace.WorkspaceChanged += UpdateProviders;
-            _formattingProvider = GetOptionsProviderFactory<FormattingSetting>(_workspace);
+            _whitespaceProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
             _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
+            _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
             _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(_workspace);
         }
 
@@ -39,8 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
                 case WorkspaceChangeKind.ProjectAdded:
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.ProjectChanged:
-                    _formattingProvider = GetOptionsProviderFactory<FormattingSetting>(_workspace);
+                    _whitespaceProvider = GetOptionsProviderFactory<WhitespaceSetting>(_workspace);
                     _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
+                    _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
                     break;
                 default:
                     break;
@@ -54,9 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
                 return (ISettingsProvider<TData>)_analyzerProvider.GetForFile(fileName);
             }
 
-            if (typeof(TData) == typeof(FormattingSetting))
+            if (typeof(TData) == typeof(WhitespaceSetting))
             {
-                return (ISettingsProvider<TData>)_formattingProvider.GetForFile(fileName);
+                return (ISettingsProvider<TData>)_whitespaceProvider.GetForFile(fileName);
+            }
+
+            if (typeof(TData) == typeof(NamingStyleSetting))
+            {
+                return (ISettingsProvider<TData>)_namingStyleProvider.GetForFile(fileName);
             }
 
             if (typeof(TData) == typeof(CodeStyleSetting))
@@ -79,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
             {
                 TryAddProviderForLanguage(LanguageNames.CSharp, workspace, providers);
             }
+
             if (supportsVisualBasic)
             {
                 TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);

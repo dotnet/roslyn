@@ -19,6 +19,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     public partial class CSharpUseNotPatternTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        public async Task BinaryIsExpression()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (!(x [|is|] string))
+        {
+        }
+    }
+}",
+                FixedCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (x is not string)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        public async Task ConstantPattern()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (!(x [|is|] null))
+        {
+        }
+    }
+}",
+                FixedCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (x is not null)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
         [WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
         {
@@ -64,6 +124,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     }
 }",
                 LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        public async Task BinaryIsObject()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (!(x [|is|] object))
+        {
+        }
+    }
+}",
+                FixedCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (x is null)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
     }

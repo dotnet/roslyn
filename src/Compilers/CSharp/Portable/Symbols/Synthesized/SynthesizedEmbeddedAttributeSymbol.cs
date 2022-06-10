@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames => Constructors.Select(m => m.Name);
 
+        internal override bool HasDeclaredRequiredMembers => false;
+
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
         public override TypeKind TypeKind => TypeKind.Class;
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => false;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
+
+        internal override bool IsInterpolatedStringHandlerType => false;
 
         internal override bool HasSpecialName => false;
 

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             for (var current = method; current != null; current = current.OverriddenMethod)
             {
-                if (current.Locations.Any(loc => loc.IsInMetadata))
+                if (current.Locations.Any(static loc => loc.IsInMetadata))
                 {
                     return true;
                 }

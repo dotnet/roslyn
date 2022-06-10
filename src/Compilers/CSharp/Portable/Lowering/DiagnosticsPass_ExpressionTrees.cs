@@ -91,20 +91,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Indices.Length == 1 &&
                 node.Indices[0].Type!.SpecialType == SpecialType.None)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }
 
             return base.VisitArrayAccess(node);
         }
 
-        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        public override BoundNode VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
             if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, node);
+                Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }
 
-            return base.VisitIndexOrRangePatternIndexerAccess(node);
+            return base.VisitImplicitIndexerAccess(node);
         }
 
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private void CheckReferenceToVariable(BoundExpression node, Symbol symbol)
         {
             Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol is LocalFunctionSymbol);
@@ -204,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostic, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
             }
         }
+#nullable disable
 
         private void CheckReferenceToMethodIfLocalFunction(BoundExpression node, MethodSymbol method)
         {
@@ -335,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
                 }
-                else if (method.IsAbstract && method.IsStatic)
+                else if ((method.IsAbstract || method.IsVirtual) && method.IsStatic)
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
@@ -504,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckRefReturningPropertyAccess(node, property);
             CheckReceiverIfField(node.ReceiverOpt);
 
-            if (_inExpressionLambda && property.IsAbstract && property.IsStatic)
+            if (_inExpressionLambda && (property.IsAbstract || property.IsVirtual) && property.IsStatic)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
             }
@@ -517,6 +519,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 var lambda = node.Symbol;
+                bool reportedAttributes = false;
+
+                if (!lambda.GetAttributes().IsEmpty || !lambda.GetReturnTypeAttributes().IsEmpty)
+                {
+                    Error(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, node);
+                    reportedAttributes = true;
+                }
+
                 foreach (var p in lambda.Parameters)
                 {
                     if (p.RefKind != RefKind.None && p.Locations.Length != 0)
@@ -526,6 +536,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (p.TypeWithAnnotations.IsRestrictedType())
                     {
                         _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
+                    }
+
+                    if (!reportedAttributes && !p.GetAttributes().IsEmpty)
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.Locations[0]);
+                        reportedAttributes = true;
                     }
                 }
 
@@ -626,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var binary = node.LogicalOperator;
                 var unary = node.OperatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator;
 
-                if ((binary.IsAbstract && binary.IsStatic) || (unary.IsAbstract && unary.IsStatic))
+                if (((binary.IsAbstract || binary.IsVirtual) && binary.IsStatic) || ((unary.IsAbstract || unary.IsVirtual) && unary.IsStatic))
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
@@ -657,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLiftedUnaryOp(node);
             CheckDynamic(node);
 
-            if (_inExpressionLambda && node.MethodOpt is MethodSymbol method && method.IsAbstract && method.IsStatic)
+            if (_inExpressionLambda && node.MethodOpt is MethodSymbol method && (method.IsAbstract || method.IsVirtual) && method.IsStatic)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
             }
@@ -738,9 +754,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.InterpolatedStringHandler:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion, node);
+                    }
+                    break;
+
                 default:
 
-                    if (_inExpressionLambda && node.Conversion.Method is MethodSymbol method && method.IsAbstract && method.IsStatic)
+                    if (_inExpressionLambda && node.Conversion.Method is MethodSymbol method && (method.IsAbstract || method.IsVirtual) && method.IsStatic)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                     }
@@ -790,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_AddressOfMethodGroupInExpressionTree, node);
                 }
-                else if (method is not null && method.IsAbstract && method.IsStatic)
+                else if (method is not null && (method.IsAbstract || method.IsVirtual) && method.IsStatic)
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
@@ -947,6 +970,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitWithExpression(node);
+        }
+
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node);
+            }
+
+            return base.VisitFunctionPointerInvocation(node);
         }
     }
 }

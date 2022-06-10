@@ -6,11 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
@@ -26,37 +29,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public NavigateToItemProvider(
             Workspace workspace,
-            IAsynchronousOperationListener asyncListener,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            IUIThreadOperationExecutor threadOperationExecutor,
+            IAsynchronousOperationListener asyncListener)
         {
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(asyncListener);
 
             _workspace = workspace;
             _asyncListener = asyncListener;
-            _displayFactory = new NavigateToItemDisplayFactory();
+            _displayFactory = new NavigateToItemDisplayFactory(
+                threadingContext, threadOperationExecutor, asyncListener);
             _threadingContext = threadingContext;
         }
 
         ISet<string> INavigateToItemProvider2.KindsProvided => KindsProvided;
 
         public ImmutableHashSet<string> KindsProvided
-        {
-            get
-            {
-                var result = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-                foreach (var project in _workspace.CurrentSolution.Projects)
-                {
-                    var navigateToSearchService = project.GetLanguageService<INavigateToSearchService>();
-                    if (navigateToSearchService != null)
-                    {
-                        result = result.Union(navigateToSearchService.KindsProvided);
-                    }
-                }
-
-                return result;
-            }
-        }
+            => NavigateToUtilities.GetKindsProvided(_workspace.CurrentSolution);
 
         public bool CanFilter
         {
@@ -124,11 +114,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _asyncListener,
                 roslynCallback,
                 searchValue,
-                searchCurrentDocument,
                 kinds,
                 _threadingContext.DisposalToken);
 
-            _ = searcher.SearchAsync(_cancellationTokenSource.Token);
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(StartSearch));
+            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token)
+                .CompletesAsyncOperation(asyncToken)
+                .ReportNonFatalErrorUnlessCancelledAsync(_cancellationTokenSource.Token);
         }
     }
 }

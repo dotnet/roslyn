@@ -8,24 +8,40 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal sealed class NavigateToItemDisplay : INavigateToItemDisplay3
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToSearchResult _searchResult;
         private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
-        public NavigateToItemDisplay(INavigateToSearchResult searchResult)
-            => _searchResult = searchResult;
+        public NavigateToItemDisplay(
+            IThreadingContext threadingContext,
+            IUIThreadOperationExecutor threadOperationExecutor,
+            IAsynchronousOperationListener asyncListener,
+            INavigateToSearchResult searchResult)
+        {
+            _threadingContext = threadingContext;
+            _threadOperationExecutor = threadOperationExecutor;
+            _asyncListener = asyncListener;
+            _searchResult = searchResult;
+        }
 
         public string AdditionalInformation => _searchResult.AdditionalInformation;
 
@@ -35,11 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             get
             {
-                if (_descriptionItems == null)
-                {
-                    _descriptionItems = CreateDescriptionItems();
-                }
-
+                _descriptionItems ??= CreateDescriptionItems();
                 return _descriptionItems;
             }
         }
@@ -53,15 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
 
             var sourceText = document.GetTextSynchronously(CancellationToken.None);
-            var item = _searchResult.NavigableItem;
-            var spanStart = item.SourceSpan.Start;
-            if (item.IsStale && spanStart > sourceText.Length)
-            {
-                // in the case of a stale item, the span may be out of bounds of the document. Cap
-                // us to the end of the document as that's where we're going to navigate the user
-                // to.
-                spanStart = sourceText.Length;
-            }
+            var span = NavigateToUtilities.GetBoundedSpan(_searchResult.NavigableItem, sourceText);
 
             var items = new List<DescriptionItem>
                     {
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                             new ReadOnlyCollection<DescriptionRun>(
                                 new[] { new DescriptionRun("Line:", bold: true) }),
                             new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(spanStart) + 1).ToString()) }))
+                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(span.Start) + 1).ToString()) }))
                     };
 
             var summary = _searchResult.Summary;
@@ -102,11 +106,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public void NavigateTo()
         {
+            var token = _asyncListener.BeginAsyncOperation(nameof(NavigateTo));
+            NavigateToAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+        }
+
+        private async Task NavigateToAsync()
+        {
             var document = _searchResult.NavigableItem.Document;
             if (document == null)
-            {
                 return;
-            }
 
             var workspace = document.Project.Solution.Workspace;
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
@@ -117,16 +125,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             //
             // In the case of a stale item, don't require that the span be in bounds of the document
             // as it exists right now.
-            //
-            // TODO: Get the platform to use and pass us an operation context, or create one
-            // ourselves.
-            navigationService.TryNavigateToSpan(
+            using var context = _threadOperationExecutor.BeginExecute(
+                EditorFeaturesResources.Navigating_to_definition, EditorFeaturesResources.Navigating_to_definition, allowCancellation: true, showProgress: false);
+            await navigationService.TryNavigateToSpanAsync(
+                _threadingContext,
                 workspace,
                 document.Id,
                 _searchResult.NavigableItem.SourceSpan,
-                options: null,
+                NavigationOptions.Default,
                 allowInvalidSpan: _searchResult.NavigableItem.IsStale,
-                CancellationToken.None);
+                context.UserCancellationToken).ConfigureAwait(false);
         }
 
         public int GetProvisionalViewingStatus()

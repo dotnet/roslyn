@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // caller.
                 if (_state.IsException &&
                     _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default)))
+                        static (c, parameterTypes) => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default), parameterTypes))
                 {
                     return;
                 }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     members.AddRange(factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,
-                        DetermineName(), null, parameters.ToImmutable(),
+                        DetermineName(), null, parameters.ToImmutable(), Accessibility.Public,
                         parameterToExistingFieldMap.ToImmutable(),
                         parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,

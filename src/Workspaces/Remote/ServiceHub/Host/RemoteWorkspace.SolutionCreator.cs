@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,6 +57,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var solution = _baseSolution;
 
+                    // If we previously froze a source generated document and then held onto that, unfreeze it now. We'll re-freeze the new document
+                    // if needed again later.
+                    solution = solution.WithoutFrozenSourceGeneratedDocuments();
+
                     var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
 
@@ -65,12 +70,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         // if either id or file path has changed, then this is not update
                         Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
-                    }
-
-                    if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
-                    {
-                        var newOptions = await _assetProvider.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
-                        solution = solution.WithOptions(newOptions);
                     }
 
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
@@ -83,10 +82,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         solution = solution.WithAnalyzerReferences(await _assetProvider.CreateCollectionAsync<AnalyzerReference>(
                             newSolutionChecksums.AnalyzerReferences, _cancellationToken).ConfigureAwait(false));
                     }
-
-                    // The old solution should never have any frozen source generated documents -- those are only created and forked off of
-                    // a workspaces's CurrentSolution
-                    Contract.ThrowIfFalse(solution.State.FrozenSourceGeneratedDocumentState == null);
 
                     if (newSolutionChecksums.FrozenSourceGeneratedDocumentIdentity != Checksum.Null && newSolutionChecksums.FrozenSourceGeneratedDocumentText != Checksum.Null)
                     {
@@ -149,6 +144,31 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
+                // remove all project references from projects that changed. this ensures exceptions will not occur for
+                // cyclic references during an incremental update.
+                foreach (var (projectId, newProjectChecksums) in newMap)
+                {
+                    if (!oldMap.TryGetValue(projectId, out var oldProjectChecksums))
+                    {
+                        continue;
+                    }
+
+                    if (oldProjectChecksums.ProjectReferences.Checksum != newProjectChecksums.ProjectReferences.Checksum)
+                    {
+                        solution = solution.WithProjectReferences(projectId, SpecializedCollections.EmptyEnumerable<ProjectReference>());
+                    }
+                }
+
+                // removed project
+                foreach (var (projectId, _) in oldMap)
+                {
+                    if (!newMap.ContainsKey(projectId))
+                    {
+                        // we have a project removed
+                        solution = solution.RemoveProject(projectId);
+                    }
+                }
+
                 // changed project
                 foreach (var (projectId, newProjectChecksums) in newMap)
                 {
@@ -160,16 +180,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     Contract.ThrowIfTrue(oldProjectChecksums.Checksum == newProjectChecksums.Checksum);
 
                     solution = await UpdateProjectAsync(solution.GetProject(projectId)!, oldProjectChecksums, newProjectChecksums).ConfigureAwait(false);
-                }
-
-                // removed project
-                foreach (var (projectId, _) in oldMap)
-                {
-                    if (!newMap.ContainsKey(projectId))
-                    {
-                        // we have a project removed
-                        solution = solution.RemoveProject(projectId);
-                    }
                 }
 
                 return solution;
@@ -242,11 +252,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
+                        newProjectChecksums,
                         project.State.DocumentStates.States.Values,
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
                         (solution, documents) => solution.AddDocuments(documents),
-                        (solution, documentId) => solution.RemoveDocument(documentId)).ConfigureAwait(false);
+                        (solution, documentIds) => solution.RemoveDocuments(documentIds)).ConfigureAwait(false);
                 }
 
                 // changed additional documents
@@ -254,11 +265,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
+                        newProjectChecksums,
                         project.State.AdditionalDocumentStates.States.Values,
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
                         (solution, documents) => solution.AddAdditionalDocuments(documents),
-                        (solution, documentId) => solution.RemoveAdditionalDocument(documentId)).ConfigureAwait(false);
+                        (solution, documentIds) => solution.RemoveAdditionalDocuments(documentIds)).ConfigureAwait(false);
                 }
 
                 // changed analyzer config documents
@@ -266,11 +278,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
+                        newProjectChecksums,
                         project.State.AnalyzerConfigDocumentStates.States.Values,
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
                         (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
-                        (solution, documentId) => solution.RemoveAnalyzerConfigDocument(documentId)).ConfigureAwait(false);
+                        (solution, documentIds) => solution.RemoveAnalyzerConfigDocuments(documentIds)).ConfigureAwait(false);
                 }
 
                 return project.Solution;
@@ -337,11 +350,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private async Task<Project> UpdateDocumentsAsync(
                 Project project,
+                ProjectStateChecksums projectChecksums,
                 IEnumerable<TextDocumentState> existingTextDocumentStates,
                 ChecksumCollection oldChecksums,
                 ChecksumCollection newChecksums,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
-                Func<Solution, DocumentId, Solution> removeDocument)
+                Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments)
             {
                 using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
                 using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -355,6 +369,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object).ConfigureAwait(false);
                 var newMap = await GetDocumentMapAsync(_assetProvider, news.Object).ConfigureAwait(false);
+
+                // If more than two documents changed during a single update, perform a bulk synchronization on the
+                // project to avoid large numbers of small synchronization calls during document updates.
+                // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
+                if (newMap.Count > 2)
+                {
+                    await _assetProvider.SynchronizeProjectAssetsAsync(new[] { projectChecksums.Checksum }, _cancellationToken).ConfigureAwait(false);
+                }
 
                 // added document
                 ImmutableArray<DocumentInfo>.Builder? lazyDocumentsToAdd = null;
@@ -392,13 +414,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // removed document
+                ImmutableArray<DocumentId>.Builder? lazyDocumentsToRemove = null;
                 foreach (var (documentId, _) in oldMap)
                 {
                     if (!newMap.ContainsKey(documentId))
                     {
                         // we have a document removed
-                        project = removeDocument(project.Solution, documentId).GetProject(project.Id)!;
+                        lazyDocumentsToRemove ??= ImmutableArray.CreateBuilder<DocumentId>();
+                        lazyDocumentsToRemove.Add(documentId);
                     }
+                }
+
+                if (lazyDocumentsToRemove is not null)
+                {
+                    project = removeDocuments(project.Solution, lazyDocumentsToRemove.ToImmutable()).GetProject(project.Id)!;
                 }
 
                 return project;
@@ -467,6 +496,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 foreach (var kv in documentChecksums)
                 {
+                    Debug.Assert(assetProvider.EnsureCacheEntryIfExists(kv.Item2.Info), "Expected the prior call to GetAssetsAsync to obtain all items for this loop.");
+
                     var info = await assetProvider.GetAssetAsync<DocumentInfo.DocumentAttributes>(kv.Item2.Info, _cancellationToken).ConfigureAwait(false);
                     map.Add(info.Id, kv.Item2);
                 }
@@ -531,8 +562,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                var (solutionInfo, options) = await _assetProvider.CreateSolutionInfoAndOptionsAsync(checksumFromRequest, _cancellationToken).ConfigureAwait(false);
-                var workspace = new TemporaryWorkspace(_hostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, _cancellationToken).ConfigureAwait(false);
+                var workspace = new AdhocWorkspace(_hostServices);
+                workspace.AddSolution(solutionInfo);
 
                 await TestUtils.AssertChecksumsAsync(_assetProvider, checksumFromRequest, workspace.CurrentSolution, incrementalSolutionBuilt).ConfigureAwait(false);
             }

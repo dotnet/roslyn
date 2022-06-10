@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -40,9 +43,9 @@ namespace Microsoft.CodeAnalysis
                 public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
                 {
                     if (priorAction is TouchDocumentAction priorTouchAction &&
-                        priorTouchAction._newState == this._oldState)
+                        priorTouchAction._newState == _oldState)
                     {
-                        return new TouchDocumentAction(priorTouchAction._oldState, this._newState);
+                        return new TouchDocumentAction(priorTouchAction._oldState, _newState);
                     }
 
                     return null;
@@ -68,9 +71,9 @@ namespace Microsoft.CodeAnalysis
                 public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
                 {
                     if (priorAction is TouchAdditionalDocumentAction priorTouchAction &&
-                        priorTouchAction._newState == this._oldState)
+                        priorTouchAction._newState == _oldState)
                     {
-                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, this._newState);
+                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, _newState);
                     }
 
                     return null;
@@ -81,10 +84,7 @@ namespace Microsoft.CodeAnalysis
                     var oldText = _oldState.AdditionalText;
                     var newText = _newState.AdditionalText;
 
-                    // TODO: have the compiler add an API for replacing an additional text
-                    // https://github.com/dotnet/roslyn/issues/54087
-                    return generatorDriver.RemoveAdditionalTexts(ImmutableArray.Create(oldText))
-                                          .AddAdditionalTexts(ImmutableArray.Create(newText));
+                    return generatorDriver.ReplaceAdditionalText(oldText, newText);
                 }
             }
 
@@ -169,10 +169,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_isParseOptionChange)
                     {
-                        // TODO: update the existing generator driver; the compiler needs to add an API for that.
-                        // In the mean time, drop it and we'll recreate it from scratch.
-                        // https://github.com/dotnet/roslyn/issues/54087
-                        return null;
+                        RoslynDebug.AssertNotNull(_state.ParseOptions);
+                        return generatorDriver.WithUpdatedParseOptions(_state.ParseOptions);
                     }
                     else
                     {
@@ -185,18 +183,19 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class ProjectCompilationOptionsAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly CompilationOptions _options;
+                private readonly ProjectState _state;
                 private readonly bool _isAnalyzerConfigChange;
 
-                public ProjectCompilationOptionsAction(CompilationOptions options, bool isAnalyzerConfigChange)
+                public ProjectCompilationOptionsAction(ProjectState state, bool isAnalyzerConfigChange)
                 {
-                    _options = options;
+                    _state = state;
                     _isAnalyzerConfigChange = isAnalyzerConfigChange;
                 }
 
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return Task.FromResult(oldCompilation.WithOptions(_options));
+                    RoslynDebug.AssertNotNull(_state.CompilationOptions);
+                    return Task.FromResult(oldCompilation.WithOptions(_state.CompilationOptions));
                 }
 
                 // Updating the options of a compilation doesn't require us to reparse trees, so we can use this to update
@@ -207,10 +206,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_isAnalyzerConfigChange)
                     {
-                        // TODO: update the existing generator driver; the compiler needs to add an API for that.
-                        // In the mean time, drop it and we'll recreate it from scratch.
-                        // https://github.com/dotnet/roslyn/issues/54087
-                        return null;
+                        return generatorDriver.WithUpdatedAnalyzerConfigOptions(_state.AnalyzerOptions.AnalyzerConfigOptionsProvider);
                     }
                     else
                     {
@@ -240,15 +236,17 @@ namespace Microsoft.CodeAnalysis
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
             }
 
-            internal sealed class AddAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class AddOrRemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
                 private readonly string _language;
+                private readonly ImmutableArray<AnalyzerReference> _referencesToAdd;
+                private readonly ImmutableArray<AnalyzerReference> _referencesToRemove;
 
-                public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
+                public AddOrRemoveAnalyzerReferencesAction(string language, ImmutableArray<AnalyzerReference> referencesToAdd = default, ImmutableArray<AnalyzerReference> referencesToRemove = default)
                 {
-                    _analyzerReferences = analyzerReferences;
                     _language = language;
+                    _referencesToAdd = referencesToAdd;
+                    _referencesToRemove = referencesToRemove;
                 }
 
                 // Changing analyzer references doesn't change the compilation directly, so we can "apply" the
@@ -258,28 +256,17 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.AddGenerators(_analyzerReferences.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
-                }
-            }
+                    if (!_referencesToRemove.IsDefaultOrEmpty)
+                    {
+                        generatorDriver = generatorDriver.RemoveGenerators(_referencesToRemove.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                    }
 
-            internal sealed class RemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
-            {
-                private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
-                private readonly string _language;
+                    if (!_referencesToAdd.IsDefaultOrEmpty)
+                    {
+                        generatorDriver = generatorDriver.AddGenerators(_referencesToAdd.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                    }
 
-                public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
-                {
-                    _analyzerReferences = analyzerReferences;
-                    _language = language;
-                }
-
-                // Changing analyzer references doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
-                public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
-                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
-                {
-                    return generatorDriver.RemoveGenerators(_analyzerReferences.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                    return generatorDriver;
                 }
             }
 

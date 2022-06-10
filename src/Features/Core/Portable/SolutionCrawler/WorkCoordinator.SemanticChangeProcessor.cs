@@ -34,26 +34,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly ProjectProcessor _processor;
 
-                private readonly NonReentrantLock _workGate;
-                private readonly Dictionary<DocumentId, Data> _pendingWork;
+                private readonly NonReentrantLock _workGate = new();
+                private readonly Dictionary<DocumentId, Data> _pendingWork = new();
 
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
                     Registration registration,
                     IncrementalAnalyzerProcessor documentWorkerProcessor,
-                    int backOffTimeSpanInMS,
-                    int projectBackOffTimeSpanInMS,
+                    TimeSpan backOffTimeSpan,
+                    TimeSpan projectBackOffTimeSpan,
                     CancellationToken cancellationToken)
-                    : base(listener, backOffTimeSpanInMS, cancellationToken)
+                    : base(listener, backOffTimeSpan, cancellationToken)
                 {
                     _gate = new SemaphoreSlim(initialCount: 0);
 
                     _registration = registration;
 
-                    _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpanInMS, cancellationToken);
-
-                    _workGate = new NonReentrantLock();
-                    _pendingWork = new Dictionary<DocumentId, Data>();
+                    _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpan, cancellationToken);
 
                     Start();
 
@@ -66,13 +63,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         TaskScheduler.Default);
                 }
 
-                public override Task AsyncProcessorTask
+                protected override void OnPaused()
                 {
-                    get
-                    {
-                        return Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
-                    }
                 }
+
+                public override Task AsyncProcessorTask
+                    => Task.WhenAll(base.AsyncProcessorTask, _processor.AsyncProcessorTask);
 
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _gate.WaitAsync(cancellationToken);
@@ -304,14 +300,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var graph = solution.GetProjectDependencyGraph();
 
-                    if (solution.Workspace.Options.GetOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly))
-                    {
-                        return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
-                    }
-
-                    // re-analyzing all transitive dependencies is very expensive. by default we will only
-                    // re-analyze direct dependency for now. and consider flipping the default only if we must.
-                    return graph.GetProjectsThatTransitivelyDependOnThisProject(projectId).Concat(projectId);
+                    // Reanalyze direct dependencies only as reanalyzing all transitive dependencies is very expensive.
+                    return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
                 }
 
                 private readonly struct Data
@@ -345,24 +335,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly Registration _registration;
                     private readonly IncrementalAnalyzerProcessor _processor;
 
-                    private readonly NonReentrantLock _workGate;
-                    private readonly Dictionary<ProjectId, Data> _pendingWork;
+                    private readonly NonReentrantLock _workGate = new();
+                    private readonly Dictionary<ProjectId, Data> _pendingWork = new();
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
                         Registration registration,
                         IncrementalAnalyzerProcessor processor,
-                        int backOffTimeSpanInMS,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken cancellationToken)
-                        : base(listener, backOffTimeSpanInMS, cancellationToken)
+                        : base(listener, backOffTimeSpan, cancellationToken)
                     {
                         _registration = registration;
                         _processor = processor;
 
                         _gate = new SemaphoreSlim(initialCount: 0);
-
-                        _workGate = new NonReentrantLock();
-                        _pendingWork = new Dictionary<ProjectId, Data>();
 
                         Start();
 
@@ -373,6 +360,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             CancellationToken.None,
                             TaskContinuationOptions.ExecuteSynchronously,
                             TaskScheduler.Default);
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)

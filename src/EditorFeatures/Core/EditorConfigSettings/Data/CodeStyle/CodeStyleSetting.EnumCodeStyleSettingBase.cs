@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 {
                     throw new InvalidOperationException("Values and descriptions must have matching number of elements");
                 }
+
                 _enumValues = enumValues;
                 _valueDescriptions = valueDescriptions;
                 Category = category;

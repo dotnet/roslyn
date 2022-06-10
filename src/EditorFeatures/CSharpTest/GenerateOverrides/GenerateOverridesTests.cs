@@ -220,5 +220,61 @@ static class [||]C
     
 }");
         }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter()
+        {
+            await TestWithPickMembersDialogAsync(
+@"class C
+{
+    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+}
+
+class D : C
+{
+    [||]
+}",
+@"class C
+{
+    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+}
+
+class D : C
+{
+    public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : default
+        where T3 : default
+    {
+        base.M(a, b, c, d);
+    }
+}", new[] { "M" });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+        public async Task TestRequiredProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public virtual required int Property { get; set; }
+}
+
+class Derived : Base
+{
+     [||]
+}",
+@"
+class Base
+{
+    public virtual required int Property { get; set; }
+}
+
+class Derived : Base
+{
+    public override required int Property { get => base.Property; set => base.Property = value; }
+}", new[] { "Property" });
+        }
     }
 }

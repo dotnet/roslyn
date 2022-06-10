@@ -1261,5 +1261,39 @@ class C
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(44558, "https://github.com/dotnet/roslyn/issues/44558")]
+        public async Task AddParameters_Record()
+        {
+            var markup = @"
+/// <param name=""First""></param>
+/// <param name=""Second""></param>
+/// <param name=""Third""></param>
+record $$R(int First, int Second, int Third)
+{
+    static R M() => new R(1, 2, 3);
+}
+";
+            var updatedSignature = new AddedParameterOrExistingIndex[]
+            {
+                new(0),
+                new(2),
+                new(1),
+                new(new AddedParameter(null, "int", "Forth", CallSiteKind.Value, "12345"), "System.Int32")
+            };
+            var updatedCode = @"
+/// <param name=""First""></param>
+/// <param name=""Third""></param>
+/// <param name=""Second""></param>
+/// <param name=""Forth""></param>
+record R(int First, int Third, int Second, int Forth)
+{
+    static R M() => new R(1, 3, 2, 12345);
+}
+";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
     }
 }

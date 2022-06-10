@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 // If the selection is within a declaration of the symbol, we want to include
                 // all declarations and assignments of the symbol
-                if (declaringSyntaxReferences.Any(r => r.Span.IntersectsWith(selection)))
+                if (declaringSyntaxReferences.Any(static (r, selection) => r.Span.IntersectsWith(selection), selection))
                 {
                     // Add all initializations of the symbol. Those are not caught in 
                     // the reference finder but should still show up in the tree
@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         await TrackVariableDefinitionsAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                         await TrackVariableReferencesAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
+
                     break;
 
                 case IParameterSymbol parameterSymbol:
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                             await TrackParameterSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                         }
                     }
+
                     break;
 
                 case IMethodSymbol methodSymbol:
@@ -129,6 +131,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         // The "output" is from a method, meaning it has a return or out param that is used. Track those 
                         await TrackMethodSymbolAsync(methodSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
+
                     break;
             }
         }
@@ -174,10 +177,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             OperationCollector collector,
             CancellationToken cancellationToken)
         {
-            var containingMethod = (IMethodSymbol)parameterSymbol.ContainingSymbol;
+            var containingSymbol = parameterSymbol.ContainingSymbol;
             var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
-                containingMethod,
+                containingSymbol,
                 collector.Solution,
                 findReferenceProgressCollector,
                 documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
@@ -246,7 +249,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             static bool HasAnOutOrRefParam(IMethodSymbol methodSymbol)
             {
-                return methodSymbol.Parameters.Any(p => p.IsRefOrOut());
+                return methodSymbol.Parameters.Any(static p => p.IsRefOrOut());
             }
         }
 

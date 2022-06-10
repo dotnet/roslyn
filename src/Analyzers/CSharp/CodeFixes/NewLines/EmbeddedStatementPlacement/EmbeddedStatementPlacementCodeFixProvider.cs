@@ -37,26 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
-                new MyCodeAction(c => UpdateDocumentAsync(document, diagnostic, c)),
+                CodeAction.Create(
+                    CSharpCodeFixesResources.Place_statement_on_following_line,
+                    c => FixAllAsync(document, ImmutableArray.Create(diagnostic), context.GetOptionsProvider(), c),
+                    nameof(CSharpCodeFixesResources.Place_statement_on_following_line)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
-        private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-
-        public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider codeActionOptionsProvider, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
 
-#if CODE_STYLE
-            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken);
-#else
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
 
-            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(options.GetOption(FormattingOptions2.NewLine, LanguageNames.CSharp));
+            var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(options.NewLine);
 
             foreach (var diagnostic in diagnostics)
                 FixOne(editor, diagnostic, endOfLineTrivia, cancellationToken);
@@ -139,14 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 
         public override FixAllProvider GetFixAllProvider()
             => FixAllProvider.Create(
-                async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Place_statement_on_following_line, createChangedDocument, CSharpCodeFixesResources.Place_statement_on_following_line)
-            {
-            }
-        }
+                async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false));
     }
 }

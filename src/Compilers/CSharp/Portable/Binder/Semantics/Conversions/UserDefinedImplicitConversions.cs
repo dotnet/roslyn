@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol target,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
 
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool allowAnyTarget = false)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert(((object)target != null) == !allowAnyTarget);
             Debug.Assert(d != null);
@@ -292,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol convertsTo = op.ReturnType;
                     Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
                     Conversion toConversion = allowAnyTarget ? Conversion.Identity :
-                        EncompassingImplicitConversion(null, convertsTo, target, ref useSiteInfo);
+                        EncompassingImplicitConversion(convertsTo, target, ref useSiteInfo);
 
                     if (fromConversion.Exists && toConversion.Exists)
                     {
@@ -304,18 +306,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // actually X-->Y? in source for the purposes of determining the best target
                         // type of an operator.
                         //
-                        // We perpetuate this fiction here.
+                        // We perpetuate this fiction here, except for cases when Y is not a valid type
+                        // argument for Nullable<T>. This scenario should only be possible when the corlib
+                        // defines a type such as int or long to be a ref struct (see
+                        // LiftedConversion_InvalidTypeArgument02).
 
-                        if ((object)target != null && target.IsNullableType() && convertsTo.IsNonNullableValueType())
+                        if ((object)target != null && target.IsNullableType() && convertsTo.IsValidNullableTypeArgument())
                         {
                             convertsTo = MakeNullableType(convertsTo);
                             toConversion = allowAnyTarget ? Conversion.Identity :
-                                EncompassingImplicitConversion(null, convertsTo, target, ref useSiteInfo);
+                                EncompassingImplicitConversion(convertsTo, target, ref useSiteInfo);
                         }
 
                         u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt, op, fromConversion, toConversion, convertsFrom, convertsTo));
                     }
-                    else if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType() &&
+                    else if ((object)source != null && source.IsNullableType() && convertsFrom.IsValidNullableTypeArgument() &&
                         (allowAnyTarget || target.CanBeAssignedNull()))
                     {
                         // As mentioned above, here we diverge from the specification, in two ways.
@@ -334,10 +339,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the answer to all those questions is "yes" then we lift to nullable
                         // and see if the resulting operator is applicable.
                         TypeSymbol nullableFrom = MakeNullableType(convertsFrom);
-                        TypeSymbol nullableTo = convertsTo.IsNonNullableValueType() ? MakeNullableType(convertsTo) : convertsTo;
+                        TypeSymbol nullableTo = convertsTo.IsValidNullableTypeArgument() ? MakeNullableType(convertsTo) : convertsTo;
                         Conversion liftedFromConversion = EncompassingImplicitConversion(sourceExpression, source, nullableFrom, ref useSiteInfo);
                         Conversion liftedToConversion = !allowAnyTarget ?
-                            EncompassingImplicitConversion(null, nullableTo, target, ref useSiteInfo) :
+                            EncompassingImplicitConversion(nullableTo, target, ref useSiteInfo) :
                             Conversion.Identity;
                         if (liftedFromConversion.Exists && liftedToConversion.Exists)
                         {
@@ -353,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If any of the operators in U convert from S then SX is S.
             if ((object)source != null)
             {
-                if (u.Any(conv => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2)))
+                if (u.Any(static (conv, source) => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2), source))
                 {
                     return source;
                 }
@@ -387,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have previously written the appropriate "ToType" into the conversion analysis
             // to perpetuate this fiction.
 
-            if (u.Any(conv => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2)))
+            if (u.Any(static (conv, target) => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2), target))
             {
                 return target;
             }
@@ -560,6 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Is A encompassed by B?
         private bool IsEncompassedBy(BoundExpression aExpr, TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(aExpr is null || Compilation is not null);
             Debug.Assert((object)a != null);
             Debug.Assert((object)b != null);
 
@@ -570,8 +576,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EncompassingImplicitConversion(aExpr, a, b, ref useSiteInfo).Exists;
         }
 
+        // Is A encompassed by B?
+        private bool IsEncompassedBy(TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return IsEncompassedBy(aExpr: null, a, b, ref useSiteInfo);
+        }
+
         private Conversion EncompassingImplicitConversion(BoundExpression aExpr, TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(aExpr is null || Compilation is not null);
             Debug.Assert(aExpr != null || (object)a != null);
             Debug.Assert((object)b != null);
 
@@ -582,6 +595,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = ClassifyStandardImplicitConversion(aExpr, a, b, ref useSiteInfo);
             return IsEncompassingImplicitConversionKind(result.Kind) ? result : Conversion.NoConversion;
+        }
+
+        private Conversion EncompassingImplicitConversion(TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return EncompassingImplicitConversion(aExpr: null, a, b, ref useSiteInfo);
         }
 
         private static bool IsEncompassingImplicitConversionKind(ConversionKind kind)
@@ -602,10 +620,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.InterpolatedStringHandler:
 
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.FunctionType:
 
                 // Not implicit.
                 case ConversionKind.ExplicitNumeric:
@@ -642,6 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 7.1
                 case ConversionKind.DefaultLiteral:
+
+                // Added for C# 9
+                case ConversionKind.ImplicitPointer:
                     return true;
 
                 default:
@@ -698,8 +721,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BetterResult.Equal;
                     }
 
-                    bool leftWins = IsEncompassedBy(null, leftType, rightType, ref inLambdaUseSiteInfo);
-                    bool rightWins = IsEncompassedBy(null, rightType, leftType, ref inLambdaUseSiteInfo);
+                    bool leftWins = IsEncompassedBy(leftType, rightType, ref inLambdaUseSiteInfo);
+                    bool rightWins = IsEncompassedBy(rightType, leftType, ref inLambdaUseSiteInfo);
                     if (leftWins == rightWins)
                     {
                         return BetterResult.Neither;
@@ -737,8 +760,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BetterResult.Equal;
                     }
 
-                    bool leftWins = IsEncompassedBy(null, rightType, leftType, ref inLambdaUseSiteInfo);
-                    bool rightWins = IsEncompassedBy(null, leftType, rightType, ref inLambdaUseSiteInfo);
+                    bool leftWins = IsEncompassedBy(rightType, leftType, ref inLambdaUseSiteInfo);
+                    bool rightWins = IsEncompassedBy(leftType, rightType, ref inLambdaUseSiteInfo);
                     if (leftWins == rightWins)
                     {
                         return BetterResult.Neither;
@@ -928,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     we compute these from the source type to ANY target type. We will filter out those that are valid switch governing
             //     types later.
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
-            ComputeApplicableUserDefinedImplicitConversionSet(null, source, target: null, d: d, u: ubuild, useSiteInfo: ref useSiteInfo, allowAnyTarget: true);
+            ComputeApplicableUserDefinedImplicitConversionSet(sourceExpression: null, source, target: null, d: d, u: ubuild, useSiteInfo: ref useSiteInfo, allowAnyTarget: true);
             d.Free();
             ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
 

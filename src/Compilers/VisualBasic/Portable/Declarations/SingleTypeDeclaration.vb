@@ -19,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _arity As UShort
         Private ReadOnly _modifiers As DeclarationModifiers
 
+        Public ReadOnly QuickAttributes As QuickAttributes
+
         Friend Enum TypeDeclarationFlags As Byte
             None = 0
             HasAnyAttributes = 1 << 1
@@ -35,7 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        syntaxReference As SyntaxReference,
                        nameLocation As Location,
                        memberNames As ImmutableHashSet(Of String),
-                       children As ImmutableArray(Of SingleTypeDeclaration))
+                       children As ImmutableArray(Of SingleTypeDeclaration),
+                       quickAttributes As QuickAttributes)
             MyBase.New(name, syntaxReference, nameLocation)
 
             Debug.Assert(kind <> DeclarationKind.Namespace)
@@ -46,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._modifiers = modifiers
             Me.MemberNames = memberNames
             Me._children = children
+            Me.QuickAttributes = quickAttributes
         End Sub
 
         Public Overrides ReadOnly Property Kind As DeclarationKind

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 {
     internal abstract class AbstractUseInferredMemberNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected abstract void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken);
+        protected abstract void AnalyzeSyntax(SyntaxNodeAnalysisContext context);
 
         public AbstractUseInferredMemberNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,
@@ -27,15 +25,5 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-
-            var syntaxTree = context.Node.SyntaxTree;
-            var options = context.Options;
-
-            LanguageSpecificAnalyzeSyntax(context, syntaxTree, options, cancellationToken);
-        }
     }
 }

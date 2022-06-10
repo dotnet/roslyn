@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -148,18 +152,22 @@ namespace Microsoft.CodeAnalysis.Completion
             var match1 = GetMatch(item1.FilterText, pattern, includeMatchSpans: false, culture);
             var match2 = GetMatch(item2.FilterText, pattern, includeMatchSpans: false, culture);
 
-            return CompareItems(item1, match1, item2, match2);
+            return CompareItems(item1, match1, item2, match2, out _);
         }
 
-        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2)
+        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, out bool onlyDifferInCaseSensitivity)
         {
+            onlyDifferInCaseSensitivity = false;
+
             if (match1 != null && match2 != null)
             {
-                var result = CompareMatches(match1.Value, match2.Value, item1, item2);
+                var result = CompareMatches(match1.Value, match2.Value, item1, item2, out onlyDifferInCaseSensitivity);
                 if (result != 0)
                 {
                     return result;
                 }
+
+                Debug.Assert(!onlyDifferInCaseSensitivity);
             }
             else if (match1 != null)
             {
@@ -194,8 +202,15 @@ namespace Microsoft.CodeAnalysis.Completion
         private static bool IsKeywordItem(CompletionItem item)
             => item.Tags.Contains(WellKnownTags.Keyword);
 
-        private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+        private int CompareMatches(
+            PatternMatch match1,
+            PatternMatch match2,
+            CompletionItem item1,
+            CompletionItem item2,
+            out bool onlyDifferInCaseSensitivity)
         {
+            onlyDifferInCaseSensitivity = false;
+
             // *Almost* always prefer non-expanded item regardless of the pattern matching result.
             // Except when all non-expanded items are worse than prefix matching and there's
             // a complete match from expanded ones. 
@@ -284,7 +299,10 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Now compare the matches again in a case sensitive manner.  If everything was
             // equal up to this point, we prefer the item that better matches based on case.
-            return match1.CompareTo(match2, ignoreCase: false);
+            diff = match1.CompareTo(match2, ignoreCase: false);
+            onlyDifferInCaseSensitivity = diff != 0;
+
+            return diff;
         }
 
         // If they both seemed just as good, but they differ on preselection, then
@@ -462,6 +480,15 @@ namespace Microsoft.CodeAnalysis.Completion
                     initialTriggerKind == CompletionTriggerKind.Invoke ||
                     initialTriggerKind == CompletionTriggerKind.Deletion;
             }
+        }
+
+        public static async Task<SyntaxContext> CreateSyntaxContextWithExistingSpeculativeModelAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(document.SupportsSemanticModel, "Should only be called from C#/VB providers.");
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+
+            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
+            return service.CreateContext(document, semanticModel, position, cancellationToken);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         {
         }
 
-        protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -106,7 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                     field.ConstantValue,
                     declarator.Initializer));
 
-                var withField = await codeGenService.AddFieldAsync(document.Project.Solution, field.ContainingType, fieldToAdd, new CodeGenerationOptions(), cancellationToken).ConfigureAwait(false);
+                var withField = await codeGenService.AddFieldAsync(
+                    new CodeGenerationSolutionContext(
+                        document.Project.Solution,
+                        CodeGenerationContext.Default,
+                        fallbackOptions),
+                    field.ContainingType,
+                    fieldToAdd,
+                    cancellationToken).ConfigureAwait(false);
                 root = await withField.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(tempAnnotation).First();
@@ -185,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         }
 
         private static bool IsNew(IFieldSymbol field)
-            => field.DeclaringSyntaxReferences.Any(d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
+            => field.DeclaringSyntaxReferences.Any(static d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
 
         private static string GenerateFieldName(string correspondingPropertyName)
             => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);

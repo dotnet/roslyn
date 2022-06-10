@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteInfo);
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             // If we are looking only for labels we do not need to search through the imports.
             if ((options & LookupOptions.LabelsOnly) == 0)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, WithUsingNamespacesAndTypesBinder next)
                 : base(next)
             {
-                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration);
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
             }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 usingDirectives = compilationUnit.Usings;
                                 break;
 
-                            case NamespaceDeclarationSyntax namespaceDecl:
+                            case BaseNamespaceDeclarationSyntax namespaceDecl:
                                 usingDirectives = namespaceDecl.Usings;
                                 break;
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var previous = Next!.ImportChain;
 
-                if (_declarationSyntax is NamespaceDeclarationSyntax namespaceDecl)
+                if (_declarationSyntax is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
                     // For each dotted name add an empty entry in the chain
                     var name = namespaceDecl.Name;

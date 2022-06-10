@@ -1353,17 +1353,24 @@ class C
         System.Console.Write((null, () => 2) == default);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "<null>", "default").WithLocation(6, 30),
-                // (6,37): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'lambda expression' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(6, 37),
-                // (6,37): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "lambda expression", "default").WithLocation(6, 30),
+                // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
+                //         System.Console.Write((null, () => 2) == default);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "<null>", "default").WithLocation(6, 30),
                 // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
                 //         System.Console.Write((null, () => 2) == default);
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
@@ -1662,43 +1669,25 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
-                // (6,65): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30),
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'method group'
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
-                // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "method group").WithLocation(6, 30),
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
-                // (6,65): error CS8917: The delegate type could not be inferred.
-                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
-                // (6,73): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 73),
-                // (6,73): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 73),
-                // (6,79): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 79),
-                // (6,79): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 79));
-            verify(comp);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30));
+            verify(comp, inferDelegate: false);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,65): error CS8917: The delegate type could not be inferred.
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
-                // (6,65): error CS8917: The delegate type could not be inferred.
-                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65));
-            verify(comp);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30));
+            verify(comp, inferDelegate: true);
 
-            static void verify(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, bool inferDelegate)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
@@ -1722,19 +1711,19 @@ class C
                 // ... its first lambda ...
                 var firstLambda = tuple2.Arguments[1].Expression;
                 Assert.Null(model.GetTypeInfo(firstLambda).Type);
-                Assert.Equal("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType.ToTestDisplayString());
+                verifyType("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType, inferDelegate: false); // cannot infer delegate type for x => x
 
                 // ... its method group ...
                 var methodGroup = tuple2.Arguments[2].Expression;
                 Assert.Null(model.GetTypeInfo(methodGroup).Type);
-                Assert.Equal("System.Delegate", model.GetTypeInfo(methodGroup).ConvertedType.ToTestDisplayString());
+                verifyType("System.Delegate", model.GetTypeInfo(methodGroup).ConvertedType, inferDelegate);
                 Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
                 Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
 
                 // ... its second lambda and the symbols it uses
                 var secondLambda = tuple2.Arguments[3].Expression;
-                Assert.Equal("System.Func<System.Int32, System.Int32>", model.GetTypeInfo(secondLambda).Type.ToTestDisplayString());
-                Assert.Equal("System.Delegate", model.GetTypeInfo(secondLambda).ConvertedType.ToTestDisplayString());
+                verifyType("System.Func<System.Int32, System.Int32>", model.GetTypeInfo(secondLambda).Type, inferDelegate);
+                verifyType("System.Delegate", model.GetTypeInfo(secondLambda).ConvertedType, inferDelegate);
 
                 var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
                 Assert.Equal("i + j", addition.ToString());
@@ -1744,6 +1733,18 @@ class C
 
                 var j = addition.Right;
                 Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
+            }
+
+            static void verifyType(string expectedType, ITypeSymbol type, bool inferDelegate)
+            {
+                if (inferDelegate)
+                {
+                    Assert.Equal(expectedType, type.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Null(type);
+                }
             }
         }
 
@@ -2012,14 +2013,24 @@ public class C
         if ("""" == 1) {}
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
                 //         var t = (null, null);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "t = (null, null)").WithArguments("(<null>, <null>)").WithLocation(6, 13),
-                // (7,22): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         if (null == (() => {}) ) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => {}").WithArguments("inferred delegate type").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null == (() => {})").WithArguments("==", "<null>", "lambda expression").WithLocation(7, 13),
+                // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
+                //         if ("" == 1) {}
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @""""" == 1").WithArguments("==", "string", "int").WithLocation(8, 13)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
+                //         var t = (null, null);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "t = (null, null)").WithArguments("(<null>, <null>)").WithLocation(6, 13),
                 // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         if ("" == 1) {}
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @""""" == 1").WithArguments("==", "string", "int").WithLocation(8, 13)
@@ -3122,12 +3133,24 @@ class C
                 // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 == nt2; // warn 1 and 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
                 // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 == nt2; // warn 1 and 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
                 // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 != nt2; // warn 3 and 4
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19),
                 // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 != nt2; // warn 3 and 4
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19)

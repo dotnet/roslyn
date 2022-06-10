@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public abstract int DisplayOrder { get; }
             public abstract string Name { get; }
+            public abstract bool CanBeCapturedByLocalFunction { get; }
 
             public abstract bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken);
             public abstract SyntaxAnnotation IdentifierTokenAnnotation { get; }
@@ -174,11 +175,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
                 }
             }
+
+            public override bool CanBeCapturedByLocalFunction => true;
         }
 
         protected class LocalVariableSymbol<T> : VariableSymbol, IComparable<LocalVariableSymbol<T>> where T : SyntaxNode
         {
-            private readonly SyntaxAnnotation _annotation;
+            private readonly SyntaxAnnotation _annotation = new();
             private readonly ILocalSymbol _localSymbol;
             private readonly HashSet<int> _nonNoisySet;
 
@@ -188,7 +191,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(localSymbol);
                 Contract.ThrowIfNull(nonNoisySet);
 
-                _annotation = new SyntaxAnnotation();
                 _localSymbol = localSymbol;
                 _nonNoisySet = nonNoisySet;
             }
@@ -243,6 +245,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public override SyntaxAnnotation IdentifierTokenAnnotation => _annotation;
+
+            public override bool CanBeCapturedByLocalFunction => true;
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
@@ -336,6 +340,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
                 }
             }
+
+            public override bool CanBeCapturedByLocalFunction => false;
         }
     }
 }

@@ -686,17 +686,17 @@ using VerifyCS = CSharpSourceGeneratorVerifier<YourGenerator>;
 And use the following in your test method:
 
 ```csharp
-var code = "initial code"
+var code = "initial code";
 var generated = "expected generated code";
 await new VerifyCS.Test
 {
     TestState = 
     {
         Sources = { code },
-    },
-    GeneratedSources =
-    {
-        (typeof(YourGenerator), "GeneratedFileName", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+        GeneratedSources =
+        {
+            (typeof(YourGenerator), "GeneratedFileName", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+        },
     },
 }.RunAsync();
 ```
@@ -997,7 +997,6 @@ private static string Generate(ClassDeclarationSyntax c)
                 sb.Append("\\\"");
             }
             sb.AppendLine(",\");");
-            break;
         }
     }
 
