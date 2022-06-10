@@ -10,10 +10,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -84,20 +86,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // an enormous amount of time.
                 _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<Uri?>(
                     delay: TimeSpan.FromMilliseconds(2000),
-                    processBatchAsync: (documentUris, cancellationToken) =>
-                    {
-                        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
-                        foreach (var documentUri in documentUris)
-                        {
-                            if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
-                            {
-                                return notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
-                            }
-                        }
-
-                        // LSP is already tracking all changed documents so we don't need to send a refresh request.
-                        return ValueTaskFactory.CompletedTask;
-                    },
+                    processBatchAsync: (documentUris, cancellationToken)
+                        => FilterLspTrackedDocumentsAsync(lspWorkspaceManager, notificationManager, documentUris, cancellationToken),
+                    equalityComparer: EqualityComparer<Uri?>.Default,
                     asyncListener: _asyncListener,
                     _disposalTokenSource.Token);
 
@@ -111,39 +102,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return request.TextDocument;
         }
 
-        public void Dispose()
+        private static ValueTask FilterLspTrackedDocumentsAsync(
+            LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
+            ImmutableSegmentedList<Uri?> documentUris,
+            CancellationToken cancellationToken)
         {
-            ImmutableArray<CompilationAvailableEventSource> eventSources;
-            lock (_gate)
+            var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+            foreach (var documentUri in documentUris)
             {
-                eventSources = _projectIdToEventSource.Values.ToImmutableArray();
-                _projectIdToEventSource.Clear();
-
-                _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
+                if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
+                {
+                    return notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
+                }
             }
 
-            foreach (var eventSource in eventSources)
-                eventSource.Dispose();
-
-            _disposalTokenSource.Cancel();
-            _disposalTokenSource.Dispose();
+            // LSP is already tracking all changed documents so we don't need to send a refresh request.
+            return ValueTaskFactory.CompletedTask;
         }
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
         {
-            if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
+            if (e.DocumentId is not null &&
+                (e.Kind is WorkspaceChangeKind.DocumentChanged || e.Kind is WorkspaceChangeKind.DocumentAdded))
             {
-                var document = e.NewSolution.GetDocument(e.DocumentId);
-                if (document is not null)
-                {
-                    var documentUri = document.GetURI();
+                var document = e.NewSolution.GetRequiredDocument(e.DocumentId);
+                var documentUri = document.GetURI();
 
-                    // We enqueue the URI since there's a chance the client is already tracking the
-                    // document, in which case we don't need to send a refresh notification.
-                    // We perform the actual check when processing the batch to ensure we have the
-                    // most up-to-date list of tracked documents.
-                    EnqueueSemanticTokenRefreshNotification(documentUri);
-                }
+                // We enqueue the URI since there's a chance the client is already tracking the
+                // document, in which case we don't need to send a refresh notification.
+                // We perform the actual check when processing the batch to ensure we have the
+                // most up-to-date list of tracked documents.
+                EnqueueSemanticTokenRefreshNotification(documentUri);
             }
             else
             {
@@ -242,5 +232,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private bool ChecksumIsUnchanged_NoLock(Project project, Checksum projectChecksum)
             => _projectIdToLastComputedChecksum.TryGetValue(project.Id, out var lastChecksum) && lastChecksum == projectChecksum;
+
+        public void Dispose()
+        {
+            ImmutableArray<CompilationAvailableEventSource> eventSources;
+            lock (_gate)
+            {
+                eventSources = _projectIdToEventSource.Values.ToImmutableArray();
+                _projectIdToEventSource.Clear();
+
+                _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
+            }
+
+            foreach (var eventSource in eventSources)
+                eventSource.Dispose();
+
+            _disposalTokenSource.Cancel();
+            _disposalTokenSource.Dispose();
+        }
     }
 }
