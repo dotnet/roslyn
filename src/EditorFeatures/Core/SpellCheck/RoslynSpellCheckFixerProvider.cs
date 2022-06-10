@@ -87,17 +87,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             if (!fullTokenSpan.Contains(subSpanBeingRenamed))
                 return false;
 
-            // The language gave us the full token span, and we know the subportion to rename, so use all of that to
-            // form the final full token text to rename to.
-            var fullTokenReplacementText =
-                snapshot.GetSpanFromBounds(fullTokenSpan.Start, subSpanBeingRenamed.Start).GetText() +
-                replacement +
-                snapshot.GetSpanFromBounds(subSpanBeingRenamed.End, fullTokenSpan.End).GetText();
-
             // Now attempt to call into the language to actually perform the rename.
             var options = new SymbolRenameOptions();
             var renameLocations = await info.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
-            var replacements = await renameLocations.GetReplacementsAsync(fullTokenReplacementText, options, cancellationToken).ConfigureAwait(false);
+            var replacements = await renameLocations.GetReplacementsAsync(replacement, options, cancellationToken).ConfigureAwait(false);
             if (!replacements.ReplacementTextValid)
                 return false;
 
