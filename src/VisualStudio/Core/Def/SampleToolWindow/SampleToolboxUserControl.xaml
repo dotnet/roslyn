@@ -97,12 +97,18 @@
                         <TextBlock Text="]" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                     Color="Transparent" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#38373d" />
             </TreeView.Resources>
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="Padding" Value="0, 3, 0, 0" />
+                    <Setter Property="Padding" Value="4, 3, 6, 0" />
+                    <Setter Property="Margin" Value="0, 0, 0, 1" />
                     <!--Style.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="Grid.ColumnSpan" Value="2" />

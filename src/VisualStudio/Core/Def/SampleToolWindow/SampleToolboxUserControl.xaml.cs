@@ -64,11 +64,18 @@ namespace Microsoft.VisualStudio.LanguageServices
         private DocumentId? lastDocumentId { get; set; }
         private List<DocSymbol>? originalTree { get; set; }
         private ITextSnapshot? snapshot { get; set; }
+        private IWpfTextView? textView { get; set; }
 
         private void InitializeIfNeeded(Workspace workspace, IDocumentTrackingService documentTrackingService, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
         {
             this.workspace = workspace;
             documentTrackingService.ActiveDocumentChanged += DocumentTrackingService_ActiveDocumentChanged;
+
+            this.textView = GetActiveTextView();
+            if (this.textView is not null)
+            {
+                this.textView.Caret.PositionChanged += FollowCursor;
+            }
 
             searchBox.GotFocus += RemoveText;
             searchBox.LostFocus += AddText;
@@ -153,10 +160,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private void ExpandAll(object sender, RoutedEventArgs e)
         {
             var documentSymbols = new List<DocSymbol>();
-            var items = (List<DocSymbol>)symbolTree.ItemsSource;
-            for (var i = 0; i < items.Count; i++)
+            foreach (var item in (List<DocSymbol>)symbolTree.ItemsSource)
             {
-                documentSymbols.Add(ExpandAllNodes(items[i]));
+                documentSymbols.Add(ExpandAllNodes(item));
             }
 
             symbolTree.ItemsSource = documentSymbols;
@@ -176,10 +182,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private void CollapseAll(object sender, RoutedEventArgs e)
         {
             var documentSymbols = new List<DocSymbol>();
-            var items = (List<DocSymbol>)symbolTree.ItemsSource;
-            for (var i = 0; i < items.Count; i++)
+            foreach (var item in (List<DocSymbol>)symbolTree.ItemsSource)
             {
-                documentSymbols.Add(CollapseAllNodes(items[i]));
+                documentSymbols.Add(CollapseAllNodes(item));
             }
 
             symbolTree.ItemsSource = documentSymbols;
@@ -224,12 +229,11 @@ namespace Microsoft.VisualStudio.LanguageServices
                 var documentSymbols = new List<DocSymbol>();
                 if (this.originalTree is not null)
                 {
-                    var items = this.originalTree;
-                    for (var i = 0; i < items.Count; i++)
+                    foreach (var item in this.originalTree)
                     {
-                        if (DocumentOutlineHelper.SearchNodeTree(items[i], searchBox.Text))
+                        if (DocumentOutlineHelper.SearchNodeTree(item, searchBox.Text))
                         {
-                            documentSymbols.Add(items[i]);
+                            documentSymbols.Add(item);
                         }
                     }
 
@@ -277,28 +281,128 @@ namespace Microsoft.VisualStudio.LanguageServices
         // When node clicked, selects corresponding code
         private void JumpToContent(object sender, EventArgs e)
         {
-            if (this.snapshot is not null)
+            if (this.textView is not null && this.snapshot is not null &&
+                sender is StackPanel panel && panel.DataContext is DocSymbol symbol)
             {
                 var snapshot = this.snapshot;
-                if (sender is StackPanel panel &&
-                     panel.DataContext is DocSymbol symbol)
+                if (symbol.StartLine >= 0 && symbol.StartLine < snapshot.LineCount)
                 {
-                    var textView = GetActiveTextView();
-                    if (textView is not null && this.workspace is not null)
+                    var position = snapshot.GetLineFromLineNumber(symbol.StartLine).Start.Position;
+                    if (position >= 0 && position <= snapshot.Length)
                     {
-                        // TODO: make sure the positions aren't out of bounds...
-                        //var startPos = snapshot.GetLineFromLineNumber(symbol.StartLine).Start.Position + symbol.StartChar;
-                        //var endPos = snapshot.GetLineFromLineNumber(symbol.EndLine).Start.Position + symbol.EndChar;
-                        var startPos = snapshot.GetLineFromLineNumber(symbol.StartLine).Start.Position;
-                        var start = new SnapshotPoint(this.snapshot, startPos);
-                        //var end = new SnapshotPoint(this.snapshot, endPos);
-                        var snapshotSpan = new SnapshotSpan(start, start);
-                        textView.SetSelection(snapshotSpan);
-                        var scroller = textView.ViewScroller;
-                        scroller.EnsureSpanVisible(snapshotSpan);
+                        this.textView.Caret.PositionChanged -= FollowCursor;
+                        var point = new SnapshotPoint(this.snapshot, position);
+                        var snapshotSpan = new SnapshotSpan(point, point);
+                        this.textView.SetSelection(snapshotSpan);
+                        this.textView.ViewScroller.EnsureSpanVisible(snapshotSpan);
+                        this.textView.Caret.PositionChanged += FollowCursor;
                     }
                 }
             }
+        }
+
+        private void FollowCursor(object sender, EventArgs e)
+        {
+            if (this.snapshot is not null && this.textView is not null && this.originalTree is not null)
+            {
+                var caretPoint = this.textView.GetCaretPoint(this.snapshot.TextBuffer);
+                if (caretPoint.HasValue)
+                {
+                    var documentSymbols = new List<DocSymbol>();
+                    this.originalTree.ForEach(item => documentSymbols.Add(UnselectAllNodes(item)));
+                    symbolTree.ItemsSource = documentSymbols;
+                    caretPoint.Value.GetLineAndCharacter(out var lineNumber, out var characterIndex);
+                    SelectNodeAtPosition(lineNumber, characterIndex);
+                }
+            }
+        }
+
+        private DocSymbol UnselectAllNodes(DocSymbol treeItem)
+        {
+            treeItem.IsSelected = false;
+            foreach (var childItem in treeItem.Children.OfType<DocSymbol>())
+            {
+                UnselectAllNodes(childItem);
+            }
+
+            return treeItem;
+        }
+
+        private void SelectNodeAtPosition(int lineNumber, int characterIndex)
+        {
+            if (this.originalTree is not null)
+            {
+                var documentSymbols = this.originalTree;
+                var selectedNodeIndex = -1;
+                documentSymbols.ForEach(node =>
+                {
+                    if (node.StartLine <= lineNumber && node.EndLine >= lineNumber)
+                    {
+                        selectedNodeIndex = documentSymbols.IndexOf(node);
+                    }
+                });
+
+                if (selectedNodeIndex == -1)
+                {
+                    return;
+                }
+
+                symbolTree.SelectedItemChanged += SelectedNodeChanged;
+                var newNode = SelectNode(documentSymbols[selectedNodeIndex], lineNumber, characterIndex);
+                documentSymbols.Insert(selectedNodeIndex, newNode);
+                documentSymbols.RemoveAt(selectedNodeIndex + 1);
+                symbolTree.ItemsSource = documentSymbols;
+            }
+        }
+
+        private void SelectedNodeChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var treeViewItem = symbolTree.ItemContainerGenerator.ContainerFromItem(symbolTree.SelectedItem) as TreeViewItem;
+            if (treeViewItem is not null)
+            {
+                treeViewItem.Focus();
+            }
+
+            symbolTree.SelectedItemChanged -= SelectedNodeChanged;
+        }
+
+        private DocSymbol SelectNode(DocSymbol node, int lineNumber, int characterIndex)
+        {
+            if (node.Children.Count == 0)
+            {
+                node.IsSelected = true;
+                return node;
+            }
+
+            var selectedNodeIndex = -1;
+            foreach (var child in node.Children)
+            {
+                if (child.StartLine <= lineNumber && child.EndLine >= lineNumber)
+                {
+                    if (child.StartLine == child.EndLine)
+                    {
+                        if (child.StartChar <= characterIndex && child.EndChar >= characterIndex)
+                        {
+                            selectedNodeIndex = node.Children.IndexOf(child);
+                        }
+                    }
+                    else
+                    {
+                        selectedNodeIndex = node.Children.IndexOf(child);
+                    }
+                }
+            }
+
+            if (selectedNodeIndex == -1)
+            {
+                node.IsSelected = true;
+            }
+            else
+            {
+                node.Children[selectedNodeIndex] = SelectNode(node.Children[selectedNodeIndex], lineNumber, characterIndex);
+            }
+
+            return node;
         }
 
         private static IWpfTextView? GetActiveTextView()
