@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.SpellChecker;
 using Microsoft.VisualStudio.Utilities;
@@ -37,25 +36,34 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             _threadingContext = threadingContext;
         }
 
-        public async Task RenameWordAsync(
+        public Task RenameWordAsync(
             SnapshotSpan span,
             string replacement,
             IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
+            return RenameWordAsync(span, replacement, cancellationToken);
+        }
 
+        private async Task<(FunctionId functionId, string? message)?> RenameWordAsync(
+            SnapshotSpan span,
+            string replacement,
+            CancellationToken cancellationToken)
+        {
             var result = await TryRenameAsync(span, replacement, cancellationToken).ConfigureAwait(false);
 
             // If we succeeded at renaming then nothing more to do.
-            if (result == null)
-                return;
+            if (result != null)
+            {
+                // Record why we failed so we can determine what issues may be arising in the wild.
+                var (functionId, message) = result.Value;
+                Logger.Log(functionId, message);
 
-            // Record why we failed so we can determine what issues may be arising in the wild.
-            var (functionId, message) = result.Value;
-            Logger.Log(functionId, message);
+                // Then just apply the text change directly.
+                await ApplySimpleChangeAsync(span, replacement, cancellationToken).ConfigureAwait(false);
+            }
 
-            // Then just apply the text change directly.
-            await ApplySimpleChangeAsync(span, replacement, cancellationToken).ConfigureAwait(false);
+            return result;
         }
 
         private async Task ApplySimpleChangeAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
@@ -108,6 +116,20 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 return (FunctionId.SpellCheckFixer_TryApplyChangesFailure, null);
 
             return null;
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor
+        {
+            private readonly RoslynSpellCheckFixerProvider _provider;
+
+            public TestAccessor(RoslynSpellCheckFixerProvider provider)
+                => _provider = provider;
+
+            public Task<(FunctionId functionId, string? message)?> TryRenameAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
+                => _provider.RenameWordAsync(span, replacement, cancellationToken);
         }
     }
 }
