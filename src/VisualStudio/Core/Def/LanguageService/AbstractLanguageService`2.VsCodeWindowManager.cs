@@ -41,6 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
+            private ElementHost? _documentOutlineViewHost;
+            private SampleToolboxUserControl? _documentOutlineView;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -233,34 +235,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.S_OK;
             }
 
-            private ElementHost? _outlineControlHost;
-            private SampleToolboxUserControl? _outlineControl;
-
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget ppCmdTarget)
             {
-                if (_outlineControl is null)
+                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
+                var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                var workspace = _languageService.Workspace;
+                var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                _documentOutlineView = new SampleToolboxUserControl(workspace, documentTrackingService, languageServiceBroker, threadingContext);
+
+                _documentOutlineViewHost = new ElementHost
                 {
-                    var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
-                    var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
-                    var workspace = _languageService.Workspace;
-                    var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                    _outlineControl = new SampleToolboxUserControl(workspace, documentTrackingService, languageServiceBroker, threadingContext);
+                    Dock = DockStyle.Fill,
+                    Child = _documentOutlineView
+                };
 
-                    _outlineControlHost = new ElementHost
-                    {
-                        Dock = DockStyle.Fill,
-                        Child = _outlineControl
-                    };
-                }
-
-                phwnd = _outlineControlHost!.Handle;
-                ppCmdTarget = _outlineControl;
+                phwnd = _documentOutlineViewHost.Handle;
+                ppCmdTarget = _documentOutlineView;
 
                 return VSConstants.S_OK;
             }
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
             {
+                _documentOutlineViewHost?.Dispose();
+                _documentOutlineViewHost = null;
+                _documentOutlineView = null;
                 return VSConstants.S_OK;
             }
 
