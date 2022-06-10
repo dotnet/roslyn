@@ -520,6 +520,43 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
+    [Fact]
+    public void DuplicateFileNames_01()
+    {
+        var path = "path/to/file.cs";
+        var source1 = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+
+            C.M();
+
+            file class C
+            {
+                public static void M() { Console.Write(1); }
+            }
+            """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+        var source2 = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+
+            file class C
+            {
+                public static void M() { Console.Write(2); }
+            }
+            """, options: TestOptions.RegularPreview, path: path, encoding: Encoding.Default);
+
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1", symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        // PROTOTYPE(ft): VerifyIL doesn't work in this specific scenario because the files have the same name.
+        // Does that matter? Should we include an ordinal in the symbol display?
+        verifier.VerifyIL("C@file.M", @"");
+
+        void symbolValidator(ModuleSymbol module)
+        {
+            Assert.NotNull(module.GlobalNamespace.GetMember("<file>F0__C"));
+            Assert.NotNull(module.GlobalNamespace.GetMember("<file>F1__C"));
+        }
+    }
+
     // Data based on Lexer.ScanIdentifier_FastPath, excluding '/' and '\'.
     [Theory]
     [InlineData('&')]
@@ -552,6 +589,7 @@ public class FileModifierTests : CSharpTestBase
     [InlineData('~')]
     [InlineData('"')]
     [InlineData('\'')]
+    [InlineData('`')]
     public void BadFileNames_03(char badChar)
     {
         var source = """
