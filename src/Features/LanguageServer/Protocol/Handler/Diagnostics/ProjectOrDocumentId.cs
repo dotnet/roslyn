@@ -4,6 +4,10 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
+/// <summary>
+/// Wrapper around project and document ids for convenience in caching diagnostic results and
+/// use in the <see cref="IDiagnosticSource"/>
+/// </summary>
 internal struct ProjectOrDocumentId
 {
     public object Id { get; }

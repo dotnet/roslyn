@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+
+/// <summary>
+/// Wrapper around a source for diagnostics (e.g. a <see cref="Project"/> or <see cref="Document"/>)
+/// so that we can share per file diagnostic reporting code in <see cref="AbstractPullDiagnosticHandler{TDiagnosticsParams, TReport, TReturn}"/>
+/// </summary>
 internal interface IDiagnosticSource
 {
     Project GetProject();
