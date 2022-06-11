@@ -32,6 +32,7 @@ namespace BuildActionTelemetryTable
             "Microsoft.CodeAnalysis.CodeActions.CodeAction+NoChangeAction",
             "Microsoft.CodeAnalysis.CodeActions.CustomCodeActions+DocumentChangeAction",
             "Microsoft.CodeAnalysis.CodeActions.CustomCodeActions+SolutionChangeAction",
+            "Microsoft.CodeAnalysis.CodeStyle.AbstractCodeStyleProvider`2+CodeRefactoringProvider",
         }.ToImmutableHashSet();
 
         private static ImmutableDictionary<string, string> CodeActionDescriptionMap { get; } = new Dictionary<string, string>()
@@ -440,9 +441,9 @@ namespace BuildActionTelemetryTable
             Console.WriteLine($"Generating Kusto datatable of {codeActionAndProviderTypes.Length} CodeAction and provider hashes ...");
 
             var telemetryInfos = GetTelemetryInfos(codeActionAndProviderTypes);
-            var datatable = GenerateKustoDatatable(telemetryInfos);
+            var datatable = GenerateKustoDatatable(telemetryInfos); // GenerateCodeActionsDescriptionMap(telemetryInfos);
 
-            var filepath = Path.GetFullPath(".\\ActionTable.txt");
+            var filepath = Path.GetFullPath("ActionTable.txt");
 
             Console.WriteLine($"Writing datatable to {filepath} ...");
 
@@ -552,15 +553,17 @@ namespace BuildActionTelemetryTable
 
             builder.AppendLine("{");
 
+            // Regex to split where letter capitalization changes. Try not to split up interface names such as IEnumerable.
             var regex = new Regex(@"
+                (?<=[I])(?=[A-Z]) &
                 (?<=[A-Z])(?=[A-Z][a-z]) |
-                 (?<=[^A-Z])(?=[A-Z]) |
-                 (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace);
+                (?<=[^A-Z])(?=[A-Z]) |
+                (?<=[A-Za-z])(?=[^A-Za-z])", RegexOptions.IgnorePatternWhitespace);
 
             // Prefixes and suffixes to trim out.
-            var prefixStrings = new[] { "CSharp", "VisualBasic" };
-            var suffixStrings = new[] { "CodeFixProvider", "CodeRefactoringProvider", "RefactoringProvider",
-                                        "CodeAction", "CodeActionWithOption", "CodeActionProvider" };
+            var prefixStrings = new[] { "Abstract", "CSharp", "VisualBasic" };
+            var suffixStrings = new[] { "CodeFixProvider", "CodeRefactoringProvider", "RefactoringProvider", "CustomCodeAction",
+                                        "CodeAction", "CodeActionWithOption", "CodeActionProvider", "Action", "FeatureService" };
 
             foreach (var (actionOrProviderTypeName, _) in telemetryInfos)
             {
@@ -570,34 +573,58 @@ namespace BuildActionTelemetryTable
                 }
 
                 // We create the description string from the core type name after omitting the well-known prefixes and suffixes.
+                var descriptionParts = actionOrProviderTypeName.Split('.').Last().Split('+');
 
-                var description = actionOrProviderTypeName.Split(".").Last();
+                // When there is deep nesting, construct the descriptions from the inner two type names.
+                var startIndex = Math.Max(0, descriptionParts.Length - 2);
 
-                // Handle nested types
-                if (description.Contains("+"))
+                var description = string.Empty;
+
+                for (int index = startIndex; index < descriptionParts.Length; index++)
                 {
-                    description = description.Substring(description.LastIndexOf("+") + 1);
-                }
+                    var part = descriptionParts[index];
 
-                foreach (var prefix in prefixStrings)
-                {
-                    if (description.StartsWith(prefix))
+                    // Remove TypeParameter count
+                    if (part.Contains('`'))
                     {
-                        description = description.Substring(prefix.Length);
-                        break;
+                        part = part.Split('`')[0];
+                    }
+
+                    foreach (var prefix in prefixStrings)
+                    {
+                        if (part.StartsWith(prefix))
+                        {
+                            part = part.Substring(prefix.Length);
+                            break;
+                        }
+                    }
+
+                    foreach (var suffix in suffixStrings)
+                    {
+                        if (part.EndsWith(suffix))
+                        {
+                            part = part.Substring(0, part.LastIndexOf(suffix));
+                            break;
+                        }
+                    }
+
+                    if (part.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    // Split type name into words
+                    part = regex.Replace(part, " ");
+
+                    if (description.Length == 0)
+                    {
+                        description = part;
+                    }
+                    else if (description != part)
+                    {
+                        description = $"{description} ({part})";
                     }
                 }
-
-                foreach (var suffix in suffixStrings)
-                {
-                    if (description.EndsWith(suffix))
-                    {
-                        description = description.Substring(0, description.LastIndexOf(suffix));
-                        break;
-                    }
-                }
-
-                description = regex.Replace(description, " ");
 
                 builder.AppendLine(@$"            {{ ""{actionOrProviderTypeName}"", ""{description}"" }},");
             }
