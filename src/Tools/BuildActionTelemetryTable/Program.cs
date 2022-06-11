@@ -562,8 +562,21 @@ namespace BuildActionTelemetryTable
 
             // Prefixes and suffixes to trim out.
             var prefixStrings = new[] { "Abstract", "CSharp", "VisualBasic" };
-            var suffixStrings = new[] { "CodeFixProvider", "CodeRefactoringProvider", "RefactoringProvider", "CustomCodeAction",
-                                        "CodeAction", "CodeActionWithOption", "CodeActionProvider", "Action", "FeatureService" };
+            var suffixStrings = new[]
+            {
+                "CodeFixProvider",
+                "CodeRefactoringProvider",
+                "RefactoringProvider",
+                "TaggerProvider",
+                "CustomCodeAction",
+                "CodeAction",
+                "CodeActionWithOption",
+                "CodeActionProvider",
+                "Action",
+                "FeatureService",
+                "Service",
+                "ProviderHelpers"
+            };
 
             foreach (var (actionOrProviderTypeName, _) in telemetryInfos)
             {
@@ -579,6 +592,7 @@ namespace BuildActionTelemetryTable
                 var startIndex = Math.Max(0, descriptionParts.Length - 2);
 
                 var description = string.Empty;
+                var isRefactoring = false;
 
                 for (int index = startIndex; index < descriptionParts.Length; index++)
                 {
@@ -604,6 +618,16 @@ namespace BuildActionTelemetryTable
                         if (part.EndsWith(suffix))
                         {
                             part = part.Substring(0, part.LastIndexOf(suffix));
+
+                            if (suffix == "CodeActionWithOption")
+                            {
+                                part += "WithOption";
+                            }
+                            else if (suffix == "CodeRefactoringProvider" || suffix == "RefactoringProvider")
+                            {
+                                isRefactoring = true;
+                            }
+
                             break;
                         }
                     }
@@ -619,11 +643,28 @@ namespace BuildActionTelemetryTable
                     if (description.Length == 0)
                     {
                         description = part;
+                        continue;
                     }
-                    else if (description != part)
+
+                    if (description == part)
                     {
-                        description = $"{description} ({part})";
+                        // Don't repeat the containing type name.
+                        continue;
                     }
+
+                    if (part.StartsWith(description))
+                    {
+                        // Don't repeat the containing type name.
+                        part = part.Substring(description.Length).TrimStart();
+                    }
+
+                    description = $"{description}: {part}";
+                }
+
+                if (isRefactoring)
+                {
+                    // Ensure we differentiate refactorings from similar named fixes.
+                    description += " (Refactoring)";
                 }
 
                 builder.AppendLine(@$"            {{ ""{actionOrProviderTypeName}"", ""{description}"" }},");
