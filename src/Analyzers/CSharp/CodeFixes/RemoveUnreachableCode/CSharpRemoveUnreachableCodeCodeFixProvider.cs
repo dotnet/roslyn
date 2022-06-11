@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             foreach (var diagnostic in diagnostics)
             {
                 var firstUnreachableStatementLocation = diagnostic.AdditionalLocations[0];
-                var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(cancellationToken);
+                var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
                 RemoveStatement(editor, firstUnreachableStatement);
 
@@ -85,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             static void RemoveStatement(SyntaxEditor editor, SyntaxNode statement)
             {
                 if (!statement.IsParentKind(SyntaxKind.Block)
-                    && !statement.IsParentKind(SyntaxKind.SwitchSection))
+                    && !statement.IsParentKind(SyntaxKind.SwitchSection)
+                    && !statement.IsParentKind(SyntaxKind.GlobalStatement))
                 {
                     editor.ReplaceNode(statement, SyntaxFactory.Block());
                 }

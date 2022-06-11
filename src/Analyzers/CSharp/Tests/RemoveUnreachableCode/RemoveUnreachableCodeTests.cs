@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
@@ -839,6 +841,51 @@ class C
         for (;;) { }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        public async Task TestTopLevel_EndingWithNewLine()
+        {
+            var code = @"
+throw new System.Exception();
+[|System.Console.ReadLine();
+|]";
+            var fixedCode = @"
+throw new System.Exception();
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        public async Task TestTopLevel_NotEndingWithNewLine()
+        {
+            var code = @"
+throw new System.Exception();
+[|System.Console.ReadLine();|]";
+            var fixedCode = @"
+throw new System.Exception();
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
     }
 }
