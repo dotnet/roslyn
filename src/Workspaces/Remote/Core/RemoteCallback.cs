@@ -8,6 +8,7 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -28,6 +29,36 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
+        /// <summary>
+        /// Use to perform a callback from ServiceHub process to an arbitrary brokered service hosted in the original process (usually devenv).
+        /// </summary>
+        public static async ValueTask<TResult> InvokeServiceAsync<TResult>(
+            ServiceBrokerClient client,
+            ServiceRpcDescriptor serviceDescriptor,
+            Func<RemoteCallback<T>, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken)
+        {
+            ServiceBrokerClient.Rental<T> rental;
+            try
+            {
+                rental = await client.GetProxyAsync<T>(serviceDescriptor, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException e)
+            {
+                // When a connection is dropped ServiceHub's ServiceManager disposes the brokered service, which in turn disposes the ServiceBrokerClient.
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new OperationCanceledIgnoringCallerTokenException(e);
+            }
+
+            Contract.ThrowIfNull(rental.Proxy);
+            var callback = new RemoteCallback<T>(rental.Proxy);
+
+            return await invocation(callback, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the currently executing brokered service hosted in ServiceHub process.
+        /// </summary>
         public async ValueTask InvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
@@ -40,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the currently executing brokered service hosted in ServiceHub process.
+        /// </summary>
         public async ValueTask<TResult> InvokeAsync<TResult>(Func<T, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
@@ -53,7 +87,8 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Invokes a remote API that streams results back to the caller.
+        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the currently executing brokered service hosted in ServiceHub process.
+        /// The API streams results back to the caller.
         /// </summary>
         /// <inheritdoc cref="BrokeredServiceConnection{TService}.InvokeStreamingServiceAsync"/>
         public async ValueTask<TResult> InvokeAsync<TResult>(
@@ -116,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (exception is ConnectionLostException)
             {
-                throw new OperationCanceledNotMatchingCancellationTokenException(exception);
+                throw new OperationCanceledIgnoringCallerTokenException(exception);
             }
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token,

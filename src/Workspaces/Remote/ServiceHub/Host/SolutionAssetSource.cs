@@ -32,29 +32,14 @@ namespace Microsoft.CodeAnalysis.Remote
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            ServiceBrokerClient.Rental<ISolutionAssetProvider> provider = default;
-            try
-            {
-                // When a connection is dropped we can see ObjectDisposedException even though CancelLocallyInvokedMethodsWhenConnectionIsClosed is set.
-                // That's because there might be a delay between the JsonRpc detecting the disconnect and the call attempting to send a message.
-                // Catch the ConnectionLostException exception here and convert it to OperationCanceledException.
-                provider = await _client.GetProxyAsync<ISolutionAssetProvider>(SolutionAssetProvider.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
-            }
-            catch (ObjectDisposedException e)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                throw new OperationCanceledNotMatchingCancellationTokenException(e);
-            }
-
-            using (provider)
-            {
-                Contract.ThrowIfNull(provider.Proxy);
-
-                return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy).InvokeAsync(
+            return await RemoteCallback<ISolutionAssetProvider>.InvokeServiceAsync(
+                _client,
+                SolutionAssetProvider.ServiceDescriptor,
+                (callback, cancellationToken) => callback.InvokeAsync(
                     (proxy, pipeWriter, cancellationToken) => proxy.GetAssetsAsync(pipeWriter, solutionChecksum, checksums.ToArray(), cancellationToken),
                     (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums, serializerService, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
+                    cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     /// Thrown when async code must cancel the current execution but does not have access to the <see cref="CancellationTokenSource"/> of the <see cref="CancellationToken"/> passed to the code.
     /// Should be used in very rare cases where the <see cref="CancellationTokenSource"/> is out of our control (e.g. owned but not exposed by JSON RPC in certain call-back scenarios).
     /// </summary>
-    internal sealed class OperationCanceledNotMatchingCancellationTokenException : OperationCanceledException
+    internal sealed class OperationCanceledIgnoringCallerTokenException : OperationCanceledException
     {
-        public OperationCanceledNotMatchingCancellationTokenException(Exception innerException)
+        public OperationCanceledIgnoringCallerTokenException(Exception innerException)
             : base(innerException.Message, innerException)
         {
         }
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [DebuggerHidden]
         public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledNotMatchingCancellationTokenException)
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledIgnoringCallerTokenException)
             {
                 return false;
             }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [DebuggerHidden]
         public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
         {
-            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledNotMatchingCancellationTokenException)
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledIgnoringCallerTokenException)
             {
                 return false;
             }
