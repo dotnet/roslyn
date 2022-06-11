@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnreachableCode), Shared]
-    internal class CSharpRemoveUnreachableCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class CSharpRemoveUnreachableCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         {
             foreach (var diagnostic in diagnostics)
             {
-                var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.First();
+                var firstUnreachableStatementLocation = diagnostic.AdditionalLocations[0];
                 var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(cancellationToken);
 
                 RemoveStatement(editor, firstUnreachableStatement);
