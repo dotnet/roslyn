@@ -79,7 +79,7 @@
          the l-value node; in lowering it is being substituted with rewritten l-value 
          converted to an r-value 
     -->
-    <Node Name="BoundLValueToRValueWrapper" Base="BoundExpression">
+    <Node Name="BoundLValueToRValueWrapper" Base="BoundExpression" HasValidate="true">
         <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
         <Field Name="UnderlyingLValue" Type="BoundExpression" Null="disallow" />
     </Node>
@@ -553,7 +553,7 @@
     </Node>
 
     <!-- Use this in the event that the sequence point must be applied to expression.-->
-    <Node Name="BoundSequencePointExpression" Base="BoundExpression" HasValidate="true">
+    <Node Name="BoundSequencePointExpression" Base="BoundExpression">
       <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     </Node>
   
