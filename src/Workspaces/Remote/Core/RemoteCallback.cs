@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(exception, cancellationToken);
+                throw OnUnexpectedException(cancellationToken);
             }
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(exception, cancellationToken);
+                throw OnUnexpectedException(cancellationToken);
             }
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(exception, cancellationToken);
+                throw OnUnexpectedException(cancellationToken);
             }
         }
 
@@ -100,29 +100,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 return FatalError.ReportAndCatch(exception);
             }
 
-            // When a connection is dropped and CancelLocallyInvokedMethodsWhenConnectionIsClosed is
-            // set ConnectionLostException should not be thrown. Instead the cancellation token should be
-            // signaled and OperationCancelledException should be thrown.
-            // Seems to not work in all cases currently, so we need to cancel ourselves (bug https://github.com/microsoft/vs-streamjsonrpc/issues/551).
-            // Once this issue is fixed we can remov this if statement and fall back to reporting NFW
-            // as any observation of ConnectionLostException indicates a bug (e.g. https://github.com/microsoft/vs-streamjsonrpc/issues/549).
-            if (exception is ConnectionLostException)
-            {
-                return true;
-            }
-
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
             return FatalError.ReportAndPropagate(exception);
         }
 
-        private static Exception OnUnexpectedException(Exception exception, CancellationToken cancellationToken)
+        private static Exception OnUnexpectedException(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            if (exception is ConnectionLostException)
-            {
-                throw new OperationCanceledException(exception.Message, exception);
-            }
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token,
             // and the resulting exception was not a ConnectionLostException.
