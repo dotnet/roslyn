@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis
         // Strings for the RuleSet node
         private const string RuleSetNodeName = "RuleSet";
         private const string RuleSetNameAttributeName = "Name";
-        private const string RuleSetDescriptionAttributeName = "Description";
         private const string RuleSetToolsVersionAttributeName = "ToolsVersion";
 
         // Strings for the Rules node
