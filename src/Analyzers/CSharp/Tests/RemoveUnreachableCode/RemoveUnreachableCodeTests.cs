@@ -887,5 +887,29 @@ throw new System.Exception();
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        [WorkItem(61810, "https://github.com/dotnet/roslyn/issues/61810")]
+        public async Task TestTopLevel_MultipleUnreachableStatements()
+        {
+            var code = @"
+throw new System.Exception();
+[|System.Console.ReadLine();
+|][|System.Console.ReadLine();
+|]";
+            var fixedCode = @"
+throw new System.Exception();
+";
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }
