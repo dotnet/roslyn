@@ -75,8 +75,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
 
-        event EventHandler<OptionChangedEventArgs> OptionChanged;
-
         /// <summary>
         /// Registers a workspace with the option service.
         /// </summary>

@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_required">
         <source>Accessibility modifiers required</source>
-        <target state="translated">Требуются модификаторы доступности</target>
+        <target state="translated">Требуются модификаторы доступа</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">Добавьте модификаторы доступности</target>
+        <target state="translated">Добавить модификаторы доступа</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_explicit_cast">

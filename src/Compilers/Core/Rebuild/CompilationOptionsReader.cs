@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return false;
         }
 
-        public bool HasEmbeddedPdb => PeReader.ReadDebugDirectory().Any(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+        public bool HasEmbeddedPdb => PeReader.ReadDebugDirectory().Any(static entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
         private static ImmutableArray<(string, string)> ParseCompilationOptions(BlobReader blobReader)
         {
