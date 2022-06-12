@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SetFileScopedNamespaces(bool value)
             => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(
-                new OptionKey(CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations),
+                new OptionKey(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.NamespaceDeclarations),
                 new CodeStyleOption2<NamespaceDeclarationPreference>(value ? NamespaceDeclarationPreference.FileScoped : NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion)));
 
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
