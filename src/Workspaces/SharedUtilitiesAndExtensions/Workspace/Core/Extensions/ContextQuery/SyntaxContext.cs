@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isGlobalStatementContext,
             bool isInImportsDirective,
             bool isInQuery,
-            bool isInTaskLikeTypeContext,
+            bool isTaskLikeTypeContext,
             bool isNameOfContext,
             bool isNamespaceContext,
             bool isNamespaceDeclarationNameContext,
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsInImportsDirective = isInImportsDirective;
             this.IsInQuery = isInQuery;
-            this.IsTaskLikeTypeContext = isInTaskLikeTypeContext;
+            this.IsTaskLikeTypeContext = isTaskLikeTypeContext;
             this.IsNameOfContext = isNameOfContext;
             this.IsNamespaceContext = isNamespaceContext;
             this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
