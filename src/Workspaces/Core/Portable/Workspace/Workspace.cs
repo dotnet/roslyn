@@ -255,16 +255,9 @@ namespace Microsoft.CodeAnalysis
             [Obsolete(@"Workspace options should be set by invoking 'workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptionSet))'")]
             set
             {
-                SetOptions(value);
+                _optionService.SetOptions(value);
             }
         }
-
-        /// <summary>
-        /// Sets global options and <see cref="Options"/> to have the new options.
-        /// NOTE: This method also updates <see cref="CurrentSolution"/> to a new solution instance with updated <see cref="Solution.Options"/>.
-        /// </summary>
-        internal void SetOptions(OptionSet options)
-            => _optionService.SetOptions(options);
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
@@ -1247,7 +1240,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.CurrentSolution.Options != newSolution.Options)
                 {
-                    SetOptions(newSolution.Options);
+                    _optionService.SetOptions(newSolution.Options);
                 }
 
                 if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))
