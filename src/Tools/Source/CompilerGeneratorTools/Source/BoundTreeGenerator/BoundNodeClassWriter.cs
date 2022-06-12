@@ -766,12 +766,6 @@ namespace BoundTreeGenerator
                    select f;
         }
 
-        // AlwaysNull fields are those that have Null="Always" specified (possibly in an override).
-        private IEnumerable<Field> AllAlwaysNullFields(TreeType node)
-        {
-            return from f in AllFields(node) where FieldNullHandling(node, f.Name) == NullHandling.Always select f;
-        }
-
         // Specifiable fields are those that aren't always null.
         private IEnumerable<Field> AllSpecifiableFields(TreeType node)
         {
@@ -1751,11 +1745,6 @@ namespace BoundTreeGenerator
             }
         }
 
-        private bool IsAnyList(string typeName)
-        {
-            return IsNodeList(typeName);
-        }
-
         private bool IsValueType(string typeName) => _valueTypes.Contains(GetGenericType(typeName).TrimEnd('?'));
 
         private bool IsDerivedType(string typeName, string derivedTypeName)
@@ -1769,11 +1758,6 @@ namespace BoundTreeGenerator
                 return IsDerivedType(typeName, baseType);
             }
             return false;
-        }
-
-        private static bool IsRoot(Node n)
-        {
-            return n.Root != null && string.Compare(n.Root, "true", true) == 0;
         }
 
         private bool IsNode(string typeName)
