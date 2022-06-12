@@ -1412,9 +1412,9 @@ class D { }
             Assert.Equal(changedValue, value2);
         }
 
-        [CombinatorialData]
-        [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
-        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
+        [Obsolete]
+        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged()
         {
             using var primaryWorkspace = CreateWorkspace();
             using var secondaryWorkspace = CreateWorkspace();
@@ -1437,16 +1437,7 @@ class D { }
             primaryWorkspace.GlobalOptions.OptionChanged += OptionService_OptionChanged;
 
             // Change workspace options through primary workspace
-            if (testDeprecatedOptionsSetter)
-            {
-#pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
-                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
-#pragma warning restore CS0618 // Type or member is obsolete
-            }
-            else
-            {
-                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block));
-            }
+            primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
 
             // Verify current solution and option change for both workspaces.
             VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
