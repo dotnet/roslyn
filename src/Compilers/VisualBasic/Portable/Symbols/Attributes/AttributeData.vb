@@ -252,15 +252,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Shared Function GetFirstArgumentLocation(nodeOpt As AttributeSyntax) As Location
-            ' 0 passed here isn't used since we care only about location.
-            Return GetFirstArgumentDisplayAndLocation(nodeOpt, 0).Location
+        Friend Shared Function GetArgumentLocation(nodeOpt As AttributeSyntax, argumentIndex As Integer) As Location
+            Return GetArgumentDisplayAndLocation(nodeOpt, 0, argumentIndex).Location
         End Function
 
-        Private Shared Function GetFirstArgumentDisplayAndLocation(nodeOpt As AttributeSyntax, value As Integer) As (ArgumentDisplay As String, Location As Location)
+        Private Shared Function GetArgumentDisplayAndLocation(nodeOpt As AttributeSyntax, value As Integer, argumentIndex As Integer) As (ArgumentDisplay As String, Location As Location)
             If nodeOpt IsNot Nothing Then
-                If nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > 0 Then
-                    Dim arg As ArgumentSyntax = nodeOpt.ArgumentList.Arguments(0)
+                If nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > argumentIndex Then
+                    Dim arg As ArgumentSyntax = nodeOpt.ArgumentList.Arguments(argumentIndex)
                     Return (arg.ToString(), arg.GetLocation())
                 Else
                     Return (value.ToString(), nodeOpt.GetLocation())
@@ -268,6 +267,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Return ("", NoLocation.Singleton)
             End If
+        End Function
+
+        Friend Shared Function GetFirstArgumentLocation(nodeOpt As AttributeSyntax) As Location
+            Return GetArgumentLocation(nodeOpt, argumentIndex:=0)
+        End Function
+
+        Private Shared Function GetFirstArgumentDisplayAndLocation(nodeOpt As AttributeSyntax, value As Integer) As (ArgumentDisplay As String, Location As Location)
+            Return GetArgumentDisplayAndLocation(nodeOpt, value, argumentIndex:=0)
         End Function
 
         Private Function ValidateSecurityAction(

@@ -1096,17 +1096,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultCharSetAttribute) Then
                 Dim charSet As CharSet = attrData.GetConstructorArgument(Of CharSet)(0, SpecialType.System_Enum)
                 If Not CommonModuleWellKnownAttributeData.IsValidCharSet(charSet) Then
-                    Dim location As Location
-                    If arguments.AttributeSyntaxOpt IsNot Nothing Then
-                        If arguments.AttributeSyntaxOpt.ArgumentList IsNot Nothing AndAlso arguments.AttributeSyntaxOpt.ArgumentList.Arguments.Count > 0 Then
-                            location = arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation()
-                        Else
-                            location = arguments.AttributeSyntaxOpt.GetLocation()
-                        End If
-                    Else
-                        location = NoLocation.Singleton
-                    End If
-                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_BadAttribute1, location, attrData.AttributeClass)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
                 Else
                     arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData)().DefaultCharacterSet = charSet
                 End If

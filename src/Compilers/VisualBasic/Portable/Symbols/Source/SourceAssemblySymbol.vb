@@ -1133,17 +1133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i = 0 To argCount - 1
                 Dim arg As Integer = attrData.GetConstructorArgument(Of Integer)(i, SpecialType.System_Int32)
                 If arg < 0 Then
-                    Dim location As Location
-                    If nodeOpt IsNot Nothing Then
-                        If nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > i Then
-                            location = nodeOpt.ArgumentList.Arguments(i).GetLocation()
-                        Else
-                            location = nodeOpt.GetLocation()
-                        End If
-                    Else
-                        location = NoLocation.Singleton
-                    End If
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, location, attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetArgumentLocation(nodeOpt, i), attrData.AttributeClass)
                 End If
             Next
         End Sub

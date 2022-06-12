@@ -730,17 +730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.FieldOffsetAttribute) Then
                 Dim offset = attrData.CommonConstructorArguments(0).DecodeValue(Of Integer)(SpecialType.System_Int32)
                 If offset < 0 Then
-                    Dim location As Location
-                    If arguments.AttributeSyntaxOpt IsNot Nothing Then
-                        If arguments.AttributeSyntaxOpt.ArgumentList IsNot Nothing AndAlso arguments.AttributeSyntaxOpt.ArgumentList.Arguments.Count > 0 Then
-                            location = arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation()
-                        Else
-                            location = arguments.AttributeSyntaxOpt.GetLocation()
-                        End If
-                    Else
-                        location = NoLocation.Singleton
-                    End If
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, location, attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
                     offset = 0
                 End If
 
