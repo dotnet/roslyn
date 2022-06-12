@@ -10,6 +10,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.PooledObjects;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal class DirectiveParser : SyntaxParser
@@ -670,35 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()
-        {
-            StringBuilder builder = null;
-
-            if (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken &&
-                this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
-            {
-                builder = new StringBuilder(this.CurrentToken.FullWidth);
-
-                while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken &&
-                       this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
-                {
-                    var token = this.EatToken();
-
-                    builder.Append(token.ToFullString());
-                }
-            }
-
-            SyntaxToken endOfDirective = this.CurrentToken.Kind == SyntaxKind.EndOfDirectiveToken
-                                         ? this.EatToken()
-                                         : SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken);
-
-            if (builder != null)
-            {
-                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
-                    SyntaxFactory.PreprocessingMessage(builder.ToString()));
-            }
-
-            return endOfDirective;
-        }
+            => this.lexer.LexEndOfDirectiveWithOptionalPreprocessingMessage();
 
         private SyntaxToken ParseEndOfDirective(bool ignoreErrors, bool afterPragma = false, bool afterLineNumber = false)
         {

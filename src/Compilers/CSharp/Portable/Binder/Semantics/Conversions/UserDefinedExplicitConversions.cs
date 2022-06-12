@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)source != null)
             {
-                if (u.Any(conv => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2)))
+                if (u.Any(static (conv, source) => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2), source))
                 {
                     return source;
                 }
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already written the "ToType" into the conversion analysis to
             // perpetuate this fiction.
 
-            if (u.Any(conv => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2)))
+            if (u.Any(static (conv, target) => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2), target))
             {
                 return target;
             }

@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="translated">Удалить избыточные операторы назначения</target>
+        <target state="translated">Удалить избыточное присваивание</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_or_Configure_issues">

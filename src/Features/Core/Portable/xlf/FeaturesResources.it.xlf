@@ -585,6 +585,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Impossibile trovare PDB su disco, incorporato o su un server di simboli.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">Crea e assegna il campo '{0}'</target>
@@ -2508,6 +2513,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Sostituisci '{0}' con '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">

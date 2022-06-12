@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
-            return symbols.Any(s =>
+            return symbols.Any(static s =>
             {
                 return s switch
                 {

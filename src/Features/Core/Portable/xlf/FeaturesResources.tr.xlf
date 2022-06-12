@@ -585,6 +585,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">PDB diskte, gömülü veya bir sembol sunucusunda bulunamadı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">'{0}' alanını oluştur ve ata</target>
@@ -2508,6 +2513,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' öğesini '{1}' ile değiştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_conditional_expression_with_statements">
+        <source>Replace conditional expression with statements</source>
+        <target state="new">Replace conditional expression with statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
