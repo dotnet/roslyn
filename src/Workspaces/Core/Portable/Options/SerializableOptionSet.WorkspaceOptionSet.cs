@@ -54,15 +54,6 @@ namespace Microsoft.CodeAnalysis.Options
                 return new WorkspaceOptionSet(OptionService, _values.SetItem(optionAndLanguage, value));
             }
 
-            /// <summary>
-            /// Gets a list of all the options that were changed.
-            /// </summary>
-            internal IEnumerable<OptionKey> GetChangedOptions()
-            {
-                var optionSet = OptionService.GetOptions();
-                return GetChangedOptions(optionSet);
-            }
-
             internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
             {
                 if (optionSet == this)
