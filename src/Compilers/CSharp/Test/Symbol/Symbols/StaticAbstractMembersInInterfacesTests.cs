@@ -6356,34 +6356,34 @@ class C8
             if (!isVirtual)
             {
                 expected = new[] {
-                    // (4,22): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (4,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //     void Test(C1<I2> x)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(4, 22),
-                    // (15,11): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (15,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //         x.M<I2>();
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(15, 11),
-                    // (21,22): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (21,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //     void Test(C3<I2> x, C3<I3> y)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(21, 22),
-                    // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //     void Test(C3<I2> x, C3<I3> y)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
-                    // (32,11): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (32,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //         x.M<I2>();
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(32, 11),
-                    // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //         x.M<I3>();
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
-                    // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //     void Test(C5<I3> y)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
-                    // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //         x.M<I3>();
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11),
-                    // (56,22): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (56,22): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //     void Test(C7<I1> y)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.M01()").WithLocation(56, 22),
-                    // (67,11): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (67,11): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     //         x.M<I1>();
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("I1", "I1.M01()").WithLocation(67, 11)
                 };
@@ -6615,10 +6615,10 @@ class C8
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
-                // (56,22): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (56,22): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C7<I1> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.M01()").WithLocation(56, 22),
-                // (67,11): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (67,11): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I1>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("I1", "I1.M01()").WithLocation(67, 11)
                 };
@@ -6733,28 +6733,28 @@ class C8
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
-                // (4,22): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (4,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C1<I2> x)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(4, 22),
-                // (15,11): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (15,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(15, 11),
-                // (21,22): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (21,22): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I2", "I1.M01()").WithLocation(21, 22),
-                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
-                // (32,11): error CS8920: The interface 'I2' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (32,11): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("I2", "I1.M01()").WithLocation(32, 11),
-                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
-                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C5<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
-                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11)
                 };
@@ -6874,16 +6874,16 @@ class C8
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
-                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
-                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
-                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C5<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
-                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11)
                 };
@@ -7003,16 +7003,16 @@ class C8
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
-                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(21, 32),
-                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(33, 11),
-                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //     void Test(C5<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I3", "I1.M01()").WithLocation(39, 22),
-                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("I3", "I1.M01()").WithLocation(50, 11)
                 };
@@ -7056,7 +7056,7 @@ class D : C<I>
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (11,7): error CS8920: The interface 'I' cannot be used as type argument. Member 'I.P' does not have a most specific implementation in the interface.
+                // (11,7): error CS8920: The interface 'I' cannot be used as type argument. Static member 'I.P' does not have a most specific implementation in the interface.
                 // class D : C<I>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "D").WithArguments("I", "I.P").WithLocation(11, 7)
                 );
@@ -9391,13 +9391,13 @@ class C<T>
             else
             {
                 compilation1.VerifyDiagnostics(
-                    // (7,34): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
+                    // (7,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
                     //     static void M02((int, C<I1>) x)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1", "I1.operator true(I1)").WithLocation(7, 34),
-                    // (12,27): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
+                    // (12,27): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
                     //     void M03((int, C<I1>) y)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.operator true(I1)").WithLocation(12, 27),
-                    // (20,34): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
+                    // (20,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.operator true(I1)' does not have a most specific implementation in the interface.
                     //     static void MT1((int, C<I1>) a)
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1", "I1.operator true(I1)").WithLocation(20, 34),
                     // (9,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
@@ -10262,40 +10262,40 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (10,34): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (10,34): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //     static void M02((int, I1<T>) x)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(10, 34),
                 // (12,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
                 //         _ = x != x;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(12, 13),
-                // (12,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (12,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //         _ = x != x;
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(12, 13),
-                // (12,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (12,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //         _ = x != x;
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(12, 18),
-                // (15,27): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (15,27): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //     void M03((int, I1<T>) y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(15, 27),
                 // (17,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
                 //         _ = y != y;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(17, 13),
-                // (17,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (17,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //         _ = y != y;
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(17, 13),
-                // (17,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (17,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //         _ = y != y;
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(17, 18),
-                // (23,37): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (23,37): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //     static void MT1<T>((int, I1<T>) a) where T : I1<T>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(23, 37),
                 // (25,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
                 //         _ = a != a;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(25, 13),
-                // (25,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (25,13): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //         _ = a != a;
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(25, 13),
-                // (25,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
+                // (25,18): error CS8920: The interface 'I1<T>' cannot be used as type argument. Static member 'I1<T>.operator ==(T, T)' does not have a most specific implementation in the interface.
                 //         _ = a != a;
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1<T>", "I1<T>.operator ==(T, T)").WithLocation(25, 18),
                 // (30,92): error CS8382: An expression tree may not contain a tuple == or != operator
@@ -29548,19 +29548,19 @@ class C<T>
                 // (4,39): error CS0552: 'I1.implicit operator bool(I1)': user-defined conversions to or from an interface are not allowed
                 //     abstract static implicit operator bool(I1 x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "bool").WithArguments("I1.implicit operator bool(I1)").WithLocation(4, 39),
-                // (7,34): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
+                // (7,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
                 //     static void M02((int, C<I1>) x)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("I1", "I1.implicit operator bool(I1)").WithLocation(7, 34),
                 // (9,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
                 //         _ = x == x;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "x " + op + " x").WithArguments("I1", "bool").WithLocation(9, 13),
-                // (12,27): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
+                // (12,27): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
                 //     void M03((int, C<I1>) y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("I1", "I1.implicit operator bool(I1)").WithLocation(12, 27),
                 // (14,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
                 //         _ = y == y;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "y " + op + " y").WithArguments("I1", "bool").WithLocation(14, 13),
-                // (20,34): error CS8920: The interface 'I1' cannot be used as type argument. Member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
+                // (20,34): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.implicit operator bool(I1)' does not have a most specific implementation in the interface.
                 //     static void MT1((int, C<I1>) a)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "a").WithArguments("I1", "I1.implicit operator bool(I1)").WithLocation(20, 34),
                 // (22,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'

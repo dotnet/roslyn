@@ -985,10 +985,10 @@ hasRelatedInterfaces:
                                                                            ignoreTypeConstraintsDependentOnTypeParametersOpt);
             bool hasError = false;
 
-            if (typeArgument.Type is NamedTypeSymbol { IsInterface: true } iFace && SelfOrBaseHasStaticAbstractMember(iFace, ref useSiteInfo, out Symbol member))
+            if (typeArgument.Type is NamedTypeSymbol { IsInterface: true } iface && SelfOrBaseHasStaticAbstractMember(iface, ref useSiteInfo, out Symbol member))
             {
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter,
-                    new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, iFace, member))));
+                    new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, iface, member))));
                 hasError = true;
             }
 
@@ -1292,24 +1292,24 @@ hasRelatedInterfaces:
             return false;
         }
 
-        private static bool SelfOrBaseHasStaticAbstractMember(NamedTypeSymbol iFace, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol memberWithoutImplementation)
+        private static bool SelfOrBaseHasStaticAbstractMember(NamedTypeSymbol iface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol memberWithoutImplementation)
         {
-            Debug.Assert(iFace.IsInterfaceType());
+            Debug.Assert(iface.IsInterfaceType());
 
-            foreach (Symbol m in iFace.GetMembers())
+            foreach (Symbol m in iface.GetMembers())
             {
-                if (m.IsStatic && m.IsImplementableInterfaceMember() && iFace.FindImplementationForInterfaceMember(m) is null)
+                if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
                 {
                     memberWithoutImplementation = m;
                     return true;
                 }
             }
 
-            foreach (var baseInterface in iFace.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
+            foreach (var baseInterface in iface.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
             {
                 foreach (Symbol m in baseInterface.GetMembers())
                 {
-                    if (m.IsStatic && m.IsImplementableInterfaceMember() && iFace.FindImplementationForInterfaceMember(m) is null)
+                    if (m.IsStatic && m.IsImplementableInterfaceMember() && iface.FindImplementationForInterfaceMember(m) is null)
                     {
                         memberWithoutImplementation = m;
                         return true;
