@@ -5165,7 +5165,7 @@ BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument va
                                  <![CDATA[
 Imports System.Runtime.InteropServices
 
-<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. major is negative.
+<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. minor is negative.
 
 Namespace System.Runtime.InteropServices
     Public Class TypeLibVersionAttribute
@@ -5182,7 +5182,7 @@ End Namespace
             Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<expected><![CDATA[
 BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
-<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. major is negative.
+<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. minor is negative.
                                       ~~
 ]]></expected>)
         End Sub
