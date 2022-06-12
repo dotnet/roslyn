@@ -118,7 +118,7 @@ public class FormatterTests
         var csDocument = workspace.AddDocument(csProject.Id, "File.cs", SourceText.From("class C { }"));
         var vbDocument = workspace.AddDocument(vbProject.Id, "File.vb", SourceText.From("Class C : End Class"));
 
-        var updatedOptions = GetOptionSetWithChangedPublicOptions(workspace.CurrentSolution.Options);
+        var updatedOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(workspace.CurrentSolution.Options, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
 
         // Validate that options are read from specified OptionSet:
 
@@ -135,79 +135,6 @@ public class FormatterTests
         ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
         ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(csDocumentWithUpdatedOptions, CancellationToken.None));
         ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(vbDocumentWithUpdatedOptions, CancellationToken.None));
-
-        static OptionSet GetOptionSetWithChangedPublicOptions(OptionSet options)
-        {
-            // all public options and their non-default values:
-
-            var publicOptions = new (IOption, object)[]
-            {
-                (FormattingOptions.UseTabs, true),
-                (FormattingOptions.TabSize, 5),
-                (FormattingOptions.IndentationSize, 7),
-                (FormattingOptions.NewLine, "\r"),
-                (CSharpFormattingOptions.IndentBlock, false),
-                (CSharpFormattingOptions.IndentBraces, true),
-                (CSharpFormattingOptions.IndentSwitchCaseSection, false),
-                (CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, false),
-                (CSharpFormattingOptions.IndentSwitchSection, false),
-                (CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost),
-                (CSharpFormattingOptions.NewLineForCatch, false),
-                (CSharpFormattingOptions.NewLineForClausesInQuery, false),
-                (CSharpFormattingOptions.NewLineForElse, false),
-                (CSharpFormattingOptions.NewLineForFinally, false),
-                (CSharpFormattingOptions.NewLineForMembersInAnonymousTypes, false),
-                (CSharpFormattingOptions.NewLineForMembersInObjectInit, false),
-                (CSharpFormattingOptions.NewLinesForBracesInAccessors, false),
-                (CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, false),
-                (CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, false),
-                (CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false),
-                (CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false),
-                (CSharpFormattingOptions.NewLinesForBracesInMethods, false),
-                (CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false),
-                (CSharpFormattingOptions.NewLinesForBracesInProperties, false),
-                (CSharpFormattingOptions.NewLinesForBracesInTypes, false),
-                (CSharpFormattingOptions.SpaceAfterCast, true),
-                (CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration, false),
-                (CSharpFormattingOptions.SpaceAfterComma, false),
-                (CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword, false),
-                (CSharpFormattingOptions.SpaceAfterDot, true),
-                (CSharpFormattingOptions.SpaceAfterMethodCallName, true),
-                (CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, false),
-                (CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration, false),
-                (CSharpFormattingOptions.SpaceBeforeComma, true),
-                (CSharpFormattingOptions.SpaceBeforeDot, true),
-                (CSharpFormattingOptions.SpaceBeforeOpenSquareBracket, true),
-                (CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, true),
-                (CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true),
-                (CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses, true),
-                (CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true),
-                (CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true),
-                (CSharpFormattingOptions.SpaceWithinCastParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinExpressionParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis, true),
-                (CSharpFormattingOptions.SpaceWithinOtherParentheses, true),
-                (CSharpFormattingOptions.SpaceWithinSquareBrackets, true),
-                (CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true),
-                (CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove),
-                (CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false),
-                (CSharpFormattingOptions.WrappingPreserveSingleLine, false),
-            };
-
-            var updatedOptions = options;
-            foreach (var (option, newValue) in publicOptions)
-            {
-                var languages = (option is IPerLanguageOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
-
-                foreach (var language in languages)
-                {
-                    updatedOptions = updatedOptions.WithChangedOption(new OptionKey(option, language), newValue);
-                }
-            }
-
-            return updatedOptions;
-        }
 
         static void ValidateCommonOptions(SyntaxFormattingOptions formattingOptions)
         {

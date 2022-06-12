@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -30,7 +31,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
     [UseExportProvider]
-    public partial class WorkspaceTests : TestBase
+    public class WorkspaceTests_EditorFeatures : TestBase
     {
         private static TestWorkspace CreateWorkspace(
             string workspaceKind = null,
@@ -1387,29 +1388,28 @@ class D { }
         [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
         public void TestSolutionWithOptions()
         {
-            using var workspace = CreateWorkspace();
+            using var workspace1 = CreateWorkspace();
+            var solution = workspace1.CurrentSolution;
 
-            var document = new TestHostDocument("class C { }");
-
-            var project1 = new TestHostProject(workspace, document, name: "project1");
-
-            workspace.AddTestProject(project1);
-
-            var solution = workspace.CurrentSolution;
             var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
-            var optionValue = solution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions2.IndentStyle.Smart, optionValue);
+            var defaultValue = solution.Options.GetOption(optionKey);
+            var changedValue = FormattingOptions.IndentStyle.Block;
+            Assert.NotEqual(defaultValue, changedValue);
 
-            var newOptions = solution.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
+            var newOptions = solution.Options.WithChangedOption(optionKey, changedValue);
             var newSolution = solution.WithOptions(newOptions);
             var newOptionValue = newSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions2.IndentStyle.Block, newOptionValue);
+            Assert.Equal(changedValue, newOptionValue);
 
-            var applied = workspace.TryApplyChanges(newSolution);
-            Assert.True(applied);
+            Assert.True(workspace1.TryApplyChanges(newSolution));
 
-            var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions2.IndentStyle.Block, currentOptionValue);
+            var currentOptionValue = workspace1.CurrentSolution.Options.GetOption(optionKey);
+            Assert.Equal(changedValue, currentOptionValue);
+
+            // option is set to global options that are shared among all workspaces
+            using var workspace2 = CreateWorkspace();
+            var value2 = workspace2.Options.GetOption(optionKey);
+            Assert.Equal(changedValue, value2);
         }
 
         [CombinatorialData]
