@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders;
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
-        private readonly HashSet<string> _forceComputedLanguages = new();
 
         // access is interlocked
         private ImmutableArray<Workspace> _registeredWorkspaces;
@@ -261,60 +260,8 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        /// <summary>
-        /// Gets force computed serializable options with prefetched values for all the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService)
-        {
-            Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
-            var serializableOptions = GetRegisteredSerializableOptions(languages);
-            var serializableOptionValues = GetSerializableOptionValues(serializableOptions, languages);
-            var changedOptionsKeysSerializable = _changedOptionKeys
-                .Where(key => serializableOptions.Contains(key.Option) && (!key.Option.IsPerLanguage || languages.Contains(key.Language!)))
-                .ToImmutableHashSet();
-            return new SerializableOptionSet(optionService, serializableOptionValues, changedOptionsKeysSerializable);
-        }
-
-        private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
-        {
-            if (optionKeys.IsEmpty)
-            {
-                return ImmutableDictionary<OptionKey, object?>.Empty;
-            }
-
-            // Ensure the option persisters are available before taking the global lock
-            var persisters = GetOptionPersisters();
-
-            lock (_gate)
-            {
-                // Force compute the option values for languages, if required.
-                if (!languages.All(_forceComputedLanguages.Contains))
-                {
-                    foreach (var option in optionKeys)
-                    {
-                        if (!option.IsPerLanguage)
-                        {
-                            var key = new OptionKey(option);
-                            var _ = GetOption_NoLock(key, persisters);
-                            continue;
-                        }
-
-                        foreach (var language in languages)
-                        {
-                            var key = new OptionKey(option, language);
-                            var _ = GetOption_NoLock(key, persisters);
-                        }
-                    }
-
-                    _forceComputedLanguages.AddRange(languages);
-                }
-
-                return ImmutableDictionary.CreateRange(_currentValues
-                    .Where(kvp => optionKeys.Contains(kvp.Key.Option) &&
-                                   (!kvp.Key.Option.IsPerLanguage ||
-                                    languages.Contains(kvp.Key.Language!))));
-            }
-        }
+        public SerializableOptionSet GetOptions(IOptionService optionService)
+            => new(optionService);
 
         public T GetOption<T>(Option<T> option)
             => OptionsHelpers.GetOption(option, _getOption);

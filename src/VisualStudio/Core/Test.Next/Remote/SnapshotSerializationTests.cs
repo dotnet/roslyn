@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal static Solution CreateFullSolution(Workspace workspace)
         {
             var solution = workspace.CurrentSolution;
-            var languages = ImmutableHashSet.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
-            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetSerializableOptionsSnapshot(languages);
+            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetOptions();
             solution = solution.WithOptions(solutionOptions);
 
             var csCode = "class A { }";

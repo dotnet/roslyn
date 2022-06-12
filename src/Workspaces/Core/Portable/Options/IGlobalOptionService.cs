@@ -74,10 +74,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
 
-        /// <summary>
-        /// Gets force computed serializable options snapshot with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService);
+        SerializableOptionSet GetOptions(IOptionService optionService);
 
         /// <summary>
         /// Returns the set of all registered options.
