@@ -10,11 +10,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
-    internal interface IEmbeddedLanguageInfoProviderService : ILanguageService
-    {
-        EmbeddedLanguageInfo EmbeddedLanguageInfo { get; }
-    }
-
     internal readonly struct EmbeddedLanguageInfo
     {
         public readonly ISyntaxFacts SyntaxFacts;

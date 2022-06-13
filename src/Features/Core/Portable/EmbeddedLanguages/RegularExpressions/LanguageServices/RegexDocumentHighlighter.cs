@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
                 return default;
 
-            var info = document.GetRequiredLanguageService<IEmbeddedLanguageInfoProviderService>().EmbeddedLanguageInfo;
+            var info = document.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
 
             var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
