@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var globalOptions = services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
             var optionsProvider = (OptionsProvider<SyntaxFormattingOptions>)globalOptions.CleanCodeGenerationOptionsProvider;
             var fallbackOptions = await optionsProvider.GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false);
-            var optionService = services.GetRequiredService<IOptionService>();
+            var optionService = services.GetRequiredService<ILegacyWorkspaceOptionService>();
             var configOptions = documentOptions.AsAnalyzerConfigOptions(optionService, document.Project.Language);
 
             var indentationOptions = new IndentationOptions(formattingService.GetFormattingOptions(configOptions, fallbackOptions))

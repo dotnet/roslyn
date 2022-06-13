@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal static Solution CreateFullSolution(Workspace workspace)
         {
             var solution = workspace.CurrentSolution;
-            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetOptions();
-            solution = solution.WithOptions(solutionOptions);
 
             var csCode = "class A { }";
             var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);

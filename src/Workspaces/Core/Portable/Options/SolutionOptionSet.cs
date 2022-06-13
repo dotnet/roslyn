@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal sealed partial class SolutionOptionSet : OptionSet
     {
-        private readonly IOptionService _globalOptions;
+        private readonly ILegacyWorkspaceOptionService _globalOptions;
 
         private ImmutableDictionary<OptionKey, object?> _values;
 
         private readonly ImmutableHashSet<OptionKey> _changedOptionKeys;
 
         private SolutionOptionSet(
-            IOptionService globalOptions,
+            ILegacyWorkspaceOptionService globalOptions,
             ImmutableDictionary<OptionKey, object?> values,
             ImmutableHashSet<OptionKey> changedOptionKeys)
         {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Options
             _changedOptionKeys = changedOptionKeys;
         }
 
-        internal SolutionOptionSet(IOptionService globalOptions)
+        internal SolutionOptionSet(ILegacyWorkspaceOptionService globalOptions)
             : this(globalOptions, values: ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
         {
         }

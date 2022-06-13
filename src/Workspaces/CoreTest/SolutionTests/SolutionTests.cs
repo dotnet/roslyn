@@ -3272,7 +3272,7 @@ class C
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
 
             // Apply an option change to a C# option.
             var option = FormattingOptions.UseTabs;

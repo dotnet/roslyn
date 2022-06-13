@@ -260,9 +260,6 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public SolutionOptionSet GetOptions(IOptionService optionService)
-            => new(optionService);
-
         public T GetOption<T>(Option<T> option)
             => OptionsHelpers.GetOption(option, _getOption);
 
@@ -366,25 +363,18 @@ namespace Microsoft.CodeAnalysis.Options
             RaiseOptionChangedEvent(changedOptions);
         }
 
-        public void SetOptions(OptionSet optionSet)
+        public void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys)
         {
-            var changedOptionKeys = optionSet switch
-            {
-                null => throw new ArgumentNullException(nameof(optionSet)),
-                SolutionOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
-                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(optionSet))
-            };
-
             var changedOptions = new List<OptionChangedEventArgs>();
 
             lock (_gate)
             {
-                foreach (var optionKey in changedOptionKeys)
+                foreach (var optionKey in optionKeys)
                 {
                     var newValue = optionSet.GetOption(optionKey);
-                    var currentValue = this.GetOption(optionKey);
+                    var currentValue = GetOption(optionKey);
 
-                    if (object.Equals(currentValue, newValue))
+                    if (Equals(currentValue, newValue))
                     {
                         // Identical, so nothing is changing
                         continue;
