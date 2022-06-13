@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
-        internal static List<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? body)
+        internal static ObservableCollection<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? body)
         {
-            var documentSymbolModels = new List<DocumentSymbolViewModel>();
+            var documentSymbolModels = new ObservableCollection<DocumentSymbolViewModel>();
             if (body is null || body.Length == 0)
             {
                 return documentSymbolModels;
@@ -33,13 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 documentSymbolModels.Add(ds);
             }
 
-            documentSymbolModels = documentSymbolModels.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
-            for (var i = 0; i < documentSymbolModels.Count; i++)
-            {
-                documentSymbolModels[i].Children = Sort(documentSymbolModels[i].Children, SortOption.Order);
-            }
-
-            return documentSymbolModels;
+            return Sort(documentSymbolModels, SortOption.Order);
         }
 
         internal static DocumentSymbolViewModel AddNodes(DocumentSymbolViewModel newNode, DocumentSymbol[] children)
@@ -71,31 +65,26 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal static ObservableCollection<DocumentSymbolViewModel> Sort(ObservableCollection<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
         {
-            if (documentSymbolModels.Count == 0)
+            if (documentSymbolModels.Count <= 1)
             {
                 return documentSymbolModels;
             }
 
-            var result = new List<DocumentSymbolViewModel>();
-            switch (sortOption)
+            var sortedDocumentSymbolModels = sortOption switch
             {
-                case SortOption.Name:
-                    result = documentSymbolModels.OrderBy(x => x.Name).ToList();
-                    break;
-                case SortOption.Order:
-                    result = documentSymbolModels.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
-                    break;
-                case SortOption.Type:
-                    result = documentSymbolModels.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name).ToList();
-                    break;
+
+                SortOption.Name => documentSymbolModels.OrderBy(x => x.Name),
+                SortOption.Order => documentSymbolModels.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar),
+                SortOption.Type => documentSymbolModels.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name),
+                _ => throw new NotImplementedException()
+            };
+
+            foreach (var documentSymbolModel in sortedDocumentSymbolModels)
+            {
+                documentSymbolModel.Children = Sort(documentSymbolModel.Children, sortOption);
             }
 
-            for (var i = 0; i < result.Count; i++)
-            {
-                result[i].Children = Sort(result[i].Children, sortOption);
-            }
-
-            return new ObservableCollection<DocumentSymbolViewModel>(result);
+            return new ObservableCollection<DocumentSymbolViewModel>(sortedDocumentSymbolModels);
         }
 
         internal static bool SearchNodeTree(DocumentSymbolViewModel tree, string search)
@@ -104,16 +93,14 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 return true;
             }
-            else
-            {
-                var found = false;
-                foreach (var childItem in tree.Children)
-                {
-                    found = found || SearchNodeTree(childItem, search);
-                }
 
-                return found;
+            var found = false;
+            foreach (var childItem in tree.Children)
+            {
+                found = found || SearchNodeTree(childItem, search);
             }
+
+            return found;
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Composition;
 using System.Linq;
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private Workspace? workspace { get; set; }
         private DocumentId? lastDocumentId { get; set; }
-        private List<DocumentSymbolViewModel>? originalTree { get; set; }
+        private ObservableCollection<DocumentSymbolViewModel>? originalTree { get; set; }
         private ITextSnapshot? snapshot { get; set; }
         private IWpfTextView? textView { get; set; }
 
@@ -244,38 +245,23 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void SortByName(object sender, EventArgs e)
         {
-            var items = this.originalTree;
-            var documentSymbols = items.OrderBy(x => x.Name).ToList();
-            for (var i = 0; i < documentSymbols.Count; i++)
-            {
-                documentSymbols[i].Children = DocumentOutlineHelper.Sort(documentSymbols[i].Children, SortOption.Name);
-            }
-
-            symbolTree.ItemsSource = documentSymbols;
+            var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(new ObservableCollection<DocumentSymbolViewModel>(this.originalTree), SortOption.Name);
+            this.originalTree = sortedDocumentSymbolModels;
+            symbolTree.ItemsSource = sortedDocumentSymbolModels;
         }
 
         private void SortByOrder(object sender, EventArgs e)
         {
-            var items = this.originalTree;
-            var documentSymbols = items.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
-            for (var i = 0; i < documentSymbols.Count; i++)
-            {
-                documentSymbols[i].Children = DocumentOutlineHelper.Sort(documentSymbols[i].Children, SortOption.Order);
-            }
-
-            symbolTree.ItemsSource = documentSymbols;
+            var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(new ObservableCollection<DocumentSymbolViewModel>(this.originalTree), SortOption.Order);
+            this.originalTree = sortedDocumentSymbolModels;
+            symbolTree.ItemsSource = sortedDocumentSymbolModels;
         }
 
         private void SortByType(object sender, EventArgs e)
         {
-            var items = this.originalTree;
-            var documentSymbols = items.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name).ToList();
-            for (var i = 0; i < documentSymbols.Count; i++)
-            {
-                documentSymbols[i].Children = DocumentOutlineHelper.Sort(documentSymbols[i].Children, SortOption.Type);
-            }
-
-            symbolTree.ItemsSource = documentSymbols;
+            var sortedDocumentSymbolModels = DocumentOutlineHelper.Sort(new ObservableCollection<DocumentSymbolViewModel>(this.originalTree), SortOption.Type);
+            this.originalTree = sortedDocumentSymbolModels;
+            symbolTree.ItemsSource = sortedDocumentSymbolModels;
         }
 
         // When node clicked, selects corresponding code
@@ -334,13 +320,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 var documentSymbols = this.originalTree;
                 var selectedNodeIndex = -1;
-                documentSymbols.ForEach(node =>
+                foreach (var node in documentSymbols)
                 {
                     if (node.StartLine <= lineNumber && node.EndLine >= lineNumber)
                     {
                         selectedNodeIndex = documentSymbols.IndexOf(node);
                     }
-                });
+                }
 
                 if (selectedNodeIndex == -1)
                 {
