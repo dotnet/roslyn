@@ -23351,7 +23351,16 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
+                compilation3.VerifyDiagnostics(
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.get'. 'C1.M01.get' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("C1", "I1.M01.get", "C1.M01.get").WithLocation(4, 28),
+                    // (4,33): error CS9044: 'C1' does not implement interface member 'I1.M01.set'. 'C1.M01.set' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("C1", "I1.M01.set", "C1.M01.set").WithLocation(4, 33)
+                    );
+
+                validate3(compilation3.SourceModule);
 
                 void validate3(ModuleSymbol module)
                 {
@@ -23494,7 +23503,13 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
+                compilation3.VerifyDiagnostics(
+                    // (4,33): error CS9044: 'C1' does not implement interface member 'I1.M01.set'. 'C1.M01.set' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("C1", "I1.M01.set", "C1.M01.set").WithLocation(4, 33)
+                    );
+
+                validate3(compilation3.SourceModule);
 
                 void validate3(ModuleSymbol module)
                 {
@@ -23661,7 +23676,10 @@ public class C1 : I1
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.get'
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.get").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.get").WithLocation(2, 19),
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.set'. 'C1.M01.set' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { set{} }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("C1", "I1.M01.set", "C1.M01.set").WithLocation(4, 28)
                     );
 
                 c1 = compilation6.GlobalNamespace.GetTypeMember("C1");
@@ -23837,7 +23855,13 @@ public class C1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: _supportingFramework);
 
-                CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
+                compilation3.VerifyDiagnostics(
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.get'. 'C1.M01.get' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("C1", "I1.M01.get", "C1.M01.get").WithLocation(4, 28)
+                    );
+
+                validate3(compilation3.SourceModule);
 
                 void validate3(ModuleSymbol module)
                 {
@@ -24004,7 +24028,10 @@ public class C1 : I1
                 compilation6.VerifyDiagnostics(
                     // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01.set'
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.set").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01.set").WithLocation(2, 19),
+                    // (4,28): error CS9044: 'C1' does not implement interface member 'I1.M01.get'. 'C1.M01.get' cannot implicitly implement an inaccessible member.
+                    //    public static int M01 { get; }
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("C1", "I1.M01.get", "C1.M01.get").WithLocation(4, 28)
                     );
 
                 c1 = compilation6.GlobalNamespace.GetTypeMember("C1");
