@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     alternate.AddRange(list, 0, i);
                 }
 
-                if (alternate.IsNull && visited != null && !visited.IsKind(SyntaxKind.None))
+                if (!alternate.IsNull && visited != null && !visited.IsKind(SyntaxKind.None))
                 {
                     alternate.Add(visited);
                 }
