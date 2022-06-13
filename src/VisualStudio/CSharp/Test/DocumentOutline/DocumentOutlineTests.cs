@@ -65,43 +65,32 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         }
 
         // The ObservableCollection<DocumentSymbolViewModel> equivalent of GetDocumentSymbols()
-        private static ObservableCollection<DocumentSymbolViewModel> GetDocSymbols()
+        private static ObservableCollection<DocumentSymbolViewModel> GetDocumentSymbolViewModels()
         {
-            var documentSymbols = new ObservableCollection<DocumentSymbolViewModel>();
-            for (var i = 0; i < NumParentNodes; i++)
-            {
-                var children = new ObservableCollection<DocumentSymbolViewModel>();
-                for (var j = 0; j < NumChildNodes; j++)
-                {
-                    var child = new DocumentSymbolViewModel(
-                        name: (i % 2 == 0 ? "Method" : "Field") + (j + i).ToString(),
-                        symbolKind: i % 2 == 0 ? SymbolKind.Method : SymbolKind.Field,
-                        startLine: j,
-                        startChar: j,
-                        endLine: j,
-                        endChar: j + 1);
+            var documentSymbols = GetDocumentSymbols();
+            var documentSymbolModels = new ObservableCollection<DocumentSymbolViewModel>();
 
-                    children.Add(child);
+            foreach (var documentSymbol in documentSymbols)
+            {
+                var documentSymbolModel = new DocumentSymbolViewModel(documentSymbol);
+                var children = new ObservableCollection<DocumentSymbolViewModel>();
+                if (documentSymbol.Children is not null)
+                {
+                    foreach (var child in documentSymbol.Children)
+                    {
+                        var childModel = new DocumentSymbolViewModel(child);
+                        children.Add(childModel);
+                    }
                 }
 
-                var docSymbol = new DocumentSymbolViewModel(
-                    name: (i % 2 == 0 ? "Class" : "Interface") + i.ToString(),
-                    symbolKind: i % 2 == 0 ? SymbolKind.Class : SymbolKind.Interface,
-                    startLine: i,
-                    startChar: i,
-                    endLine: i,
-                    endChar: i + 1)
-                {
-                    Children = children
-                };
-
-                documentSymbols.Add(docSymbol);
+                documentSymbolModel.Children = children;
+                documentSymbolModels.Add(documentSymbolModel);
             }
 
-            return documentSymbols;
+            return documentSymbolModels;
         }
 
-        private static void CompareDocSymbols(DocumentSymbolViewModel node, DocumentSymbolViewModel expectedNode)
+        private static void CompareDocumentSymbolViewModels(DocumentSymbolViewModel node, DocumentSymbolViewModel expectedNode)
         {
             Assert.Equal(node.Name, expectedNode.Name);
             Assert.Equal(node.SymbolKind, expectedNode.SymbolKind);
@@ -124,17 +113,17 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             // Test using mock data
             documentSymbols = GetDocumentSymbols();
             result = DocumentOutlineHelper.GetDocumentSymbols(documentSymbols);
-            expectedResult = GetDocSymbols();
+            expectedResult = GetDocumentSymbolViewModels();
 
             Assert.Equal(result.Count, expectedResult.Count);
             for (var i = 0; i < result.Count; i++)
             {
                 var node = result[i];
                 var expectedNode = expectedResult[i];
-                CompareDocSymbols(node, expectedNode);
+                CompareDocumentSymbolViewModels(node, expectedNode);
                 for (var j = 0; j < node.Children.Count; j++)
                 {
-                    CompareDocSymbols(node.Children[j], expectedNode.Children[j]);
+                    CompareDocumentSymbolViewModels(node.Children[j], expectedNode.Children[j]);
                 }
             }
         }
@@ -148,27 +137,27 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 throw new ArgumentException(message: "DocumentSymbol children cannot be null");
             }
 
-            var originalNode = GetDocSymbols()[0];
+            var originalNode = GetDocumentSymbolViewModels()[0];
             var newNodeWithoutChildren = originalNode;
             newNodeWithoutChildren.Children = new ObservableCollection<DocumentSymbolViewModel>();
 
             // Test with an empty array of children
             var newNode = DocumentOutlineHelper.AddNodes(newNodeWithoutChildren, Array.Empty<DocumentSymbol>());
-            CompareDocSymbols(newNode, newNodeWithoutChildren);
+            CompareDocumentSymbolViewModels(newNode, newNodeWithoutChildren);
 
             // Test with a nonempty array of children
             newNode = DocumentOutlineHelper.AddNodes(newNode, documentSymbol.Children);
-            CompareDocSymbols(newNode, originalNode);
+            CompareDocumentSymbolViewModels(newNode, originalNode);
             for (var i = 0; i < newNode.Children.Count; i++)
             {
-                CompareDocSymbols(newNode.Children[i], originalNode.Children[i]);
+                CompareDocumentSymbolViewModels(newNode.Children[i], originalNode.Children[i]);
             }
         }
 
         [Fact]
         public void TestSort()
         {
-            var docSymbols = GetDocSymbols();
+            var documentSymbolModels = GetDocumentSymbolViewModels();
 
             static void CheckSortedByName(ObservableCollection<DocumentSymbolViewModel> sortedByName)
             {
@@ -180,7 +169,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 }
             }
 
-            var sortedByName = DocumentOutlineHelper.Sort(docSymbols, SortOption.Name);
+            var sortedByName = DocumentOutlineHelper.Sort(documentSymbolModels, SortOption.Name);
             CheckSortedByName(sortedByName);
             for (var i = 0; i < sortedByName.Count; i++)
             {
@@ -201,7 +190,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 }
             }
 
-            var sortedByOrder = DocumentOutlineHelper.Sort(docSymbols, SortOption.Order);
+            var sortedByOrder = DocumentOutlineHelper.Sort(documentSymbolModels, SortOption.Order);
             CheckSortedByOrder(sortedByOrder);
             for (var i = 0; i < sortedByOrder.Count; i++)
             {
@@ -224,7 +213,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 }
             }
 
-            var sortedByType = DocumentOutlineHelper.Sort(docSymbols, SortOption.Type);
+            var sortedByType = DocumentOutlineHelper.Sort(documentSymbolModels, SortOption.Type);
             CheckSortedByType(sortedByType);
             for (var i = 0; i < sortedByType.Count; i++)
             {
@@ -235,36 +224,36 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         [Fact]
         public void TestSearchNodeTree()
         {
-            var docSymbols = GetDocSymbols();
+            var documentSymbolModels = GetDocumentSymbolViewModels();
 
             // Case where all nodes match
-            foreach (var docSymbol in docSymbols)
+            foreach (var documentSymbolModel in documentSymbolModels)
             {
-                Assert.True(DocumentOutlineHelper.SearchNodeTree(docSymbol, "e"));
+                Assert.True(DocumentOutlineHelper.SearchNodeTree(documentSymbolModel, "e"));
             }
 
             // Case where exactly 1 parent matches search
             var results = new List<bool>();
-            foreach (var docSymbol in docSymbols)
+            foreach (var documentSymbolModel in documentSymbolModels)
             {
-                results.Add(DocumentOutlineHelper.SearchNodeTree(docSymbol, "Class0"));
+                results.Add(DocumentOutlineHelper.SearchNodeTree(documentSymbolModel, "Class0"));
             }
 
             Assert.True(results.Count(item => item) == 1);
 
             // Case where exactly 2 children match search
             results = new List<bool>();
-            foreach (var docSymbol in docSymbols)
+            foreach (var documentSymbolModel in documentSymbolModels)
             {
-                results.Add(DocumentOutlineHelper.SearchNodeTree(docSymbol, "Method"));
+                results.Add(DocumentOutlineHelper.SearchNodeTree(documentSymbolModel, "Method"));
             }
 
             Assert.True(results.Count(item => item) == 2);
 
             // Case where nothing matches search
-            foreach (var docSymbol in docSymbols)
+            foreach (var documentSymbolModel in documentSymbolModels)
             {
-                Assert.False(DocumentOutlineHelper.SearchNodeTree(docSymbol, "xxx"));
+                Assert.False(DocumentOutlineHelper.SearchNodeTree(documentSymbolModel, "xxx"));
             }
         }
     }

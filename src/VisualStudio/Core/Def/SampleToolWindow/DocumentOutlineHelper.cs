@@ -14,36 +14,30 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         internal static List<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? body)
         {
-            var docSymbols = new List<DocumentSymbolViewModel>();
+            var documentSymbolModels = new List<DocumentSymbolViewModel>();
             if (body is not null && body.Length > 0)
             {
                 for (var i = 0; i < body.Length; i++)
                 {
                     var documentSymbol = body[i];
-                    var ds = new DocumentSymbolViewModel(
-                        documentSymbol.Name,
-                        documentSymbol.Kind,
-                        documentSymbol.Range.Start.Line,
-                        documentSymbol.Range.Start.Character,
-                        documentSymbol.Range.End.Line,
-                        documentSymbol.Range.End.Character);
+                    var ds = new DocumentSymbolViewModel(documentSymbol);
                     var children = documentSymbol.Children;
                     if (children is not null)
                     {
                         ds = AddNodes(ds, children);
                     }
 
-                    docSymbols.Add(ds);
+                    documentSymbolModels.Add(ds);
                 }
             }
 
-            docSymbols = docSymbols.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
-            for (var i = 0; i < docSymbols.Count; i++)
+            documentSymbolModels = documentSymbolModels.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
+            for (var i = 0; i < documentSymbolModels.Count; i++)
             {
-                docSymbols[i].Children = Sort(docSymbols[i].Children, SortOption.Order);
+                documentSymbolModels[i].Children = Sort(documentSymbolModels[i].Children, SortOption.Order);
             }
 
-            return docSymbols;
+            return documentSymbolModels;
         }
 
         internal static DocumentSymbolViewModel AddNodes(DocumentSymbolViewModel newNode, DocumentSymbol[] children)
@@ -59,13 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 for (var i = 0; i < children.Length; i++)
                 {
                     var child = children[i];
-                    var newChild = new DocumentSymbolViewModel(
-                        child.Name,
-                        child.Kind,
-                        child.Range.Start.Line,
-                        child.Range.Start.Character,
-                        child.Range.End.Line,
-                        child.Range.End.Character);
+                    var newChild = new DocumentSymbolViewModel(child);
                     if (child.Children is not null)
                     {
                         newChild = AddNodes(newChild, child.Children);
@@ -79,24 +67,24 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        internal static ObservableCollection<DocumentSymbolViewModel> Sort(ObservableCollection<DocumentSymbolViewModel> docSymbols, SortOption sortOption)
+        internal static ObservableCollection<DocumentSymbolViewModel> Sort(ObservableCollection<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)
         {
-            if (docSymbols.Count == 0)
+            if (documentSymbolModels.Count == 0)
             {
-                return docSymbols;
+                return documentSymbolModels;
             }
 
             var result = new List<DocumentSymbolViewModel>();
             switch (sortOption)
             {
                 case SortOption.Name:
-                    result = docSymbols.OrderBy(x => x.Name).ToList();
+                    result = documentSymbolModels.OrderBy(x => x.Name).ToList();
                     break;
                 case SortOption.Order:
-                    result = docSymbols.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
+                    result = documentSymbolModels.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
                     break;
                 case SortOption.Type:
-                    result = docSymbols.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name).ToList();
+                    result = documentSymbolModels.OrderBy(x => x.SymbolKind).ThenBy(x => x.Name).ToList();
                     break;
             }
 

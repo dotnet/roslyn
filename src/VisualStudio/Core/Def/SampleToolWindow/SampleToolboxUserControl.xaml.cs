@@ -146,9 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     var body = response.Response.ToObject<DocumentSymbol[]>();
-                    var docSymbols = DocumentOutlineHelper.GetDocumentSymbols(body);
-                    this.originalTree = docSymbols;
-                    symbolTree.ItemsSource = docSymbols;
+                    var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbols(body);
+                    this.originalTree = documentSymbolModels;
+                    symbolTree.ItemsSource = documentSymbolModels;
                 }
                 else
                 {

@@ -5,6 +5,7 @@
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -12,33 +13,33 @@ namespace Microsoft.VisualStudio.LanguageServices
 
     internal class DocumentSymbolViewModel
     {
-        public string Name { get; set; }
+        public string Name { get; }
 
         public ObservableCollection<DocumentSymbolViewModel> Children { get; set; }
 
-        public int StartLine { get; set; }
-        public int StartChar { get; set; }
-        public int EndLine { get; set; }
-        public int EndChar { get; set; }
+        public int StartLine { get; }
+        public int StartChar { get; }
+        public int EndLine { get; }
+        public int EndChar { get; }
 
-        public SymbolKind SymbolKind { get; set; }
-        public ImageMoniker ImgMoniker { get; set; }
+        public SymbolKind SymbolKind { get; }
+        public ImageMoniker ImgMoniker { get; }
 
         public bool IsExpanded { get; set; }
         public bool IsSelected { get; set; }
 
-        public DocumentSymbolViewModel(string name, SymbolKind symbolKind, int startLine, int startChar, int endLine, int endChar)
+        public DocumentSymbolViewModel(DocumentSymbol documentSymbol)
         {
-            this.Name = name;
+            this.Name = documentSymbol.Name;
             this.Children = new ObservableCollection<DocumentSymbolViewModel>();
-            this.SymbolKind = symbolKind;
-            this.ImgMoniker = GetImageMoniker(symbolKind);
+            this.SymbolKind = documentSymbol.Kind;
+            this.ImgMoniker = GetImageMoniker(documentSymbol.Kind);
             this.IsExpanded = true;
             this.IsSelected = false;
-            this.StartLine = startLine;
-            this.StartChar = startChar;
-            this.EndLine = endLine;
-            this.EndChar = endChar;
+            this.StartLine = documentSymbol.Range.Start.Line;
+            this.StartChar = documentSymbol.Range.Start.Character;
+            this.EndLine = documentSymbol.Range.End.Line;
+            this.EndChar = documentSymbol.Range.End.Character;
         }
 
         private static ImageMoniker GetImageMoniker(SymbolKind symbolKind)
