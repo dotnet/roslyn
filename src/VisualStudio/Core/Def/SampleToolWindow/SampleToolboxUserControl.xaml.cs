@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void FollowCursor(object sender, EventArgs e)
         {
-            if (this.snapshot is not null && this.textView is not null && this.originalTree is not null)
+            /*if (this.snapshot is not null && this.textView is not null && this.originalTree is not null)
             {
                 var caretPoint = this.textView.GetCaretPoint(this.snapshot.TextBuffer);
                 if (caretPoint.HasValue)
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     caretPoint.Value.GetLineAndCharacter(out var lineNumber, out var characterIndex);
                     SelectNodeAtPosition(lineNumber, characterIndex);
                 }
-            }
+            }*/
         }
 
         private DocSymbol UnselectAllNodes(DocSymbol treeItem)
