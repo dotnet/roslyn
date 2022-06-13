@@ -14771,7 +14771,7 @@ class Test
             }
 #endif
 
-            return true;
+            return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
         [ConditionalTheory(typeof(CoreClrOnly))]
@@ -30548,7 +30548,7 @@ class Test
         [CombinatorialData]
         public void ConsumeAbstractConversionOperator_10([CombinatorialValues("implicit", "explicit")] string op)
         {
-            // Look in derived interfaces
+            // Look in base interfaces for source 
 
             string metadataName = ConversionOperatorName(op);
             bool needCast = op == "explicit";
@@ -30596,13 +30596,16 @@ class Test
         }
 
         [Theory]
-        [CombinatorialData]
-        public void ConsumeAbstractConversionOperator_11([CombinatorialValues("implicit", "explicit")] string op)
+        [InlineData("implicit", false)]
+        [InlineData("implicit", true)]
+        [InlineData("explicit", false)]
+        [InlineData("explicit", true)]
+        public void ConsumeAbstractConversionOperator_11(string op, bool useCast)
         {
             // Same as ConsumeAbstractConversionOperator_10 only direction of conversion is flipped
+            // Look in base interfaces for destination for explicit cast in code
 
             string metadataName = ConversionOperatorName(op);
-            bool needCast = op == "explicit";
 
             var source1 =
 @"
@@ -30618,7 +30621,7 @@ class Test
 {
     static T M02<T, U>(int x) where T : U where U : I2<T>
     {
-        return " + (needCast ? "(T)" : "") + @"x;
+        return " + (useCast ? "(T)" : "") + @"x;
     }
 }
 ";
@@ -30626,10 +30629,12 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+            if (useCast)
+            {
+                var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T, U>(int)",
-@"
+                verifier.VerifyIL("Test.M02<T, U>(int)",
+    @"
 {
   // Code size       18 (0x12)
   .maxstack  1
@@ -30644,6 +30649,15 @@ class Test
   IL_0011:  ret
 }
 ");
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (14,16): error CS0266: Cannot implicitly convert type 'int' to 'T'. An explicit conversion exists (are you missing a cast?)
+                    //         return x;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "T").WithLocation(14, 16)
+                    );
+            }
         }
 
         [Theory]
@@ -30789,7 +30803,7 @@ class Test
         [CombinatorialData]
         public void ConsumeAbstractConversionOperator_15([CombinatorialValues("implicit", "explicit")] string op)
         {
-            // If there is a non-trivial class constraint, interfaces are not looked at.
+            // If there is an applicable candidate in effective base class, interfaces are not looked at.
 
             string metadataName = ConversionOperatorName(op);
             bool needCast = op == "explicit";
@@ -30891,7 +30905,7 @@ class Test
         [CombinatorialData]
         public void ConsumeAbstractConversionOperator_17([CombinatorialValues("implicit", "explicit")] string op)
         {
-            // If there is a non-trivial class constraint, interfaces are not looked at.
+            // If there is no applicable candidate in effective base class, look in interfaces.
 
             bool needCast = op == "explicit";
 
@@ -30917,16 +30931,32 @@ class Test
     {
         return " + (needCast ? "(int)" : "") + @"y;
     }
+
+    static void Main()
+    {
+        var c2 = new C2();
+        M02<C2, C2>(c2);
+        M03<C2, C2>(c2);
+    }
+}
+
+public class C2 : C1, I1<C2>
+{
+    public static " + op + @" operator int(C2 x)
+    {
+        System.Console.WriteLine(""C2 conversion"");
+        return default;
+    }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.VerifyDiagnostics(
-                // (15,16): error CS0030: Cannot convert type 'T' to 'int'
-                //         return (int)x;
-                Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(int)" : "") + "x").WithArguments("T", "int").WithLocation(15, 16)
-                );
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual: false) ? null : @"
+C2 conversion
+C2 conversion
+").VerifyDiagnostics();
         }
 
         [Theory]
@@ -30959,16 +30989,84 @@ class Test
     {
         return " + (needCast ? "(T)" : "") + @"y;
     }
+
+    static void Main()
+    {
+        M02<C2, C2>(0);
+        M03<C2, C2>(1);
+    }
+}
+
+public class C2 : C1, I1<C2>
+{
+    public static " + op + @" operator C2(int x)
+    {
+        System.Console.WriteLine(""C2 conversion"");
+        return default;
+    }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-            compilation1.VerifyDiagnostics(
-                // (15,16): error CS0030: Cannot convert type 'int' to 'T'
-                //         return (T)x;
-                Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(T)" : "") + "x").WithArguments("int", "T").WithLocation(15, 16)
-                );
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual: false) ? null : @"
+C2 conversion
+C2 conversion
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(56753, "https://github.com/dotnet/roslyn/issues/56753")]
+        public void ConsumeAbstractConversionOperator_19()
+        {
+            var source1 =
+@"
+interface I1 { }
+
+abstract class Base : I1 {}
+
+interface I2<T> where T : class, I2<T>
+{ 
+    public static abstract implicit operator T(string value);
+}
+
+class Derived : Base, I2<Derived>
+{
+    public static implicit operator Derived(string value)
+    { 
+        System.Console.WriteLine(""Derived conversion"");
+        return default;
+    }
+}
+
+static class Util 
+{
+    static void Method1<T>(string value) where T : Base, I2<T>
+    {
+        var newT = (T)value;
+    }
+
+    static void Method2<T>(string value) where T : class, I1, I2<T>
+    {
+        var newT = (T)value;
+    }
+
+    static void Main()
+    {
+        Method1<Derived>("""");
+        Method2<Derived>("""");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: !Execute(isVirtual: false) ? null : @"
+Derived conversion
+Derived conversion
+").VerifyDiagnostics();
         }
 
         [Theory]
