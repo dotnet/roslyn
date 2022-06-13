@@ -21,12 +21,16 @@
              ResizeMode="CanResizeWithGrip"
              ShowInTaskbar="False"
              HasDialogFrame="True"
-             WindowStartupLocation="CenterOwner">
+             WindowStartupLocation="CenterOwner"
+             vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
+             Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
     <Window.Resources>
         <Style TargetType="ListBoxItem">
             <Setter Property="IsTabStop" 
                     Value="False" />
         </Style>
+
+        <Style TargetType="u:AutomationDelegatingListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
         <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
@@ -97,7 +101,7 @@
 
                 <StackPanel Grid.Column="1">
 
-                    <vs:DialogButton Name="UpButton" 
+                    <Button Name="UpButton" 
                                  AutomationProperties.Name="{Binding MoveUpAutomationText}"
                                  Margin="0 9 4 0"
                                  IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
@@ -109,8 +113,8 @@
                                         Width="16" 
                                         Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}"
                                         Grayscale="{Binding IsEnabled, ElementName=UpButton, Converter={StaticResource NegateBooleanConverter}}"/>
-                    </vs:DialogButton>
-                    <vs:DialogButton Name="DownButton" 
+                    </Button>
+                    <Button Name="DownButton" 
                                  AutomationProperties.Name="{Binding MoveDownAutomationText}"
                                  Margin="0 9 4 0"
                                  IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
@@ -123,7 +127,7 @@
                                         Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" 
                                         Grayscale="{Binding IsEnabled, ElementName=DownButton, Converter={StaticResource NegateBooleanConverter}}"/>
 
-                    </vs:DialogButton>
+                    </Button>
 
                     <Button x:Uid="SelectAllButton"
                             Content="{Binding ElementName=dialog, Path=SelectAll}" 
