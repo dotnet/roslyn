@@ -447,20 +447,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((modifiers & DeclarationModifiers.Required) != 0)
             {
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(futureDestination: diagnostics, assemblyBeingBuilt: symbol.ContainingAssembly);
+                bool reportedError = false;
+
                 switch (symbol)
                 {
                     case FieldSymbol when !symbol.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo):
                     case PropertySymbol { SetMethod: { } method } when !method.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo):
                         // Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.
                         diagnostics.Add(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, errorLocation, symbol, symbol.ContainingType);
-                        diagnostics.Add(errorLocation, useSiteInfo);
-                        return true;
+                        reportedError = true;
+                        break;
                     case PropertySymbol { SetMethod: null }:
                     case FieldSymbol when (modifiers & DeclarationModifiers.ReadOnly) != 0:
                         // Required member '{0}' must be settable.
                         diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSettable, errorLocation, symbol);
-                        return true;
+                        reportedError = true;
+                        break;
                 }
+
+                diagnostics.Add(errorLocation, useSiteInfo);
+                return reportedError;
             }
 
             return false;
