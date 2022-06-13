@@ -15,20 +15,22 @@ namespace Microsoft.VisualStudio.LanguageServices
         internal static List<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? body)
         {
             var documentSymbolModels = new List<DocumentSymbolViewModel>();
-            if (body is not null && body.Length > 0)
+            if (body is null || body.Length == 0)
             {
-                for (var i = 0; i < body.Length; i++)
-                {
-                    var documentSymbol = body[i];
-                    var ds = new DocumentSymbolViewModel(documentSymbol);
-                    var children = documentSymbol.Children;
-                    if (children is not null)
-                    {
-                        ds = AddNodes(ds, children);
-                    }
+                return documentSymbolModels;
+            }
 
-                    documentSymbolModels.Add(ds);
+            for (var i = 0; i < body.Length; i++)
+            {
+                var documentSymbol = body[i];
+                var ds = new DocumentSymbolViewModel(documentSymbol);
+                var children = documentSymbol.Children;
+                if (children is not null)
+                {
+                    ds = AddNodes(ds, children);
                 }
+
+                documentSymbolModels.Add(ds);
             }
 
             documentSymbolModels = documentSymbolModels.OrderBy(x => x.StartLine).ThenBy(x => x.StartChar).ToList();
