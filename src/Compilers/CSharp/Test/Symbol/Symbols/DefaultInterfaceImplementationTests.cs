@@ -9227,7 +9227,7 @@ class Test1 : I1
                     //     public virtual void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(9, 25)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,25): error CS9044: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement an inaccessible member.
                     //     public virtual void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 25)
@@ -9241,22 +9241,22 @@ class Test1 : I1
                                                   Accessibility accessibility,
                                                   params DiagnosticDescription[] expectedIn9)
         {
-            ValidateMethodModifiers_10_02(source1, source2, accessibility, expectedIn9, expectedIn9AcrossAssemplyBoundaries: expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidateMethodModifiers_10_02(source1, source2, accessibility, expectedIn9, expectedIn9AcrossAssemblyBoundaries: expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidateMethodModifiers_10_02(string source1, string source2,
                                                   Accessibility accessibility,
                                                   DiagnosticDescription[] expectedIn9,
-                                                  params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+                                                  params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
-            ValidateMethodModifiers_10_02(source1, source2, accessibility, expectedIn9, expectedIn9AcrossAssemplyBoundaries: expectedIn9, expectedAcrossAssemplyBoundaries);
+            ValidateMethodModifiers_10_02(source1, source2, accessibility, expectedIn9, expectedIn9AcrossAssemblyBoundaries: expectedIn9, expectedAcrossAssemblyBoundaries);
         }
 
         private void ValidateMethodModifiers_10_02(string source1, string source2,
                                                   Accessibility accessibility,
                                                   DiagnosticDescription[] expectedIn9,
-                                                  DiagnosticDescription[] expectedIn9AcrossAssemplyBoundaries,
-                                                  DiagnosticDescription[] expectedAcrossAssemplyBoundaries,
+                                                  DiagnosticDescription[] expectedIn9AcrossAssemblyBoundaries,
+                                                  DiagnosticDescription[] expectedAcrossAssemblyBoundaries,
                                                   bool isStatic = false)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
@@ -9289,7 +9289,7 @@ class Test1 : I1
                                                      targetFramework: TargetFramework.Net60);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9AcrossAssemplyBoundaries);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9AcrossAssemblyBoundaries);
 
                 ValidateMethodModifiersImplicit_10(compilation3.SourceModule, accessibility, isStatic: isStatic);
 
@@ -9297,9 +9297,9 @@ class Test1 : I1
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: TargetFramework.Net60);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -9423,7 +9423,7 @@ class Test1 : Test2, I1
                     //     public void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(9, 17)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,17): error CS9044: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement an inaccessible member.
                     //     public void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 17)
@@ -9476,7 +9476,7 @@ class Test1 : Test2, I1
                     //     public virtual void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(9, 25)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,25): error CS9044: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement an inaccessible member.
                     //     public virtual void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 25)
@@ -9534,7 +9534,7 @@ class Test3 : Test1
                     //     public abstract void M1();
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(9, 26)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,26): error CS9044: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement an inaccessible member.
                     //     public abstract void M1();
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 26)
@@ -9592,7 +9592,7 @@ public interface I2
                     //     public void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(9, 17)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,17): error CS9044: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement an inaccessible member.
                     //     public void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 17)
@@ -12291,7 +12291,7 @@ class Test1 : Test2, I1
                         //     void I1.M1() 
                         Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "9.0", "preview").WithLocation(36, 13)
                         ),
-                expectedIn9AcrossAssemplyBoundaries: !isStatic ?
+                expectedIn9AcrossAssemblyBoundaries: !isStatic ?
                     ExpectedDiagnostics(
                         // (5,17): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                         //     public void M1() 
@@ -12302,7 +12302,7 @@ class Test1 : Test2, I1
                         //     public void M1() 
                         Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M1").WithArguments("Test1.M1()", "I1.M1()", "Test1", "static abstract members in interfaces", "9.0", "preview").WithLocation(5, 17)
                         ),
-                expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>(),
+                expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>(),
                 isStatic: isStatic
                 );
         }
@@ -12391,7 +12391,7 @@ class Test1 : Test2, I1
                     //     public virtual void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(10, 25)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (10,25): error CS9044: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement an inaccessible member.
                     //     public virtual void M1() 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "M1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(10, 25)
@@ -14703,7 +14703,7 @@ class Test1 : I1
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (12,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(12, 9),
@@ -14718,13 +14718,13 @@ class Test1 : I1
                                                   DiagnosticDescription[] expectedIn9,
                                                   params DiagnosticDescription[] expectedNoImplementation)
         {
-            ValidatePropertyModifiers_11_01(source1, source2, accessibility, expectedIn9, expectedNoImplementation, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_11_01(source1, source2, accessibility, expectedIn9, expectedNoImplementation, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidatePropertyModifiers_11_01(string source1, string source2, Accessibility accessibility,
                                                      DiagnosticDescription[] expectedIn9,
                                                      DiagnosticDescription[] expectedNoImplementation,
-                                                     params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+                                                     params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular9,
@@ -14776,7 +14776,7 @@ class Test2 : I1
                                                      parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
                 ValidatePropertyModifiers_11(compilation3.SourceModule, accessibility);
 
@@ -14785,9 +14785,9 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -14909,7 +14909,7 @@ class Test1 : I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9),
@@ -14923,12 +14923,12 @@ class Test1 : I1
         private void ValidatePropertyModifiers_11_02(string source1, string source2,
                                                      params DiagnosticDescription[] expectedIn9)
         {
-            ValidatePropertyModifiers_11_02(source1, source2, expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_11_02(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidatePropertyModifiers_11_02(string source1, string source2,
                                                      DiagnosticDescription[] expectedIn9,
-                                                     params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+                                                     params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular9,
@@ -14961,7 +14961,7 @@ set_P1",
                                                      parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
                 ValidatePropertyImplementation_11(compilation3.SourceModule);
 
@@ -14970,9 +14970,9 @@ set_P1",
                                                  targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -15166,7 +15166,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9),
@@ -15243,7 +15243,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9),
@@ -15325,7 +15325,7 @@ class Test3 : Test1
                     //     public abstract int P1 {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(9, 34)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,29): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //     public abstract int P1 {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(9, 29),
@@ -15407,7 +15407,7 @@ public interface I2
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9),
@@ -15642,7 +15642,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test2", "I1.P1.set", "Test2.P1.set", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (6,9): error CS9044: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(6, 9),
@@ -15656,12 +15656,12 @@ class Test1 : Test2, I1
         private void ValidatePropertyModifiers_11_10(string source1, string source2,
                                                      params DiagnosticDescription[] expectedIn9)
         {
-            ValidatePropertyModifiers_11_10(source1, source2, expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_11_10(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidatePropertyModifiers_11_10(string source1, string source2,
                                                      DiagnosticDescription[] expectedIn9,
-                                                     params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+                                                     params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
@@ -15694,7 +15694,7 @@ set_P1",
                                                      parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
 
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
                 ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
@@ -15702,9 +15702,9 @@ set_P1",
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -15774,12 +15774,12 @@ class Test1 : Test2, I1
         private void ValidatePropertyModifiers_11_11(string source1, string source2,
                                                      params DiagnosticDescription[] expectedIn9)
         {
-            ValidatePropertyModifiers_11_11(source1, source2, expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_11_11(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidatePropertyModifiers_11_11(string source1, string source2,
                                                      DiagnosticDescription[] expectedIn9,
-                                                     params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+                                                     params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
@@ -15799,9 +15799,9 @@ class Test1 : Test2, I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-            if (expectedAcrossAssemplyBoundaries.Length != 0)
+            if (expectedAcrossAssemblyBoundaries.Length != 0)
             {
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
             }
             else
             {
@@ -18268,7 +18268,7 @@ class Test1 : I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(12, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (12,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(12, 9)
@@ -18278,10 +18278,10 @@ class Test1 : I1
 
         private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, params DiagnosticDescription[] expectedIn9)
         {
-            ValidatePropertyModifiers_23(source1, source2, getAccess, setAccess, expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidatePropertyModifiers_23(source1, source2, getAccess, setAccess, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
-        private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, DiagnosticDescription[] expectedIn9, params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+        private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, DiagnosticDescription[] expectedIn9, params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular9,
@@ -18325,7 +18325,7 @@ set_P1",
                                                      parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
                 Validate1(compilation3.SourceModule);
 
@@ -18335,9 +18335,9 @@ set_P1",
                                                  targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -18397,7 +18397,7 @@ class Test1 : I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9)
@@ -18515,7 +18515,7 @@ class Test1 : Test2, I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9)
@@ -18586,7 +18586,7 @@ class Test1 : Test2, I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9)
@@ -18662,7 +18662,7 @@ class Test3 : Test1
                     //     public abstract int P1 {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(9, 29)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,29): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //     public abstract int P1 {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(9, 29)
@@ -18738,7 +18738,7 @@ public interface I2
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(11, 9)
@@ -18902,7 +18902,7 @@ class Test1 : Test2, I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test2", "I1.P1.get", "Test2.P1.get", "9.0", "10.0").WithLocation(6, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (6,9): error CS9044: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(6, 9)
@@ -19006,7 +19006,7 @@ class Test1 : I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(17, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (17,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(17, 9)
@@ -19060,7 +19060,7 @@ class Test1 : I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(16, 9)
@@ -19178,7 +19178,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(16, 9)
@@ -19249,7 +19249,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(16, 9)
@@ -19325,7 +19325,7 @@ class Test3 : Test1
                     //     public abstract int P1 {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(9, 34)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,34): error CS9044: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement an inaccessible member.
                     //     public abstract int P1 {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(9, 34)
@@ -19401,7 +19401,7 @@ public interface I2
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(16, 9)
@@ -19565,7 +19565,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test2", "I1.P1.set", "Test2.P1.set", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(11, 9)
@@ -20545,7 +20545,7 @@ class Test1 : I1
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (12,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(12, 9),
@@ -20696,7 +20696,7 @@ class Test1 : I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(17, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (17,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(17, 9)
@@ -22534,7 +22534,7 @@ class Test1 : I1
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.this[int]")
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (12,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(12, 9),
@@ -22594,7 +22594,7 @@ class Test1 : I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9),
@@ -22718,7 +22718,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9),
@@ -22795,7 +22795,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9),
@@ -22877,7 +22877,7 @@ class Test3 : Test1
                     //     public abstract int this[int x] {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(9, 43)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,38): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //     public abstract int this[int x] {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(9, 38),
@@ -22959,7 +22959,7 @@ public interface I2
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9),
@@ -23129,7 +23129,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (6,9): error CS9044: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(6, 9),
@@ -24996,7 +24996,7 @@ class Test1 : I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(12, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (12,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(12, 9)
@@ -25050,7 +25050,7 @@ class Test1 : I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9)
@@ -25168,7 +25168,7 @@ class Test1 : Test2, I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9)
@@ -25239,7 +25239,7 @@ class Test1 : Test2, I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9)
@@ -25315,7 +25315,7 @@ class Test3 : Test1
                     //     public abstract int this[int x] {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(9, 38)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,38): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //     public abstract int this[int x] {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(9, 38)
@@ -25391,7 +25391,7 @@ public interface I2
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(11, 9)
@@ -25555,7 +25555,7 @@ class Test1 : Test2, I1
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "get").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get", "9.0", "10.0").WithLocation(6, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (6,9): error CS9044: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement an inaccessible member.
                     //         get
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "get").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(6, 9)
@@ -25659,7 +25659,7 @@ class Test1 : I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(17, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (17,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(17, 9)
@@ -25713,7 +25713,7 @@ class Test1 : I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(16, 9)
@@ -25831,7 +25831,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(16, 9)
@@ -25902,7 +25902,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(16, 9)
@@ -25978,7 +25978,7 @@ class Test3 : Test1
                     //     public abstract int this[int x] {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(9, 43)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,43): error CS9044: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement an inaccessible member.
                     //     public abstract int this[int x] {get; set;} 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(9, 43)
@@ -26054,7 +26054,7 @@ public interface I2
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(16, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (16,9): error CS9044: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(16, 9)
@@ -26218,7 +26218,7 @@ class Test1 : Test2, I1
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "set").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set", "9.0", "10.0").WithLocation(11, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement an inaccessible member.
                     //         set
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(11, 9)
@@ -28227,7 +28227,7 @@ class Test1 : I1
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (12,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement an inaccessible member.
                     //         add
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "add").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(12, 9),
@@ -28240,10 +28240,10 @@ class Test1 : I1
 
         private void ValidateEventModifiers_11(string source1, string source2, Accessibility accessibility, DiagnosticDescription[] expectedIn9, params DiagnosticDescription[] expectedNoImplementation)
         {
-            ValidateEventModifiers_11(source1, source2, accessibility, expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>(), expectedNoImplementation);
+            ValidateEventModifiers_11(source1, source2, accessibility, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>(), expectedNoImplementation);
         }
 
-        private void ValidateEventModifiers_11(string source1, string source2, Accessibility accessibility, DiagnosticDescription[] expectedIn9, DiagnosticDescription[] expectedAcrossAssemplyBoundaries, params DiagnosticDescription[] expectedNoImplementation)
+        private void ValidateEventModifiers_11(string source1, string source2, Accessibility accessibility, DiagnosticDescription[] expectedIn9, DiagnosticDescription[] expectedAcrossAssemblyBoundaries, params DiagnosticDescription[] expectedNoImplementation)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular9,
@@ -28332,7 +28332,7 @@ class Test2 : I1
                                                      parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
                 Validate1(compilation3.SourceModule);
 
@@ -28341,9 +28341,9 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -28427,7 +28427,7 @@ class Test1 : I1
                     //         remove
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "remove").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(15, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement an inaccessible member.
                     //         add
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "add").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(11, 9),
@@ -28441,12 +28441,12 @@ class Test1 : I1
         private void ValidateEventModifiers_11_02(string source1, string source2,
                                                   params DiagnosticDescription[] expectedIn9)
         {
-            ValidateEventModifiers_11_02(source1, source2, expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidateEventModifiers_11_02(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidateEventModifiers_11_02(string source1, string source2,
                                                   DiagnosticDescription[] expectedIn9,
-                                                  params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+                                                  params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular9,
@@ -28479,7 +28479,7 @@ set_P1",
                                                      parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
 
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
                 ValidateEventImplementation_11(compilation3.SourceModule);
 
@@ -28487,9 +28487,9 @@ set_P1",
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -28683,7 +28683,7 @@ class Test1 : Test2, I1
                     //         remove
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "remove").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(15, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement an inaccessible member.
                     //         add
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "add").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(11, 9),
@@ -28761,7 +28761,7 @@ class Test1 : Test2, I1
                     //         remove
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "remove").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(15, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement an inaccessible member.
                     //         add
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "add").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(11, 9),
@@ -28845,7 +28845,7 @@ class Test3 : Test1
                     //     public abstract event System.Action P1; 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "P1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(9, 41)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (9,41): error CS9044: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement an inaccessible member.
                     //     public abstract event System.Action P1; 
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "P1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(9, 41),
@@ -28928,7 +28928,7 @@ public interface I2
                     //         remove
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "remove").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(15, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (11,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement an inaccessible member.
                     //         add
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "add").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(11, 9),
@@ -29167,7 +29167,7 @@ class Test1 : Test2, I1
                     //         remove
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "remove").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove", "9.0", "10.0").WithLocation(10, 9)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (6,9): error CS9044: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement an inaccessible member.
                     //         add
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "add").WithArguments("Test2", "I1.P1.add", "Test2.P1.add").WithLocation(6, 9),
@@ -29181,12 +29181,12 @@ class Test1 : Test2, I1
         private void ValidateEventModifiers_11_10(string source1, string source2,
                                                      params DiagnosticDescription[] expectedIn9)
         {
-            ValidateEventModifiers_11_10(source1, source2, expectedIn9, expectedAcrossAssemplyBoundaries: Array.Empty<DiagnosticDescription>());
+            ValidateEventModifiers_11_10(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidateEventModifiers_11_10(string source1, string source2,
                                                   DiagnosticDescription[] expectedIn9,
-                                                  params DiagnosticDescription[] expectedAcrossAssemplyBoundaries)
+                                                  params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
@@ -29219,7 +29219,7 @@ set_P1",
                                                      parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
 
-                compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries.Length != 0 ? expectedAcrossAssemplyBoundaries : expectedIn9);
+                compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
                 ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
@@ -29227,9 +29227,9 @@ set_P1",
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-                if (expectedAcrossAssemplyBoundaries.Length != 0)
+                if (expectedAcrossAssemblyBoundaries.Length != 0)
                 {
-                    compilation3.VerifyDiagnostics(expectedAcrossAssemplyBoundaries);
+                    compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries);
                 }
                 else
                 {
@@ -31270,7 +31270,7 @@ class Test1 : I1
                     // class Test2 : I1
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
                     ),
-                expectedAcrossAssemplyBoundaries: ExpectedDiagnostics(
+                expectedAcrossAssemblyBoundaries: ExpectedDiagnostics(
                     // (12,9): error CS9044: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement an inaccessible member.
                     //         add
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "add").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(12, 9),
