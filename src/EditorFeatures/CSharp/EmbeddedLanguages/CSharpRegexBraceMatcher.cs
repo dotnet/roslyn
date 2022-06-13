@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageBraceMatcherInternal(
+    [ExportEmbeddedLanguageBraceMatcher(
         PredefinedEmbeddedLanguageNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
     internal sealed class CSharpRegexBraceMatcher : AbstractRegexBraceMatcher
     {

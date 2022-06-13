@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
     [ExtensionOrder(Before = PredefinedEmbeddedLanguageNames.Json)]
-    [ExportEmbeddedLanguageDocumentHighlightsServiceInternal(
+    [ExportEmbeddedLanguageDocumentHighlightsService(
         PredefinedEmbeddedLanguageNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
     internal class CSharpRegexDocumentHighlightsService : AbstractRegexDocumentHighlightsService
     {
