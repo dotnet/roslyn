@@ -21,14 +21,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal abstract partial class AbstractDocumentHighlightsService :
-        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageDocumentHighlightsService>,
+        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageDocumentHighlighter>,
         IDocumentHighlightsService
     {
         protected AbstractDocumentHighlightsService(
             string languageName,
             EmbeddedLanguageInfo info,
             ISyntaxKinds syntaxKinds,
-            IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlightsService, EmbeddedLanguageMetadata>> allServices)
+            IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> allServices)
             : base(languageName, info, syntaxKinds, allServices)
         {
         }

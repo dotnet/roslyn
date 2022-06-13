@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpDocumentHighlightsService(
-            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlightsService, EmbeddedLanguageMetadata>> services)
+            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services)
             : base(LanguageNames.CSharp,
                   CSharpEmbeddedLanguagesProvider.Info,
                   CSharpSyntaxKinds.Instance,

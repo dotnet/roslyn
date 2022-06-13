@@ -12,13 +12,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
     [ExtensionOrder(Before = PredefinedEmbeddedLanguageNames.Json)]
-    [ExportEmbeddedLanguageDocumentHighlightsService(
+    [ExportEmbeddedLanguageDocumentHighlighter(
         PredefinedEmbeddedLanguageNames.Regex, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
-    internal class CSharpRegexDocumentHighlightsService : AbstractRegexDocumentHighlightsService
+    internal class CSharpRegexDocumentHighlighter : AbstractRegexDocumentHighlighter
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRegexDocumentHighlightsService()
+        public CSharpRegexDocumentHighlighter()
             : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }

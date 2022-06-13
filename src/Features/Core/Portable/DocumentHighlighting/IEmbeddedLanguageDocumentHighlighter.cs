@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages;
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     /// <inheritdoc cref="IDocumentHighlightsService"/>
-    internal interface IEmbeddedLanguageDocumentHighlightsService : IEmbeddedLanguageFeatureService
+    internal interface IEmbeddedLanguageDocumentHighlighter : IEmbeddedLanguageFeatureService
     {
         /// <inheritdoc cref="IDocumentHighlightsService.GetDocumentHighlightsAsync"/>
         ImmutableArray<DocumentHighlights> GetDocumentHighlights(

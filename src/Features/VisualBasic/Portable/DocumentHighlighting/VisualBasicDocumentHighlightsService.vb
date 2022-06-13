@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentHighlighting
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-                <ImportMany> services As IEnumerable(Of Lazy(Of IEmbeddedLanguageDocumentHighlightsService, EmbeddedLanguageMetadata)))
+                <ImportMany> services As IEnumerable(Of Lazy(Of IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata)))
             MyBase.New(
                 LanguageNames.VisualBasic,
                 VisualBasicEmbeddedLanguagesProvider.Info,

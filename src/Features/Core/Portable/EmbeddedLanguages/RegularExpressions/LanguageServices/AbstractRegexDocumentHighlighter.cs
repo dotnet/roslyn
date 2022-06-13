@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal abstract class AbstractRegexDocumentHighlightsService : IEmbeddedLanguageDocumentHighlightsService
+    internal abstract class AbstractRegexDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
     {
         private readonly EmbeddedLanguageInfo _info;
 
-        protected AbstractRegexDocumentHighlightsService(EmbeddedLanguageInfo info)
+        protected AbstractRegexDocumentHighlighter(EmbeddedLanguageInfo info)
             => _info = info;
 
         public ImmutableArray<DocumentHighlights> GetDocumentHighlights(

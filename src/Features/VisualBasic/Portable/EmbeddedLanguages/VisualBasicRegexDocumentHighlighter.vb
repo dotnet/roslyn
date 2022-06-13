@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     ' Order regex classification before json classification.  Json lights up on probable-json strings, but we don't
     ' want that to happen for APIs that are certain to be another language Like Regex.
     <ExtensionOrder(Before:=PredefinedEmbeddedLanguageNames.Json)>
-    <ExportEmbeddedLanguageDocumentHighlightsService(
+    <ExportEmbeddedLanguageDocumentHighlighter(
         PredefinedEmbeddedLanguageNames.Regex, LanguageNames.VisualBasic, True, "Regex", "Regexp"), [Shared]>
-    Friend Class VisualBasicRegexDocumentHighlightsService
-        Inherits AbstractRegexDocumentHighlightsService
+    Friend Class VisualBasicRegexDocumentHighlighter
+        Inherits AbstractRegexDocumentHighlighter
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

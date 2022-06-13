@@ -7,19 +7,19 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages;
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     /// <summary>
-    /// Use this attribute to export a <see cref="IEmbeddedLanguageDocumentHighlightsService"/>.
+    /// Use this attribute to export a <see cref="IEmbeddedLanguageDocumentHighlighter"/>.
     /// </summary>
-    internal class ExportEmbeddedLanguageDocumentHighlightsServiceAttribute : ExportEmbeddedLanguageFeatureServiceAttribute
+    internal class ExportEmbeddedLanguageDocumentHighlighterAttribute : ExportEmbeddedLanguageFeatureServiceAttribute
     {
-        public ExportEmbeddedLanguageDocumentHighlightsServiceAttribute(
+        public ExportEmbeddedLanguageDocumentHighlighterAttribute(
             string name, string language, params string[] identifiers)
             : this(name, language, supportsUnannotatedAPIs: false, identifiers)
         {
         }
 
-        public ExportEmbeddedLanguageDocumentHighlightsServiceAttribute(
+        public ExportEmbeddedLanguageDocumentHighlighterAttribute(
             string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageDocumentHighlightsService), name, language, supportsUnannotatedAPIs, identifiers)
+            : base(typeof(IEmbeddedLanguageDocumentHighlighter), name, language, supportsUnannotatedAPIs, identifiers)
         {
         }
     }
