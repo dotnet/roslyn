@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int HasDeclaredRequiredMembersOffset = NullableContextOffset + NullableContextSize;
-            private const int HasDeclaredRequiredMembersSize = 2;
+            //private const int HasDeclaredRequiredMembersSize = 2;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
