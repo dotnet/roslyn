@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Classification
     /// <summary>
     /// Use this attribute to export a <see cref="IEmbeddedLanguageClassifier"/>.
     /// </summary>
-    internal class ExportEmbeddedLanguageClassifierAttribute : ExportEmbeddedLanguageAttribute
+    internal class ExportEmbeddedLanguageClassifierAttribute : ExportEmbeddedLanguageFeatureServiceAttribute
     {
         public ExportEmbeddedLanguageClassifierAttribute(
             string name, string language, params string[] identifiers)

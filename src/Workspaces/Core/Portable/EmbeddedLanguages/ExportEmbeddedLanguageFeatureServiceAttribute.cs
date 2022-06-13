@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal abstract class ExportEmbeddedLanguageAttribute : ExportAttribute
+    internal abstract class ExportEmbeddedLanguageFeatureServiceAttribute : ExportAttribute
     {
         /// <summary>
         /// Name of the classifier.
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         /// <inheritdoc cref="EmbeddedLanguageMetadata.SupportsUnannotatedAPIs"/>
         internal bool SupportsUnannotatedAPIs { get; }
 
-        public ExportEmbeddedLanguageAttribute(
+        public ExportEmbeddedLanguageFeatureServiceAttribute(
             Type contractType, string name, string language, params string[] identifiers)
             : this(contractType, name, language, supportsUnannotatedAPIs: false, identifiers)
         {
         }
 
-        internal ExportEmbeddedLanguageAttribute(
+        internal ExportEmbeddedLanguageFeatureServiceAttribute(
             Type contractType, string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
             : base(contractType)
         {
