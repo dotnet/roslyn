@@ -6670,9 +6670,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
     <value>inferred delegate type</value>
   </data>
-  <data name="IDS_FeatureLineSpanDirective" xml:space="preserve">
-    <value>line span directive</value>
-  </data>
   <data name="IDS_FeatureAutoDefaultStructs" xml:space="preserve">
     <value>auto default struct fields</value>
   </data>
@@ -6681,6 +6678,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_LineSpanDirectiveEndLessThanStart" xml:space="preserve">
     <value>The #line directive end position must be greater than or equal to the start position</value>
+  </data>
+  <data name="ERR_LineSpanDirectiveRequiresSpace" xml:space="preserve">
+    <value>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</value>
   </data>
   <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
     <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
