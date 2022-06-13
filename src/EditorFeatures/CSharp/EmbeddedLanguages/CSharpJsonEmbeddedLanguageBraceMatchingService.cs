@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageBraceMatcherInternal(
+    [ExportEmbeddedLanguageBraceMatcher(
         PredefinedEmbeddedLanguageBraceMatcherNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
     internal sealed class CSharpJsonEmbeddedLanguageBraceMatcher :
         AbstractJsonEmbeddedLanguageBraceMatcher
