@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -12,55 +11,22 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
-        internal static ObservableCollection<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? body)
+        internal static ObservableCollection<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? documentSymbols)
         {
             var documentSymbolModels = new ObservableCollection<DocumentSymbolViewModel>();
-            if (body is null || body.Length == 0)
+            if (documentSymbols is null || documentSymbols.Length == 0)
             {
                 return documentSymbolModels;
             }
 
-            for (var i = 0; i < body.Length; i++)
+            foreach (var documentSymbol in documentSymbols)
             {
-                var documentSymbol = body[i];
-                var ds = new DocumentSymbolViewModel(documentSymbol);
-                var children = documentSymbol.Children;
-                if (children is not null)
-                {
-                    ds = AddNodes(ds, children);
-                }
-
-                documentSymbolModels.Add(ds);
+                var documentSymbolModel = new DocumentSymbolViewModel(documentSymbol);
+                documentSymbolModel.Children = GetDocumentSymbols(documentSymbol.Children);
+                documentSymbolModels.Add(documentSymbolModel);
             }
 
             return Sort(documentSymbolModels, SortOption.Order);
-        }
-
-        internal static DocumentSymbolViewModel AddNodes(DocumentSymbolViewModel newNode, DocumentSymbol[] children)
-        {
-            var newChildren = new ObservableCollection<DocumentSymbolViewModel>();
-
-            if (children is null || children.Length == 0)
-            {
-                return newNode;
-            }
-            else
-            {
-                for (var i = 0; i < children.Length; i++)
-                {
-                    var child = children[i];
-                    var newChild = new DocumentSymbolViewModel(child);
-                    if (child.Children is not null)
-                    {
-                        newChild = AddNodes(newChild, child.Children);
-                    }
-
-                    newChildren.Add(newChild);
-                }
-
-                newNode.Children = newChildren;
-                return newNode;
-            }
         }
 
         internal static ObservableCollection<DocumentSymbolViewModel> Sort(ObservableCollection<DocumentSymbolViewModel> documentSymbolModels, SortOption sortOption)

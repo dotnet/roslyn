@@ -6,12 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Internal.TypeSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
@@ -125,32 +121,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 {
                     CompareDocumentSymbolViewModels(node.Children[j], expectedNode.Children[j]);
                 }
-            }
-        }
-
-        [Fact]
-        public void TestAddNodes()
-        {
-            var documentSymbol = GetDocumentSymbols()[0];
-            if (documentSymbol.Children is null)
-            {
-                throw new ArgumentException(message: "DocumentSymbol children cannot be null");
-            }
-
-            var originalNode = GetDocumentSymbolViewModels()[0];
-            var newNodeWithoutChildren = originalNode;
-            newNodeWithoutChildren.Children = new ObservableCollection<DocumentSymbolViewModel>();
-
-            // Test with an empty array of children
-            var newNode = DocumentOutlineHelper.AddNodes(newNodeWithoutChildren, Array.Empty<DocumentSymbol>());
-            CompareDocumentSymbolViewModels(newNode, newNodeWithoutChildren);
-
-            // Test with a nonempty array of children
-            newNode = DocumentOutlineHelper.AddNodes(newNode, documentSymbol.Children);
-            CompareDocumentSymbolViewModels(newNode, originalNode);
-            for (var i = 0; i < newNode.Children.Count; i++)
-            {
-                CompareDocumentSymbolViewModels(newNode.Children[i], originalNode.Children[i]);
             }
         }
 
