@@ -94,7 +94,7 @@
         <TextBox Grid.Row="1" Name="searchBox" Text="Search Document Outline" TextChanged="Search" VerticalContentAlignment="Center"></TextBox>
         <TreeView Grid.Row="2" Name="symbolTree">
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type self:DocSymbol}" ItemsSource="{Binding Children}">
+                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolViewModel}" ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MouseDown="JumpToContent">
                         <imaging:CrispImage Moniker="{Binding ImgMoniker}" Margin="0, 0, 5, 0" />
                         <TextBlock Text="{Binding Name}" />

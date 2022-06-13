@@ -12,15 +12,15 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class DocumentOutlineHelper
     {
-        internal static List<DocSymbol> GetDocumentSymbols(DocumentSymbol[]? body)
+        internal static List<DocumentSymbolViewModel> GetDocumentSymbols(DocumentSymbol[]? body)
         {
-            var docSymbols = new List<DocSymbol>();
+            var docSymbols = new List<DocumentSymbolViewModel>();
             if (body is not null && body.Length > 0)
             {
                 for (var i = 0; i < body.Length; i++)
                 {
                     var documentSymbol = body[i];
-                    var ds = new DocSymbol(
+                    var ds = new DocumentSymbolViewModel(
                         documentSymbol.Name,
                         documentSymbol.Kind,
                         documentSymbol.Range.Start.Line,
@@ -46,9 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             return docSymbols;
         }
 
-        internal static DocSymbol AddNodes(DocSymbol newNode, DocumentSymbol[] children)
+        internal static DocumentSymbolViewModel AddNodes(DocumentSymbolViewModel newNode, DocumentSymbol[] children)
         {
-            var newChildren = new ObservableCollection<DocSymbol>();
+            var newChildren = new ObservableCollection<DocumentSymbolViewModel>();
 
             if (children is null || children.Length == 0)
             {
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 for (var i = 0; i < children.Length; i++)
                 {
                     var child = children[i];
-                    var newChild = new DocSymbol(
+                    var newChild = new DocumentSymbolViewModel(
                         child.Name,
                         child.Kind,
                         child.Range.Start.Line,
@@ -79,14 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        internal static ObservableCollection<DocSymbol> Sort(ObservableCollection<DocSymbol> docSymbols, SortOption sortOption)
+        internal static ObservableCollection<DocumentSymbolViewModel> Sort(ObservableCollection<DocumentSymbolViewModel> docSymbols, SortOption sortOption)
         {
             if (docSymbols.Count == 0)
             {
                 return docSymbols;
             }
 
-            var result = new List<DocSymbol>();
+            var result = new List<DocumentSymbolViewModel>();
             switch (sortOption)
             {
                 case SortOption.Name:
@@ -105,10 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices
                 result[i].Children = Sort(result[i].Children, sortOption);
             }
 
-            return new ObservableCollection<DocSymbol>(result);
+            return new ObservableCollection<DocumentSymbolViewModel>(result);
         }
 
-        internal static bool SearchNodeTree(DocSymbol tree, string search)
+        internal static bool SearchNodeTree(DocumentSymbolViewModel tree, string search)
         {
             if (tree.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
             {

@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private Workspace? workspace { get; set; }
         private DocumentId? lastDocumentId { get; set; }
-        private List<DocSymbol>? originalTree { get; set; }
+        private List<DocumentSymbolViewModel>? originalTree { get; set; }
         private ITextSnapshot? snapshot { get; set; }
         private IWpfTextView? textView { get; set; }
 
@@ -91,14 +91,14 @@ namespace Microsoft.VisualStudio.LanguageServices
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 if (document is null)
                 {
-                    symbolTree.ItemsSource = new List<DocSymbol>();
+                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
                     return;
                 }
 
                 document.TryGetText(out var text);
                 if (text is null)
                 {
-                    symbolTree.ItemsSource = new List<DocSymbol>();
+                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
                     return;
                 }
 
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 if (!isCorrectType)
                 {
-                    symbolTree.ItemsSource = new List<DocSymbol>();
+                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
                     return;
                 }
 
@@ -152,15 +152,15 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
                 else
                 {
-                    symbolTree.ItemsSource = new List<DocSymbol>();
+                    symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
                 }
             }
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
         {
-            var documentSymbols = new List<DocSymbol>();
-            foreach (var item in (List<DocSymbol>)symbolTree.ItemsSource)
+            var documentSymbols = new List<DocumentSymbolViewModel>();
+            foreach (var item in (List<DocumentSymbolViewModel>)symbolTree.ItemsSource)
             {
                 documentSymbols.Add(ExpandAllNodes(item));
             }
@@ -168,10 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             symbolTree.ItemsSource = documentSymbols;
         }
 
-        private DocSymbol ExpandAllNodes(DocSymbol treeItem)
+        private DocumentSymbolViewModel ExpandAllNodes(DocumentSymbolViewModel treeItem)
         {
             treeItem.IsExpanded = true;
-            foreach (var childItem in treeItem.Children.OfType<DocSymbol>())
+            foreach (var childItem in treeItem.Children.OfType<DocumentSymbolViewModel>())
             {
                 ExpandAllNodes(childItem);
             }
@@ -181,8 +181,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void CollapseAll(object sender, RoutedEventArgs e)
         {
-            var documentSymbols = new List<DocSymbol>();
-            foreach (var item in (List<DocSymbol>)symbolTree.ItemsSource)
+            var documentSymbols = new List<DocumentSymbolViewModel>();
+            foreach (var item in (List<DocumentSymbolViewModel>)symbolTree.ItemsSource)
             {
                 documentSymbols.Add(CollapseAllNodes(item));
             }
@@ -190,10 +190,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             symbolTree.ItemsSource = documentSymbols;
         }
 
-        private DocSymbol CollapseAllNodes(DocSymbol treeItem)
+        private DocumentSymbolViewModel CollapseAllNodes(DocumentSymbolViewModel treeItem)
         {
             treeItem.IsExpanded = false;
-            foreach (var childItem in treeItem.Children.OfType<DocSymbol>())
+            foreach (var childItem in treeItem.Children.OfType<DocumentSymbolViewModel>())
             {
                 CollapseAllNodes(childItem);
             }
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
             else
             {
-                var documentSymbols = new List<DocSymbol>();
+                var documentSymbols = new List<DocumentSymbolViewModel>();
                 if (this.originalTree is not null)
                 {
                     foreach (var item in this.originalTree)
@@ -282,7 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private void JumpToContent(object sender, EventArgs e)
         {
             if (this.textView is not null && this.snapshot is not null &&
-                sender is StackPanel panel && panel.DataContext is DocSymbol symbol)
+                sender is StackPanel panel && panel.DataContext is DocumentSymbolViewModel symbol)
             {
                 var snapshot = this.snapshot;
                 if (symbol.StartLine >= 0 && symbol.StartLine < snapshot.LineCount)
@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 var caretPoint = this.textView.GetCaretPoint(this.snapshot.TextBuffer);
                 if (caretPoint.HasValue)
                 {
-                    var documentSymbols = new List<DocSymbol>();
+                    var documentSymbols = new List<DocumentSymbolViewModel>();
                     this.originalTree.ForEach(item => documentSymbols.Add(UnselectAllNodes(item)));
                     symbolTree.ItemsSource = documentSymbols;
                     caretPoint.Value.GetLineAndCharacter(out var lineNumber, out var characterIndex);
@@ -317,10 +317,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             }*/
         }
 
-        private DocSymbol UnselectAllNodes(DocSymbol treeItem)
+        private DocumentSymbolViewModel UnselectAllNodes(DocumentSymbolViewModel treeItem)
         {
             treeItem.IsSelected = false;
-            foreach (var childItem in treeItem.Children.OfType<DocSymbol>())
+            foreach (var childItem in treeItem.Children.OfType<DocumentSymbolViewModel>())
             {
                 UnselectAllNodes(childItem);
             }
@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             symbolTree.SelectedItemChanged -= SelectedNodeChanged;
         }
 
-        private DocSymbol SelectNode(DocSymbol node, int lineNumber, int characterIndex)
+        private DocumentSymbolViewModel SelectNode(DocumentSymbolViewModel node, int lineNumber, int characterIndex)
         {
             if (node.Children.Count == 0)
             {

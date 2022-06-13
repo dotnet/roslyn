@@ -10,11 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     using SymbolKind = LanguageServer.Protocol.SymbolKind;
 
-    internal class DocSymbol
+    internal class DocumentSymbolViewModel
     {
         public string Name { get; set; }
 
-        public ObservableCollection<DocSymbol> Children { get; set; }
+        public ObservableCollection<DocumentSymbolViewModel> Children { get; set; }
 
         public int StartLine { get; set; }
         public int StartChar { get; set; }
@@ -27,10 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         public bool IsExpanded { get; set; }
         public bool IsSelected { get; set; }
 
-        public DocSymbol(string name, SymbolKind symbolKind, int startLine, int startChar, int endLine, int endChar)
+        public DocumentSymbolViewModel(string name, SymbolKind symbolKind, int startLine, int startChar, int endLine, int endChar)
         {
             this.Name = name;
-            this.Children = new ObservableCollection<DocSymbol>();
+            this.Children = new ObservableCollection<DocumentSymbolViewModel>();
             this.SymbolKind = symbolKind;
             this.ImgMoniker = GetImageMoniker(symbolKind);
             this.IsExpanded = true;
