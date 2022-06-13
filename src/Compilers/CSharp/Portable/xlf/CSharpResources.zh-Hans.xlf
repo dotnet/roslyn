@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
-        <target state="needs-review-translation">重载移位运算符的第一个操作数的类型必须与包含类型或约束为该类型的类型参数相同，第二个操作数的类型必须是 int 类型</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
-        <target state="needs-review-translation">只能在类型参数上访问静态的抽象接口成员。</target>
+        <target state="new">A static virtual or abstract interface member can be accessed only on a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
-        <target state="needs-review-translation">表达式树可能不包含静态抽象接口成员的访问权限</target>
+        <target state="new">An expression tree may not contain an access of static virtual or abstract interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="needs-review-translation">接口“{3}”不能用作泛型类型或方法“{2}”中的类型参数“{0}”。约束接口“{1}”或其基接口具有静态抽象成员。</target>
+        <target state="new">The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -1909,7 +1909,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
-        <target state="needs-review-translation">“UnmanagedCallersOnly”仅可应用于普通静态非抽象方法或静态本地函数。</target>
+        <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -5917,7 +5917,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
-        <target state="needs-review-translation">重载移位运算符的第一个操作数的类型必须与包含类型相同，第二个操作数的类型必须是 int 类型</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

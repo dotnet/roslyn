@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
-        <target state="needs-review-translation">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ nebo jeho parametr typu omezený na něj a druhý operand musí být typu int.</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
-        <target state="needs-review-translation">Ke statickému členu abstraktního rozhraní lze přistupovat pouze přes parametr obecného typu.</target>
+        <target state="new">A static virtual or abstract interface member can be accessed only on a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
-        <target state="needs-review-translation">Strom výrazů nesmí obsahovat přístup statického člena abstraktního rozhraní.</target>
+        <target state="new">An expression tree may not contain an access of static virtual or abstract interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
         <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
-        <target state="needs-review-translation">Rozhraní {3} nelze použít jako parametr obecného typu {2} v obecném typu nebo metodě {0}. Rozhraní s omezením {1} nebo jeho základní rozhraní má statické abstraktní členy.</target>
+        <target state="new">The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -1909,7 +1909,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
-        <target state="needs-review-translation">UnmanagedCallersOnly se dá použít jen pro běžné statické neabstraktní metody nebo statické místní funkce.</target>
+        <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -5912,7 +5912,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
-        <target state="needs-review-translation">První operand přetěžovaného operátoru shift musí být stejného typu jako obsahující typ a druhý operand musí být typu int.</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
