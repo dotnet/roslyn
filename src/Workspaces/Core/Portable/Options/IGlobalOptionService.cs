@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
 
-        SerializableOptionSet GetOptions(IOptionService optionService);
+        SolutionOptionSet GetOptions(IOptionService optionService);
 
         /// <summary>
         /// Returns the set of all registered options.

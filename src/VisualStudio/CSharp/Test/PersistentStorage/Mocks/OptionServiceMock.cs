@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             throw new NotImplementedException();
         }
 
-        public SerializableOptionSet GetOptions()
+        public SolutionOptionSet GetOptions()
         {
             throw new NotImplementedException();
         }
 
-        public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages)
+        public SolutionOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }

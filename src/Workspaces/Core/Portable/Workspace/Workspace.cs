@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
 
-            var emptyOptions = new SerializableOptionSet(_optionService);
+            var emptyOptions = new SolutionOptionSet(_optionService);
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
         }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
-        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
             => new(this, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>

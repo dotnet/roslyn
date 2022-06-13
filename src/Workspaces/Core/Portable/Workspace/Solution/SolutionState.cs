@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
-            SerializableOptionSet options,
+            SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             BranchId primaryBranchId,
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
-            SerializableOptionSet options,
+            SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
                 primaryBranchId,
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionServices Services => _solutionServices;
 
-        public SerializableOptionSet Options { get; }
+        public SolutionOptionSet Options { get; }
 
         /// <summary>
         /// branch id of this solution
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
         private SolutionState Branch(
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
             IReadOnlyList<ProjectId>? projectIds = null,
-            SerializableOptionSet? options = null,
+            SolutionOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public SolutionState WithOptions(SerializableOptionSet options)
+        public SolutionState WithOptions(SolutionOptionSet options)
             => Branch(options: options);
 
         public SolutionState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)

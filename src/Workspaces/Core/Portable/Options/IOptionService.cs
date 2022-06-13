@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Fetches an immutable set of all current options.
         /// </summary>
-        SerializableOptionSet GetOptions();
+        SolutionOptionSet GetOptions();
 
         /// <summary>
         /// Applies a set of options.

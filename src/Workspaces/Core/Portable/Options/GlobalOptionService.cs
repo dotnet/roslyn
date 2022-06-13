@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public SerializableOptionSet GetOptions(IOptionService optionService)
+        public SolutionOptionSet GetOptions(IOptionService optionService)
             => new(optionService);
 
         public T GetOption<T>(Option<T> option)
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Options
             var changedOptionKeys = optionSet switch
             {
                 null => throw new ArgumentNullException(nameof(optionSet)),
-                SerializableOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
+                SolutionOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
                 _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(optionSet))
             };
 

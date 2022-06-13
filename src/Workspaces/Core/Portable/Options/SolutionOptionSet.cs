@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal sealed partial class SerializableOptionSet : OptionSet
+    internal sealed partial class SolutionOptionSet : OptionSet
     {
         private readonly IOptionService _globalOptions;
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private readonly ImmutableHashSet<OptionKey> _changedOptionKeys;
 
-        private SerializableOptionSet(
+        private SolutionOptionSet(
             IOptionService globalOptions,
             ImmutableDictionary<OptionKey, object?> values,
             ImmutableHashSet<OptionKey> changedOptionKeys)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Options
             _changedOptionKeys = changedOptionKeys;
         }
 
-        internal SerializableOptionSet(IOptionService globalOptions)
+        internal SolutionOptionSet(IOptionService globalOptions)
             : this(globalOptions, values: ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
         {
         }
@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.Options
             if (Equals(value, currentValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-                return new SerializableOptionSet(_globalOptions, _values, _changedOptionKeys);
+                return new SolutionOptionSet(_globalOptions, _values, _changedOptionKeys);
             }
 
-            return new SerializableOptionSet(
+            return new SolutionOptionSet(
                 _globalOptions,
                 _values.SetItem(optionKey, value),
                 _changedOptionKeys.Add(optionKey));

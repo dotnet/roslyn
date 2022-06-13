@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys) => throw new NotImplementedException();
             public IEnumerable<IOption> GetRegisteredOptions() => throw new NotImplementedException();
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => throw new NotImplementedException();
-            public SerializableOptionSet GetOptions(IOptionService optionService) => throw new NotImplementedException();
+            public SolutionOptionSet GetOptions(IOptionService optionService) => throw new NotImplementedException();
             public void RefreshOption(OptionKey optionKey, object? newValue) => throw new NotImplementedException();
             public void RegisterWorkspace(Workspace workspace) => throw new NotImplementedException();
             public void SetGlobalOption(OptionKey optionKey, object? value) => throw new NotImplementedException();
