@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 /// <summary>
@@ -11,17 +13,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal readonly struct ProjectOrDocumentId
 {
     /// <summary>
-    /// Holds the actual <see cref="DocumentId"/> or <see cref="ProjectId"/> for equality comparison.
+    /// Non-null if this represents a documentId.  Used for equality comparisons.
     /// </summary>
-    public object Id { get; }
+    [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used for equality comparison.")]
+    private readonly DocumentId? _documentId;
+
+    /// <summary>
+    /// Non-null if this represents a projectId.  Used for equality comparisons.
+    /// </summary>
+    [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used for equality comparison.")]
+    private readonly ProjectId? _projectId;
 
     public ProjectOrDocumentId(ProjectId projectId)
     {
-        Id = projectId;
+        _projectId = projectId;
+        _documentId = null;
     }
 
     public ProjectOrDocumentId(DocumentId documentId)
     {
-        Id = documentId;
+        _documentId = documentId;
+        _projectId = null;
     }
 }
