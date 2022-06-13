@@ -118,16 +118,16 @@ public class FormatterTests
         var csDocument = workspace.AddDocument(csProject.Id, "File.cs", SourceText.From("class C { }"));
         var vbDocument = workspace.AddDocument(vbProject.Id, "File.vb", SourceText.From("Class C : End Class"));
 
-        var updatedOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(workspace.CurrentSolution.Options, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
-
         // Validate that options are read from specified OptionSet:
 
+        var updatedOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(OptionValueSet.Empty, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
         ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
         ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
 
         // Validate that options are read from solution snapshot as a fallback (we have no editorconfig file, so all options should fall back):
 
-        var solutionWithUpdatedOptions = workspace.CurrentSolution.WithOptions(updatedOptions);
+        var updatedSolutionOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(workspace.CurrentSolution.Options, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
+        var solutionWithUpdatedOptions = workspace.CurrentSolution.WithOptions(updatedSolutionOptions);
         var csDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(csDocument.Id);
         var vbDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(vbDocument.Id);
 

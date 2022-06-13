@@ -17,66 +17,64 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    /// <summary>
-    /// Serializable implementation of <see cref="OptionSet"/> for <see cref="Solution.Options"/>.
-    /// It contains prepopulated fetched option values for all serializable options and values, and delegates to <see cref="WorkspaceOptionSet"/> for non-serializable values.
-    /// It ensures a contract that values are immutable from this instance once observed.
-    /// </summary>
     internal sealed partial class SerializableOptionSet : OptionSet
     {
-        /// <summary>
-        /// Fallback option set for non-serializable options. See comments on <see cref="WorkspaceOptionSet"/> for more details.
-        /// </summary>
-        private readonly WorkspaceOptionSet _workspaceOptionSet;
+        private readonly IOptionService _globalOptions;
 
-        /// <summary>
-        /// Set of changed options in this option set which are non-serializable.
-        /// </summary>
-        private readonly ImmutableHashSet<OptionKey> _changedOptionKeysNonSerializable;
+        private ImmutableDictionary<OptionKey, object?> _values;
+
+        private readonly ImmutableHashSet<OptionKey> _changedOptionKeys;
 
         private SerializableOptionSet(
-            WorkspaceOptionSet workspaceOptionSet,
-            ImmutableHashSet<OptionKey> changedOptionKeysNonSerializable)
+            IOptionService globalOptions,
+            ImmutableDictionary<OptionKey, object?> values,
+            ImmutableHashSet<OptionKey> changedOptionKeys)
         {
-            _workspaceOptionSet = workspaceOptionSet;
-            _changedOptionKeysNonSerializable = changedOptionKeysNonSerializable;
+            _globalOptions = globalOptions;
+            _values = values;
+            _changedOptionKeys = changedOptionKeys;
         }
 
-        internal SerializableOptionSet(
-            IOptionService optionService)
-            : this(new WorkspaceOptionSet(optionService), changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty)
+        internal SerializableOptionSet(IOptionService globalOptions)
+            : this(globalOptions, values: ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
         {
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
         private protected override object? GetOptionCore(OptionKey optionKey)
         {
-            return _workspaceOptionSet.GetOption(optionKey);
+            if (_values.TryGetValue(optionKey, out var value))
+            {
+                return value is ICodeStyleOption codeStyleOption ? codeStyleOption.AsPublicCodeStyleOption() : value;
+            }
+
+            value = _globalOptions.GetOption(optionKey);
+            return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
         }
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
         {
             // Make sure we first load this in current optionset
-            var currentValue = this.GetOption(optionKey);
+            var currentValue = GetOption(optionKey);
 
             // Check if the new value is the same as the current value.
             if (Equals(value, currentValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-                return new SerializableOptionSet(
-                    _workspaceOptionSet, _changedOptionKeysNonSerializable);
+                return new SerializableOptionSet(_globalOptions, _values, _changedOptionKeys);
             }
 
             return new SerializableOptionSet(
-                (WorkspaceOptionSet)_workspaceOptionSet.WithChangedOption(optionKey, value),
-                _changedOptionKeysNonSerializable.Add(optionKey));
+                _globalOptions,
+                _values.SetItem(optionKey, value),
+                _changedOptionKeys.Add(optionKey));
         }
 
         /// <summary>
         /// Gets a list of all the options that were changed.
         /// </summary>
         internal IEnumerable<OptionKey> GetChangedOptions()
-            => _changedOptionKeysNonSerializable;
+            => _changedOptionKeys;
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
         {
