@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private readonly EmbeddedLanguageInfo _info;
 
         public AbstractJsonEmbeddedLanguageBraceMatcher(EmbeddedLanguageInfo info)
-        {
-            _info = info;
-        }
+            => _info = info;
 
         public BraceMatchingResult? FindBraces(
+            Project project,
             SemanticModel semanticModel,
             SyntaxToken token,
             int position,

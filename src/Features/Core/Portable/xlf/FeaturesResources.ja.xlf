@@ -585,6 +585,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ディスク、埋め込み、またはシンボル サーバーで PDB が見つかりませんでした。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">フィールド '{0}' を作成して割り当てる</target>

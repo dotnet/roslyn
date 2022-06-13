@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal sealed class CompletionSessionData
     {
         private const string RoslynCompletionSessionData = nameof(RoslynCompletionSessionData);
-        public bool TargetTypeFilterExperimentEnabled { get; set; }
         public bool TargetTypeFilterSelected { get; set; }
         public bool HasSuggestionItemOptions { get; set; }
 

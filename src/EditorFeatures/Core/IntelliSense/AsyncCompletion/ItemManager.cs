@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var items = SortCompletionitems(session, data, cancellationToken).ToImmutableArray();
+            var items = SortCompletionitems(data, cancellationToken).ToImmutableArray();
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
             return Task.FromResult(items);
@@ -49,24 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var itemList = session.CreateCompletionList(SortCompletionitems(session, data, cancellationToken));
+            var itemList = session.CreateCompletionList(SortCompletionitems(data, cancellationToken));
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
             return Task.FromResult(itemList);
         }
 
-        private static SegmentedList<VSCompletionItem> SortCompletionitems(IAsyncCompletionSession session, AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
+        private static SegmentedList<VSCompletionItem> SortCompletionitems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
         {
-            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
-
-            // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
-            if (sessionData.TargetTypeFilterExperimentEnabled)
-            {
-                AsyncCompletionLogger.LogSessionHasTargetTypeFilterEnabled();
-                if (data.InitialItemList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
-                    AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
-            }
-
             cancellationToken.ThrowIfCancellationRequested();
             var items = new SegmentedList<VSCompletionItem>(data.InitialItemList);
             items.Sort(VSItemComparer.Instance);

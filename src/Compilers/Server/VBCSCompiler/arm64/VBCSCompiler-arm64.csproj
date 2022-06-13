@@ -5,18 +5,10 @@
     <OutputType>Exe</OutputType>
     
     <!-- This project file effectively retargets our exe for .NET Framework ARM64.  -->
-    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>VBCSCompiler</AssemblyName>
     <PlatformTarget>ARM64</PlatformTarget>
-    <AssemblyName>vbc</AssemblyName>
+    <TargetFramework>net472</TargetFramework>
     <DisableNullableWarnings>true</DisableNullableWarnings>
   </PropertyGroup>
-  
-  <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\CommandLine\vbc.rsp" Condition="'$(TargetFramework)' == 'net472'">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <Import Project="..\CommandLine\VbcCommandLine.projitems" Label="Shared" />
+  <Import Project="..\VBCSCompilerCommandLine.projitems" Label="Shared" />
 </Project>

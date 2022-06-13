@@ -388,17 +388,19 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
-        /// This type behaves similar to <see cref="AsyncLazy{T}"/> (with <c>T</c> being <see cref="Solution"/>), except
-        /// for the following unique characteristics:
+        /// This type behaves similar to <see cref="T:Roslyn.Utilities.AsyncLazy{T}"/> (with <c>T</c> being <see
+        /// cref="Solution"/>), except for the following unique characteristics:
         ///
         /// <list type="bullet">
         /// <item><description>This type will start the asynchronous computation in the constructor instead of waiting
-        /// for the first call to <see cref="AsyncLazy{T}.GetValueAsync(CancellationToken)"/>.</description></item>
+        /// for the first call to <see cref="M:Roslyn.Utilities.AsyncLazy{T}.GetValueAsync(CancellationToken)"/>.</description></item>
         /// <item><description>This type can be disposed asynchronously to cancel the inner operation and wait for the
-        /// inner operation to complete cancellation processing (similar to
-        /// <see cref="TaskContinuationOptions.LazyCancellation"/>). Since <see cref="AsyncLazy{T}"/> does not directly
-        /// expose the inner computation, it does not support lazy cancellation scenarios.</description></item>
+        /// inner operation to complete cancellation processing (similar to <see
+        /// cref="TaskContinuationOptions.LazyCancellation"/>). Since <see cref="T:Roslyn.Utilities.AsyncLazy{T}"/> does
+        /// not directly expose the inner computation, it does not support lazy cancellation
+        /// scenarios.</description></item>
         /// </list>
         /// </summary>
         private sealed class LazySolution : IAsyncDisposable, IDisposable
@@ -435,5 +437,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 await _task.NoThrowAwaitable(false);
             }
         }
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     }
 }

@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal partial class TemporaryStorageServiceFactory
+    internal partial class TemporaryStorageService
     {
         /// <summary>
         /// Our own abstraction on top of memory map file so that we can have shared views over mmf files. 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// Caller is responsible for disposing the returned stream.
             /// multiple call of this will not increase VM.
             /// </summary>
-            public Stream CreateReadableStream()
+            public UnmanagedMemoryStream CreateReadableStream()
             {
                 // Note: TryAddReference behaves according to its documentation even if the target object has been
                 // disposed. If it returns non-null, then the object will not be disposed before the returned
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _memoryMappedFile.Dispose();
             }
 
-            private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream, ISupportDirectMemoryAccess
+            private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
                 private byte* _start;

@@ -44,13 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Private _otherPartOfPartial As SourceMemberMethodSymbol
 
-        ''' <summary>
-        ''' In case the method is an 'Async' method, stores the reference to a state machine type 
-        ''' synthesized in AsyncRewriter. Note, that this field is mutable and is being assigned  
-        ''' by calling AssignAsyncStateMachineType(...).
-        ''' </summary>
-        Private ReadOnly _asyncStateMachineType As NamedTypeSymbol = Nothing
-
         ' lazily evaluated state of the symbol (StateFlags)
         Private _lazyState As Integer
 

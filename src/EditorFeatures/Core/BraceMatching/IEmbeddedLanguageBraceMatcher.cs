@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     internal interface IEmbeddedLanguageBraceMatcher : IEmbeddedLanguageFeatureService
     {
         BraceMatchingResult? FindBraces(
+            Project project,
             SemanticModel semanticModel,
             SyntaxToken token,
             int position,

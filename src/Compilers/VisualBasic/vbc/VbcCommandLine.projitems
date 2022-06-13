@@ -5,11 +5,11 @@
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
-    <SharedGUID>b021ccbc-b2af-4560-af28-ed055f0ed696</SharedGUID>
-    <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine</RootNamespace>
+    <SharedGUID>810b02ad-2ea5-4422-88ac-b71b8ab0df0b</SharedGUID>
+    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CommandLine</RootNamespace>
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
-    <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
+    <StartupObject>Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program</StartupObject>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -27,15 +27,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildServerConnection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ExitingTraceListener.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\Csc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\Vbc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
 
     <None Include="$(MSBuildThisFileDirectory)App.config" Condition="'$(TargetFramework)' == 'net472'" />
 
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
-    
-    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
+
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'net6.0'" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">

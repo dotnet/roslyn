@@ -859,6 +859,128 @@ class D { }
         }
 
         [Fact]
+        public async Task TestAdditionalDocumentEvents()
+        {
+            using var workspace = CreateWorkspace();
+            var document = new TestHostDocument();
+            var project1 = new TestHostProject(workspace, additionalDocuments: new[] { document }, name: "project1");
+            var longEventTimeout = TimeSpan.FromMinutes(5);
+            var shortEventTimeout = TimeSpan.FromSeconds(5);
+
+            workspace.AddTestProject(project1);
+
+            // Creating two waiters that will allow us to know for certain if the events have fired.
+            using var closeWaiter = new EventWaiter();
+            using var openWaiter = new EventWaiter();
+            // Wrapping event handlers so they can notify us on being called.
+            var documentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AdditionalDocumentOpened' event handler did not have the same id as the one created for the test."));
+
+            var documentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AdditionalDocumentClosed' event handler did not have the same id as the one created for the test."));
+
+            workspace.TextDocumentOpened += documentOpenedEventHandler;
+            workspace.TextDocumentClosed += documentClosedEventHandler;
+
+            workspace.OpenAdditionalDocument(document.Id);
+            workspace.CloseAdditionalDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Wait to receive signal that events have fired.
+            Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AdditionalDocumentOpened' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AdditionalDocumentClosed' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            workspace.TextDocumentOpened -= documentOpenedEventHandler;
+            workspace.TextDocumentClosed -= documentClosedEventHandler;
+
+            workspace.OpenAdditionalDocument(document.Id);
+            workspace.CloseAdditionalDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Verifying that an event has not been called is difficult to prove.  
+            // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
+            Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AdditionalDocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AdditionalDocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+        }
+
+        [Fact]
+        public async Task TestAnalyzerConfigDocumentEvents()
+        {
+            using var workspace = CreateWorkspace();
+            var document = new TestHostDocument();
+            var project1 = new TestHostProject(workspace, analyzerConfigDocuments: new[] { document }, name: "project1");
+            var longEventTimeout = TimeSpan.FromMinutes(5);
+            var shortEventTimeout = TimeSpan.FromSeconds(5);
+
+            workspace.AddTestProject(project1);
+
+            // Creating two waiters that will allow us to know for certain if the events have fired.
+            using var closeWaiter = new EventWaiter();
+            using var openWaiter = new EventWaiter();
+            // Wrapping event handlers so they can notify us on being called.
+            var documentOpenedEventHandler = openWaiter.Wrap<TextDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AnalyzerConfigDocumentOpened' event handler did not have the same id as the one created for the test."));
+
+            var documentClosedEventHandler = closeWaiter.Wrap<TextDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AnalyzerConfigDocumentClosed' event handler did not have the same id as the one created for the test."));
+
+            workspace.TextDocumentOpened += documentOpenedEventHandler;
+            workspace.TextDocumentClosed += documentClosedEventHandler;
+
+            workspace.OpenAnalyzerConfigDocument(document.Id);
+            workspace.CloseAnalyzerConfigDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Wait to receive signal that events have fired.
+            Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AnalyzerConfigDocumentOpened' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AnalyzerConfigDocumentClosed' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            workspace.TextDocumentOpened -= documentOpenedEventHandler;
+            workspace.TextDocumentClosed -= documentClosedEventHandler;
+
+            workspace.OpenAnalyzerConfigDocument(document.Id);
+            workspace.CloseAnalyzerConfigDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Verifying that an event has not been called is difficult to prove.  
+            // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
+            Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AnalyzerConfigDocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AnalyzerConfigDocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+        }
+
+        [Fact]
         public async Task TestAdditionalFile_Properties()
         {
             using var workspace = CreateWorkspace();
@@ -917,8 +1039,8 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = additionalDoc.GetTextBuffer();
-            workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
+
+            workspace.OpenAdditionalDocument(additionalDoc.Id);
 
             var project = workspace.CurrentSolution.Projects.Single();
             var oldVersion = await project.GetSemanticVersionAsync();
@@ -928,12 +1050,12 @@ class D { }
             var newSolution = oldSolution.WithAdditionalDocumentText(additionalDoc.Id, SourceText.From(newText));
             workspace.TryApplyChanges(newSolution);
 
-            var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-
             // new text should have been pushed into buffer
+            var buffer = additionalDoc.GetTextBuffer();
             Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
             // Text changes are considered top level changes and they change the project's semantic version.
+            var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
             Assert.Equal(await doc.GetTextVersionAsync(), await doc.GetTopLevelChangeTextVersionAsync());
             Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
         }
@@ -950,8 +1072,8 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = analyzerConfigDoc.GetTextBuffer();
-            workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
+
+            workspace.OpenAnalyzerConfigDocument(analyzerConfigDoc.Id);
 
             var project = workspace.CurrentSolution.Projects.Single();
             var oldVersion = await project.GetSemanticVersionAsync();
@@ -961,18 +1083,18 @@ class D { }
             var newSolution = oldSolution.WithAnalyzerConfigDocumentText(analyzerConfigDoc.Id, SourceText.From(newText));
             workspace.TryApplyChanges(newSolution);
 
-            var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
-
             // new text should have been pushed into buffer
+            var buffer = analyzerConfigDoc.GetTextBuffer();
             Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
             // Text changes are considered top level changes and they change the project's semantic version.
+            var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
             Assert.Equal(await doc.GetTextVersionAsync(), await doc.GetTopLevelChangeTextVersionAsync());
             Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
         }
 
         [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
-        public async Task TestAdditionalFile_OpenClose()
+        public void TestAdditionalFile_OpenClose()
         {
             using var workspace = CreateWorkspace();
             var startText = @"<setting value = ""goo""";
@@ -981,31 +1103,27 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = additionalDoc.GetTextBuffer();
-            var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-            var text = await doc.GetTextAsync(CancellationToken.None);
-            var version = await doc.GetTextVersionAsync(CancellationToken.None);
 
-            workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
+            workspace.OpenAdditionalDocument(additionalDoc.Id);
 
             // Make sure that additional documents are included in GetOpenDocumentIds.
             var openDocumentIds = workspace.GetOpenDocumentIds();
             Assert.Single(openDocumentIds);
             Assert.Equal(additionalDoc.Id, openDocumentIds.Single());
 
-            workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.CloseAdditionalDocument(additionalDoc.Id);
 
             // Make sure that closed additional documents are not include in GetOpenDocumentIds.
             Assert.Empty(workspace.GetOpenDocumentIds());
 
             // Reopen and close to make sure we are not leaking anything.
-            workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
-            workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.OpenAdditionalDocument(additionalDoc.Id);
+            workspace.CloseAdditionalDocument(additionalDoc.Id);
             Assert.Empty(workspace.GetOpenDocumentIds());
         }
 
         [Fact]
-        public async Task TestAnalyzerConfigFile_OpenClose()
+        public void TestAnalyzerConfigFile_OpenClose()
         {
             using var workspace = CreateWorkspace();
             var startText = @"root = true";
@@ -1014,26 +1132,22 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = analyzerConfigDoc.GetTextBuffer();
-            var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
-            var text = await doc.GetTextAsync(CancellationToken.None);
-            var version = await doc.GetTextVersionAsync(CancellationToken.None);
 
-            workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
+            workspace.OpenAnalyzerConfigDocument(analyzerConfigDoc.Id);
 
             // Make sure that analyzer config documents are included in GetOpenDocumentIds.
             var openDocumentIds = workspace.GetOpenDocumentIds();
             Assert.Single(openDocumentIds);
             Assert.Equal(analyzerConfigDoc.Id, openDocumentIds.Single());
 
-            workspace.OnAnalyzerConfigDocumentClosed(analyzerConfigDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.CloseAnalyzerConfigDocument(analyzerConfigDoc.Id);
 
             // Make sure that closed analyzer config documents are not include in GetOpenDocumentIds.
             Assert.Empty(workspace.GetOpenDocumentIds());
 
             // Reopen and close to make sure we are not leaking anything.
-            workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
-            workspace.OnAnalyzerConfigDocumentClosed(analyzerConfigDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.OpenAnalyzerConfigDocument(analyzerConfigDoc.Id);
+            workspace.CloseAnalyzerConfigDocument(analyzerConfigDoc.Id);
             Assert.Empty(workspace.GetOpenDocumentIds());
         }
 
