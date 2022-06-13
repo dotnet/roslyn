@@ -8,8 +8,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// Wrapper around project and document ids for convenience in caching diagnostic results and
 /// use in the <see cref="IDiagnosticSource"/>
 /// </summary>
-internal struct ProjectOrDocumentId
+internal readonly struct ProjectOrDocumentId
 {
+    /// <summary>
+    /// Holds the actual <see cref="DocumentId"/> or <see cref="ProjectId"/> for equality comparison.
+    /// </summary>
     public object Id { get; }
 
     public ProjectOrDocumentId(ProjectId projectId)

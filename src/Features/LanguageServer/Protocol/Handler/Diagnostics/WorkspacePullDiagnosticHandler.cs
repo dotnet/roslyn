@@ -163,6 +163,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private record struct ProjectDiagnosticSource(Project Project) : IDiagnosticSource
         {
+            public ProjectOrDocumentId GetId() => new(Project.Id);
+
+            public Project GetProject() => Project;
+
+            public Uri GetUri()
+            {
+                Contract.ThrowIfNull(Project.FilePath);
+                return ProtocolConversions.GetUriFromFilePath(Project.FilePath);
+            }
+
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 RequestContext context,
@@ -176,20 +186,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var projectDiagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return projectDiagnostics;
             }
-
-            public ProjectOrDocumentId GetId() => new(Project.Id);
-
-            public Project GetProject() => Project;
-
-            public Uri GetUri()
-            {
-                Contract.ThrowIfNull(Project.FilePath);
-                return ProtocolConversions.GetUriFromFilePath(Project.FilePath);
-            }
         }
 
         private record struct WorkspaceDocumentDiagnosticSource(Document Document) : IDiagnosticSource
         {
+            public ProjectOrDocumentId GetId() => new(Document.Id);
+
+            public Project GetProject() => Document.Project;
+
+            public Uri GetUri() => Document.GetURI();
+
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 RequestContext context,
@@ -211,12 +217,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return documentDiagnostics;
                 }
             }
-
-            public ProjectOrDocumentId GetId() => new(Document.Id);
-
-            public Project GetProject() => Document.Project;
-
-            public Uri GetUri() => Document.GetURI();
         }
     }
 }

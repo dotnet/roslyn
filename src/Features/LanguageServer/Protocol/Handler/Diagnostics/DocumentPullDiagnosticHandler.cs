@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private record struct DocumentDiagnosticSource(Document Document) : IDiagnosticSource
         {
+            public ProjectOrDocumentId GetId() => new(Document.Id);
+
+            public Project GetProject() => Document.Project;
+
+            public Uri GetUri() => Document.GetURI();
+
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
             {
                 // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf characteristics.
@@ -104,11 +110,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(Document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return allSpanDiagnostics;
             }
-            public ProjectOrDocumentId GetId() => new(Document.Id);
-
-            public Project GetProject() => Document.Project;
-
-            public Uri GetUri() => Document.GetURI();
         }
     }
 }

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated diagnostics are.
-            var documentToPreviousDiagnosticParams = GetDocumentToPreviousDiagnosticParams(context, previousResults, out var removedResults);
+            var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, out var removedResults);
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
@@ -167,13 +167,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReturn(progress);
         }
 
-        private static Dictionary<ProjectOrDocumentId, PreviousPullResult> GetDocumentToPreviousDiagnosticParams(
+        private static Dictionary<ProjectOrDocumentId, PreviousPullResult> GetIdToPreviousDiagnosticParams(
             RequestContext context, ImmutableArray<PreviousPullResult> previousResults, out ImmutableArray<PreviousPullResult> removedDocuments)
         {
             Contract.ThrowIfNull(context.Solution);
 
             var result = new Dictionary<ProjectOrDocumentId, PreviousPullResult>();
-            _ = ArrayBuilder<PreviousPullResult>.GetInstance(out var removedDocumentsBuilder);
+            using var _ = ArrayBuilder<PreviousPullResult>.GetInstance(out var removedDocumentsBuilder);
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
