@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// <summary>
     /// Classifier impl for embedded json strings.
     /// </summary>
-    internal abstract class AbstractJsonEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
+    internal abstract class AbstractJsonClassifier : IEmbeddedLanguageClassifier
     {
         private static readonly ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
         private readonly EmbeddedLanguageInfo _info;
 
-        public AbstractJsonEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
+        public AbstractJsonClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
         }

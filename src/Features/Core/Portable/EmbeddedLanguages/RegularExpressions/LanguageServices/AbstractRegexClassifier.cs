@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// <summary>
     /// Classifier impl for embedded regex strings.
     /// </summary>
-    internal abstract class AbstractRegexEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
+    internal abstract class AbstractRegexClassifier : IEmbeddedLanguageClassifier
     {
         private static readonly ObjectPool<Visitor> s_visitorPool = SharedPools.Default<Visitor>();
 
         private readonly EmbeddedLanguageInfo _info;
 
-        protected AbstractRegexEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
+        protected AbstractRegexClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
         }

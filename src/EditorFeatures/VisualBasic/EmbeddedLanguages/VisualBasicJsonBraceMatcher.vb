@@ -10,9 +10,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EmbeddedLanguages
     <ExportEmbeddedLanguageBraceMatcher(
-        PredefinedEmbeddedLanguageBraceMatcherNames.Json, LanguageNames.VisualBasic, True, "Json"), [Shared]>
-    Friend Class VisualBasicJsonEmbeddedLanguageBraceMatcher
-        Inherits AbstractJsonEmbeddedLanguageBraceMatcher
+        PredefinedEmbeddedLanguageNames.Json, LanguageNames.VisualBasic, True, "Json"), [Shared]>
+    Friend Class VisualBasicJsonBraceMatcher
+        Inherits AbstractJsonBraceMatcher
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

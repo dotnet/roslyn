@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -18,22 +16,22 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed class RegexDocumentHighlightsService : IDocumentHighlightsService
+    internal abstract class AbstractRegexDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
     {
-        private readonly RegexEmbeddedLanguage _language;
+        private readonly EmbeddedLanguageInfo _info;
 
-        public RegexDocumentHighlightsService(RegexEmbeddedLanguage language)
-            => _language = language;
+        protected AbstractRegexDocumentHighlighter(EmbeddedLanguageInfo info)
+            => _info = info;
 
-        public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+        public ImmutableArray<DocumentHighlights> GetDocumentHighlights(
+            Document document, SemanticModel semanticModel, SyntaxToken token, int position, HighlightingOptions options, CancellationToken cancellationToken)
         {
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
-            {
                 return default;
-            }
 
-            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
             return tree == null
                 ? default
                 : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(tree, position)));
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 _ => throw new InvalidOperationException(),
             };
 
-        private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
+        private RegexEscapeNode? FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
             if (node.Kind is RegexKind.BackreferenceEscape or
                 RegexKind.CaptureEscape or

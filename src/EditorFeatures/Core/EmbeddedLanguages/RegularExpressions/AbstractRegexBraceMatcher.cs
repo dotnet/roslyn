@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
-    internal abstract class AbstractRegexEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
+    internal abstract class AbstractRegexBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
         private readonly EmbeddedLanguageInfo _info;
 
-        protected AbstractRegexEmbeddedLanguageBraceMatcher(EmbeddedLanguageInfo info)
+        protected AbstractRegexBraceMatcher(EmbeddedLanguageInfo info)
             => _info = info;
 
         public BraceMatchingResult? FindBraces(

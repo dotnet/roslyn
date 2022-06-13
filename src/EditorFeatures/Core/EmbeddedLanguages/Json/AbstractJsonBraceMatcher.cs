@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     /// <summary>
     /// Brace matcher impl for embedded json strings.
     /// </summary>
-    internal abstract class AbstractJsonEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
+    internal abstract class AbstractJsonBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
         private readonly EmbeddedLanguageInfo _info;
 
-        public AbstractJsonEmbeddedLanguageBraceMatcher(EmbeddedLanguageInfo info)
+        public AbstractJsonBraceMatcher(EmbeddedLanguageInfo info)
             => _info = info;
 
         public BraceMatchingResult? FindBraces(

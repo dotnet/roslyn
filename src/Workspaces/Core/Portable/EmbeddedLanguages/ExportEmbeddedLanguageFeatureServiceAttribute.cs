@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 
             if (SupportsUnannotatedAPIs)
             {
-                Contract.ThrowIfFalse(name is PredefinedEmbeddedLanguageClassifierNames.Regex or PredefinedEmbeddedLanguageClassifierNames.Json,
-                    $"Only '{PredefinedEmbeddedLanguageClassifierNames.Regex}' or '{PredefinedEmbeddedLanguageClassifierNames.Json}' are allowed to '{nameof(SupportsUnannotatedAPIs)}'");
+                Contract.ThrowIfFalse(name is PredefinedEmbeddedLanguageNames.Regex or PredefinedEmbeddedLanguageNames.Json,
+                    $"Only '{PredefinedEmbeddedLanguageNames.Regex}' or '{PredefinedEmbeddedLanguageNames.Json}' are allowed to '{nameof(SupportsUnannotatedAPIs)}'");
             }
         }
     }
