@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EmbeddedLanguages
-    <ExportEmbeddedLanguageBraceMatcherInternal(
+    <ExportEmbeddedLanguageBraceMatcher(
         PredefinedEmbeddedLanguageBraceMatcherNames.Regex, LanguageNames.VisualBasic, True, "Regex", "Regexp"), [Shared]>
     Friend Class VisualBasicRegexEmbeddedLanguageBraceMatcher
         Inherits AbstractRegexEmbeddedLanguageBraceMatcher

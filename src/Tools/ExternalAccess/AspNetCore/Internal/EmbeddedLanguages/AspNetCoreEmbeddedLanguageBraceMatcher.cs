@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageBraceMatcherInternal(
+    [ExportEmbeddedLanguageBraceMatcher(
         nameof(AspNetCoreEmbeddedLanguageBraceMatcher), LanguageNames.CSharp, supportsUnannotatedAPIs: false,
         // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
         identifiers: new[] { "Route" }), Shared]
