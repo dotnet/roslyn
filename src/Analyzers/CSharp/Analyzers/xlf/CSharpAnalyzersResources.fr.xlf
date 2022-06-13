@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_Program_Main_style_program">
         <source>Convert to 'Program.Main' style program</source>
-        <target state="new">Convert to 'Program.Main' style program</target>
+        <target state="translated">Convertir en programme de style « Program.Main »</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
       <trans-unit id="Convert_to_UTF8_string_literal">
         <source>Convert to UTF-8 string literal</source>
-        <target state="new">Convert to UTF-8 string literal</target>
+        <target state="translated">Convertir en littéral de chaîne UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_top_level_statements">
         <source>Convert to top-level statements</source>
-        <target state="new">Convert to top-level statements</target>
+        <target state="translated">Convertir en instructions de niveau supérieur</target>
         <note />
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="Use_UTF8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="new">Use UTF-8 string literal</target>
+        <target state="translated">Utiliser le littéral de chaîne UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_conversion_operators">
         <source>Use block body for conversion operators</source>
-        <target state="new">Use block body for conversion operators</target>
+        <target state="translated">Utiliser le corps de bloc pour les opérateurs de conversion</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_conversion_operators">
         <source>Use expression body for conversion operators</source>
-        <target state="new">Use expression body for conversion operators</target>
+        <target state="translated">Utiliser le corps d’expression pour les opérateurs de conversion</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
