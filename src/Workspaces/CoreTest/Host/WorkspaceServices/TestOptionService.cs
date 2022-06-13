@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static OptionServiceFactory.OptionService GetService(Workspace workspace, IOptionProvider? optionProvider = null, IOptionPersisterProvider? optionPersisterProvider = null)
-            => new OptionServiceFactory.OptionService(GetGlobalOptionService(workspace.Services, optionProvider, optionPersisterProvider), workspaceServices: workspace.Services);
+            => new OptionServiceFactory.OptionService(GetGlobalOptionService(workspace.Services, optionProvider, optionPersisterProvider));
 
         internal class TestOptionsProvider : IOptionProvider
         {

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 name: WellKnownMemberNames.CollectionInitializerAddMethodName,
                 includeReducedExtensionMethods: true);
 
-            return addMethods.Any(m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
+            return addMethods.Any(static m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
         }
 
         private bool TryAnalyzeIndexAssignment(

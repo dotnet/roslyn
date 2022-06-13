@@ -72,12 +72,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
                     }
 
-                    if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
-                    {
-                        var newOptions = await _assetProvider.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
-                        solution = solution.WithOptions(newOptions);
-                    }
-
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
                     {
                         solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
@@ -568,10 +562,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                var (solutionInfo, options) = await _assetProvider.CreateSolutionInfoAndOptionsAsync(checksumFromRequest, _cancellationToken).ConfigureAwait(false);
+                var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, _cancellationToken).ConfigureAwait(false);
                 var workspace = new AdhocWorkspace(_hostServices);
                 workspace.AddSolution(solutionInfo);
-                workspace.SetCurrentSolution(s => s.WithOptions(options), WorkspaceChangeKind.SolutionChanged);
 
                 await TestUtils.AssertChecksumsAsync(_assetProvider, checksumFromRequest, workspace.CurrentSolution, incrementalSolutionBuilt).ConfigureAwait(false);
             }

@@ -687,6 +687,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.OnDocumentClosed(documentId, testDocument.Loader);
         }
 
+        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
+        {
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
+        }
+
+        public override void CloseAdditionalDocument(DocumentId documentId)
+        {
+            var testDocument = this.GetTestAdditionalDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
+            this.OnAdditionalDocumentClosed(documentId, testDocument.Loader);
+        }
+
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            // Fetching the open SourceTextContainer implicitly opens the document.
+            var testDocument = GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+
+            testDocument.GetOpenTextContainer();
+        }
+
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var testDocument = this.GetTestAnalyzerConfigDocument(documentId);
+            Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
+            Contract.ThrowIfFalse(IsDocumentOpen(documentId));
+
+            this.OnAnalyzerConfigDocumentClosed(documentId, testDocument.Loader);
+        }
+
         public void OpenSourceGeneratedDocument(DocumentId documentId)
         {
             // Fetching the open SourceTextContainer implicitly opens the document.

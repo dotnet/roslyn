@@ -27,16 +27,12 @@ using DocumentDiagnosticPartialReport = SumType<SumType<FullDocumentDiagnosticRe
 [Method(ExperimentalMethods.TextDocumentDiagnostic)]
 internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-
     public ExperimentalDocumentPullDiagnosticsHandler(
-        IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
         EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
         IGlobalOptionService globalOptions)
-        : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
     {
-        _analyzerService = analyzerService;
     }
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
@@ -72,7 +68,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         // We are intentionally getting diagnostics for the up to date LSP snapshot instead of from the IDiagnosticService
         // as the solution crawler does not run in VSCode.  When the solution crawler is removed from VS, the VS LSP diagnostics
         // implementation will switch over to up to date calculation.
-        return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
+        return DiagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
     }
 
     protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)

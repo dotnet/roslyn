@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -42,10 +40,14 @@ namespace Microsoft.CodeAnalysis.Completion
         protected static bool IsSnippetItem(CompletionItem item)
             => item.Tags.Contains(WellKnownTags.Snippet);
 
-        internal override ImmutableArray<CompletionItem> FilterItems(Document document, ImmutableArray<(CompletionItem, PatternMatch?)> itemsWithPatternMatch, string filterText)
+        internal override void FilterItems(
+           Document document,
+           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           string filterText,
+           IList<CompletionItem> builder)
         {
             var helper = CompletionHelper.GetHelper(document);
-            return CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText);
+            CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText, builder);
         }
     }
 }

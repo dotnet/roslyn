@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal sealed class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource, IGlobalOptionService globalOptions)
-            : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        public WorkspacePullDiagnosticHandler(IDiagnosticAnalyzerService analyzerService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource, IGlobalOptionService globalOptions)
+            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
         }
 
@@ -57,16 +57,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return GetWorkspacePullDocumentsAsync(context, DiagnosticService.GlobalOptions, cancellationToken);
+            return GetWorkspacePullDocumentsAsync(context, GlobalOptions, cancellationToken);
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
         {
-            // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
-            // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
-            // any deviations in the spans of diagnostics shouldn't be impactful for the user.
-            return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
+            // Directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
+            // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
+            // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
+            // and do not need to be adjusted.
+            return DiagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
         }
 
         protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport> progress)

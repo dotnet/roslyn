@@ -47,6 +47,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArrayExtensions.cs" Link="Collections\TemporaryArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="InternalUtilities\Hash.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs" Link="InternalUtilities\GeneratedCodeUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs" Link="Serialization\IObjectWritable.cs" />
@@ -196,8 +198,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArrayExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\AnalyzerOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />

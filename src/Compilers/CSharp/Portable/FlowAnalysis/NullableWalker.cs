@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return true;
                 }
-                return compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new Text.TextSpan(0, tree.Length)) == true);
+                return compilation.SyntaxTrees.Any(static tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new Text.TextSpan(0, tree.Length)) == true);
             }
 #endif
 
@@ -3223,17 +3223,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 canIgnoreAnyType(typeB) ||
                 typeA.Equals(typeB, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames); // Ignore TupleElementNames (see https://github.com/dotnet/roslyn/issues/23651).
 
-            bool canIgnoreAnyType(TypeSymbol type)
+            static bool canIgnoreAnyType(TypeSymbol type)
             {
                 return type.VisitType((t, unused1, unused2) => canIgnoreType(t), (object?)null) is object;
             }
-            bool canIgnoreType(TypeSymbol type)
+            static bool canIgnoreType(TypeSymbol type)
             {
                 return type.IsErrorType() || type.IsDynamic() || type.HasUseSiteError || (type.IsAnonymousType && canIgnoreAnonymousType((NamedTypeSymbol)type));
             }
-            bool canIgnoreAnonymousType(NamedTypeSymbol type)
+            static bool canIgnoreAnonymousType(NamedTypeSymbol type)
             {
-                return AnonymousTypeManager.GetAnonymousTypeFieldTypes(type).Any(t => canIgnoreAnyType(t.Type));
+                return AnonymousTypeManager.GetAnonymousTypeFieldTypes(type).Any(static t => canIgnoreAnyType(t.Type));
             }
         }
 
@@ -3894,13 +3894,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // EmptyStructTypeCache.IsEmptyStructType() returned true. If there are fields,
             // at least one of those fields must be cyclic, so treat the type as empty.
-            if (members.Any(m => m.Kind == SymbolKind.Field))
+            if (members.Any(static m => m.Kind == SymbolKind.Field))
             {
                 return true;
             }
 
             // If there are properties, the type is not empty.
-            if (members.Any(m => m.Kind == SymbolKind.Property))
+            if (members.Any(static m => m.Kind == SymbolKind.Property))
             {
                 return false;
             }
@@ -6084,7 +6084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                bool parameterHasNotNullIfNotNull = !IsAnalyzingAttribute && !parametersOpt.IsDefault && parametersOpt.Any(p => !p.NotNullIfParameterNotNull.IsEmpty);
+                bool parameterHasNotNullIfNotNull = !IsAnalyzingAttribute && !parametersOpt.IsDefault && parametersOpt.Any(static p => !p.NotNullIfParameterNotNull.IsEmpty);
                 var notNullParametersBuilder = parameterHasNotNullIfNotNull ? ArrayBuilder<ParameterSymbol>.GetInstance() : null;
                 var conversionResultsBuilder = ArrayBuilder<VisitResult>.GetInstance(results.Length);
                 if (!parametersOpt.IsDefault)

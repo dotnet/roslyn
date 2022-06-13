@@ -156,22 +156,29 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Create a token that will fire if we are disposed or if we get paused.
             using var source = CancellationTokenSource.CreateLinkedTokenSource(uncancelledToken.Value, disposalToken);
-
-            // Now actually synchronize the workspace.
-            var cancellationToken = source.Token;
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-                return;
-
-            using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
+            try
             {
-                var workspaceVersion = solution.WorkspaceVersion;
-                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                    solution,
-                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, workspaceVersion, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+                // Now actually synchronize the workspace.
+                var cancellationToken = source.Token;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                    return;
+
+                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
+                {
+                    var workspaceVersion = solution.WorkspaceVersion;
+                    await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                        solution,
+                        (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, workspaceVersion, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) when (!disposalToken.IsCancellationRequested)
+            {
+                // Don't bubble up cancellation to the queue for our own internal cancellation.  Just because we decided
+                // to cancel this batch isn't something the queue should be aware of.
             }
         }
 
