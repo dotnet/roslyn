@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (ev.HasHandlers)
             {
-                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => ev.RaiseEvent(handler => handler(this, args)), CancellationToken.None);
+                _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args)), CancellationToken.None);
             }
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // we do this bulk update to reduce number of tasks (with captured data) enqueued.
                 // we saw some "out of memory" due to us having long list of pending tasks in memory. 
                 // this is to reduce for such case to happen.
-                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
+                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
 
                 _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventAction(raiseEvents), CancellationToken.None);
             }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // we do this bulk update to reduce number of tasks (with captured data) enqueued.
                 // we saw some "out of memory" due to us having long list of pending tasks in memory. 
                 // this is to reduce for such case to happen.
-                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(handler => handler(this, args));
+                void raiseEvents(DiagnosticsUpdatedArgs args) => ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
 
                 _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventActionAsync(raiseEvents), CancellationToken.None);
             }

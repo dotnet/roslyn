@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // Ensure the user won't be able to see symbol outside the solution for derived symbols.
             // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
             // the user all the derived types under System.Collections
-            var derivedSymbols = allDerivedSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+            var derivedSymbols = allDerivedSymbols.WhereAsArray(symbol => symbol.Locations.Any(static l => l.IsInSource));
 
             if (baseSymbols.Any() || derivedSymbols.Any())
             {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // For all implementing symbols, make sure it is in source.
                 // For example, if the user is viewing IEnumerable from metadata,
                 // then don't show the derived overriden & implemented types in System.Collections
-                var implementingSymbols = allImplementingSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+                var implementingSymbols = allImplementingSymbols.WhereAsArray(symbol => symbol.Locations.Any(static l => l.IsInSource));
 
                 if (implementingSymbols.Any())
                 {
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // For all overriding symbols, make sure it is in source.
                 // For example, if the user is viewing System.Threading.SynchronizationContext from metadata,
                 // then don't show the derived overriden & implemented method in the default implementation for System.Threading.SynchronizationContext in metadata
-                var overridingSymbols = allOverridingSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+                var overridingSymbols = allOverridingSymbols.WhereAsArray(symbol => symbol.Locations.Any(static l => l.IsInSource));
 
                 if (overridingSymbols.Any() || overriddenSymbols.Any() || implementedSymbols.Any())
                 {

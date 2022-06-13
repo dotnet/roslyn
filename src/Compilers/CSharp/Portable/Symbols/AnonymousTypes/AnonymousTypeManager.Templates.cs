@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool returnsVoid = fields.Last().Type.IsVoidType();
                 int nTypeArguments = fields.Length - (returnsVoid ? 1 : 0);
                 var refKinds = default(RefKindVector);
-                if (fields.Any(f => f.RefKind != RefKind.None))
+                if (fields.Any(static f => f.RefKind != RefKind.None))
                 {
                     refKinds = RefKindVector.Create(nTypeArguments);
                     for (int i = 0; i < nTypeArguments; i++)

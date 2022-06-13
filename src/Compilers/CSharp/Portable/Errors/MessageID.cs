@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLambdaReturnType = MessageBase + 12804,
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
         IDS_FeatureImplicitImplementationOfNonPublicMembers = MessageBase + 12806,
-        IDS_FeatureLineSpanDirective = MessageBase + 12807,
+        // IDS_FeatureLineSpanDirective = MessageBase + 12807, // feature no longer gated on LangVer
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
         IDS_FeatureParameterlessStructConstructors = MessageBase + 12810,
@@ -396,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_AsyncMethodBuilderOverride: // semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers: // semantic check
-                case MessageID.IDS_FeatureLineSpanDirective:
                 case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
                 case MessageID.IDS_FeatureParameterlessStructConstructors: // semantic check
                 case MessageID.IDS_FeatureStructFieldInitializers: // semantic check

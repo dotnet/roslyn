@@ -28,5 +28,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 
         /// <inheritdoc cref="VirtualChar.Value"/>
         public int Value => _virtualChar.Value;
+
+        /// <inheritdoc cref="VirtualChar.ToString"/>
+        public override string ToString() => _virtualChar.ToString();
     }
 }

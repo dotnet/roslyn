@@ -10521,12 +10521,19 @@ class C2 { }
                 // (8,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static abstract void M();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M").WithLocation(8, 26),
-                // (19,8): error CS8920: The interface 'I1' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
+                // (18,8): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
+                // [Attr1<I1>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("I1", "I1.M()").WithLocation(18, 8),
+                // (19,8): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
                 // [Attr2<I1>]
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("Attr2<T>", "I1", "T", "I1").WithLocation(19, 8),
-                // (23,8): error CS8920: The interface 'I2' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract or virtual members.
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("I1", "I1.M()").WithLocation(19, 8),
+                // (22,8): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
+                // [Attr1<I2>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("I2", "I1.M()").WithLocation(22, 8),
+                // (23,8): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
                 // [Attr2<I2>]
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("Attr2<T>", "I1", "T", "I2").WithLocation(23, 8));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("I2", "I1.M()").WithLocation(23, 8)
+                );
         }
 
         [Fact]

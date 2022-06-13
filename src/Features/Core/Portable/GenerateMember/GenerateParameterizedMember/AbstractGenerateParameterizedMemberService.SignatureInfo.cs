@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var isUnsafe = false;
                 if (!State.IsContainedInUnsafeType)
                 {
-                    isUnsafe = returnType.RequiresUnsafeModifier() || parameters.Any(p => p.Type.RequiresUnsafeModifier());
+                    isUnsafe = returnType.RequiresUnsafeModifier() || parameters.Any(static p => p.Type.RequiresUnsafeModifier());
                 }
 
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(

@@ -14,11 +14,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     internal interface IEmbeddedLanguageFeatures : IEmbeddedLanguage
     {
         /// <summary>
-        /// A optional highlighter that can highlight spans for an embedded language string.
-        /// </summary>
-        IDocumentHighlightsService? DocumentHighlightsService { get; }
-
-        /// <summary>
         /// Completion provider that can provide completion items for this
         /// specific embedded language.
         /// 

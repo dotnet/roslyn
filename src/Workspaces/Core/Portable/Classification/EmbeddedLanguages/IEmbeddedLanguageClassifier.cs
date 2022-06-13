@@ -4,10 +4,11 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal interface IEmbeddedLanguageClassifier
+    internal interface IEmbeddedLanguageClassifier : IEmbeddedLanguageFeatureService
     {
         /// <summary>
         /// This method will be called for all string and character tokens in a file to determine if there are special
