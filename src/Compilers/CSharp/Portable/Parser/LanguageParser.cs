@@ -4596,7 +4596,7 @@ tryAgain:
                 GetExpectedTokenError(kind, t1.Kind));
         }
 
-        private static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
+        internal static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
             => token1.GetTrailingTriviaWidth() == 0 && token2.GetLeadingTriviaWidth() == 0;
 
 #nullable disable
