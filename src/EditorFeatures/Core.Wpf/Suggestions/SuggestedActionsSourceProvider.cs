@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         private readonly IThreadingContext _threadingContext;
         private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
         private readonly IGlobalOptionService _globalOptions;
@@ -64,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public SuggestedActionsSourceProvider(
             IThreadingContext threadingContext,
             ICodeRefactoringService codeRefactoringService,
-            IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -75,7 +73,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;
-            _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
             _globalOptions = globalOptions;

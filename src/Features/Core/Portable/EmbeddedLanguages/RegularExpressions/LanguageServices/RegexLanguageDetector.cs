@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                     from method in regexType.GetMembers().OfType<IMethodSymbol>()
                     where method.DeclaredAccessibility == Accessibility.Public
                     where method.IsStatic
-                    where method.Parameters.Any(p => p.Name == _patternName)
+                    where method.Parameters.Any(static p => p.Name == _patternName)
                     select method.Name);
             }
 

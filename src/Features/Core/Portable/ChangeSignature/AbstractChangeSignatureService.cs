@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.IncorrectKind);
             }
 
-            if (symbol.Locations.Any(loc => loc.IsInMetadata))
+            if (symbol.Locations.Any(static loc => loc.IsInMetadata))
             {
                 return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.DefinedInMetadata);
             }
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     continue;
                 }
 
-                if (symbol.Definition.Locations.Any(loc => loc.IsInMetadata))
+                if (symbol.Definition.Locations.Any(static loc => loc.IsInMetadata))
                 {
                     confirmationMessage = FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue;
                     continue;
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     break;
                 }
 
-                if (!arguments[i].IsNamed || updatedSignature.UpdatedConfiguration.ToListOfParameters().Any(p => p.Name == arguments[i].GetName()))
+                if (!arguments[i].IsNamed || updatedSignature.UpdatedConfiguration.ToListOfParameters().Any(static (p, arg) => p.Name == arg.arguments[arg.i].GetName(), (arguments, i)))
                 {
                     newArguments.Add(arguments[i]);
                 }

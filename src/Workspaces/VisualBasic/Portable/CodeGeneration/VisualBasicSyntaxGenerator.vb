@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
+        Friend Overrides ReadOnly Property ElasticMarker As SyntaxTrivia = SyntaxFactory.ElasticMarker
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
 
@@ -674,6 +675,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function ScopeBlock(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
+        Friend Overrides Function GlobalStatement(statement As SyntaxNode) As SyntaxNode
+            ' Visual basic does not have global statements
             Throw New NotSupportedException()
         End Function
 

@@ -14,7 +14,11 @@ internal partial class SolutionState
 {
     private sealed class SkeletonReferenceSet
     {
-        private readonly ITemporaryStreamStorage _storage;
+        /// <summary>
+        /// The actual assembly metadata produced from another compilation.
+        /// </summary>
+        private readonly AssemblyMetadata _metadata;
+
         private readonly string? _assemblyName;
 
         /// <summary>
@@ -25,87 +29,36 @@ internal partial class SolutionState
         private readonly DeferredDocumentationProvider _documentationProvider;
 
         /// <summary>
-        /// The actual assembly metadata produced from the data pointed to in <see cref="_storage"/>.
+        /// Lock this object while reading/writing from it.  Used so we can return the same reference for the same
+        /// properties.  While this is isn't strictly necessary (as the important thing to keep the same is the
+        /// AssemblyMetadata), this allows higher layers to see that reference instances are the same which allow
+        /// reusing the same higher level objects (for example, the set of references a compilation has).
         /// </summary>
-        private readonly AsyncLazy<(AssemblyMetadata metadata, ISupportDirectMemoryAccess? directMemoryAccess)> _metadataAndDirectMemoryAccess;
-
-        /// <summary>
-        /// Lock this object while reading/writing from it.
-        /// </summary>
-        private readonly Dictionary<(AssemblyMetadata, ISupportDirectMemoryAccess?, MetadataReferenceProperties), SkeletonPortableExecutableReference> _referenceMap = new();
+        private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = new();
 
         public SkeletonReferenceSet(
-            ITemporaryStreamStorage storage,
+            AssemblyMetadata metadata,
             string? assemblyName,
             DeferredDocumentationProvider documentationProvider)
         {
-            _storage = storage;
+            _metadata = metadata;
             _assemblyName = assemblyName;
             _documentationProvider = documentationProvider;
-
-            // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
-            // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any
-            // concurrent requests asynchronously wait for that work to be done.
-            _metadataAndDirectMemoryAccess = new AsyncLazy<(AssemblyMetadata, ISupportDirectMemoryAccess?)>(
-                c => Task.FromResult(ComputeMetadata(_storage, c)), cacheResult: true);
         }
 
-        private static (AssemblyMetadata, ISupportDirectMemoryAccess?) ComputeMetadata(ITemporaryStreamStorage storage, CancellationToken cancellationToken)
+        public PortableExecutableReference GetOrCreateMetadataReference(MetadataReferenceProperties properties)
         {
-            // first see whether we can use native memory directly.
-            var stream = storage.ReadStream(cancellationToken);
-
-            if (stream is ISupportDirectMemoryAccess supportNativeMemory)
-            {
-                // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
-                // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
-                // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
-
-                return (metadata, supportNativeMemory);
-            }
-            else
-            {
-                // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
-                // internally copy it to native memory again. since compiler owns lifetime of stream,
-                // it would be great if compiler can be little bit smarter on how it deals with stream.
-
-                // We don't deterministically release the resulting metadata since we don't know 
-                // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-                return (AssemblyMetadata.CreateFromStream(stream, leaveOpen: false), null);
-            }
-        }
-
-        public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
-        {
-            _metadataAndDirectMemoryAccess.TryGetValue(out var tuple);
-            return CreateMetadataReference(properties, tuple.metadata, tuple.directMemoryAccess);
-        }
-
-        public async Task<MetadataReference?> GetMetadataReferenceAsync(MetadataReferenceProperties properties, CancellationToken cancellationToken)
-        {
-            var (metadata, directMemberAccess) = await _metadataAndDirectMemoryAccess.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return CreateMetadataReference(properties, metadata, directMemberAccess);
-        }
-
-        private SkeletonPortableExecutableReference? CreateMetadataReference(
-            MetadataReferenceProperties properties, AssemblyMetadata? metadata, ISupportDirectMemoryAccess? directMemoryAccess)
-        {
-            if (metadata == null)
-                return null;
-
-            var key = (metadata, directMemoryAccess, properties);
             lock (_referenceMap)
             {
-                if (!_referenceMap.TryGetValue(key, out var value))
+                if (!_referenceMap.TryGetValue(properties, out var value))
                 {
-                    value = new SkeletonPortableExecutableReference(
-                        metadata,
-                        properties,
+                    value = _metadata.GetReference(
                         _documentationProvider,
-                        _assemblyName,
-                        directMemoryAccess);
-                    _referenceMap.Add(key, value);
+                        aliases: properties.Aliases,
+                        embedInteropTypes: properties.EmbedInteropTypes,
+                        display: _assemblyName);
+
+                    _referenceMap.Add(properties, value);
                 }
 
                 return value;

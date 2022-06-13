@@ -238,10 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Apply_throw_expression_preferences,
                     IDEDiagnosticIds.UseThrowExpressionDiagnosticId),
 
-                //   csharp_style_prefer_utf8_string_literals
-                new DiagnosticSet(CSharpFeaturesResources.Apply_utf8_string_literal_preferences,
-                    IDEDiagnosticIds.UseUTF8StringLiteralDiagnosticId),
-
                 //   csharp_style_unused_value_assignment_preference
                 //   csharp_style_unused_value_expression_statement_preference
                 new DiagnosticSet(FeaturesResources.Apply_unused_value_preferences,
