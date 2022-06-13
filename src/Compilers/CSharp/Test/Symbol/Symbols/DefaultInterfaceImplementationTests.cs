@@ -14921,12 +14921,6 @@ class Test1 : I1
         }
 
         private void ValidatePropertyModifiers_11_02(string source1, string source2,
-                                                     params DiagnosticDescription[] expectedIn9)
-        {
-            ValidatePropertyModifiers_11_02(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
-        }
-
-        private void ValidatePropertyModifiers_11_02(string source1, string source2,
                                                      DiagnosticDescription[] expectedIn9,
                                                      params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
@@ -15651,12 +15645,6 @@ class Test1 : Test2, I1
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "set").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(11, 9)
                     )
                 );
-        }
-
-        private void ValidatePropertyModifiers_11_10(string source1, string source2,
-                                                     params DiagnosticDescription[] expectedIn9)
-        {
-            ValidatePropertyModifiers_11_10(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidatePropertyModifiers_11_10(string source1, string source2,
@@ -28439,12 +28427,6 @@ class Test1 : I1
         }
 
         private void ValidateEventModifiers_11_02(string source1, string source2,
-                                                  params DiagnosticDescription[] expectedIn9)
-        {
-            ValidateEventModifiers_11_02(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
-        }
-
-        private void ValidateEventModifiers_11_02(string source1, string source2,
                                                   DiagnosticDescription[] expectedIn9,
                                                   params DiagnosticDescription[] expectedAcrossAssemblyBoundaries)
         {
@@ -29176,12 +29158,6 @@ class Test1 : Test2, I1
                     Diagnostic(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, "remove").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove").WithLocation(10, 9)
                     )
                 );
-        }
-
-        private void ValidateEventModifiers_11_10(string source1, string source2,
-                                                     params DiagnosticDescription[] expectedIn9)
-        {
-            ValidateEventModifiers_11_10(source1, source2, expectedIn9, expectedAcrossAssemblyBoundaries: Array.Empty<DiagnosticDescription>());
         }
 
         private void ValidateEventModifiers_11_10(string source1, string source2,
