@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         /// </remarks>
         public string[] Identifiers { get; }
 
-        // If this type becomes public, this would still stay internal
         /// <inheritdoc cref="EmbeddedLanguageMetadata.SupportsUnannotatedAPIs"/>
         internal bool SupportsUnannotatedAPIs { get; }
 
@@ -46,7 +45,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
         {
         }
 
-        // If this type becomes public, this would still stay internal
         internal ExportEmbeddedLanguageAttribute(
             Type contractType, string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
             : base(contractType)
@@ -55,6 +53,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             Language = language ?? throw new ArgumentNullException(nameof(language));
             Identifiers = identifiers ?? throw new ArgumentNullException(nameof(identifiers));
             SupportsUnannotatedAPIs = supportsUnannotatedAPIs;
+
+            Contract.ThrowIfFalse(contractType.IsInterface && typeof(IEmbeddedLanguageFeatureService).IsAssignableFrom(contractType),
+                $"{nameof(contractType)} must be an interface and derived from {typeof(IEmbeddedLanguageFeatureService).FullName}");
 
             if (SupportsUnannotatedAPIs)
             {
