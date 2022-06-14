@@ -333,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
             if (!enabledFixIds.IsFixIdEnabled(ApplyAllAnalyzerFixersId))
             {
-                var enabedDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
+                var enabledDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
 
                 foreach (var diagnostic in enabledDiagnostics.Diagnostics)
                 {
