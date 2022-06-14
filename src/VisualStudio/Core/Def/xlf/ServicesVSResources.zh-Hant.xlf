@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="Call_Hierarchy">
         <source>Call Hierarchy</source>
-        <target state="new">Call Hierarchy</target>
+        <target state="translated">呼叫階層</target>
         <note />
       </trans-unit>
       <trans-unit id="Call_site_value">
