@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
-        <target state="needs-review-translation">O primeiro operando de um operador de deslocamento sobrecarregado deve ser do tipo recipiente ou o parâmetro de tipo restrito a ele, enquanto o do segundo deve ser int</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
-        <target state="needs-review-translation">Um membro de interface abstrato estático só pode ser acessado em um parâmetro de tipo.</target>
+        <target state="new">A static virtual or abstract interface member can be accessed only on a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
         <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
-        <target state="needs-review-translation">Uma árvore de expressão pode não conter um acesso de membro de interface abstrato estático</target>
+        <target state="new">An expression tree may not contain an access of static virtual or abstract interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1919,7 +1919,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
-        <target state="needs-review-translation">'UnmanagedCallersOnly' só pode ser aplicado a métodos estáticos não abstratos comuns ou funções locais estáticas.</target>
+        <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -2158,7 +2158,7 @@
                               curinga
 -reference:&lt;alias&gt;=&lt;file&gt;     Metadados de referência do arquivo de assembly
                               especificado usando o alias fornecido (Forma abreviada: -r)
--reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly 
+-reference:&lt;file list&gt;        Metadados de referência dos arquivos de assembly
                               especificados (Forma abreviada: -r)
 -addmodule:&lt;file list&gt;        Vincular o módulo especificado a este assembly
 -link:&lt;file list&gt;             Inserir os metadados dos arquivos de assembly de
@@ -2186,7 +2186,7 @@
 -debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ('full' é o padrão,
                               'portable' é um formato multiplataforma,
-                              'embedded' é um formato multiplataforma inserido no 
+                              'embedded' é um formato multiplataforma inserido no
                               .dll ou no .exe de destino)
 -optimize[+|-]                Habilitar as otimizações (Forma abreviada: -o)
 -deterministic                Produzir um assembly determinístico
@@ -2220,7 +2220,7 @@
 -define:&lt;symbol list&gt;         Definir os símbolos de compilação condicional (Forma
                               abreviada: -d)
 -langversion:?                Exibir os valores permitidos para a versão da linguagem
--langversion:&lt;string&gt;         Especificar a versão da linguagem, como 
+-langversion:&lt;string&gt;         Especificar a versão da linguagem, como
                               `latest` (última versão, incluindo as versões secundárias),
                               `default` (igual a `latest`),
                               `latestmajor` (última versão, excluindo as versões secundárias),
@@ -2237,7 +2237,7 @@
                               da chave de nome forte
 -keyfile:&lt;file&gt;               Especificar a arquivo de chave de nome forte
 -keycontainer:&lt;string&gt;        Especificar o contêiner de chave de nome forte
--highentropyva[+|-]           Habilitar a ASLR de alta entropia 
+-highentropyva[+|-]           Habilitar a ASLR de alta entropia
 
                        – DIVERSOS –
 @&lt;file&gt;                       Ler o arquivo de resposta de mais opções
@@ -5922,7 +5922,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
-        <target state="needs-review-translation">O primeiro operando de um operador de deslocamento sobrecarregado deve ser do tipo recipiente, enquanto o do segundo deve ser int</target>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
