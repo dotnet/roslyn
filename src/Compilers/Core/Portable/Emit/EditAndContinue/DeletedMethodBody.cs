@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<EncHoistedLocalInfo> StateMachineHoistedLocalSlots => default;
 
-        public ImmutableArray<ITypeReference?> StateMachineAwaiterSlots => default;
+        public ImmutableArray<ITypeReference> StateMachineAwaiterSlots => default;
 
         public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => ImmutableArray<ClosureDebugInfo>.Empty;
 
