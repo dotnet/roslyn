@@ -323,6 +323,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
 
+        System_MissingMethodException,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -636,6 +638,7 @@ namespace Microsoft.CodeAnalysis
             "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute",
             "System.MemoryExtensions",
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
+            "System.MissingMethodException",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

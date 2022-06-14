@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IMethodDefinition MethodDefinition => _methodDef;
 
-        public StateMachineMoveNextBodyDebugInfo MoveNextBodyInfo => default;
+        public StateMachineMoveNextBodyDebugInfo MoveNextBodyInfo => null;
 
         public ushort MaxStack => 8;
 
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<LocalScope> LocalScopes => ImmutableArray<LocalScope>.Empty;
 
-        public Cci.IImportScope ImportScope => default;
+        public Cci.IImportScope ImportScope => null;
 
         public DebugId MethodId => default;
 
@@ -62,13 +64,13 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => ImmutableArray<LambdaDebugInfo>.Empty;
 
-        public DynamicAnalysisMethodBodyData? DynamicAnalysisData => null;
+        public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
         private static ImmutableArray<byte> GetIL(EmitContext context)
         {
-            var missingMethodExceptionStringStringConstructor = context.Module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor);
+            var missingMethodExceptionStringStringConstructor = context.Module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_MissingMethodException__ctor);
             Debug.Assert(missingMethodExceptionStringStringConstructor is not null);
 
             var builder = new ILBuilder((ITokenDeferral)context.Module, null, OptimizationLevel.Debug, false);

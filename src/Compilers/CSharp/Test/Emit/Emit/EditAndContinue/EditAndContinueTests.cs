@@ -13213,6 +13213,7 @@ class C
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("M1");
+                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
