@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
         Public Function ForAttributeWithSimpleName(Of T As SyntaxNode)(
         context As IncrementalGeneratorInitializationContext, simpleName As String) As IncrementalValuesProvider(Of T)
 
-            Return context.ForAttributeWithSimpleName(
+            Return context.SyntaxProvider.ForAttributeWithSimpleName(
             simpleName,
             Function(node, c) TypeOf node Is T).Select(Function(node, c) DirectCast(node, T))
         End Function
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
         Public Function ForAttributeWithMetadataName(Of t As SyntaxNode)(
            context As IncrementalGeneratorInitializationContext, fullyQualifiedMetadataName As String) As IncrementalValuesProvider(Of t)
 
-            Return context.ForAttributeWithMetadataName(
+            Return context.SyntaxProvider.ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName,
                 Function(node, c) TypeOf node Is t,
                 Function(ctx, c) DirectCast(ctx.TargetNode, t))
@@ -664,7 +664,7 @@ end class
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                 Sub(ctx)
-                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
                         "XAttribute",
                         Function(a, b) True,
                         Function(ctx1, c)
@@ -701,7 +701,7 @@ end class
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                 Sub(ctx)
-                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
                         "XAttribute",
                         Function(a, b) True,
                         Function(ctx1, c)
@@ -738,7 +738,7 @@ end class
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                 Sub(ctx)
-                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
                         "XAttribute",
                         Function(a, b) True,
                         Function(ctx1, c)
@@ -775,7 +775,7 @@ end class
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                 Sub(ctx)
-                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
                         "XAttribute",
                         Function(a, b) True,
                         Function(ctx1, c)
@@ -812,7 +812,7 @@ end class
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                 Sub(ctx)
-                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
                         "XAttribute",
                         Function(a, b) True,
                         Function(ctx1, c)
@@ -849,7 +849,7 @@ end class
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                 Sub(ctx)
-                    Dim input = ctx.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
+                    Dim input = ctx.SyntaxProvider.ForAttributeWithMetadataName(Of ClassStatementSyntax)(
                         "XAttribute",
                         Function(a, b) True,
                         Function(ctx1, c)
