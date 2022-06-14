@@ -2,38 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal sealed class RegexDocumentHighlightsService : IDocumentHighlightsService
+    [ExportEmbeddedLanguageDocumentHighlighter(
+        PredefinedEmbeddedLanguageNames.Regex,
+        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
+    internal sealed class RegexDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
     {
-        private readonly RegexEmbeddedLanguage _language;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RegexDocumentHighlighter()
+        {
+        }
 
-        public RegexDocumentHighlightsService(RegexEmbeddedLanguage language)
-            => _language = language;
-
-        public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
+        public ImmutableArray<DocumentHighlights> GetDocumentHighlights(
+            Document document, SemanticModel semanticModel, SyntaxToken token, int position, HighlightingOptions options, CancellationToken cancellationToken)
         {
             if (!options.HighlightRelatedRegexComponentsUnderCursor)
-            {
                 return default;
-            }
 
-            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var info = document.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
+
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
             return tree == null
                 ? default
                 : ImmutableArray.Create(new DocumentHighlights(document, GetHighlights(tree, position)));
@@ -115,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 _ => throw new InvalidOperationException(),
             };
 
-        private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
+        private RegexEscapeNode? FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
             if (node.Kind is RegexKind.BackreferenceEscape or
                 RegexKind.CaptureEscape or

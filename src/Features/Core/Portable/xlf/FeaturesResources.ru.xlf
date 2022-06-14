@@ -735,6 +735,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Исправьте опечатку "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_0">
+        <source>Fixing '{0}'</source>
+        <target state="new">Fixing '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Форматирование документа</target>
