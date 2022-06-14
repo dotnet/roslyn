@@ -21,10 +21,10 @@ internal static class DocumentationCommentOptionsStorage
         };
     }
 
-    public static DocumentationCommentOptions GetDocumentationCommentOptions(this IGlobalOptionService globalOptions, SyntaxFormattingOptions formattingOptions, string language)
+    public static DocumentationCommentOptions GetDocumentationCommentOptions(this IGlobalOptionService globalOptions, LineFormattingOptions lineFormatting, string language)
       => new()
       {
-          LineFormatting = formattingOptions.LineFormatting,
+          LineFormatting = lineFormatting,
           AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, language)
       };
 
