@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.InheritanceMargin
         }
 
         public static void LogGenerateBackgroundInheritanceInfo(TimeSpan elapsedTime)
-            => s_histogramLogAggregator.IncreaseCount(
+            => s_histogramLogAggregator.LogTime(
                 ActionInfo.GetInheritanceMarginMembers, elapsedTime);
 
         public static void LogInheritanceTargetsMenuOpen()
