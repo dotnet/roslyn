@@ -46,8 +46,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             _presentedItems = presentation.ItemList
             If presentation.SelectSuggestionItem Then
                 ProgrammaticallySelectItem(presentation.SuggestionItem, True)
-            ElseIf Not presentation.ItemList.IsEmpty Then
-                ProgrammaticallySelectItem(presentation.ItemList(presentation.SelectedItemIndex).CompletionItem, False)
+            ElseIf Not _presentedItems.IsEmpty Then
+                ProgrammaticallySelectItem(_presentedItems(presentation.SelectedItemIndex).CompletionItem, False)
             Else
                 ProgrammaticallySelectItem(Nothing, False)
             End If
