@@ -341,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     {
                         if (enabledFixIds.IsFixIdEnabled(diagnosticId))
                         {
-                            enabedDiagnosticSets.Add(diagnostic);
+                            enabledDiagnosticSets.Add(diagnostic);
                             break;
                         }
                     }
@@ -354,7 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 enabledDiagnostics = new EnabledDiagnosticOptions(
                     isFormatDocumentEnabled,
                     isApplyThirdPartyFixersEnabled,
-                    enabedDiagnosticSets.ToImmutableArray(),
+                    enabledDiagnosticSets.ToImmutableArray(),
                     new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
             }
 
