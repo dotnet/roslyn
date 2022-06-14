@@ -1103,13 +1103,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializerOpt != null)
             {
-                var currentScope = LocalScopeDepth;
-
-                localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
-
-                if (localSymbol.RefKind != RefKind.None)
+                if (UseUpdatedEscapeRules && localSymbol.Scope != DeclarationScope.Unscoped)
                 {
-                    localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
+                    // If the local has a scoped modifier, then the lifetime is not inferred from
+                    // the initializer. Validate the escape values for the initializer instead.
+
+                    Debug.Assert(localSymbol.RefKind == RefKind.None ||
+                        localSymbol.RefEscapeScope >= GetRefEscape(initializerOpt, LocalScopeDepth));
+
+                    if (declTypeOpt.Type.IsRefLikeType)
+                    {
+                        initializerOpt = ValidateEscape(initializerOpt, localSymbol.ValEscapeScope, isByRef: false, diagnostics);
+                    }
+                }
+                else
+                {
+                    var currentScope = LocalScopeDepth;
+
+                    localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
+
+                    if (localSymbol.RefKind != RefKind.None)
+                    {
+                        localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
+                    }
                 }
             }
 

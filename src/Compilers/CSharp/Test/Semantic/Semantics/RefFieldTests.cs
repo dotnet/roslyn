@@ -6190,44 +6190,34 @@ class Program
 }
 public static class A
 {
-    public static void F1(scoped R r1) { }
-    public static void F2(ref R x2, ref scoped R y2) { }
-    public static void F3(scoped in R r3) { }
-    public static void F4(scoped out R r4) { r4 = default; }
-    public static void F5(object o, ref scoped R r5) { }
-    public static void F6(in scoped R r6) { }
-    public static void F7(out scoped R r7) { r7 = default; }
-    public static void F8(scoped ref scoped R r8) { }
+    public static void F1(R x1, scoped R y1) { }
+    public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
+    public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
+    public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F1(scoped R r1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 27),
-                // (8,41): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F2(ref R x2, ref scoped R y2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 41),
-                // (9,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F3(scoped in R r3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 27),
-                // (10,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F4(scoped out R r4) { r4 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 27),
-                // (11,41): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F5(object o, ref scoped R r5) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 41),
-                // (12,30): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F6(in scoped R r6) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 30),
-                // (13,31): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F7(out scoped R r7) { r7 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 31),
-                // (14,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F8(scoped ref scoped R r8) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(14, 27),
-                // (14,38): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F8(scoped ref scoped R r8) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(14, 38));
+                // (7,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F1(R x1, scoped R y1) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 33),
+                // (8,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 37),
+                // (8,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 58),
+                // (9,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 36),
+                // (9,55): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 55),
+                // (10,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 37),
+                // (10,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 58));
 
             verify(comp);
 
@@ -6242,26 +6232,40 @@ public static class A
     {
         int i = 0;
         R y = new R(ref i);
-        A.F2(ref x, ref y);
-        A.F2(ref y, ref x);
+        A.F2(ref x, ref y, ref y);
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
+                //         A.F2(ref x, ref y, ref y);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y, ref y)").WithArguments("A.F2(ref R, ref R, ref R)", "y2").WithLocation(7, 9),
+                // (7,25): error CS8352: Cannot use local 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         A.F2(ref x, ref y, ref y);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "y").WithArguments("y").WithLocation(7, 25));
 
             verify(comp);
 
             static void verify(CSharpCompilation comp)
             {
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F1").Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[1], "ref scoped R y2", RefKind.Ref, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "scoped in R r3", RefKind.In, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "scoped out R r4", RefKind.Out, DeclarationScope.RefScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[1], "ref scoped R r5", RefKind.Ref, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F6").Parameters[0], "in scoped R r6", RefKind.In, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F7").Parameters[0], "out scoped R r7", RefKind.Out, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F8").Parameters[0], "ref scoped R r8", RefKind.Ref, DeclarationScope.ValueScoped);
+                var parameters = comp.GetMember<MethodSymbol>("A.F1").Parameters;
+                VerifyParameterSymbol(parameters[0], "R x1", RefKind.None, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(parameters[1], "scoped R y1", RefKind.None, DeclarationScope.ValueScoped);
+
+                parameters = comp.GetMember<MethodSymbol>("A.F2").Parameters;
+                VerifyParameterSymbol(parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(parameters[1], "scoped ref R y2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[2], "ref scoped R z2", RefKind.Ref, DeclarationScope.ValueScoped);
+
+                parameters = comp.GetMember<MethodSymbol>("A.F3").Parameters;
+                VerifyParameterSymbol(parameters[0], "in R x3", RefKind.In, DeclarationScope.Unscoped);
+                VerifyParameterSymbol(parameters[1], "scoped in R y3", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[2], "in scoped R z3", RefKind.In, DeclarationScope.ValueScoped);
+
+                parameters = comp.GetMember<MethodSymbol>("A.F4").Parameters;
+                VerifyParameterSymbol(parameters[0], "scoped out R x4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[1], "scoped out R y4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[2], "out scoped R z4", RefKind.Out, DeclarationScope.ValueScoped);
             }
         }
 
@@ -6859,69 +6863,84 @@ public class A
         public void LocalScope_01()
         {
             var source =
-@"ref struct R { }
+@"#pragma warning disable 219
+ref struct R { }
 class Program
 {
-    static void Main()
+    static void F(ref R r)
     {
-        scoped R r1;
-        scoped ref R r2 = ref r1;
-        ref scoped R r3 = ref r1;
-        scoped ref scoped R r4 = ref r1;
-        scoped ref readonly R r5 = ref r1;
-        ref readonly scoped R r6 = ref r1;
-        scoped ref readonly scoped R r7 = ref r1;
+        scoped R r1 = default;
+        scoped ref R r2 = ref r;
+        ref scoped R r3 = ref r;
+        scoped ref scoped R r4 = ref r;
+        scoped ref readonly R r5 = ref r;
+        ref readonly scoped R r6 = ref r;
+        scoped ref readonly scoped R r7 = ref r;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped R r1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(6, 9),
                 // (7,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref R r2 = ref r1;
+                //         scoped R r1 = default;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 9),
-                // (8,13): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ref scoped R r3 = ref r1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 13),
-                // (9,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref scoped R r4 = ref r1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 9),
-                // (9,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref scoped R r4 = ref r1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 20),
+                // (8,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref R r2 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 9),
+                // (9,13): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref scoped R r3 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 13),
                 // (10,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref readonly R r5 = ref r1;
+                //         scoped ref scoped R r4 = ref r;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 9),
-                // (11,22): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ref readonly scoped R r6 = ref r1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 22),
-                // (12,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref readonly scoped R r7 = ref r1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 9),
-                // (12,29): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         scoped ref readonly scoped R r7 = ref r1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 29));
-            verify(comp);
+                // (10,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref scoped R r4 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 20),
+                // (11,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref readonly R r5 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 9),
+                // (12,22): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly scoped R r6 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 22),
+                // (13,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref readonly scoped R r7 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 9),
+                // (13,29): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref readonly scoped R r7 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 29));
+            verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            verify(comp);
+            verify(comp, useUpdatedEscapeRules: true);
 
-            static void verify(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "ref scoped R r4", RefKind.Ref, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[4], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
-                VerifyLocalSymbol(locals[5], "ref readonly scoped R r6", RefKind.RefReadOnly, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[6], "ref readonly scoped R r7", RefKind.RefReadOnly, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped,
+                    expectedRefEscape: Binder.TopLevelScope,
+                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped,
+                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
+                    expectedValEscape: Binder.ExternalScope);
+                VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped,
+                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
+                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
+                VerifyLocalSymbol(locals[3], "ref scoped R r4", RefKind.Ref, DeclarationScope.ValueScoped,
+                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
+                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
+                VerifyLocalSymbol(locals[4], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped,
+                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
+                    expectedValEscape: Binder.ExternalScope);
+                VerifyLocalSymbol(locals[5], "ref readonly scoped R r6", RefKind.RefReadOnly, DeclarationScope.ValueScoped,
+                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
+                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
+                VerifyLocalSymbol(locals[6], "ref readonly scoped R r7", RefKind.RefReadOnly, DeclarationScope.ValueScoped,
+                    expectedRefEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope,
+                    expectedValEscape: useUpdatedEscapeRules ? Binder.TopLevelScope : Binder.ExternalScope);
             }
         }
 
@@ -7085,11 +7104,93 @@ scoped = true;
             VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
         }
 
-        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
+        [Fact]
+        public void LocalScopeAndInitializer_01()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Values(R r1, scoped R r2)
+    {
+        R r11 = r1;
+        R r12 = r2;
+        scoped R r21 = r1;
+        scoped R r22 = r2;
+    }
+    static void Refs(ref R r1, scoped ref R r2, ref scoped R r3)
+    {
+        ref R r31 = ref r1;
+        ref R r32 = ref r2;
+        ref R r33 = ref r3;
+        scoped ref R r41 = ref r1;
+        scoped ref R r42 = ref r2;
+        scoped ref R r43 = ref r3;
+        ref scoped R r51 = ref r1;
+        ref scoped R r52 = ref r2;
+        ref scoped R r53 = ref r3;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (18,32): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R r43 = ref r3;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r3").WithArguments("ref R").WithLocation(18, 32));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+            VerifyLocalSymbol(locals[0], "R r11", RefKind.None, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
+            VerifyLocalSymbol(locals[1], "R r12", RefKind.None, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+            VerifyLocalSymbol(locals[2], "scoped R r21", RefKind.None, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+            VerifyLocalSymbol(locals[3], "scoped R r22", RefKind.None, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+
+            VerifyLocalSymbol(locals[4], "ref R r31", RefKind.Ref, DeclarationScope.Unscoped, expectedRefEscape: Binder.ExternalScope, expectedValEscape: Binder.ExternalScope);
+            VerifyLocalSymbol(locals[5], "ref R r32", RefKind.Ref, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
+            VerifyLocalSymbol(locals[6], "ref R r33", RefKind.Ref, DeclarationScope.Unscoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+            VerifyLocalSymbol(locals[7], "scoped ref R r41", RefKind.Ref, DeclarationScope.RefScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
+            VerifyLocalSymbol(locals[8], "scoped ref R r42", RefKind.Ref, DeclarationScope.RefScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
+            VerifyLocalSymbol(locals[9], "scoped ref R r43", RefKind.Ref, DeclarationScope.RefScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.ExternalScope);
+            VerifyLocalSymbol(locals[10], "ref scoped R r51", RefKind.Ref, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+            VerifyLocalSymbol(locals[11], "ref scoped R r52", RefKind.Ref, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+            VerifyLocalSymbol(locals[12], "ref scoped R r53", RefKind.Ref, DeclarationScope.ValueScoped, expectedRefEscape: Binder.TopLevelScope, expectedValEscape: Binder.TopLevelScope);
+        }
+
+        [Fact]
+        public void LocalScopeAndInitializer_02()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static R Refs(ref scoped R r3)
+    {
+        scoped ref R r43 = ref r3;
+        return r43;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,32): error CS8352: Cannot use local 'ref R' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R r43 = ref r3;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r3").WithArguments("ref R").WithLocation(6, 32));
+        }
+
+        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope, uint? expectedRefEscape = null, uint? expectedValEscape = null)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
             Assert.Equal(expectedScope, local.Scope);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
+            if (expectedRefEscape.HasValue)
+            {
+                Assert.Equal(expectedRefEscape.GetValueOrDefault(), local.RefEscapeScope);
+            }
+            if (expectedValEscape.HasValue)
+            {
+                Assert.Equal(expectedValEscape.GetValueOrDefault(), local.ValEscapeScope);
+            }
 
             VerifyLocalSymbol(local.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
         }
@@ -8514,6 +8615,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (9,33): error CS8352: Cannot use local 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref var x3 = ref x1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x1").WithArguments("x1").WithLocation(9, 33),
                 // (11,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         scoped var y1 = new S<int>(); // 1
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(11, 16),
@@ -9029,8 +9133,8 @@ class Program
     }
     static R<int> F1(scoped R<int> r1)
     {
-        scoped ref R<int> l1 = ref r1;
-        return l1; // 1
+        scoped ref R<int> l1 = ref r1; // 1
+        return l1;
     }
     static R<int> F2(ref R<int> r2)
     {
@@ -9044,26 +9148,26 @@ class Program
     }
     static R<int> F4(ref scoped R<int> r4)
     {
-        scoped ref R<int> l4 = ref r4;
-        return l4; // 2
+        scoped ref R<int> l4 = ref r4; // 2
+        return l4;
     }
     static R<int> F5(scoped ref scoped R<int> r5)
     {
-        scoped ref R<int> l5 = ref r5;
-        return l5; // 3
+        scoped ref R<int> l5 = ref r5; // 3
+        return l5;
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,16): error CS8352: Cannot use local 'l1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "l1").WithArguments("l1").WithLocation(12, 16),
-                // (27,16): error CS8352: Cannot use local 'l4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l4; // 2
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "l4").WithArguments("l4").WithLocation(27, 16),
-                // (32,16): error CS8352: Cannot use local 'l5' in this context because it may expose referenced variables outside of their declaration scope
-                //         return l5; // 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "l5").WithArguments("l5").WithLocation(32, 16));
+                // (11,36): error CS8352: Cannot use local 'R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R<int> l1 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r1").WithArguments("R<int>").WithLocation(11, 36),
+                // (26,36): error CS8352: Cannot use local 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R<int> l4 = ref r4; // 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r4").WithArguments("ref R<int>").WithLocation(26, 36),
+                // (31,36): error CS8352: Cannot use local 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R<int> l5 = ref r5; // 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r5").WithArguments("ref R<int>").WithLocation(31, 36));
         }
 
         [Fact]
@@ -9080,28 +9184,28 @@ class Program
     }
     static ref R<int> F1(scoped R<int> r1)
     {
-        scoped ref R<int> l1 = ref r1;
-        return ref l1; // 2
+        scoped ref R<int> l1 = ref r1; // 2
+        return ref l1; // 3
     }
     static ref R<int> F2(ref R<int> r2)
     {
         scoped ref R<int> l2 = ref r2;
-        return ref l2; // 3
+        return ref l2; // 4
     }
     static ref R<int> F3(scoped ref R<int> r3)
     {
         scoped ref R<int> l3 = ref r3;
-        return ref l3; // 4
+        return ref l3; // 5
     }
     static ref R<int> F4(ref scoped R<int> r4)
     {
-        scoped ref R<int> l4 = ref r4;
-        return ref l4; // 5
+        scoped ref R<int> l4 = ref r4; // 6
+        return ref l4; // 7
     }
     static ref R<int> F5(scoped ref scoped R<int> r5)
     {
-        scoped ref R<int> l5 = ref r5;
-        return ref l5; // 6
+        scoped ref R<int> l5 = ref r5; // 8
+        return ref l5; // 9
     }
 }";
             var comp = CreateCompilation(source);
@@ -9109,20 +9213,29 @@ class Program
                 // (7,20): error CS8157: Cannot return 'l0' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref l0; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l0").WithArguments("l0").WithLocation(7, 20),
+                // (11,36): error CS8352: Cannot use local 'R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R<int> l1 = ref r1; // 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r1").WithArguments("R<int>").WithLocation(11, 36),
                 // (12,20): error CS8157: Cannot return 'l1' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l1; // 2
+                //         return ref l1; // 3
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l1").WithArguments("l1").WithLocation(12, 20),
                 // (17,20): error CS8157: Cannot return 'l2' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l2; // 3
+                //         return ref l2; // 4
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l2").WithArguments("l2").WithLocation(17, 20),
                 // (22,20): error CS8157: Cannot return 'l3' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l3; // 4
+                //         return ref l3; // 5
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20),
+                // (26,36): error CS8352: Cannot use local 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R<int> l4 = ref r4; // 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r4").WithArguments("ref R<int>").WithLocation(26, 36),
                 // (27,20): error CS8157: Cannot return 'l4' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l4; // 5
+                //         return ref l4; // 7
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l4").WithArguments("l4").WithLocation(27, 20),
+                // (31,36): error CS8352: Cannot use local 'ref R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref R<int> l5 = ref r5; // 8
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "r5").WithArguments("ref R<int>").WithLocation(31, 36),
                 // (32,20): error CS8157: Cannot return 'l5' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref l5; // 6
+                //         return ref l5; // 9
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l5").WithArguments("l5").WithLocation(32, 20));
         }
 

@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRules)
             {
-                return parameter.RefKind is RefKind.None or RefKind.Out || parameter.Scope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
+                return parameter.RefKind is RefKind.None || parameter.Scope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
             }
             else
             {
@@ -1535,6 +1535,7 @@ moreArguments:
             }
 
             // handle omitted optional "in" parameters if there are any
+            // PROTOTYPE: Optional parameters are generated in binding now. Can TryGetUnmatchedInParameterAndFreeMatchedArgs() be removed?
             ParameterSymbol? unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
@@ -1832,7 +1833,7 @@ moreArguments:
                     {
                         return false;
                     }
-                    if ((parameter.Scope & DeclarationScope.ValueScoped) != 0)
+                    if (parameter.Scope == DeclarationScope.ValueScoped)
                     {
                         return false;
                     }

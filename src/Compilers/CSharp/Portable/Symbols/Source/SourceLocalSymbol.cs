@@ -119,25 +119,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // | scoped ref Span<int> s | current method     | calling method |
         // | ref scoped Span<int> s | current method     | current method |
 
-        internal override uint RefEscapeScope
+        internal sealed override uint RefEscapeScope
         {
             get
             {
-                uint limit = _scope == DeclarationScope.Unscoped && _refKind != RefKind.None ?
-                    Binder.ExternalScope :
-                    Binder.TopLevelScope;
-                return Math.Max(_refEscapeScope, limit);
+                if (!_scopeBinder.UseUpdatedEscapeRules ||
+                    _scope == DeclarationScope.Unscoped)
+                {
+                    return _refEscapeScope;
+                }
+                return Binder.TopLevelScope;
             }
         }
 
-        internal override uint ValEscapeScope
+        internal sealed override uint ValEscapeScope
         {
             get
             {
-                uint limit = _scope == DeclarationScope.ValueScoped ?
+                if (!_scopeBinder.UseUpdatedEscapeRules ||
+                    _scope == DeclarationScope.Unscoped)
+                {
+                    return _valEscapeScope;
+                }
+                return _scope == DeclarationScope.ValueScoped ?
                     Binder.TopLevelScope :
                     Binder.ExternalScope;
-                return Math.Max(_valEscapeScope, limit);
             }
         }
 
@@ -658,12 +664,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void SetRefEscape(uint value)
             {
+                Debug.Assert(!_scopeBinder.UseUpdatedEscapeRules || _scope == DeclarationScope.Unscoped);
                 Debug.Assert(value <= _refEscapeScope);
                 _refEscapeScope = value;
             }
 
             internal override void SetValEscape(uint value)
             {
+                Debug.Assert(!_scopeBinder.UseUpdatedEscapeRules || _scope == DeclarationScope.Unscoped);
                 Debug.Assert(value <= _valEscapeScope);
                 _valEscapeScope = value;
             }
