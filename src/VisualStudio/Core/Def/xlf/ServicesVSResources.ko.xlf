@@ -1247,6 +1247,11 @@
         <target state="translated">editorconfig 파일 저장</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_Document_Outline">
+        <source>Search Document Outline</source>
+        <target state="new">Search Document Outline</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Search_Settings">
         <source>Search Settings</source>
         <target state="translated">검색 설정</target>

@@ -181,23 +181,23 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void RemoveText(object sender, EventArgs e)
         {
-            if (searchBox.Text == "Search Document Outline")
+            if (searchBox.Text == ServicesVSResources.Search_Document_Outline)
             {
-                searchBox.Text = "";
+                searchBox.Text = string.Empty;
             }
         }
 
         private void AddText(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(searchBox.Text))
-                searchBox.Text = "Search Document Outline";
+                searchBox.Text = ServicesVSResources.Search_Document_Outline;
         }
 
         private void Search(object sender, EventArgs e)
         {
             if (this.symbolsTreeItemsSource is not null)
             {
-                if (searchBox.Text == "Search Document Outline" || string.IsNullOrWhiteSpace(searchBox.Text))
+                if (searchBox.Text == ServicesVSResources.Search_Document_Outline || string.IsNullOrWhiteSpace(searchBox.Text))
                 {
                     symbolTree.ItemsSource = this.symbolsTreeItemsSource;
                 }
