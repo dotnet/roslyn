@@ -30,7 +30,13 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             _parameters = _oldMethod.Parameters.SelectAsArray(p => new DeletedParameterDefinition(p, typesUsedByDeletedMembers));
         }
 
-        public IEnumerable<IGenericMethodParameter> GenericParameters => _oldMethod.GenericParameters;
+        public IEnumerable<IGenericMethodParameter> GenericParameters
+        {
+            get
+            {
+                return _oldMethod.GenericParameters.Select(gp => new DeletedGenericParameter(gp, this, _typesUsedByDeletedMembers));
+            }
+        }
 
         public bool HasDeclarativeSecurity => _oldMethod.HasDeclarativeSecurity;
 
