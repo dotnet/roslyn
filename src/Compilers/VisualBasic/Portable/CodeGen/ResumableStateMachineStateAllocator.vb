@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If _slotAllocator?.TryGetPreviousStateMachineState(awaitOrYieldReturnSyntax, stateNumber) = True Then
 #If DEBUG Then
-                ' two states of the New state machine should Not match the same state of the previous machine
+                ' two states of the new state machine should not match the same state of the previous machine
                 Debug.Assert(Not _matchedStates(stateNumber * direction))
                 _matchedStates(stateNumber * direction) = True
 #End If

@@ -50,9 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' A try block might have no state (transitions) within it, in which case it does not need
-            ''' to have a state to represent finalization.  This flag tells us whether the current try
-            ''' block that we are within has a finalizer state.  Initially true as we have the (trivial)
-            ''' finalizer state of -1 at the top level.
+            ''' to have a state to represent finalization.  This field tells us whether the current try
+            ''' block that we are within has a finalizer state. If so it will hold on the syntax node associated
+            ''' with the try block.
             ''' </summary>
             Private _tryBlockSyntaxForNextFinalizerState As SyntaxNode
 
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Generates code that switches over states and jumps to the target labels listed in <see cref="Dispatches"/>.
             ''' </summary>
             ''' <param name="isOutermost">
-            ''' If this is the outermost state dispatch switching over all states of the state machine - i.e. Not state dispatch generated for a try-block.
+            ''' If this is the outermost state dispatch switching over all states of the state machine - i.e. not state dispatch generated for a try-block.
             ''' </param>
             Protected Function Dispatch(isOutermost As Boolean) As BoundStatement
                 Dim sections = From kv In Dispatches

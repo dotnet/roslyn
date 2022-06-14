@@ -33,6 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            body As BoundStatement,
                            stateMachineType As StateMachineTypeSymbol,
                            stateMachineStatesDebugInfo As ImmutableArray(Of StateMachineStateDebugInfo))
+
+                Debug.Assert(Not stateMachineStatesDebugInfo.IsDefault)
+
                 Me.Method = method
                 Me.Body = body
                 Me.StateMachineType = stateMachineType
