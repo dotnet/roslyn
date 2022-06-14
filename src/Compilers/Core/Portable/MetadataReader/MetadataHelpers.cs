@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -529,6 +530,20 @@ ExitDecodeTypeName:
 
             suffixStartsAt = indexOfManglingChar - 1;
             return (short)arity;
+        }
+
+        // <ContainingFile>FN__ClassName`OptionalArity
+        private static readonly Regex s_fileTypeOrdinalPattern = new Regex(@">F(\d)+__", RegexOptions.Compiled);
+
+        internal static (int ordinal, string unmangledName) DecodeFileType(string emittedTypeName)
+        {
+            if (s_fileTypeOrdinalPattern.Match(emittedTypeName) is Match { Success: true, Groups: var groups, Length: var prefixEndsAt }
+                && int.TryParse(groups[1].Value, out int ordinal))
+            {
+                return (ordinal, emittedTypeName[(prefixEndsAt + 1)..]);
+            }
+
+            return (-1, emittedTypeName);
         }
 
         internal static string InferTypeArityAndUnmangleMetadataName(string emittedTypeName, out short arity)

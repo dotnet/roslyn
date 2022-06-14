@@ -250,14 +250,11 @@ namespace Microsoft.Cci
         ushort GenericParameterCount { get; }
 
         /// <summary>
-        /// If true, the persisted type name is mangled.
-        /// If the number of type parameters is greater than 0, mangling means appending "`n" where n is the number of type parameters.
-        /// If <see cref="AssociatedFileIdentifier"/> is non-null, prefixes the name with a file-specific reserved prefix.
-        /// </summary>  
+        /// If true, the persisted type name is mangled by appending "`n" where n is the number of type parameters, if the number of type parameters is greater than 0.
+        /// </summary>
         bool MangleName { get; }
 
-        /// <summary>Indicates that the type is scoped to the file it is declared in.</summary>
-        /// <remarks>If non-<see langword="null"/>, <see cref="INamedTypeReference.MangleName"/> must also be <see langword="true"/>.</remarks>
+        /// <summary>Indicates that the type is scoped to the file it is declared in. Used as a prefix for the metadata name.</summary>
         string? AssociatedFileIdentifier { get; }
     }
 

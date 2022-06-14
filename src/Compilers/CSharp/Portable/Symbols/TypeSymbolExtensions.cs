@@ -1364,7 +1364,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string? AssociatedFileIdentifier(this NamedTypeSymbol type)
         {
-            Debug.Assert(type.IsDefinition);
             if (type is not SourceMemberContainerTypeSymbol { AssociatedSyntaxTree: SyntaxTree tree })
             {
                 return null;

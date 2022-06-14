@@ -921,12 +921,12 @@ namespace Microsoft.Cci
             return (uint)result;
         }
 
-        public static string GetMangledName(INamedTypeReference namedType, int generation)
+        public static string GetMetadataName(INamedTypeReference namedType, int generation)
         {
             string unmangledName = (generation == 0) ? namedType.Name : namedType.Name + "#" + generation;
-
-            return namedType.MangleName
-                ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount, namedType.AssociatedFileIdentifier)
+            string fileIdentifier = namedType.AssociatedFileIdentifier;
+            return namedType.MangleName || fileIdentifier != null
+                ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount, fileIdentifier)
                 : unmangledName;
         }
 
@@ -2224,7 +2224,7 @@ namespace Microsoft.Cci
                 if ((namespaceTypeRef = exportedType.Type.AsNamespaceTypeReference) != null)
                 {
                     // exported types are not emitted in EnC deltas (hence generation 0):
-                    string mangledTypeName = GetMangledName(namespaceTypeRef, generation: 0);
+                    string mangledTypeName = GetMetadataName(namespaceTypeRef, generation: 0);
 
                     typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
                     typeNamespace = GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
@@ -2236,7 +2236,7 @@ namespace Microsoft.Cci
                     Debug.Assert(exportedType.ParentIndex != -1);
 
                     // exported types are not emitted in EnC deltas (hence generation 0):
-                    string mangledTypeName = GetMangledName(nestedRef, generation: 0);
+                    string mangledTypeName = GetMetadataName(nestedRef, generation: 0);
 
                     typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, nestedRef);
                     typeNamespace = default(StringHandle);
@@ -2715,7 +2715,7 @@ namespace Microsoft.Cci
                 var moduleBuilder = Context.Module;
                 int generation = moduleBuilder.GetTypeDefinitionGeneration(typeDef);
 
-                string mangledTypeName = GetMangledName(typeDef, generation);
+                string mangledTypeName = GetMetadataName(typeDef, generation);
                 ITypeReference baseType = typeDef.GetBaseClass(Context);
 
                 metadata.AddTypeDefinition(
@@ -2790,7 +2790,7 @@ namespace Microsoft.Cci
 
                     // It's not possible to reference newer versions of reloadable types from another assembly, hence generation 0:
                     // TODO: https://github.com/dotnet/roslyn/issues/54981
-                    string mangledTypeName = GetMangledName(nestedTypeRef, generation: 0);
+                    string mangledTypeName = GetMetadataName(nestedTypeRef, generation: 0);
 
                     name = this.GetStringHandleForNameAndCheckLength(mangledTypeName, nestedTypeRef);
                     @namespace = default(StringHandle);
@@ -2807,7 +2807,7 @@ namespace Microsoft.Cci
 
                     // It's not possible to reference newer versions of reloadable types from another assembly, hence generation 0:
                     // TODO: https://github.com/dotnet/roslyn/issues/54981
-                    string mangledTypeName = GetMangledName(namespaceTypeRef, generation: 0);
+                    string mangledTypeName = GetMetadataName(namespaceTypeRef, generation: 0);
 
                     name = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
                     @namespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);

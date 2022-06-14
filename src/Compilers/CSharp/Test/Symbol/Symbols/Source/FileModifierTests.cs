@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -200,7 +199,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("<>F0__C", symbol.MetadataName);
 
         // The qualified name here is based on `SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes`.
-        // We don't actually look up based on the mangled name of the type.
+        // We don't actually look up based on the file-encoded name of the type.
         // This is similar to how generic types work (lookup based on 'C<T>' instead of 'C`1').
         verifier.VerifyIL("C@<tree 0>.M", @"
 {
@@ -450,8 +449,6 @@ public class FileModifierTests : CSharpTestBase
         {
             Assert.Equal(new[] { "<Module>", "Program", "<MyFile>F0__C" }, module.GlobalNamespace.GetMembers().Select(m => m.Name));
 
-            // note: the arity is "unmangled" out of the name when loading metadata symbols.
-            // however, since file types aren't meant to be referenced outside the declaring file, we don't go to the effort of "unmangling" the file identifier out of the name.
             var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("<MyFile>F0__C");
             Assert.Equal("<MyFile>F0__C`1", classC.MetadataName);
             Assert.Equal(new[] { "M", ".ctor" }, classC.MemberNames);
@@ -546,9 +543,7 @@ public class FileModifierTests : CSharpTestBase
         var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1", symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
 
-        // PROTOTYPE(ft): VerifyIL doesn't work in this specific scenario because the files have the same name.
-        // Does that matter? Should we include an ordinal in the symbol display?
-        verifier.VerifyIL("C@file.M", @"");
+        // note that VerifyIL doesn't work in this specific scenario because the files have the same name.
 
         void symbolValidator(ModuleSymbol module)
         {
@@ -557,7 +552,7 @@ public class FileModifierTests : CSharpTestBase
         }
     }
 
-    // Data based on Lexer.ScanIdentifier_FastPath, excluding '/' and '\'.
+    // Data based on Lexer.ScanIdentifier_FastPath, excluding '/', '\', and ':' because those are path separators.
     [Theory]
     [InlineData('&')]
     [InlineData('\0')]
@@ -574,7 +569,6 @@ public class FileModifierTests : CSharpTestBase
     [InlineData(',')]
     [InlineData('-')]
     [InlineData('.')]
-    [InlineData(':')]
     [InlineData(';')]
     [InlineData('<')]
     [InlineData('=')]
@@ -2916,5 +2910,56 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal("System.Void@<tree 0>", typeInfo.Type!.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes)));
     }
 
-    // PROTOTYPE(ft): public API (INamedTypeSymbol.IsFile?)
+    [Fact]
+    public void GetTypeByMetadataName_01()
+    {
+        var source1 = """
+            file class C { }
+            """;
+
+        // from source
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics();
+        var sourceMember = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("<>F0__C", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C");
+        Assert.Equal(sourceMember, sourceType);
+
+        // from metadata
+        var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+        var metadataMember = comp2.GetMember<NamedTypeSymbol>("<>F0__C");
+        Assert.Equal("<>F0__C", metadataMember.MetadataName);
+
+        var metadataType = comp2.GetTypeByMetadataName("<>F0__C");
+        Assert.Equal(metadataMember, metadataType);
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_02()
+    {
+        var source1 = """
+            file class C<T> { }
+            """;
+
+        // from source
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics();
+        var sourceMember = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("<>F0__C`1", sourceMember.MetadataName);
+
+        var sourceType = comp.GetTypeByMetadataName("<>F0__C`1");
+        Assert.Equal(sourceMember, sourceType);
+
+        // from metadata
+        var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+        comp2.VerifyDiagnostics();
+
+        var metadataMember = comp2.GetMember<NamedTypeSymbol>("<>F0__C");
+        Assert.Equal("<>F0__C`1", metadataMember.MetadataName);
+
+        var metadataType = comp2.GetTypeByMetadataName("<>F0__C`1");
+        Assert.Equal(metadataMember, metadataType);
+    }
 }

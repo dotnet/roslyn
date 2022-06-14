@@ -13349,6 +13349,11 @@ file class C
 
             var compilation0 = CreateCompilation(source0_gen0.Tree, options: ComSafeDebugDll);
             // Because the order of syntax trees has changed here, the original type is considered deleted and the two new types are completely new, unrelated types.
+
+            // https://github.com/dotnet/roslyn/issues/61999
+            // we should handle this as a modification of an existing type rather than deletion and insertion of distinct types.
+            // most likely, we either need to identify file types based on something stable like the SyntaxTree.FilePath, or store a mapping of the ordinals from one generation to the next.
+            // although "real-world" compilations disallow duplicated file paths, duplicated or empty file paths are very common via direct use of the APIs, so there's not necessarily a single slam-dunk answer here.
             var compilation1 = compilation0.WithSource(new[] { source1_gen1.Tree, source0_gen1.Tree });
 
             var c1_gen0 = compilation0.GetMember("C");
@@ -13400,6 +13405,85 @@ file class C
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldc.i4.2
+  IL_0002:  call       ""void System.Console.Write(int)""
+  IL_0007:  nop
+  IL_0008:  ret
+}");
+        }
+
+        [Fact]
+        public void FileTypes_04()
+        {
+            var source1_gen0 = MarkedSource(@"
+using System;
+file class C
+{
+    void M()
+    {
+        Console.Write(<N:0>1</N:0>);
+    }
+}", "file1.cs");
+            var source2_gen0 = MarkedSource(@"
+using System;
+file class C
+{
+    void M()
+    {
+        Console.Write(<N:0>2</N:0>);
+    }
+}", "file2.cs");
+            var source2_gen1 = MarkedSource(@"
+using System;
+file class C
+{
+    void M()
+    {
+        Console.Write(<N:0>3</N:0>);
+    }
+}", "file2.cs");
+
+            var compilation0 = CreateCompilation(new[] { source1_gen0.Tree, source2_gen0.Tree }, options: ComSafeDebugDll);
+
+            var compilation1 = compilation0.WithSource(new[] { source2_gen1.Tree });
+
+            var c1_gen0 = ((NamedTypeSymbol)compilation0.GetMembers("C")[0]);
+            var c2_gen0 = ((NamedTypeSymbol)compilation0.GetMembers("C")[1]);
+            var c2_gen1 = compilation1.GetMember("C");
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+
+            v0.VerifyIL("C@file2.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""void System.Console.Write(int)""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Delete, c1_gen0, null, syntaxMap: null, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Delete, c2_gen0, null, syntaxMap: null, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, c2_gen1, syntaxMap: null, preserveLocalVariables: true)));
+
+            // There should be no diagnostics from rude edits
+            diff.EmitResult.Diagnostics.Verify();
+
+            diff.VerifyIL("C@file2.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
   IL_0002:  call       ""void System.Console.Write(int)""
   IL_0007:  nop
   IL_0008:  ret

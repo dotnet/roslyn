@@ -325,6 +325,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            // PROTOTYPE(ft): fully disallow nested file types
+            if (isTopLevel && MetadataHelpers.DecodeFileType(emittedTypeName.UnmangledTypeName) is (not -1 and var ordinal, var typeName))
+            {
+                // also do a lookup for file types from source.
+                namespaceOrTypeMembers = scope.GetTypeMembers(typeName);
+                foreach (var named in namespaceOrTypeMembers)
+                {
+                    if (named is SourceMemberContainerTypeSymbol { AssociatedSyntaxTree: SyntaxTree tree }
+                        && named.DeclaringCompilation.GetSyntaxTreeOrdinal(tree) == ordinal
+                        && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
+                        && emittedTypeName.InferredArity == named.Arity)
+                    {
+                        if ((object?)namedType != null)
+                        {
+                            namedType = null;
+                            break;
+                        }
+
+                        namedType = named;
+                    }
+                }
+            }
+
 Done:
             if ((object?)namedType == null)
             {

@@ -486,9 +486,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, this.AssociatedFileIdentifier()) : Name;
+                return MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, this.AssociatedFileIdentifier());
             }
         }
+#nullable disable
 
         /// <summary>
         /// Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
@@ -499,7 +500,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass
             get;
         }
-#nullable disable
 
         /// <summary>
         /// Collection of names of members declared within this type. May return duplicates.
