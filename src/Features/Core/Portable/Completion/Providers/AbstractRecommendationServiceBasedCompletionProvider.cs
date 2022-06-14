@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return namedType.IsAwaitableNonDynamic(context.SemanticModel, context.Position) ||
-                   namedType.GetTypeMembers().Any(m => IsValidForTaskLikeTypeOnlyContext(m, context));
+                   namedType.GetTypeMembers().Any(static (m, context) => IsValidForTaskLikeTypeOnlyContext(m, context), context);
         }
 
         private static bool IsValidForGenericConstraintContext(ISymbol symbol)
