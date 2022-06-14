@@ -20,7 +20,7 @@ internal static class IncrementalGeneratorInitializationContextExtensions
         this IncrementalGeneratorInitializationContext context, string simpleName)
         where T : SyntaxNode
     {
-        return context.ForAttributeWithSimpleName(
+        return context.SyntaxProvider.ForAttributeWithSimpleName(
             simpleName,
             (node, _) => node is T).Select((node, _) => (T)node);
     }
@@ -29,7 +29,7 @@ internal static class IncrementalGeneratorInitializationContextExtensions
         this IncrementalGeneratorInitializationContext context, string fullyQualifiedMetadataName)
         where T : SyntaxNode
     {
-        return context.ForAttributeWithMetadataName(
+        return context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName,
             (node, _) => node is T,
             (context, cancellationToken) => (T)context.TargetNode);
@@ -1022,7 +1022,7 @@ class XAttribute : System.Attribute { }
         var counter = 0;
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
                 "XAttribute",
                 (_, _) => true,
                 (ctx, _) =>
@@ -1059,7 +1059,7 @@ class XAttribute : System.Attribute { }
         var counter = 0;
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
                 "XAttribute",
                 (_, _) => true,
                 (ctx, _) =>
@@ -1097,7 +1097,7 @@ class YAttribute : System.Attribute { }
         var counter = 0;
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
                 "XAttribute",
                 (_, _) => true,
                 (ctx, _) =>
@@ -1135,7 +1135,7 @@ class YAttribute : System.Attribute { }
         var counter = 0;
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
                 "XAttribute",
                 (_, _) => true,
                 (ctx, _) =>
@@ -1173,7 +1173,7 @@ class YAttribute : System.Attribute { }
         var counter = 0;
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
                 "XAttribute",
                 (_, _) => true,
                 (ctx, _) =>
@@ -1211,7 +1211,7 @@ class YAttribute : System.Attribute { }
         var counter = 0;
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
+            var input = ctx.SyntaxProvider.ForAttributeWithMetadataName<ClassDeclarationSyntax>(
                 "XAttribute",
                 (_, _) => true,
                 (ctx, _) =>
