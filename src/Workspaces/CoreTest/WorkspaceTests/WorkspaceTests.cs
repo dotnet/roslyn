@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-
         [Fact, Obsolete]
         public void SetOptions_PublicGlobalOptions()
         {
