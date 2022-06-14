@@ -1,6 +1,6 @@
 $RepoRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..")
 
-$coverageFiles = @(Get-ChildItem "$RepoRoot/test/*.cobertura.xml" -Recurse)
+$coverageFiles = @(Get-ChildItem "$RepoRoot/test/*.cobertura.xml" -Recurse | Where {$_.FullName -notlike "*/In/*"  -and $_.FullName -notlike "*\In\*" })
 
 # Prepare code coverage reports for merging on another machine
 if ($env:SYSTEM_DEFAULTWORKINGDIRECTORY) {
