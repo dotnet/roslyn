@@ -156,11 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Structure
 
             Protected Sub AddResumableState(awaitOrYieldReturnSyntax As SyntaxNode, <Out> ByRef stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
-                AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, stateNumber, resumeLabel)
-            End Sub
-
-            Protected Sub AddResumableState(allocator As ResumableStateMachineStateAllocator, awaitOrYieldReturnSyntax As SyntaxNode, <Out> ByRef stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
-                stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax)
+                stateNumber = _resumableStateAllocator.AllocateState(awaitOrYieldReturnSyntax)
 
                 If _tryBlockSyntaxForNextFinalizerState IsNot Nothing Then
                     If SlotAllocatorOpt Is Nothing OrElse
