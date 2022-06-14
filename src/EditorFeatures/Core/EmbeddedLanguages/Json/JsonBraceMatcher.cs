@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Editor;
@@ -10,6 +12,8 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
@@ -18,12 +22,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     /// <summary>
     /// Brace matcher impl for embedded json strings.
     /// </summary>
-    internal abstract class AbstractJsonEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
+    [ExportEmbeddedLanguageBraceMatcher(
+        PredefinedEmbeddedLanguageNames.Json,
+        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        supportsUnannotatedAPIs: true,
+        "Json"), Shared]
+    internal sealed class JsonBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
-        private readonly EmbeddedLanguageInfo _info;
-
-        public AbstractJsonEmbeddedLanguageBraceMatcher(EmbeddedLanguageInfo info)
-            => _info = info;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public JsonBraceMatcher()
+        {
+        }
 
         public BraceMatchingResult? FindBraces(
             Project project,
@@ -36,7 +46,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (!options.HighlightingOptions.HighlightRelatedJsonComponentsUnderCursor)
                 return null;
 
-            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var info = project.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
+            var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
 
             // We do support brace matching in strings that look very likely to be json, even if we aren't 100% certain
             // if it truly is json.

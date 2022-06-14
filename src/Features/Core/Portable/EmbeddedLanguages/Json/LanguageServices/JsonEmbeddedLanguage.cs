@@ -9,9 +9,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 {
     internal class JsonEmbeddedLanguage : IEmbeddedLanguageFeatures
     {
-        // No document-highlights for embedded json currently.
-        public IDocumentHighlightsService? DocumentHighlightsService => null;
-
         // No completion for embedded json currently.
         public EmbeddedLanguageCompletionProvider? CompletionProvider => null;
     }

@@ -996,23 +996,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)implicitImpl != null)
                 {
-                    if (!canBeImplementedImplicitlyInCSharp9)
+                    bool suppressRegularValidation = false;
+
+                    if (!canBeImplementedImplicitlyInCSharp9 && interfaceMember.Kind == SymbolKind.Method &&
+                        (object)implementingBaseOpt == null)  // Otherwise any appropriate errors are going to be reported for the base.
                     {
-                        if (interfaceMember.Kind == SymbolKind.Method &&
-                            (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
+                        var useSiteInfo2 = compilation is object ? new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
+
+                        if (implementingType is NamedTypeSymbol named &&
+                            !AccessCheck.IsSymbolAccessible(interfaceMember, named, ref useSiteInfo2, throughTypeOpt: null))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implementingType, interfaceMember, implicitImpl);
+                            suppressRegularValidation = true;
+                        }
+                        else if (!interfaceMember.IsStatic)
                         {
                             LanguageVersion requiredVersion = MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers.RequiredVersion();
                             LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
                             if (requiredVersion > availableVersion)
                             {
-                                diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
+                                diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl),
                                                 implementingType, interfaceMember, implicitImpl,
                                                 availableVersion.GetValueOrDefault().ToDisplayString(), new CSharpRequiredLanguageVersion(requiredVersion));
                             }
                         }
+
+                        diagnostics.Add(
+#if !DEBUG
+                            // Don't optimize in DEBUG for better coverage for the GetInterfaceLocation function. 
+                            useSiteInfo2.Diagnostics is null ? Location.None :
+#endif
+                            GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl),
+                            useSiteInfo2);
                     }
 
-                    ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                    if (!suppressRegularValidation)
+                    {
+                        ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                    }
                 }
                 else if ((object)closestMismatch != null)
                 {

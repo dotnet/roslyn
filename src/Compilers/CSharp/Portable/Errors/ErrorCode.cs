@@ -2071,6 +2071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_CannotBeConvertedToUTF8 = 9026,
         ERR_MisplacedUnchecked = 9027,
+        ERR_LineSpanDirectiveRequiresSpace = 9028,
 
         ERR_RequiredNameDisallowed = 9029,
         ERR_OverrideMustHaveRequired = 9030,
@@ -2087,6 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedCompilerFeature = 9041,
         WRN_ObsoleteMembersShouldNotBeRequired = 9042,
         ERR_RefReturningPropertiesCannotBeRequired = 9043,
+        ERR_ImplicitImplementationOfInaccessibleInterfaceMember = 9044,
 
         #endregion
 
