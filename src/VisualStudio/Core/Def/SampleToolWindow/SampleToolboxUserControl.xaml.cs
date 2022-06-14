@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
@@ -99,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                         return;
                     }
 
-                    var response = DocumentSymbolsRequest(document, textBuffer, languageServiceBroker, threadingContext);
+                    var response = await DocumentSymbolsRequestAsync(document, textBuffer, languageServiceBroker).ConfigureAwait(false);
                     if (response is not null && response.Response is not null)
                     {
                         await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
@@ -117,35 +118,30 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        private ManualInvocationResponse? DocumentSymbolsRequest(Document document, ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
+        private async Task<ManualInvocationResponse?> DocumentSymbolsRequestAsync(Document document, ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker)
         {
-            ManualInvocationResponse? response = null;
-            threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            var parameterFactory = new DocumentSymbolParams()
             {
-                var parameterFactory = new DocumentSymbolParams()
+                TextDocument = new TextDocumentIdentifier()
                 {
-                    TextDocument = new TextDocumentIdentifier()
-                    {
-                        Uri = document.GetURI()
-                    }
-                };
-
-                var serializedParams = JToken.FromObject(parameterFactory);
-                JToken ParameterFactory(ITextSnapshot _)
-                {
-                    return serializedParams;
+                    Uri = document.GetURI()
                 }
+            };
 
-                // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
-                response = await languageServiceBroker.RequestAsync(
-                    textBuffer: textBuffer,
-                    method: Methods.TextDocumentDocumentSymbolName,
-                    capabilitiesFilter: (JToken x) => true,
-                    languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
-                    parameterFactory: ParameterFactory,
-                    cancellationToken: CancellationToken.None).ConfigureAwait(false);
-            }).FileAndForget("Document Outline: Document Symbols Request");
-            return response;
+            var serializedParams = JToken.FromObject(parameterFactory);
+            JToken ParameterFactory(ITextSnapshot _)
+            {
+                return serializedParams;
+            }
+
+            // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
+            return await languageServiceBroker.RequestAsync(
+                textBuffer: textBuffer,
+                method: Methods.TextDocumentDocumentSymbolName,
+                capabilitiesFilter: (JToken x) => true,
+                languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
+                parameterFactory: ParameterFactory,
+                cancellationToken: CancellationToken.None).ConfigureAwait(false);
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
