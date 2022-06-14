@@ -40,7 +40,7 @@ public readonly struct GeneratorAttributeSyntaxContext
     /// <summary>
     /// <see cref="AttributeData"/>s for any matching attributes on <see cref="TargetSymbol"/>.  Always non-empty.  All
     /// these attributes will have an <see cref="AttributeData.AttributeClass"/> whose fully qualified name metadata
-    /// name matches the name requested in <see cref="IncrementalGeneratorInitializationContext.ForAttributeWithMetadataName{T}"/>.
+    /// name matches the name requested in <see cref="SyntaxValueProvider.ForAttributeWithMetadataName{T}"/>.
     /// <para>
     /// To get the entire list of attributes, use <see cref="ISymbol.GetAttributes"/> on <see cref="TargetSymbol"/>.
     /// </para>
