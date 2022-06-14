@@ -32,11 +32,6 @@
         <target state="translated">Převést na program stylu Program.Main</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
-      <trans-unit id="Convert_to_UTF8_string_literal">
-        <source>Convert to UTF-8 string literal</source>
-        <target state="translated">Převést na řetězcový literál UTF-8</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">Převést na namespace pro celý blok</target>

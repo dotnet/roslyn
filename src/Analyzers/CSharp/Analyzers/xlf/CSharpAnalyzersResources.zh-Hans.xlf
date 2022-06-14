@@ -32,11 +32,6 @@
         <target state="translated">转换为 'Program.Main' 样式程序</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
-      <trans-unit id="Convert_to_UTF8_string_literal">
-        <source>Convert to UTF-8 string literal</source>
-        <target state="translated">转换为 UTF-8 字符串文本</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">转换为块范围限定的 namespace</target>

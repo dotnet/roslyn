@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestClass2(string typeKind)
@@ -51,6 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestClass3(string typeKind)
@@ -113,6 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestInterface2(string typeKind)
@@ -132,6 +141,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestInterface3(string typeKind)
@@ -194,6 +206,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestStruct2(string typeKind)
@@ -213,6 +228,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
         [InlineData("enum")]
         [InlineData("class")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         [InlineData("struct")]
         [InlineData("interface")]
         public async Task TestStruct3(string typeKind)

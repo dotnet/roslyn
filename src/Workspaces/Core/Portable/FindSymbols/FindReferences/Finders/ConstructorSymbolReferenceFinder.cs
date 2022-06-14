@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? int.MaxValue
                 : symbol.Parameters.Length;
 
-            var exactArgumentCount = symbol.Parameters.Any(p => p.IsOptional || p.IsParams)
+            var exactArgumentCount = symbol.Parameters.Any(static p => p.IsOptional || p.IsParams)
                 ? -1
                 : symbol.Parameters.Length;
 

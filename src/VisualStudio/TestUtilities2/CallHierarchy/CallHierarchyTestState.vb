@@ -172,19 +172,32 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         End Sub
 
         Friend Sub VerifyResultName(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
+            Dim callers = New List(Of String)
             SearchRoot(root, searchCategory, Sub(c As ICallHierarchyNameItem)
-                                                 Assert.Contains(ConvertToName(c), expectedCallers)
+                                                 callers.Add(ConvertToName(c))
                                              End Sub,
                 scope,
                 documents)
+
+            Assert.Equal(callers.Count, expectedCallers.Length)
+            For Each expected In expectedCallers
+                Assert.Contains(expected, callers)
+            Next
         End Sub
 
         Friend Sub VerifyResult(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
+            Dim callers = New List(Of String)
             SearchRoot(root, searchCategory, Sub(c As CallHierarchyItem)
-                                                 Assert.Contains(ConvertToName(c), expectedCallers)
+                                                 callers.Add(ConvertToName(c))
                                              End Sub,
                 scope,
                 documents)
+
+            Assert.Equal(callers.Count, expectedCallers.Length)
+            For Each expected In expectedCallers
+                Assert.Contains(expected, callers)
+            Next
+
         End Sub
 
         Friend Sub Navigate(root As CallHierarchyItem, searchCategory As String, callSite As String, Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)

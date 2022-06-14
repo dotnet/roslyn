@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
         int? RangeExpression { get; }
+        int? RefExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
@@ -148,6 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int YieldReturnStatement { get; }
 
         #endregion
 

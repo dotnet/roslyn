@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // We use the first item in the completion list as our comparison point for span
             // and range for optimization when generating the TextEdits later on.
             var completionChange = await completionService.GetChangeAsync(
-                document, list.Items.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, list.ItemsList.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
             var defaultSpan = completionChange.TextChange.Span;
             var defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan, documentText);
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
             var stringBuilder = new StringBuilder();
             using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var lspCompletionItems);
-            foreach (var item in list.Items)
+            foreach (var item in list.ItemsList)
             {
                 var completionItemResolveData = supportsCompletionListData ? null : completionResolveData;
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, document.Project.Solution.Options, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            if (completionList.Items.IsEmpty)
+            if (completionList.ItemsList.IsEmpty())
             {
                 return null;
             }
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             using var _ = ArrayBuilder<MatchResult<CompletionItem?>>.GetInstance(out var matchResultsBuilder);
             var index = 0;
             var completionHelper = CompletionHelper.GetHelper(document);
-            foreach (var item in completionList.Items)
+            foreach (var item in completionList.ItemsList)
             {
                 if (CompletionHelper.TryCreateMatchResult<CompletionItem?>(
                     completionHelper,
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Currently the VS client does not remember to re-request, so the completion list only ever shows items from "Som"
             // so we always set the isIncomplete flag to true when the original list size (computed when no filter text was typed) is too large.
             // VS bug here - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1335142
-            var isIncomplete = completionList.Items.Length > newCompletionList.Items.Length;
+            var isIncomplete = completionList.ItemsList.Count > newCompletionList.ItemsList.Count;
 
             return (newCompletionList, isIncomplete);
 

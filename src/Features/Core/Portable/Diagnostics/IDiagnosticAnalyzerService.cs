@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This API will only force complete analyzers that support span based analysis, i.e. compiler analyzer and
         /// <see cref="IBuiltInAnalyzer"/>s that support <see cref="DiagnosticAnalyzerCategory.SemanticSpanAnalysis"/>.
         /// For the rest of the analyzers, it will only return diagnostics if the analyzer has already been executed.
-        /// Use <see cref="GetDiagnosticsForSpanAsync(Document, TextSpan?, Func{string, bool}?, bool, CodeActionRequestPriority, Func{string, IDisposable?}?, CancellationToken)"/>
+        /// Use <see cref="GetDiagnosticsForSpanAsync(Document, TextSpan?, Func{string, bool}?, bool, bool, CodeActionRequestPriority, Func{string, IDisposable?}?, CancellationToken)"/>
         /// if you want to force complete all analyzers and get up-to-date diagnostics for all analyzers for the given span.
         /// </summary>
         Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(Document document, TextSpan range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, CancellationToken cancellationToken = default);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// none of its reported diagnostics should be included in the result.
         /// </para>
         /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
+        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
     }
 
     internal static class IDiagnosticAnalyzerServiceExtensions
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
             return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-                includeSuppressedDiagnostics, priority, addOperationScope, cancellationToken);
+                includeCompilerDiagnostics: true, includeSuppressedDiagnostics, priority: priority, addOperationScope: addOperationScope, cancellationToken: cancellationToken);
         }
     }
 }

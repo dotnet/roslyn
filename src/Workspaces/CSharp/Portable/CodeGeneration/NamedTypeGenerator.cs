@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 members = members.Remove(primaryConstructor);
 
                 // remove any fields/properties that were created by the primary constructor
-                members = members.WhereAsArray(m => m is not IPropertySymbol and not IFieldSymbol || !primaryConstructor.Parameters.Any(p => p.Name == m.Name));
+                members = members.WhereAsArray(m => m is not IPropertySymbol and not IFieldSymbol || !primaryConstructor.Parameters.Any(static (p, m) => p.Name == m.Name, m));
             }
 
             // remove any implicit overrides to generate.
