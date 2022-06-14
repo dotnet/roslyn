@@ -1287,6 +1287,11 @@
         <target state="translated">目标运行时不支持可扩展或运行时环境默认调用约定。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="translated">“{0}”不能密封，因为包含的记录未密封。</target>

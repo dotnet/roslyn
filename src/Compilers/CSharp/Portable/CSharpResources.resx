@@ -7127,4 +7127,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ImplicitImplementationOfInaccessibleInterfaceMember" xml:space="preserve">
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</value>
   </data>
+  <data name="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers" xml:space="preserve">
+    <value>Required members are not allowed on the top level of a script or submission.</value>
+  </data>
 </root>

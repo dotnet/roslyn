@@ -4648,4 +4648,42 @@ public class Derived : Base
         var property = c.GetProperty("Property").GetPublicSymbol();
         Assert.Equal(isRequired, property.IsRequired);
     }
+
+    [Fact, WorkItem(61822, "https://github.com/dotnet/roslyn/issues/61822")]
+    public void RequiredMembersNotAllowedInSubmission()
+    {
+        var reference = CreateCompilationWithRequiredMembers("").ToMetadataReference();
+        var submission = CreateSubmission("""
+            public required int Field;
+            public required int Prop { get; set; }
+            """, new[] { reference }, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
+
+        submission.VerifyDiagnostics(
+            // (1,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Field;
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Field").WithLocation(1, 21),
+            // (2,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Prop").WithLocation(2, 21)
+        );
+    }
+
+    [Fact, WorkItem(61822, "https://github.com/dotnet/roslyn/issues/61822")]
+    public void RequiredMembersNotAllowedInScript()
+    {
+        var reference = CreateCompilationWithRequiredMembers("").ToMetadataReference();
+        var script = CreateCompilation("""
+            public required int Field;
+            public required int Prop { get; set; }
+            """, new[] { reference }, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
+
+        script.VerifyDiagnostics(
+            // (1,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Field;
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Field").WithLocation(1, 21),
+            // (2,21): error CS9045: Required members are not allowed on the top level of a script or submission.
+            // public required int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers, "Prop").WithLocation(2, 21)
+        );
+    }
 }
