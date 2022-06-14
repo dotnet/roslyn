@@ -4,13 +4,16 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -27,13 +30,15 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     [UseExportProvider]
-    public class CodeCleanupTests
+    public partial class CodeCleanupTests
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
@@ -104,7 +109,7 @@ global using System.Collections.Generic;
 global using System;
 class Program
 {
-    static async Task Main(string[] args)
+    static Task Main(string[] args)
     {
         Barrier b = new Barrier(0);
         var list = new List<int>();
@@ -121,7 +126,7 @@ using System.Threading.Tasks;
 
 internal class Program
 {
-    private static async Task Main(string[] args)
+    private static Task Main(string[] args)
     {
         Barrier b = new(0);
         List<int> list = new();
@@ -570,6 +575,203 @@ namespace A
             var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
             var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
             Assert.Equal(expectedNumberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
+        }
+
+        private const string _code = @"
+class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+            default:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+            case 1000:
+            default:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+            default:
+                break;
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+
+        private const string _fixed = @"
+class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task RunThirdPartyFixer()
+        {
+            await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotRunThirdPartyFixerWithNoFixAll()
+        {
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code);
+        }
+
+        [Theory]
+        [InlineData(DiagnosticSeverity.Warning)]
+        [InlineData(DiagnosticSeverity.Error)]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task RunThirdPartyFixerWithSeverityOfWarningOrHigher(DiagnosticSeverity severity)
+        {
+            await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed, severity);
+        }
+
+        [Theory]
+        [InlineData(DiagnosticSeverity.Hidden)]
+        [InlineData(DiagnosticSeverity.Info)]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotRunThirdPartyFixerWithSeverityLessThanWarning(DiagnosticSeverity severity)
+        {
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, severity);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotRunThirdPartyFixerIfItDoesNotSupportDocumentScope()
+        {
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer>(_code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotApplyFixerIfChangesAreMadeOutsideDocument()
+        {
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code);
+        }
+
+        private static Task TestThirdPartyCodeFixerNoChanges<TCodefix, TAnalyzer>(string code, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, code, severity);
+        }
+
+        private static Task TestThirdPartyCodeFixerApplied<TCodefix, TAnalyzer>(string code, string expected, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, expected, severity);
+        }
+
+        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code = null, string expected = null, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
+
+            var options = CodeActionOptions.DefaultProvider;
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var analyzer = (DiagnosticAnalyzer)new TAnalyzer();
+            var diagnosticIds = analyzer.SupportedDiagnostics.SelectAsArray(d => d.Id);
+
+            var editorconfigText = "is_global = true";
+            foreach (var diagnosticId in diagnosticIds)
+            {
+                editorconfigText += $"\ndotnet_diagnostic.{diagnosticId}.severity = {severity.ToEditorConfigString()}";
+            }
+
+            var map = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>{
+                { LanguageNames.CSharp, ImmutableArray.Create(analyzer) }
+            };
+
+            project = project.AddAnalyzerReference(new TestAnalyzerReferenceByLanguage(map));
+            project = project.Solution.WithProjectFilePath(project.Id, @$"z:\\{project.FilePath}").GetProject(project.Id);
+            project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath: @"z:\\.editorconfig").Project;
+            workspace.TryApplyChanges(project.Solution);
+
+            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
+            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
+            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
+
+            var hostdoc = workspace.Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+
+            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+            var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+
+            var newDoc = await codeCleanupService.CleanupAsync(
+                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
+
+            var actual = await newDoc.GetTextAsync();
+            Assert.Equal(expected, actual.ToString());
         }
 
         private static string[] GetSupportedDiagnosticIdsForCodeCleanupService(string language)
