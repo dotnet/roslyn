@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-public partial struct IncrementalGeneratorInitializationContext
+public partial struct SyntaxValueProvider
 {
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
@@ -43,10 +43,10 @@ public partial struct IncrementalGeneratorInitializationContext
         string simpleName,
         Func<SyntaxNode, CancellationToken, bool> predicate)
     {
-        var syntaxHelper = this.SyntaxHelper;
+        var syntaxHelper = _context.SyntaxHelper;
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-        var individualFileGlobalAliasesProvider = this.SyntaxProvider.CreateSyntaxProvider(
+        var individualFileGlobalAliasesProvider = this.CreateSyntaxProvider(
             static (n, _) => n is ICompilationUnitSyntax,
             static (context, _) => getGlobalAliasesInCompilationUnit(context.SyntaxHelper, context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -63,7 +63,7 @@ public partial struct IncrementalGeneratorInitializationContext
 
         // Regenerate our data if the compilation options changed.  VB can supply global aliases with compilation options,
         // so we have to reanalyze everything if those changed.
-        var compilationGlobalAliases = this.CompilationOptionsProvider.Select(
+        var compilationGlobalAliases = _context.CompilationOptionsProvider.Select(
             (o, _) =>
             {
                 var aliases = Aliases.GetInstance();
@@ -77,7 +77,7 @@ public partial struct IncrementalGeneratorInitializationContext
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
         // Create a syntax provider for every compilation unit.
-        var compilationUnitProvider = this.SyntaxProvider.CreateSyntaxProvider(
+        var compilationUnitProvider = this.CreateSyntaxProvider(
             static (n, _) => n is ICompilationUnitSyntax,
             static (context, _) => context.Node).WithTrackingName("compilationUnit_ForAttribute");
 

@@ -30,7 +30,6 @@ Microsoft.CodeAnalysis.GeneratorTimingInfo
 Microsoft.CodeAnalysis.GeneratorTimingInfo.ElapsedTime.get -> System.TimeSpan
 Microsoft.CodeAnalysis.GeneratorTimingInfo.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorTimingInfo.GeneratorTimingInfo() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.ForAttributeWithMetadataName<T>(string! fullyQualifiedMetadataName, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, System.Threading.CancellationToken, bool>! predicate, System.Func<Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext, System.Threading.CancellationToken, T>! transform) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<T>
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
@@ -61,6 +60,7 @@ Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(int position, System.Thread
 Microsoft.CodeAnalysis.ISymbol.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.SymbolVisitor() -> void
+Microsoft.CodeAnalysis.SyntaxValueProvider.ForAttributeWithMetadataName<T>(string! fullyQualifiedMetadataName, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, System.Threading.CancellationToken, bool>! predicate, System.Func<Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext, System.Threading.CancellationToken, T>! transform) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<T>
 override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
 static Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.Create(System.Collections.Immutable.ImmutableArray<byte> compressedSlotMap, System.Collections.Immutable.ImmutableArray<byte> compressedLambdaMap, System.Collections.Immutable.ImmutableArray<byte> compressedStateMachineStateMap) -> Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation

@@ -60,7 +60,7 @@ public readonly struct GeneratorAttributeSyntaxContext
     }
 }
 
-public partial struct IncrementalGeneratorInitializationContext
+public partial struct SyntaxValueProvider
 {
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
     private static readonly SymbolDisplayFormat s_metadataDisplayFormat =
@@ -106,10 +106,10 @@ public partial struct IncrementalGeneratorInitializationContext
                      .Select(static g => new SyntaxNodeGrouping<SyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
 
         var compilationAndGroupedNodesProvider = groupedNodes
-            .Combine(this.CompilationProvider)
+            .Combine(_context.CompilationProvider)
             .WithTrackingName("compilationAndGroupedNodes_ForAttributeWithMetadataName");
 
-        var syntaxHelper = this.SyntaxHelper;
+        var syntaxHelper = _context.SyntaxHelper;
         var finalProvider = compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
         {
             var (grouping, compilation) = tuple;

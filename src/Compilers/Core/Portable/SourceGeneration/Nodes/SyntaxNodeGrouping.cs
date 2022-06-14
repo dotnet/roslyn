@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-public partial struct IncrementalGeneratorInitializationContext
+public partial struct SyntaxValueProvider
 {
     /// <summary>
     /// Wraps a grouping of nodes within a syntax tree so we can have value-semantics around them usable by the

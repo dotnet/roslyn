@@ -13,17 +13,20 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Allows a user to create Syntax based input nodes for incremental generation
     /// </summary>
-    public readonly struct SyntaxValueProvider
+    public readonly partial struct SyntaxValueProvider
     {
+        private readonly IncrementalGeneratorInitializationContext _context;
         private readonly ArrayBuilder<SyntaxInputNode> _inputNodes;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly ISyntaxHelper _syntaxHelper;
 
         internal SyntaxValueProvider(
+            IncrementalGeneratorInitializationContext context,
             ArrayBuilder<SyntaxInputNode> inputNodes,
             Action<IIncrementalGeneratorOutputNode> registerOutput,
             ISyntaxHelper syntaxHelper)
         {
+            _context = context;
             _inputNodes = inputNodes;
             _registerOutput = registerOutput;
             _syntaxHelper = syntaxHelper;
