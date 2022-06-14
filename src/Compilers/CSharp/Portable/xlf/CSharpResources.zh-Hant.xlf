@@ -1287,6 +1287,11 @@
         <target state="translated">目標執行階段不支援可延伸或執行階段環境的預設呼叫慣例。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="translated">因為未密封內含的記錄，所以無法密封 '{0}'。</target>

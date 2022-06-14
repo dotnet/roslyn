@@ -1287,6 +1287,11 @@
         <target state="translated">Cílový modul runtime nepodporuje rozšiřitelné konvence volání ani konvence volání výchozí pro prostředí modulu runtime.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="translated">Typ {0} nemůže být zapečetěný, protože není zapečetěný obsahující záznam.</target>

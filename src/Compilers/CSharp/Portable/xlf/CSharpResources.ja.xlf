@@ -1287,6 +1287,11 @@
         <target state="translated">ターゲット ランタイムは、拡張可能またはランタイム環境の既定の呼び出し規則をサポートしていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="translated">'{0}' を sealed にすることはできません。これが含まれているレコードが sealed ではないためです。</target>

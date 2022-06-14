@@ -1287,6 +1287,11 @@
         <target state="translated">El entorno de ejecución de destino no admite convenciones de llamada predeterminadas de entorno en tiempo de ejecución o extensible.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="new">Required members are not allowed on the top level of a script or submission.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="translated">"{0}" no puede estar sellado porque el registro contenedor no está sellado.</target>
