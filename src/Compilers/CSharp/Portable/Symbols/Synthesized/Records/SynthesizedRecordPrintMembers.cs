@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers().WhereAsArray(m => isPrintable(m));
 
                 if (ReturnType.IsErrorType() ||
-                    printableMembers.Any(m => m.GetTypeOrReturnType().Type.IsErrorType()))
+                    printableMembers.Any(static m => m.GetTypeOrReturnType().Type.IsErrorType()))
                 {
                     F.CloseMethod(F.ThrowNull());
                     return;

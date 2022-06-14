@@ -1162,9 +1162,19 @@
         <target state="translated">移除不必要的 Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="new">Rename</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">將 {0} 重新命名為 {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_asynchronously_experimental">
+        <source>Rename asynchronously experimental</source>
+        <target state="new">Rename asynchronously experimental</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">

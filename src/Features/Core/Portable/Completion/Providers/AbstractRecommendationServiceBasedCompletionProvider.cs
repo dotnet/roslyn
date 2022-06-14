@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
 
-        protected sealed override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
-
         protected sealed override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var rules = GetCompletionItemRules(symbols, context);
 
-            var preselect = symbols.Any(t => t.preselect);
+            var preselect = symbols.Any(static t => t.preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0].symbol) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 

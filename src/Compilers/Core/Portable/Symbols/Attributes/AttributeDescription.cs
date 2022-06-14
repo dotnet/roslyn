@@ -54,17 +54,11 @@ namespace Microsoft.CodeAnalysis
         // shortcuts for signature elements supported by our signature comparer:
         private const byte Void = (byte)SignatureTypeCode.Void;
         private const byte Boolean = (byte)SignatureTypeCode.Boolean;
-        private const byte Char = (byte)SignatureTypeCode.Char;
-        private const byte SByte = (byte)SignatureTypeCode.SByte;
         private const byte Byte = (byte)SignatureTypeCode.Byte;
         private const byte Int16 = (byte)SignatureTypeCode.Int16;
-        private const byte UInt16 = (byte)SignatureTypeCode.UInt16;
         private const byte Int32 = (byte)SignatureTypeCode.Int32;
         private const byte UInt32 = (byte)SignatureTypeCode.UInt32;
         private const byte Int64 = (byte)SignatureTypeCode.Int64;
-        private const byte UInt64 = (byte)SignatureTypeCode.UInt64;
-        private const byte Single = (byte)SignatureTypeCode.Single;
-        private const byte Double = (byte)SignatureTypeCode.Double;
         private const byte String = (byte)SignatureTypeCode.String;
         private const byte Object = (byte)SignatureTypeCode.Object;
         private const byte SzArray = (byte)SignatureTypeCode.SZArray;

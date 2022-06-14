@@ -100,6 +100,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents[0];
         }
 
+        public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
+            => solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).SingleOrDefault();
+
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

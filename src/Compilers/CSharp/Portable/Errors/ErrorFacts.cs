@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             nullableWarnings.Add(GetId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
             nullableWarnings.Add(GetId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
-            nullableWarnings.Add(GetId(ErrorCode.WRN_ShouldNotReturn));
 
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));

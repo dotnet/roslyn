@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+        internal abstract SyntaxTrivia ElasticMarker { get; }
+
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
         internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
@@ -1556,6 +1558,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a block of statements. Not supported in VB.
         /// </summary>
         internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
+
+        internal abstract SyntaxNode GlobalStatement(SyntaxNode statement);
 
         #endregion
 

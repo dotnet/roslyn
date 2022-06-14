@@ -100,11 +100,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             bool supportsOrPattern, ImmutableArray<AnalyzedSwitchSection> sections)
         {
             // There must be a default case for an exhaustive switch expression
-            if (!sections.Any(section => section.Labels.IsDefault))
+            if (!sections.Any(static section => section.Labels.IsDefault))
                 return false;
 
             // There must be at least one return statement
-            if (!sections.Any(section => GetSwitchArmKind(section.Body) == OperationKind.Return))
+            if (!sections.Any(static section => GetSwitchArmKind(section.Body) == OperationKind.Return))
                 return false;
 
             if (!sections.All(section => CanConvertSectionForSwitchExpression(supportsOrPattern, section)))

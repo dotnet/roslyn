@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         private readonly ArrayBuilder<ClassifiedSpan> _result;
 
-        public Project? Project { get; }
+        public Project Project { get; }
 
         /// <summary>
         /// The string or character token to classify.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Classification
         internal readonly IVirtualCharService VirtualCharService;
 
         internal EmbeddedLanguageClassificationContext(
-            Project? project,
+            Project project,
             SemanticModel semanticModel,
             SyntaxToken syntaxToken,
             ClassificationOptions options,

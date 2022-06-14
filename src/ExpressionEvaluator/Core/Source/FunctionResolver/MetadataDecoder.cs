@@ -247,11 +247,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return CreateTypeSignature(qualifier, _reader.GetString(typeRef.Name), typeArguments, ref typeArgumentOffset);
         }
 
-        private string GetTypeName(StringHandle nameHandle, out int arity)
-        {
-            return RemoveAritySeparatorIfAny(_reader.GetString(nameHandle), out arity);
-        }
-
         private QualifiedTypeSignature GetNamespace(StringHandle namespaceHandle)
         {
             var namespaceName = _reader.GetString(namespaceHandle);
