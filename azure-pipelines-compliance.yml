@@ -1,0 +1,100 @@
+# Name: DotNet-Roslyn-Compliance
+# URL: 
+#
+# Responsible for running compliance checks.
+
+#
+# NOTE: triggers for this build are defined in the Web UI instead of here in the YAML file so they
+#       apply to all branches.
+
+queue:
+  name: VSEngSS-MicroBuild2022-1ES
+  demands: Cmd
+  timeoutInMinutes: 90
+variables:
+  BuildConfiguration: Release
+  TeamName: DotNet-Roslyn
+  BuildPlatform: any cpu
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+steps:
+- checkout: self
+  clean: true
+
+- task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+  displayName: Install Signing Plugin
+  inputs:
+    signType: $(SignType)
+    esrpSigning: true
+  condition: and(succeeded(), ne(variables['SignType'], ''))
+
+- task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
+  displayName: Install Swix Plugin
+
+- task: PowerShell@2
+    displayName: Build
+    inputs:
+    filePath: eng/build.ps1
+    arguments: -ci
+                -restore
+                -build
+                -pack
+                -sign
+                -configuration $(BuildConfiguration)
+                -officialBuildId $(Build.BuildNumber)
+                -officialSkipTests=true
+                -officialSkipApplyOptimizationData=true
+                -officialSourceBranchName $(SourceBranchName)
+                -officialIbcDrop $(IbcDrop)
+                /p:RepositoryName=$(Build.Repository.Name)
+                /p:VisualStudioDropName=$(VisualStudio.DropName)
+                /p:DotNetSignType=$(SignType)
+                /p:DotNetPublishToBlobFeed=false
+                /p:PublishToSymbolServer=false
+                /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+                /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                /p:DotnetPublishUsingPipelines=false
+                /p:PreReleaseVersionLabel=compliance
+                /p:IgnoreIbcMergeErrors=true
+
+- task: CopyFiles@2
+  # APIScan can take a long time, so here we copy (mostly) just the product binaries and related .pdbs
+  # in an effort to limit what it needs to work on.
+  displayName: Copy Roslyn assemblies for APIScan
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\artifacts\bin\Roslyn.VisualStudio.Setup\$(BuildConfiguration)\net472'  # Limit to (mostly) product binaries
+    Contents: |
+      Microsoft.CodeAnalysis*.dll
+      Microsoft.VisualStudio.LanguageServices*.dll
+    TargetFolder: '$(Agent.TempDirectory)\APIScanFiles'
+  continueOnError: true
+
+- task: APIScan@2
+  # Scan for the use of undocumented APIs.
+  displayName: Run APIScan
+  inputs:
+    softwareFolder: '$(Agent.TempDirectory)\APIScanFiles' # Only examine the product binaries we previously copied.
+    softwareName: 'Dotnet-Roslyn'
+    softwareVersionNum: '17.0'
+    softwareBuildNum: '$(Build.BuildId)'
+    symbolsFolder: 'SRV*http://symweb'
+  env:
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+  continueOnError: true
+
+- task: TSAUpload@2
+  # Scan the output of previous steps and create bugs for any problems.
+  displayName: Upload results and create bugs
+  inputs:
+    GdnPublishTsaOnboard: true
+    GdnPublishTsaConfigFile: '$(Build.SourcesDirectory)\eng\TSAConfig.gdntsa'  # All relevant settings are in this file.
+  continueOnError: true
+
+- task: PublishSecurityAnalysisLogs@3
+  displayName: Publishing analysis artifacts
+  inputs:
+    ArtifactName: 'CodeAnalysisLogs'
+    ArtifactType: 'Container'           # Associate the artifacts with the build.
+    AllTools: true                      # Look for logs from all tools.
+    ToolLogsNotFoundAction: 'Standard'  # If a log is not found just output a message to that effect.
