@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
         public override string ToString() => _virtualChar.ToString();
 
         /// <inheritdoc cref="VirtualChar.Equals(object)"/>
-        public override bool Equals(object? obj) => _virtualChar.Equals(obj);
+        public override bool Equals(object? obj) => obj is AspNetCoreVirtualChar vc && Equals(vc);
 
         /// <inheritdoc cref="VirtualChar.Equals(VirtualChar)"/>
         public bool Equals(AspNetCoreVirtualChar other) => _virtualChar.Equals(other._virtualChar);
