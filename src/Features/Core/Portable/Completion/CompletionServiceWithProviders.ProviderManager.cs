@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    public abstract partial class CompletionServiceWithProviders
+    public abstract partial class CompletionService
     {
         private sealed class ProviderManager : IEqualityComparer<ImmutableHashSet<string>>
         {
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly Func<string, CompletionProvider?> _getProviderByName;
 
             private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
-            private readonly CompletionServiceWithProviders _service;
+            private readonly CompletionService _service;
 
-            public ProviderManager(CompletionServiceWithProviders service)
+            public ProviderManager(CompletionService service)
             {
                 _service = service;
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);

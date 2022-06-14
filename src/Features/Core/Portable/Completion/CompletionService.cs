@@ -26,13 +26,8 @@ namespace Microsoft.CodeAnalysis.Completion
     /// A per language service for constructing context dependent list of completions that 
     /// can be presented to a user during typing in an editor.
     /// </summary>
-    public abstract class CompletionService : ILanguageService
+    public abstract partial class CompletionService : ILanguageService
     {
-        // Prevent inheritance outside of Roslyn.
-        internal CompletionService()
-        {
-        }
-
         /// <summary>
         /// Gets the service corresponding to the specified document.
         /// </summary>

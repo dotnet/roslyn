@@ -25,7 +25,14 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// A subtype of <see cref="CompletionService"/> that aggregates completions from one or more <see cref="CompletionProvider"/>s.
     /// </summary>
-    public abstract partial class CompletionServiceWithProviders : CompletionService
+    public abstract class CompletionServiceWithProviders : CompletionService
+    {
+        internal CompletionServiceWithProviders(Workspace workspace) : base(workspace)
+        {
+        }
+    }
+
+    public abstract partial class CompletionService
     {
         private readonly Workspace _workspace;
         private readonly ProviderManager _providerManager;
@@ -35,7 +42,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         private bool _suppressPartialSemantics;
 
-        internal CompletionServiceWithProviders(Workspace workspace)
+        // Prevent inheritance outside of Roslyn.
+        internal CompletionService(Workspace workspace)
         {
             _workspace = workspace;
             _providerManager = new(this);
