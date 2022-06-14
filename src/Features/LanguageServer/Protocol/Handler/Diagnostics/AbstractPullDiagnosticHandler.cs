@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken);
+        protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
@@ -94,11 +95,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[]? diagnostics, string? resultId);
 
         protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
-
-        /// <summary>
-        /// Produce the diagnostics for the specified document.
-        /// </summary>
-        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generate the right diagnostic tags for a particular diagnostic.
@@ -123,43 +119,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var previousResults = GetPreviousResults(diagnosticsParams) ?? ImmutableArray<PreviousPullResult>.Empty;
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
-            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
-            // the user from squiggles or error-list.
-            HandleRemovedDocuments(context, previousResults, progress);
-
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated diagnostics are.
-            var documentToPreviousDiagnosticParams = GetDocumentToPreviousDiagnosticParams(context, previousResults);
+            var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, out var removedResults);
+
+            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
+            // the user from squiggles or error-list.
+            HandleRemovedDocuments(context, removedResults, progress);
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedDocuments = await GetOrderedDocumentsAsync(context, cancellationToken).ConfigureAwait(false);
-            context.TraceInformation($"Processing {orderedDocuments.Length} documents");
+            var orderedSources = await GetOrderedDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
+            context.TraceInformation($"Processing {orderedSources.Length} documents");
 
-            foreach (var document in orderedDocuments)
+            foreach (var diagnosticSource in orderedSources)
             {
                 var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
 
-                var project = document.Project;
+                var project = diagnosticSource.GetProject();
                 var newResultId = await _versionedCache.GetNewResultIdAsync(
                     documentToPreviousDiagnosticParams,
-                    document,
+                    diagnosticSource.GetId(),
+                    project,
                     computeCheapVersionAsync: async () => (encVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
                     computeExpensiveVersionAsync: async () => (encVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, context.ClientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, diagnosticSource, newResultId, context.ClientCapabilities, diagnosticMode, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
-                    context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
+                    context.TraceInformation($"Diagnostics were unchanged for document: {diagnosticSource.GetUri()}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
                     // diagnostics they have for this file.
-                    var previousParams = documentToPreviousDiagnosticParams[document];
+                    var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
                     progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
                 }
             }
@@ -170,23 +167,50 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReturn(progress);
         }
 
-        private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousDiagnosticParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
+        private static Dictionary<ProjectOrDocumentId, PreviousPullResult> GetIdToPreviousDiagnosticParams(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, out ImmutableArray<PreviousPullResult> removedDocuments)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<Document, PreviousPullResult>();
+            var result = new Dictionary<ProjectOrDocumentId, PreviousPullResult>();
+            using var _ = ArrayBuilder<PreviousPullResult>.GetInstance(out var removedDocumentsBuilder);
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
                 {
-                    var document = context.Solution.GetDocument(diagnosticParams.TextDocument);
-                    if (document != null)
-                        result[document] = diagnosticParams;
+                    var id = GetIdForPreviousResult(diagnosticParams.TextDocument, context.Solution);
+                    if (id != null)
+                    {
+                        result[id.Value] = diagnosticParams;
+                    }
+                    else
+                    {
+                        // The client previously had a result from us for this document, but we no longer have it in our solution.
+                        // Record it so we can report to the client that it has been removed.
+                        removedDocumentsBuilder.Add(diagnosticParams);
+                    }
                 }
             }
 
+            removedDocuments = removedDocumentsBuilder.ToImmutable();
             return result;
+
+            static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
+            {
+                var document = solution.GetDocument(textDocumentIdentifier);
+                if (document != null)
+                {
+                    return new ProjectOrDocumentId(document.Id);
+                }
+
+                var project = solution.GetProject(textDocumentIdentifier);
+                if (project != null)
+                {
+                    return new ProjectOrDocumentId(project.Id);
+                }
+
+                return null;
+            }
         }
 
         private DiagnosticMode GetDiagnosticMode(RequestContext context)
@@ -204,60 +228,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
             RequestContext context,
-            Document document,
+            IDiagnosticSource diagnosticSource,
             string resultId,
             ClientCapabilities clientCapabilities,
             DiagnosticMode diagnosticMode,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
-            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {document.FilePath}");
+            var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false);
+            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetUri()}");
 
             foreach (var diagnostic in diagnostics)
-                result.Add(ConvertDiagnostic(document, text, diagnostic, clientCapabilities));
+                result.Add(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-            return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
+            return CreateReport(new LSP.TextDocumentIdentifier { Uri = diagnosticSource.GetUri() }, result.ToArray(), resultId);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
         {
-            Contract.ThrowIfNull(context.Solution);
-
-            foreach (var previousResult in previousResults)
+            foreach (var removedResult in removedPreviousResults)
             {
-                var textDocument = previousResult.TextDocument;
-                if (textDocument != null)
-                {
-                    var document = context.Solution.GetDocument(textDocument);
-                    if (document == null)
-                    {
-                        context.TraceInformation($"Clearing diagnostics for removed document: {textDocument.Uri}");
+                context.TraceInformation($"Clearing diagnostics for removed document: {removedResult.TextDocument.Uri}");
 
-                        // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
-                        // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
-                        // means they should just consider the file deleted and should remove all diagnostics
-                        // information they've cached for it.
-                        progress.Report(CreateReport(textDocument, diagnostics: null, resultId: null));
-                    }
-                }
+                // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
+                // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
+                // means they should just consider the file deleted and should remove all diagnostics
+                // information they've cached for it.
+                progress.Report(CreateReport(removedResult.TextDocument, diagnostics: null, resultId: null));
             }
         }
 
-        private LSP.Diagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData, ClientCapabilities capabilities)
+        private LSP.Diagnostic ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
             Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
-            Contract.ThrowIfNull(diagnosticData.DataLocation, $"Got a document diagnostic that did not have a {nameof(diagnosticData.DataLocation)}");
 
-            var project = document.Project;
+            var project = diagnosticSource.GetProject();
 
-            // We currently do not map diagnostics spans as
-            //   1.  Razor handles span mapping for razor files on their side.
-            //   2.  LSP does not allow us to report document pull diagnostics for a different file path.
-            //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
-            //   4.  This matches classic behavior where we only squiggle the original location anyway.
-            var useMappedSpan = false;
             if (!capabilities.HasVisualStudioLspCapability())
             {
                 var diagnostic = CreateBaseLspDiagnostic();
@@ -283,15 +289,51 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // would get automatically serialized.
             LSP.VSDiagnostic CreateBaseLspDiagnostic()
             {
-                return new LSP.VSDiagnostic
+                var diagnostic = new LSP.VSDiagnostic
                 {
                     Source = "Roslyn",
                     Code = diagnosticData.Id,
                     CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                    Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),
                     Tags = ConvertTags(diagnosticData),
+                };
+                var range = GetRange(diagnosticData.DataLocation);
+                if (range != null)
+                {
+                    diagnostic.Range = range;
+                }
+
+                return diagnostic;
+            }
+
+            static Range? GetRange(DiagnosticDataLocation? dataLocation)
+            {
+                if (dataLocation == null)
+                {
+                    return null;
+                }
+
+                // We currently do not map diagnostics spans as
+                //   1.  Razor handles span mapping for razor files on their side.
+                //   2.  LSP does not allow us to report document pull diagnostics for a different file path.
+                //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
+                //   4.  This matches classic behavior where we only squiggle the original location anyway.
+
+                // We also do not adjust the diagnostic locations to ensure they are in bounds because we've
+                // explicitly requested up to date diagnostics as of the snapshot we were passed in.
+                return new Range
+                {
+                    Start = new Position
+                    {
+                        Character = dataLocation.OriginalStartColumn,
+                        Line = dataLocation.OriginalStartLine,
+                    },
+                    End = new Position
+                    {
+                        Character = dataLocation.OriginalEndColumn,
+                        Line = dataLocation.OriginalEndLine,
+                    }
                 };
             }
         }

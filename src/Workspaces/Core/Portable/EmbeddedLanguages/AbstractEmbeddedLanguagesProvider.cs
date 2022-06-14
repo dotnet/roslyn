@@ -12,10 +12,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
     internal abstract class AbstractEmbeddedLanguagesProvider : IEmbeddedLanguagesProvider
     {
         public virtual ImmutableArray<IEmbeddedLanguage> Languages { get; }
+        public EmbeddedLanguageInfo EmbeddedLanguageInfo { get; }
 
-        protected AbstractEmbeddedLanguagesProvider()
+        protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
             Languages = ImmutableArray<IEmbeddedLanguage>.Empty;
+            EmbeddedLanguageInfo = info;
         }
     }
 }

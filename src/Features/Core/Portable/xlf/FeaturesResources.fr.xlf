@@ -585,6 +585,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">PDB introuvable sur le disque, ou incorporé, ou sur un serveur de symboles.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">Créer et affecter le champ '{0}'</target>
@@ -728,6 +733,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corriger la faute de frappe '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fixing_0">
+        <source>Fixing '{0}'</source>
+        <target state="new">Fixing '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">

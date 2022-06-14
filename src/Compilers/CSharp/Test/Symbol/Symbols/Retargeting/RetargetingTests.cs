@@ -676,15 +676,6 @@ public class C<T> where T : int
             Assert.Equal(isUnmanaged, retargetingTypeParameter.HasUnmanagedTypeConstraint);
         }
 
-        private void CheckTypes(ImmutableArray<TypeSymbol> source, ImmutableArray<TypeSymbol> retargeting)
-        {
-            Assert.Equal(source.Length, retargeting.Length);
-            for (int i = 0; i < source.Length; i++)
-            {
-                CheckTypes(source[i], retargeting[i]);
-            }
-        }
-
         private void CheckTypes(Symbol source, Symbol retargeting)
         {
             CheckUnderlyingMember(source.OriginalDefinition, ((RetargetingNamedTypeSymbol)retargeting.OriginalDefinition).UnderlyingNamedType);

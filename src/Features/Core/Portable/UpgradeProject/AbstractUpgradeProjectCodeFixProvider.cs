@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             }
 
             var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
-            var fixOneProject = new ProjectOptionsChangeAction(fixOneProjectTitle,
+            var fixOneProject = ProjectOptionsChangeAction.Create(fixOneProjectTitle,
                 _ => Task.FromResult(UpgradeProject(project, newVersion)));
 
             result.Add(fixOneProject);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             {
                 var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
 
-                var fixAllProjects = new ProjectOptionsChangeAction(fixAllProjectsTitle,
+                var fixAllProjects = ProjectOptionsChangeAction.Create(fixAllProjectsTitle,
                     ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
 
                 result.Add(fixAllProjects);
@@ -97,10 +97,13 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
     internal class ProjectOptionsChangeAction : SolutionChangeAction
     {
-        public ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-            : base(title, createChangedSolution, equivalenceKey: null)
+        private ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+            : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Default, createdFromFactoryMethod: true)
         {
         }
+
+        public static ProjectOptionsChangeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+            => new(title, createChangedSolution);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();

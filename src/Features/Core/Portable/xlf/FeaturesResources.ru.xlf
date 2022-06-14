@@ -585,6 +585,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Не удалось найти PDB-файл на диске, во внедренном источнике или на сервере символов.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_implementation_of_symbol_0">
+        <source>Could not find implementation of symbol '{0}'</source>
+        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">Создать и назначить поле "{0}"</target>
@@ -728,6 +733,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Исправьте опечатку "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fixing_0">
+        <source>Fixing '{0}'</source>
+        <target state="new">Fixing '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">

@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
+            MyBase.New(Info)
         End Sub
     End Class
 End Namespace
