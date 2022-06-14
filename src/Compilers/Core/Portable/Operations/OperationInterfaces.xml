@@ -784,7 +784,7 @@
         <summary>Referenced member.</summary>
       </Comments>
     </Property>
-    <Property Name="ConstrainedToType" Type="ITypeSymbol?" SkipGeneration="true">
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" MakeAbstract="true">
       <Comments>
         <summary>
           Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Member" />.
@@ -835,14 +835,7 @@
         <summary>Referenced method.</summary>
       </Comments>
     </Property>
-    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Internal="true">
-      <Comments>
-        <summary>
-          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Method" />.
-          Null if <see cref="Method" /> is resolved statically, or is an instance method.
-        </summary>
-      </Comments>
-    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Override="true"/>
     <Property Name="IsVirtual" Type="bool">
       <Comments>
         <summary>Indicates whether the reference uses virtual semantics.</summary>
@@ -865,14 +858,7 @@
         <summary>Referenced property.</summary>
       </Comments>
     </Property>
-    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Internal="true">
-      <Comments>
-        <summary>
-          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Property" />.
-          Null if <see cref="Property" /> is resolved statically, or is an instance property.
-        </summary>
-      </Comments>
-    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Override="true"/>
     <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
       <Comments>
         <summary>Arguments of the indexer property reference, excluding the instance argument. Arguments are in evaluation order.</summary>
@@ -899,14 +885,7 @@
         <summary>Referenced event.</summary>
       </Comments>
     </Property>
-    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Internal="true">
-      <Comments>
-        <summary>
-          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Event" />.
-          Null if <see cref="Event" /> is resolved statically, or is an instance event.
-        </summary>
-      </Comments>
-    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Override="true"/>
   </Node>
   <Node Name="IUnaryOperation" Base="IOperation" VisitorName="VisitUnaryOperator" HasType="true" HasConstantValue="true">
     <OperationKind>

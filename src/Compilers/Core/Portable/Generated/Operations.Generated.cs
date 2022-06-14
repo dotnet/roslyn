@@ -4942,6 +4942,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Instance = SetParentOperation(instance, this);
         }
         public IOperation? Instance { get; }
+        public abstract ITypeSymbol? ConstrainedToType { get; }
     }
     internal sealed partial class FieldReferenceOperation : BaseMemberReferenceOperation, IFieldReferenceOperation
     {
@@ -5009,7 +5010,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IMethodSymbol Method { get; }
-        public ITypeSymbol? ConstrainedToType { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         public bool IsVirtual { get; }
         internal override int ChildOperationsCount =>
             (Instance is null ? 0 : 1);
@@ -5065,7 +5066,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IPropertySymbol Property { get; }
-        public ITypeSymbol? ConstrainedToType { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
         internal override int ChildOperationsCount =>
             Arguments.Length +
@@ -5133,7 +5134,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IEventSymbol Event { get; }
-        public ITypeSymbol? ConstrainedToType { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Instance is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
