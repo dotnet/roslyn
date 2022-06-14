@@ -72,6 +72,12 @@ namespace Microsoft.VisualStudio.LanguageServices
                 threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     this.symbolTreeInitialized = false;
+                    if (documentId is null)
+                    {
+                        symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
+                        return;
+                    }
+
                     if (documentId == this.lastDocumentId)
                     {
                         return;
@@ -94,7 +100,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                     var textBuffer = text.Container.GetTextBuffer();
                     this.snapshot = textBuffer.CurrentSnapshot;
-                    if (!textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+                    var isCSharpContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.CSharpContentType);
+                    var isVisualBasicContentType = textBuffer.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType);
+
+                    // Check required since ActiveDocumentChanged is called for many content types
+                    if (!isCSharpContentType && !isVisualBasicContentType)
                     {
                         symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
                         return;
