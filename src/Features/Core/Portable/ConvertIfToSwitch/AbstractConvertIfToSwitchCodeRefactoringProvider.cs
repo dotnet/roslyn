@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         }
 
         private bool ShouldOfferRefactoring(
-            TIfStatementSyntax? ifStatement,
+            [NotNullWhen(true)] TIfStatementSyntax? ifStatement,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
             [NotNullWhen(true)] out Analyzer? analyzer,
