@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogTypeImportCompletionTicksDataPoint(TimeSpan elapsed)
         {
-            s_histogramLogAggregator.IncreaseCount(ActionInfo.TypeImportCompletionTicks, elapsed);
+            s_histogramLogAggregator.LogTime(ActionInfo.TypeImportCompletionTicks, elapsed);
             s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionTicks, elapsed);
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, bool isRemote)
         {
-            s_histogramLogAggregator.IncreaseCount(ActionInfo.ExtensionMethodCompletionTicks, total);
+            s_histogramLogAggregator.LogTime(ActionInfo.ExtensionMethodCompletionTicks, total);
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionTicks, total);
 
             if (isRemote)
