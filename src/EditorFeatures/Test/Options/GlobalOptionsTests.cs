@@ -246,6 +246,11 @@ public class GlobalOptionsTests
              property.DeclaringType == typeof(ClassificationOptions) && property.Name == nameof(ClassificationOptions.ForceFrozenPartialSemanticsForCrossProcessOperations) ||
              property.DeclaringType == typeof(BlockStructureOptions) && property.Name == nameof(BlockStructureOptions.IsMetadataAsSource));
 
+    /// <summary>
+    /// Our mock <see cref="IGlobalOptionService"/> implementation returns a non-default value for each option it reads.
+    /// Option objects initialized from this service thus should have all their data properties initialized to non-default values.
+    /// We then enumerate these properties via reflection and compare each property value with the default instance of the respective options type.
+    /// </summary>
     [Theory]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
