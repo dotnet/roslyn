@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using TelemetryInfo = System.Tuple<string, string>;
 
 namespace BuildActionTelemetryTable
 {
@@ -493,25 +492,25 @@ namespace BuildActionTelemetryTable
                 || typeof(CodeRefactoringProvider).IsAssignableFrom(t);
         }
 
-        internal static ImmutableArray<TelemetryInfo> GetTelemetryInfos(ImmutableArray<Type> codeActionAndProviderTypes)
+        internal static ImmutableArray<(string TypeName, string Hash)> GetTelemetryInfos(ImmutableArray<Type> codeActionAndProviderTypes)
         {
             return codeActionAndProviderTypes
                 .Distinct(FullNameTypeComparer.Instance)
                 .Select(GetTelemetryInfo)
-                .OrderBy(info => info.Item1)
+                .OrderBy(info => info.TypeName)
                 .ToImmutableArray();
 
-            static TelemetryInfo GetTelemetryInfo(Type type)
+            static (string TypeName, string Hash) GetTelemetryInfo(Type type)
             {
                 // Generate dev17 telemetry hash
                 var telemetryId = type.GetTelemetryId().ToString();
                 var fnvHash = telemetryId.Substring(19);
 
-                return Tuple.Create(type.FullName!, fnvHash);
+                return (type.FullName!, fnvHash);
             }
         }
 
-        internal static string GenerateKustoDatatable(ImmutableArray<TelemetryInfo> telemetryInfos)
+        internal static string GenerateKustoDatatable(ImmutableArray<(string TypeName, string Hash)> telemetryInfos)
         {
             var missingDescriptions = new List<string>();
 
@@ -547,7 +546,7 @@ namespace BuildActionTelemetryTable
         }
 
         // NOTE: This method is unused but still present in case we want to auto-generate and refresh the "CodeActionsDescriptionMap".
-        internal static string GenerateCodeActionsDescriptionMap(ImmutableArray<TelemetryInfo> telemetryInfos)
+        internal static string GenerateCodeActionsDescriptionMap(ImmutableArray<(string TypeName, string Hash)> telemetryInfos)
         {
             var builder = new StringBuilder();
 
