@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Linq;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -2661,7 +2662,8 @@ parse_member_name:;
                                 // Do not parse a single identifier as an expression statement in a Simple Program, this could be a beginning of a keyword and
                                 // we want completion to offer it.
                                 ((ExpressionStatementSyntax)statement) is var exprStatement &&
-                                exprStatement.Expression.Kind == SyntaxKind.IdentifierName &&
+                                exprStatement.Expression is IdentifierNameSyntax identifier &&
+                                !identifier.Identifier.Text.Any(char.IsUpper) && // C# keyword cannot contain upper case letters. In case our identifier does then it is definitely not a keyword start
                                 exprStatement.SemicolonToken.IsMissing:
 
                         return false;

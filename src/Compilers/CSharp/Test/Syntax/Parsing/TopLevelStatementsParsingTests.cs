@@ -780,13 +780,13 @@ class Test : Itest
                 // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-                // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // public class S.D 
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
-                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                // {
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
-").WithLocation(2, 1),
+                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
+                // public class S.D
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
+").WithLocation(1, 16),
+                // (1,17): error CS1002: ; expected
+                // public class S.D
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17),
                 // (2,2): error CS1513: } expected
                 // {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
@@ -805,13 +805,17 @@ class Test : Itest
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "D");
+                        }
                     }
                 }
+                M(SyntaxKind.SemicolonToken);
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.Block);
@@ -868,9 +872,9 @@ class Test : Itest
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,32): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 32)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -914,13 +918,17 @@ class Test : Itest
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "Basic");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Basic");
+                        }
                     }
                 }
+                M(SyntaxKind.SemicolonToken);
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
@@ -2641,6 +2649,58 @@ e
                     N(SyntaxKind.EmptyStatement);
                     {
                         N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61727, "https://github.com/dotnet/roslyn/issues/61727")]
+        public void SingleIdentifierDefinitelyNotAKeyword()
+        {
+            var test = "Identifier";
+
+            UsingTree(test,
+                // (1,11): error CS1002: ; expected
+                // Identifier
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Identifier");
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(61727, "https://github.com/dotnet/roslyn/issues/61727")]
+        public void SingleIdentifierCanBeAKeyword()
+        {
+            var test = "asy";
+
+            UsingTree(test,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods.
+                // asy
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asy").WithLocation(1, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "asy");
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
