@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             RoslynDebug.AssertNotNull(previousGeneration.Compilation);
             RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+            RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
 
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
             var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods();
