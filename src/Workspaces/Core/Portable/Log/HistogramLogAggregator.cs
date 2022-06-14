@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             counter.IncreaseCount(value);
         }
 
-        public void IncreaseCount(TKey key, TimeSpan timeSpan)
+        public void LogTime(TKey key, TimeSpan timeSpan)
         {
             var counter = GetCounter(key);
             counter.IncreaseCount((int)timeSpan.TotalMilliseconds);

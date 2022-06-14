@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             s_countLogAggregator.IncreaseCountBy(ActionInfo.CommittedSessionNumberOfCallSitesUpdated, numCallSitesUpdated);
 
             s_statisticLogAggregator.AddDataPoint(ActionInfo.CommittedSessionCommitElapsedMS, (int)elapsedTime.TotalMilliseconds);
-            s_histogramLogAggregator.IncreaseCount(ActionInfo.CommittedSessionCommitElapsedMS, elapsedTime);
+            s_histogramLogAggregator.LogTime(ActionInfo.CommittedSessionCommitElapsedMS, elapsedTime);
         }
 
         internal static void LogAddedParameterTypeBinds()

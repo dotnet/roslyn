@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
 
         internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(TimeSpan timeSpan) =>
-            s_histogramLogAggregator.IncreaseCount(ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
+            s_histogramLogAggregator.LogTime(ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
 
         internal static void LogDelayedImportCompletionIncluded() =>
             s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal static void LogSourceInitializationTicksDataPoint(TimeSpan elapsed)
         {
             s_statisticLogAggregator.AddDataPoint(ActionInfo.SourceInitializationTicks, elapsed);
-            s_histogramLogAggregator.IncreaseCount(ActionInfo.SourceInitializationTicks, elapsed);
+            s_histogramLogAggregator.LogTime(ActionInfo.SourceInitializationTicks, elapsed);
         }
 
         internal static void LogSourceGetContextTicksDataPoint(TimeSpan elapsed, bool isCanceled)
@@ -82,13 +82,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 : ActionInfo.SourceGetContextCompletedTicks;
 
             s_statisticLogAggregator.AddDataPoint(key, elapsed);
-            s_histogramLogAggregator.IncreaseCount(key, elapsed);
+            s_histogramLogAggregator.LogTime(key, elapsed);
         }
 
         internal static void LogItemManagerSortTicksDataPoint(TimeSpan elapsed)
         {
             s_statisticLogAggregator.AddDataPoint(ActionInfo.ItemManagerSortTicks, elapsed);
-            s_histogramLogAggregator.IncreaseCount(ActionInfo.ItemManagerSortTicks, elapsed);
+            s_histogramLogAggregator.LogTime(ActionInfo.ItemManagerSortTicks, elapsed);
         }
 
         internal static void LogItemManagerUpdateDataPoint(TimeSpan elapsed, bool isCanceled)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 : ActionInfo.ItemManagerUpdateCompletedTicks;
 
             s_statisticLogAggregator.AddDataPoint(key, elapsed);
-            s_histogramLogAggregator.IncreaseCount(key, elapsed);
+            s_histogramLogAggregator.LogTime(key, elapsed);
         }
 
         internal static void ReportTelemetry()
