@@ -93,49 +93,18 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                     var textBuffer = text.Container.GetTextBuffer();
                     this.snapshot = textBuffer.CurrentSnapshot;
-                    var isCorrectType = textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType);
-
-                    if (!isCorrectType)
+                    if (!textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                     {
                         symbolTree.ItemsSource = new List<DocumentSymbolViewModel>();
                         return;
                     }
 
-                    var parameterFactory = new DocumentSymbolParams()
-                    {
-                        TextDocument = new TextDocumentIdentifier()
-                        {
-                            Uri = document.GetURI()
-                        }
-                    };
-
-                    var serializedParams = JToken.FromObject(parameterFactory);
-                    JToken ParameterFactory(ITextSnapshot _)
-                    {
-                        return serializedParams;
-                    }
-
-                    // make LSP request
-                    var languageServerName = WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString();
-                    var lspService = languageServiceBroker;
-                    var capabilitiesFilter = (JToken x) => true;
-                    var method = Methods.TextDocumentDocumentSymbolName;
-                    var cancellationToken = CancellationToken.None;
-
-                    // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
-                    var response = await lspService.RequestAsync(
-                        textBuffer: textBuffer,
-                        method: method,
-                        capabilitiesFilter: capabilitiesFilter,
-                        languageServerName: languageServerName,
-                        parameterFactory: ParameterFactory,
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-
+                    var response = DocumentSymbolsRequest(document, textBuffer, languageServiceBroker, threadingContext);
                     if (response is not null && response.Response is not null)
                     {
-                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        var body = response.Response.ToObject<DocumentSymbol[]>();
-                        var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbols(body);
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+                        var responseBody = response.Response.ToObject<DocumentSymbol[]>();
+                        var documentSymbolModels = DocumentOutlineHelper.GetDocumentSymbols(responseBody);
                         this.symbolTreeInitialized = true;
                         this.symbolsTreeItemsSource = documentSymbolModels;
                         symbolTree.ItemsSource = documentSymbolModels;
@@ -146,6 +115,37 @@ namespace Microsoft.VisualStudio.LanguageServices
                     }
                 }).FileAndForget("Document Outline: Active Document Changed");
             }
+        }
+
+        private ManualInvocationResponse? DocumentSymbolsRequest(Document document, ITextBuffer textBuffer, ILanguageServiceBroker2 languageServiceBroker, IThreadingContext threadingContext)
+        {
+            ManualInvocationResponse? response = null;
+            threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            {
+                var parameterFactory = new DocumentSymbolParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = document.GetURI()
+                    }
+                };
+
+                var serializedParams = JToken.FromObject(parameterFactory);
+                JToken ParameterFactory(ITextSnapshot _)
+                {
+                    return serializedParams;
+                }
+
+                // TODO: proper workaround such that context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true
+                response = await languageServiceBroker.RequestAsync(
+                    textBuffer: textBuffer,
+                    method: Methods.TextDocumentDocumentSymbolName,
+                    capabilitiesFilter: (JToken x) => true,
+                    languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
+                    parameterFactory: ParameterFactory,
+                    cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            }).FileAndForget("Document Outline: Document Symbols Request");
+            return response;
         }
 
         private void ExpandAll(object sender, RoutedEventArgs e)
