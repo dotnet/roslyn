@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
         private static async Task VerifyInheritanceMemberAsync(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
         {
+            Assert.True(!actualItem.TargetItems.IsEmpty);
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
             Assert.Equal(expectedItem.MemberName, actualItem.DisplayTexts.JoinText());
             Assert.Equal(expectedItem.Targets.Length, actualItem.TargetItems.Length);
@@ -2278,6 +2279,21 @@ using System.Collections;";
                 new[] { itemForBarInMarkup1 },
                 new[] { itemForIBar, itemForBarInMarkup2 },
                 testHost);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestHiddenLocationSymbol(TestHost testHost)
+        {
+            await VerifyNoItemForDocumentAsync(@"
+public class B : C
+{
+}
+
+#line hidden
+public class C
+{
+}",
+LanguageNames.CSharp, testHost);
         }
     }
 }
