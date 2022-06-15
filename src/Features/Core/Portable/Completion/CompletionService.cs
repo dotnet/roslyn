@@ -71,9 +71,6 @@ namespace Microsoft.CodeAnalysis.Completion
         internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             => ProviderManager.GetProjectCompletionProviders(project);
 
-        protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
-            => _providerManager.GetProviders(roles);
-
         internal CompletionProvider? GetProvider(CompletionItem item)
             => _providerManager.GetProvider(item);
 
